@@ -300,7 +300,7 @@ class SceneObject : public NetObject, private SceneContainer::Link, public Proce
       /// Object scale.
       Point3F mObjScale;
 
-      /// Bounding box in object space.
+      /// Bounding box (OOBB) in object space.
       Box3F mObjBox;
 
       /// Bounding box (AABB) in world space.
