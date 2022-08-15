@@ -211,31 +211,13 @@ void SFXALDevice::getEFXInfo(ALCdevice *device)
 
 S32 SFXALDevice::getMaxSources()
 {
-   ALuint uiSources[256];
-   S32 iSourceCount = 0;
-
    // Clear AL Error Code
    mOpenAL.alGetError();
 
-   // Generate up to 256 Sources, checking for any errors
-   for (iSourceCount = 0; iSourceCount < 256; iSourceCount++)
-   {
-      mOpenAL.alGenSources(1, &uiSources[iSourceCount]);
-      if (mOpenAL.alGetError() != AL_NO_ERROR)
-         break;
-   }
+   ALCint nummono;
+   mOpenAL.alcGetIntegerv(mDevice, ALC_MONO_SOURCES, 1, &nummono);
 
-   // Release the Sources
-   mOpenAL.alDeleteSources(iSourceCount, uiSources);
-   if (mOpenAL.alGetError() != AL_NO_ERROR)
-   {
-      for (U32 i = 0; i < 256; i++)
-      {
-         mOpenAL.alDeleteSources(1, &uiSources[i]);
-      }
-   }
-
-   return iSourceCount;
+   return nummono;
 }
 
 //-----------------------------------------------------------------------------
