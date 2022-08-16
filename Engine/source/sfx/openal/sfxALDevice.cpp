@@ -292,6 +292,7 @@ SFXALDevice::SFXALDevice(  SFXProvider *provider,
    printALInfo(mDevice);
    printHRTFInfo(mDevice);
    getEFXInfo(mDevice);
+
    mMaxBuffers = getMaxSources();
 
    // this should be max sources.
