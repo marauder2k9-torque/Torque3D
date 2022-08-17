@@ -151,9 +151,12 @@ DefineEnumType( SFXChannel );
 /// Rolloff curve used for distance volume attenuation of 3D sounds.
 enum SFXDistanceModel
 {
-   SFXDistanceModelLinear,             ///< Volume decreases linearly from min to max where it reaches zero.
-   SFXDistanceModelLogarithmic,        ///< Volume halves every min distance steps starting from min distance; attenuation stops at max distance.
-   SFXDistanceModelExponent,           /// exponential falloff for distance attenuation.
+   SFXDistanceModelLinear,                ///< Volume decreases linearly from min to max where it reaches zero.
+   SFXDistanceModelLinearClamped,         ///< Volume decreases after min distance, then decresease to max distance based on rolloff factor.
+   SFXDistanceModelInverse,               ///< Volume decreases in an inverse curve until it reaches zero.
+   SFXDistanceModelInverseClamped,        ///< Volume decreases after min distance then decreases in an inverse curve to max based on rolloff.
+   SFXDistanceModelExponent,              ///< exponential falloff for distance attenuation.
+   SFXDistanceModelExponentClamped,       ///< exponential falloff after min for distance attenuation. 
 };
 
 DefineEnumType( SFXDistanceModel );
@@ -175,13 +178,25 @@ inline F32 SFXDistanceAttenuation( SFXDistanceModel model, F32 minDistance, F32 
    {
       case SFXDistanceModelLinear:
       
-         distance = getMax( distance, minDistance );
          distance = getMin( distance, maxDistance );
          
          gain = ( 1 - ( distance - minDistance ) / ( maxDistance - minDistance ) );
          break;
+
+      case SFXDistanceModelLinearClamped:
+
+         distance = getMax(distance, minDistance);
+         distance = getMin(distance, maxDistance);
+
+         gain = (1 - (distance - minDistance) / (maxDistance - minDistance));
+         break;
+
+      case SFXDistanceModelInverse:
+
+         gain = minDistance / (minDistance + rolloffFactor * (distance - minDistance));
+         break;
                   
-      case SFXDistanceModelLogarithmic:
+      case SFXDistanceModelInverseClamped:
       
          distance = getMax( distance, minDistance );
          distance = getMin( distance, maxDistance );
@@ -191,6 +206,10 @@ inline F32 SFXDistanceAttenuation( SFXDistanceModel model, F32 minDistance, F32 
 
          ///create exponential distance model    
       case SFXDistanceModelExponent:
+         gain = pow((distance / minDistance), (-rolloffFactor));
+         break;
+
+      case SFXDistanceModelExponentClamped:
          distance = getMax(distance, minDistance);
          distance = getMin(distance, maxDistance);
 

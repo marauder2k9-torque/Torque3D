@@ -41,7 +41,7 @@ ALDeviceList::ALDeviceList( const OPENALFNTABLE &oalft )
    VECTOR_SET_ASSOCIATION( vDeviceInfo );
 
 	ALDEVICEINFO	ALDeviceInfo;
-	char *devices;
+	const char *devices;
 	int index;
 	const char *defaultDeviceName;
 
@@ -55,13 +55,13 @@ ALDeviceList::ALDeviceList( const OPENALFNTABLE &oalft )
 
    // grab function pointers for 1.0-API functions, and if successful proceed to enumerate all devices
    if (ALFunction.alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT")) {
-          devices = (char *)ALFunction.alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
-          defaultDeviceName = (char *)ALFunction.alcGetString(NULL, ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
+          devices = ALFunction.alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+          defaultDeviceName = ALFunction.alcGetString(NULL, ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
    }
    else
    {
-       devices = (char *)ALFunction.alcGetString(NULL, ALC_DEVICE_SPECIFIER);
-       defaultDeviceName = (char *)ALFunction.alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+       devices = ALFunction.alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+       defaultDeviceName = ALFunction.alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
    }
 
    index = 0;
@@ -83,15 +83,17 @@ ALDeviceList::ALDeviceList( const OPENALFNTABLE &oalft )
          dMemset(&ALDeviceInfo, 0, sizeof(ALDEVICEINFO));
          ALDeviceInfo.bSelected = true;
          dStrncpy(ALDeviceInfo.strInternalDeviceName, devices, sizeof(ALDeviceInfo.strInternalDeviceName));
-         char* openFind = dStrchr(devices, '(');
+         char deviceExternal[256];
+         dStrcpy(deviceExternal, devices, 256);
+         char* openFind = dStrchr(deviceExternal, '(');
          if (openFind)
          {
-            devices = openFind + 1;
-            char* closeFind = dStrchr(devices, ')');
+            char* deviceName = openFind + 1;
+            char* closeFind = dStrchr(deviceName, ')');
             if (closeFind)
                (*closeFind) = '\0';
 
-            dStrncpy(ALDeviceInfo.strDeviceName, devices, sizeof(ALDeviceInfo.strDeviceName));
+            dStrncpy(ALDeviceInfo.strDeviceName, deviceName, sizeof(ALDeviceInfo.strDeviceName));
 
          }
 

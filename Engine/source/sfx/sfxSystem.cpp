@@ -92,13 +92,17 @@ ImplementEnumType( SFXDistanceModel,
    "@ref SFX_3d\n\n"
    "@ingroup SFX" )
    { SFXDistanceModelLinear, "Linear",
-      "Volume attenuates linearly from the references distance onwards to max distance where it reaches zero." },
-   { SFXDistanceModelLogarithmic, "Logarithmic", 
-      "Volume attenuates logarithmically starting from the reference distance and halving every reference distance step from there on. "
-      "Attenuation stops at max distance but volume won't reach zero." },
+      "Volume attenuates linearly." },
+   { SFXDistanceModelLinearClamped, "Linear Clamped",
+      "Volume attenuates linearly from the reference distance." },
+   { SFXDistanceModelInverse, "Inverse",
+      "Volume attenuates in an inverse curve, attenuating by the rolloff factor. "},
+   { SFXDistanceModelInverseClamped, "Inverse Clamped", 
+      "Volume attenuates in an inverse curve, attenuating by the rolloff factor from reference distance. "},
    { SFXDistanceModelExponent, "Exponential",
-   "Volume attenuates exponentially starting from the reference distance and attenuating every reference distance step by the rolloff factor. "
-   "Attenuation stops at max distance but volume won't reach zero." },
+      "Volume attenuates exponentially by the rolloff factor. " },
+   { SFXDistanceModelExponentClamped, "Exponential Clamped",
+      "Volume attenuates exponentially starting from the reference distance, attenuating by the rolloff factor. "},
 EndImplementEnumType;
 
 ImplementEnumType( SFXChannel,
@@ -200,7 +204,7 @@ SFXSystem::SFXSystem()
       mStatNumVoices( 0 ),
       mStatSourceUpdateTime( 0 ),
       mStatParameterUpdateTime( 0 ),
-      mDistanceModel( SFXDistanceModelLinear ),
+      mDistanceModel(SFXDistanceModelInverseClamped),
       mStatAmbientUpdateTime( 0 ),
       mDopplerFactor( 0.5 ),
       mRolloffFactor( 1.0 ),

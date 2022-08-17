@@ -29,6 +29,12 @@
 //----------------------------------------------------------------------------
 void SFXALDevice::printALInfo(ALCdevice* device)
 {
+
+   Con::printf("==================================================");
+   Con::printf("| OpenAL Vendor: %s",mOpenAL.alGetString(AL_VENDOR));
+   Con::printf("| OpenAL Renderer: %s",mOpenAL.alGetString(AL_RENDERER));
+   Con::printf("| OpenAL Version: %s",mOpenAL.alGetString(AL_VERSION));
+
    ALCint major, minor;
    if (device)
    {
@@ -248,8 +254,6 @@ SFXALDevice::SFXALDevice(  SFXProvider *provider,
 #endif
    attribs[1] = 4;
 
-   printALInfo(NULL);
-
    mDevice = mOpenAL.alcOpenDevice( name );
    U32 err = mOpenAL.alcGetError(mDevice);
    if (err != ALC_NO_ERROR)
@@ -393,18 +397,36 @@ void SFXALDevice::setDistanceModel( SFXDistanceModel model )
    switch( model )
    {
       case SFXDistanceModelLinear:
+         mOpenAL.alDistanceModel(AL_LINEAR_DISTANCE);
+         if (mRolloffFactor != 1.0f)
+            _setRolloffFactor(1.0f); // No rolloff on linear.
+         break;
+
+      case SFXDistanceModelLinearClamped:
          mOpenAL.alDistanceModel( AL_LINEAR_DISTANCE_CLAMPED );
          if( mRolloffFactor != 1.0f )
             _setRolloffFactor( 1.0f ); // No rolloff on linear.
          break;
+
+      case SFXDistanceModelInverse:
+         mOpenAL.alDistanceModel(AL_INVERSE_DISTANCE);
+         if (mUserRolloffFactor != 1.0f)
+            _setRolloffFactor(1.0f);
+         break;
          
-      case SFXDistanceModelLogarithmic:
+      case SFXDistanceModelInverseClamped:
          mOpenAL.alDistanceModel( AL_INVERSE_DISTANCE_CLAMPED );
          if( mUserRolloffFactor != mRolloffFactor )
             _setRolloffFactor( mUserRolloffFactor );
          break;
-         /// create a case for our exponential distance model
+
       case SFXDistanceModelExponent:
+         mOpenAL.alDistanceModel(AL_EXPONENT_DISTANCE);
+         if (mUserRolloffFactor != 1.0f)
+            _setRolloffFactor(1.0f);
+         break;
+
+      case SFXDistanceModelExponentClamped:
          mOpenAL.alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
          if (mUserRolloffFactor != mRolloffFactor)
             _setRolloffFactor(mUserRolloffFactor);
