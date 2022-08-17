@@ -86,7 +86,7 @@ void SFXALDevice::printHRTFInfo(ALCdevice* device)
       Con::printf("Available HRTFs");
       for (U32 i = 0; i < numHrtfs; ++i)
       {
-         const ALCchar* name = mOpenAL.alcGetStringiSOFT(device, ALC_HRTF_SPECIFIER_SOFT, i);
+         const ALCchar* name = mOpenAL.alcGetStringiSOFT(ALC_HRTF_SPECIFIER_SOFT, i);
          printf("   %s", name);
       }
    }
