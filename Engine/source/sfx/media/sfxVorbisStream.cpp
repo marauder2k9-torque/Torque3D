@@ -224,6 +224,7 @@ S32 SFXVorbisStream::read( U8 *buffer,
          return bytesRead;
       }
 
+      bytesRead /= 2;
       offset += bytesRead;
       buffer += bytesRead;
       mBytesRead += bytesRead;

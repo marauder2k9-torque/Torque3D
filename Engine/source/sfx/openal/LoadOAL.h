@@ -41,6 +41,7 @@
 #  include <al/al.h>
 #  include <al/alc.h>
 #  include <AL/alext.h>
+#  include <AL/efx.h>
 #  include <AL/efx-presets.h>
 #endif
 
@@ -207,7 +208,7 @@ typedef struct
    LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti{ nullptr };
    LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv{ nullptr };
 
-   LPALGETSTRINGISOFT alcGetStringiSOFT{ nullptr };
+   LPALCGETSTRINGISOFT alcGetStringiSOFT{ nullptr };
 
 } OPENALFNTABLE, *LPOPENALFNTABLE;
 #endif

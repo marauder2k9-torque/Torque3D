@@ -368,7 +368,7 @@ void SFXSystem::init()
 
    // Note: If you have provider specific file types you should
    // register them in the provider initialization.
-
+   
    // Create the system.
    smSingleton = new SFXSystem();
    sDefaultAmbience = new SFXAmbience();

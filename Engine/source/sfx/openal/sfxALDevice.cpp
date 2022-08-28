@@ -86,7 +86,7 @@ void SFXALDevice::printHRTFInfo(ALCdevice* device)
       Con::printf("Available HRTFs");
       for (U32 i = 0; i < numHrtfs; ++i)
       {
-         const ALCchar* name = mOpenAL.alcGetStringiSOFT(ALC_HRTF_SPECIFIER_SOFT, i);
+         const ALCchar* name = mOpenAL.alcGetStringiSOFT(device, ALC_HRTF_SPECIFIER_SOFT, i);
          printf("   %s", name);
       }
    }
@@ -405,13 +405,13 @@ void SFXALDevice::setDistanceModel( SFXDistanceModel model )
       case SFXDistanceModelLinearClamped:
          mOpenAL.alDistanceModel( AL_LINEAR_DISTANCE_CLAMPED );
          if( mRolloffFactor != 1.0f )
-            _setRolloffFactor( 1.0f ); // No rolloff on linear.
+            _setRolloffFactor( 1.0f );
          break;
 
       case SFXDistanceModelInverse:
          mOpenAL.alDistanceModel(AL_INVERSE_DISTANCE);
-         if (mUserRolloffFactor != 1.0f)
-            _setRolloffFactor(1.0f);
+         if (mUserRolloffFactor != mRolloffFactor)
+            _setRolloffFactor(mUserRolloffFactor);
          break;
          
       case SFXDistanceModelInverseClamped:
@@ -422,8 +422,8 @@ void SFXALDevice::setDistanceModel( SFXDistanceModel model )
 
       case SFXDistanceModelExponent:
          mOpenAL.alDistanceModel(AL_EXPONENT_DISTANCE);
-         if (mUserRolloffFactor != 1.0f)
-            _setRolloffFactor(1.0f);
+         if (mUserRolloffFactor != mRolloffFactor)
+            _setRolloffFactor(mUserRolloffFactor);
          break;
 
       case SFXDistanceModelExponentClamped:
