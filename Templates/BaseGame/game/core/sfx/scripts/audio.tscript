@@ -216,6 +216,9 @@ function sfxCompareProvider( %providerA, %providerB )
       
    switch$( %providerA )
    {
+      case "Apple":
+            return 1;
+            
       case "OpenAL":
             return 1;
       
