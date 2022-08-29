@@ -96,6 +96,10 @@ ALDeviceList::ALDeviceList( const OPENALFNTABLE &oalft )
             dStrncpy(ALDeviceInfo.strDeviceName, deviceName, sizeof(ALDeviceInfo.strDeviceName));
 
          }
+         else
+         {
+            dStrncpy(ALDeviceInfo.strDeviceName, devices, sizeof(ALDeviceInfo.strDeviceName));
+         }
 
          vDeviceInfo.push_back(ALDeviceInfo);
       }
