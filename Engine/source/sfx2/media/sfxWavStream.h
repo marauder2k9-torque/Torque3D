@@ -101,13 +101,12 @@ typedef struct
 {
    WAVEFILETYPE         wfType;
    WAVEFORMATEXTENSIBLE wfEXT;		// For non-WAVEFORMATEXTENSIBLE wavefiles, the header is stored in the Format member of wfEXT
-   char*                pData;
-   unsigned long        ulDataSize;
-   FILE*                pFile;
-   unsigned long        ulDataOffset;
+   U8*                  pData;
+   U32                  ulDataSize;
+   U32                  ulDataOffset;
 } WAVEFILEINFO, * LPWAVEFILEINFO;
 
-typedef int	WAVEID;
+typedef U32	WAVEID;
 
 class SFXWavStream : public SFXStream,
                      public IPositionable<U32>
