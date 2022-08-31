@@ -64,19 +64,20 @@ protected:
    static ExtensionsVector smExtensions;
    static CreateFnsVector smCreateFns;
 
-   Stream* mStream;
-   bool mOwnStream;
-   U32 mSamples;
-   U32 mSamplesPerSec;
-   U8 mBytesPerSample;
-   U8 mBitsPerSample;
-   U8 mChannels;
+   // data needed by apis.
+   Stream*  mStream;
+   bool     mOwnStream;
+   U32      mSamples;
+   U32      mSamplesPerSec;
+   U8       mBytesPerSample;
+   U8       mBitsPerSample;
+   U8       mChannels;
 
    SFXStream();
    SFXStream(const SFXStream& clone);
 
 
-   virtual bool _readHeader() = 0;
+   virtual bool _parseFile() = 0;
    virtual void _close() = 0;
 
 public:

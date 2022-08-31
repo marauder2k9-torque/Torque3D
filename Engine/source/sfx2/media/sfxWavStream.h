@@ -31,24 +31,105 @@
 
 class Stream;
 
+#define MAX_NUM_WAVEID			1024
+
+enum WAVEFILETYPE
+{
+   WF_EX = 1,
+   WF_EXT = 2
+};
+
+enum WAVERESULT
+{
+   WR_OK = 0,
+   WR_INVALIDFILENAME = -1,
+   WR_BADWAVEFILE = -2,
+   WR_INVALIDPARAM = -3,
+   WR_INVALIDWAVEID = -4,
+   WR_NOTSUPPORTEDYET = -5,
+   WR_WAVEMUSTBEMONO = -6,
+   WR_WAVEMUSTBEWAVEFORMATPCM = -7,
+   WR_WAVESMUSTHAVESAMEBITRESOLUTION = -8,
+   WR_WAVESMUSTHAVESAMEFREQUENCY = -9,
+   WR_WAVESMUSTHAVESAMEBITRATE = -10,
+   WR_WAVESMUSTHAVESAMEBLOCKALIGNMENT = -11,
+   WR_OFFSETOUTOFDATARANGE = -12,
+   WR_FILEERROR = -13,
+   WR_OUTOFMEMORY = -14,
+   WR_INVALIDSPEAKERPOS = -15,
+   WR_INVALIDWAVEFILETYPE = -16,
+   WR_NOTWAVEFORMATEXTENSIBLEFORMAT = -17
+};
+
+typedef struct _GUID {
+   U32   Data1;
+   U16   Data2;
+   U16   Data3;
+   U8    Data4[8];
+} GUID;
+
+#ifndef _WAVEFORMATEX_
+#define _WAVEFORMATEX_
+typedef struct tWAVEFORMATEX
+{
+   U16      wFormatTag;
+   U16      nChannels;
+   U32      nSamplesPerSec;
+   U32      nAvgBytesPerSec;
+   U16      nBlockAlign;
+   U16      wBitsPerSample;
+   U16      cbSize;
+} WAVEFORMATEX;
+#endif /* _WAVEFORMATEX_ */
+
+#ifndef _WAVEFORMATEXTENSIBLE_
+#define _WAVEFORMATEXTENSIBLE_
+typedef struct {
+   WAVEFORMATEX   Format;
+   union {
+      U16 wValidBitsPerSample;       /* bits of precision  */
+      U16 wSamplesPerBlock;          /* valid if wBitsPerSample==0 */
+      U16 wReserved;                 /* If neither applies, set to zero. */
+   } Samples;
+   U32             dwChannelMask;    /* which channels are */
+                                     /* present in stream  */
+   GUID            SubFormat;
+} WAVEFORMATEXTENSIBLE, * PWAVEFORMATEXTENSIBLE;
+#endif // !_WAVEFORMATEXTENSIBLE_
+
+typedef struct
+{
+   WAVEFILETYPE         wfType;
+   WAVEFORMATEXTENSIBLE wfEXT;		// For non-WAVEFORMATEXTENSIBLE wavefiles, the header is stored in the Format member of wfEXT
+   char*                pData;
+   unsigned long        ulDataSize;
+   FILE*                pFile;
+   unsigned long        ulDataOffset;
+} WAVEFILEINFO, * LPWAVEFILEINFO;
+
+typedef int	WAVEID;
+
 class SFXWavStream : public SFXStream,
                      public IPositionable<U32>
 {
 public:
+
    typedef SFXStream Parent;
+
 protected:
 
-   virtual bool _readHeader();
+   U32 mDataStart;
+   virtual bool _parseFile();
    virtual void _close();
 
+private:
+
+   LPWAVEFILEINFO mWaveIDs[MAX_NUM_WAVEID];
+
 public:
-   ///
+
    static SFXWavStream* create(Stream* stream);
-
-   ///
    SFXWavStream();
-
-   ///
    SFXWavStream(const SFXWavStream& cloneFrom);
 
    /// Destructor.
