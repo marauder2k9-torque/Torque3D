@@ -66,8 +66,7 @@ mark_as_advanced(TORQUE_BASIC_LIGHTING)
 option(TORQUE_SFX_OPENAL "OpenAL Sound" ON)
 
 if(APPLE)
-    option(TORQUE_SFX_OPENAL "OpenAL Sound" OFF)
-	addPath("${srcDir}/sfx2/apple")
+    set(TORQUE_SFX_OPENAL OFF CACHE BOOL "OpenAL Sound" FORCE)
 endif()
 
 mark_as_advanced(TORQUE_APP_PASSWORD)
@@ -441,6 +440,10 @@ if(TORQUE_SFX_OPENAL AND NOT TORQUE_DEDICATED)
          addPath("${srcDir}/sfx/openal/linux")
          addPath("${srcDir}/sfx2/openal/linux")
       endif()
+endif()
+
+if(APPLE)
+   addPath("${srcDir}/sfx2/apple")
 endif()
 
 mark_as_advanced(AL_ALEXT_PROTOTYPES)
