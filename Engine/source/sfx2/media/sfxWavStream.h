@@ -20,54 +20,55 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "platform/platform.h"
+#ifndef _SFXWAVSTREAM_H_
+#define _SFXWAVSTREAM_H_
+
+#ifndef _SFXSYSTEM2_H_
 #include "sfx2/sfxSystem.h"
+#endif // !_SFXSYSTEM2_H_
 
-#include "console/console.h"
-#include "console/engineAPI.h"
-#include "T3D/gameBase/processList.h"
-#include "platform/profiler.h"
-#include "platform/platformTimer.h"
-#include "core/util/autoPtr.h"
-#include "core/module.h"
+#include "core/util/safeDelete.h"
 
+class Stream;
 
-MODULE_BEGIN(SFX2)
-
-MODULE_INIT_BEFORE(Sim)
-MODULE_SHUTDOWN_BEFORE(Sim) // Make sure all SimObjects disappear in time.
-
-MODULE_INIT
+class SFXWavStream : public SFXStream,
+                     public IPositionable<U32>
 {
-   SFXSystem::init();
-}
+public:
+   typedef SFXStream Parent;
+protected:
 
-MODULE_SHUTDOWN
-{
-   SFXSystem::destroy();
-}
+   virtual bool _readHeader();
+   virtual void _close();
 
-MODULE_END;
+public:
+   ///
+   static SFXWavStream* create(Stream* stream);
 
-SFXSystem* SFXSystem::smSingleton = NULL;
+   ///
+   SFXWavStream();
 
-//-----------------------------------------------------------------------------
+   ///
+   SFXWavStream(const SFXWavStream& cloneFrom);
 
-void SFXSystem::init()
-{
-   AssertWarn(smSingleton == NULL, "SFX has already been initialized!");
+   /// Destructor.
+   virtual ~SFXWavStream();
 
-   SFXProvider::initializeAllProviders();
+   // SFXStream
+   virtual void reset();
+   virtual U32 read(U8* buffer, U32 length);
+   virtual SFXStream* clone() const
+   {
+      SFXWavStream* stream = new SFXWavStream(*this);
+      if (!stream->mStream)
+         SAFE_DELETE(stream);
+      return stream;
+   }
 
-   // Create the system.
-   smSingleton = new SFXSystem();
+   // IPositionable
+   virtual U32 getPosition() const;
+   virtual void setPosition(U32 offset);
+   bool isEOS() const;
+};
 
-}
-
-void SFXSystem::destroy()
-{
-   AssertWarn(smSingleton != NULL, "SFX has not been initialized!");
-
-   delete smSingleton;
-   smSingleton = NULL;
-}
+#endif

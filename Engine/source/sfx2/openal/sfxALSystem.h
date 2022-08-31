@@ -20,60 +20,20 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef _LOADOAL_H_
-#define _LOADOAL_H_
+#ifndef _SFXALSYSTEM_H_
+#define _SFXALSYSTEM_H_
 
-#ifndef _PLATFORM_H_
-#  include "platform/platform.h"
-#endif
+// include our system.
+#include "sfx2/sfxSystem.h"
 
-#if defined(TORQUE_OS_MAC)
-#undef AL_ALEXT_PROTOTYPES
-#  include <OpenAL/al.h>
-#  include <OpenAL/alc.h>
-#elif defined(TORQUE_OS_LINUX)
-#  include <AL/al.h>
-#  include <AL/alc.h>
-#  include <AL/alext.h>
-#  include <AL/efx.h>
-#  include <AL/efx-presets.h>
-#else
-#  include <al/al.h>
-#  include <al/alc.h>
-#  include <AL/alext.h>
-#  include <AL/efx.h>
-#  include <AL/efx-presets.h>
-#endif
-
-#ifndef ALAPIENTRY
-#define ALAPIENTRY
-#endif
-
-#ifndef ALCAPIENTRY
-#define ALCAPIENTRY
-#endif
-
-// Open AL Function table definition
-
-#ifndef _OPENALFNTABLE
-#define _OPENALFNTABLE
-
-// AL 1.0 did not define the ALchar and ALCchar types, so define them here
-// if they don't exist
-
-#ifndef ALchar
-#define ALchar char
-#endif
-
-#ifndef ALCchar
-#define ALCchar char
-#endif
+// include OpenAL headers.
+#include "AL/alc.h"
+#include "AL/al.h"
+#include "AL/alext.h"
 
 #define MAKE_ALC_VER(major, minor) (((major)<<8) | (minor))
 
-typedef struct
-{
-   U32 ALCVer{ 0 };
+struct OpenAL {
    LPALCCREATECONTEXT alcCreateContext{ nullptr };
    LPALCMAKECONTEXTCURRENT alcMakeContextCurrent{ nullptr };
    LPALCPROCESSCONTEXT alcProcessContext{ nullptr };
@@ -206,11 +166,43 @@ typedef struct
    LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv{ nullptr };
    LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti{ nullptr };
    LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv{ nullptr };
+};
 
-} OPENALFNTABLE, *LPOPENALFNTABLE;
-#endif
+class SFXALBuffer : public SFXBuffer
+{
 
-ALboolean LoadOAL10Library(char *szOALFullPathName, LPOPENALFNTABLE lpOALFnTable);
-ALvoid UnloadOAL10Library();
+};
 
-#endif // _LOADOAL_H_
+class SFXALSource : public SFXSource
+{
+
+};
+
+class SFXALProvider : public SFXProvider
+{
+public:
+   SFXALProvider()
+      : SFXProvider("OpenAL") {}
+   virtual ~SFXALProvider();
+
+   void init();
+
+};
+
+class SFXALDevice : public SFXDevice
+{
+
+};
+
+class SFXALMixer : public SFXMixer
+{
+
+};
+
+class SFXALEffectManager : public SFXEffectManager
+{
+
+};
+
+
+#endif // !_SFXALDEVICE2_H_

@@ -147,7 +147,6 @@ ALboolean LoadOAL10Library(char *szOALFullPathName, LPOPENALFNTABLE lpOALFnTable
    LOAD_PROC(alDopplerVelocity);
    LOAD_PROC(alSpeedOfSound);
    LOAD_PROC(alDistanceModel);
-   LOAD_PROC(alcGetStringiSOFT);
    LOAD_PROC(alGenFilters);
    LOAD_PROC(alDeleteFilters);
    LOAD_PROC(alIsFilter);
