@@ -50,6 +50,9 @@
 /// SFXStream includes the functionality of SFXStream and SFXFileStream - really no need for separates.
 /// </summary>
 
+class Stream;
+class SFXStream;
+
 typedef SFXStream* (*SFXSTREAM_CREATE_FN)(Stream* stream);
 typedef ThreadSafeRef< SFXStream > SFXStreamRef;
 
@@ -92,7 +95,6 @@ public:
    virtual void reset() = 0;
    virtual U32 read(U8* buffer, U32 length) = 0;
    virtual bool isEOS() const = 0;
-   virtual void reset() = 0;
 
    bool open(Stream* stream, bool ownStream = false);
    void close();
