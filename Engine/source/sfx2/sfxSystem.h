@@ -144,7 +144,8 @@ public:
 
 class SFXDevice
 {
-
+protected:
+   virtual void init() = 0;
 };
 
 class SFXMixer
