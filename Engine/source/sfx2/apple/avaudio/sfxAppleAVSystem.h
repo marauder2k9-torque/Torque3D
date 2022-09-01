@@ -11,13 +11,17 @@
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
 
-#include "sfx2/sfxSystem.h"
+#ifndef _SFXSYSTEM2_H_
+#import "sfx2/sfxSystem.h"
+#endif
 
 class SFXCADevice : public SFXDevice
 {
 public:
    void init();
 private:
+   AVAudioEngine mAudioEngine;
 };
+
 
 #endif /* sfxAppleAVSystem_h */
