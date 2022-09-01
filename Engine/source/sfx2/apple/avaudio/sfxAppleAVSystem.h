@@ -35,6 +35,17 @@ class SFXAVSource : public SFXSource
    
 };
 
+class SFXAVProvider : public SFXProvider
+{
+public:
+   SFXAVProvider()
+   : SFXProvider("Apple AVAudioEngine"){}
+   virtual ~SFXAVProvider();
+   
+   void init() override;
+   
+};
+
 class SFXAVDevice : public SFXDevice
 {
 public:
