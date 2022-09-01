@@ -99,7 +99,7 @@ bool SFXWavStream::_parseFile()
             {
                mStream->read(sizeof(WAVEFORMATEXTENSIBLE), &waveFmt);
             }
-         }
+         }  
          else
          {
             U32 pos = mStream->getPosition();
