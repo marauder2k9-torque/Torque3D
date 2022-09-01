@@ -75,6 +75,7 @@ protected:
    U8       mBytesPerSample;
    U8       mBitsPerSample;
    U8       mChannels;
+   U8       mBlockAlign;
 
    SFXStream();
    SFXStream(const SFXStream& clone);

@@ -66,14 +66,7 @@ SFXWavStream::~SFXWavStream()
 
 void SFXWavStream::_close()
 {
-   if (!mStream)
-      return;
-
-   if (mOwnStream)
-      SAFE_DELETE(mStream);
-
    mDataStart = -1;
-   mSamples = 0;
 }
 
 bool SFXWavStream::_parseFile()
@@ -83,9 +76,40 @@ bool SFXWavStream::_parseFile()
    WAVEFILEHEADER fileHdr;
    RIFFCHUNK      riffChunk;
    WAVEFMT        waveFmt;
+   LPWAVEFILEINFO pWaveInfo;
+
+   S32 chunkRemaining = fileHdr.ulRIFFSize + (riffChunk.ulChunkSize & 1);
 
    mStream->read(sizeof(WAVEFILEHEADER), &fileHdr);
 
    mStream->read(sizeof(RIFFCHUNK), &riffChunk);
+
+   while ((fileHdr.ulRIFFSize != 0) && (mStream->getStatus() != Stream::EOS))
+   {
+      if (!dStrncmp((const char*)riffChunk.szChunkName, "fmt ", 4))
+      {
+         if (riffChunk.ulChunkSize <= sizeof(WAVEFMT))
+         {
+            mStream->read(riffChunk.ulChunkSize, &waveFmt);
+            if (waveFmt.usFormatTag == 0x0001)
+            {
+               mChannels = waveFmt.usChannels;
+            }
+            else
+            {
+               mStream->read(sizeof(WAVEFORMATEXTENSIBLE), &waveFmt);
+            }
+         }
+         else
+         {
+            U32 pos = mStream->getPosition();
+            mStream->setPosition(pos + riffChunk.ulChunkSize);
+         }
+      }
+      else if (!dStrncmp((const char*)riffChunk.szChunkName, "data", 4))
+      {
+
+      }
+   }
 
 }
