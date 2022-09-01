@@ -27,6 +27,40 @@
 #include "sfx2/sfxSystem.h"
 #endif
 
+// Apple AVAudioEngine includes.
+#import <AVFAudio/AVFAudio.h>
+
+// SFX Apple AVAudioEngine Audio Layer.ß
+
+class SFXAVBuffer : public SFXBuffer
+{
+
+};
+
+class SFXAVSource : public SFXSource
+{
+
+};
+
+class SFXAVProvider : public SFXProvider
+{
+public:
+   SFXAVProvider()
+   : SFXProvider("Apple AVAudioEngine"){}
+   virtual ~SFXAVProvider();
+   
+   void init();
+   
+};
+
+class SFXAVDevice : public SFXDevice
+{
+public:
+   void init();
+private:
+   AVAudioEngine    AudioGraph;
+   AVAudioNode      Output;
+};
 
 
 #endif /* _SFXAPPLEAVSYSTEM_H_ */

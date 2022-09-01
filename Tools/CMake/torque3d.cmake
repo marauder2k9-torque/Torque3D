@@ -744,6 +744,7 @@ if (APPLE)
   addFramework("Carbon")
   addFramework("AudioToolbox")
   addFramework("AVFoundation")
+  addFramework("AVFAudio")
   addLib("iconv")
 endif()
 
