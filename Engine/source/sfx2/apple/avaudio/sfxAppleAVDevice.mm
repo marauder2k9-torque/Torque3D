@@ -6,11 +6,8 @@
 //
 
 #include "platform/platform.h"
-#import "sfxAppleAVSystem.h"
-#import <Foundation/Foundation.h>
-#import <AVFoundation/AVFoundation.h>
+#include "sfx2/apple/sfxAppleAVSystem.h"
+#include <Foundation/Foundation.h>
+#include <AVFoundation/AVFoundation.h>
 
-void SFXAVDevice::init()
-{
-   
-}
+

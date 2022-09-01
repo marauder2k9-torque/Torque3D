@@ -145,6 +145,8 @@ public:
 
 class SFXDevice
 {
+public:
+   virtual ~SFXDevice();
 protected:
    virtual void init() = 0;
 };
