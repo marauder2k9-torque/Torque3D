@@ -5,8 +5,8 @@
 //  Created by ctrlintelligence on 01/09/2022.
 //
 
-#ifndef sfxAppleAVSystem_h
-#define sfxAppleAVSystem_h
+#ifndef _SFXAPPLEAVSYSTEM_H_
+#define _SFXAPPLEAVSYSTEM_H_
 
 #import <Foundation/Foundation.h>
 #import <AVFoundation/AVFoundation.h>
@@ -15,7 +15,7 @@
 #import "sfx2/sfxSystem.h"
 #endif
 
-class SFXCADevice : public SFXDevice
+class SFXAVDevice : public SFXDevice
 {
 public:
    void init();
@@ -23,5 +23,4 @@ private:
    AVAudioEngine mAudioEngine;
 };
 
-
-#endif /* sfxAppleAVSystem_h */
+#endif /* _SFXAPPLEAVSYSTEM_H_ */
