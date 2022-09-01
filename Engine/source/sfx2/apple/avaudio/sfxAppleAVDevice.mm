@@ -22,10 +22,30 @@
 
 #include "platform/platform.h"
 #include "sfxAppleAVSystem.h"
-#include <Foundation/Foundation.h>
-#include <AVFoundation/AVFoundation.h>
+#include "console/console.h"
+#include "console/engineAPI.h"
 
 void SFXAVDevice::init()
 {
+   // no idea if this is right.
+   mAudioEngine = [[AVAudioEngine alloc] init];
+   
+   // sure why not
+   mOutputNode = mAudioEngine.outputNode;
+   
+   // node that all sources play through.
+   mMixerNode = mAudioEngine.mainMixerNode;
+   
+   mOutputFormat = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:44100.0 channels:2]
+   
+   [mAudioEngine connect:mMixerNode to:mOutputNode format:mOutputFormat]
+   
+   NSError *error = nil;
+   [mAudioEngine prepare]
+   if([mAudioEngine startAndReturnError:&error] == NO)
+   {
+      Con::printf("SFXAVDevice - Failed to start AudioEngine %s!", (char)error.description.UTF8String);
+      return;
+   }
    
 }

@@ -30,14 +30,21 @@
 #include "sfx2/sfxSystem.h"
 #endif
 
+class SFXAVSource : public SFXSource
+{
+   
+};
+
 class SFXAVDevice : public SFXDevice
 {
 public:
    virtual ~SFXAVDevice();
 protected:
    void init();
-   AVAudioEngine mAudioEngine;
-   AVAudioOutputNode mOutputNode;
+   AVAudioEngine *mAudioEngine;
+   AVAudioOutputNode *mOutputNode;
+   AVAudioMixerNode *mMixerNode;
+   AVAudioFormat *mOutputFormat;
 };
 
 
