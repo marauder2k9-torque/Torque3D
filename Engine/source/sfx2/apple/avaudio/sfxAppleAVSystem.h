@@ -1,66 +1,23 @@
-//-----------------------------------------------------------------------------
-// Copyright (c) 2012 GarageGames, LLC
 //
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to
-// deal in the Software without restriction, including without limitation the
-// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-// sell copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
+//  sfxAppleAVSystem.h
+//  TestProject
 //
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
+//  Created by ctrlintelligence on 01/09/2022.
 //
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
-// IN THE SOFTWARE.
-//-----------------------------------------------------------------------------
 
-#ifndef _SFXAPPLEAVSYSTEM_H_
-#define _SFXAPPLEAVSYSTEM_H_
+#ifndef sfxAppleAVSystem_h
+#define sfxAppleAVSystem_h
 
-#ifndef _SFXSYSTEM2_H_
+#import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
+
 #include "sfx2/sfxSystem.h"
-#endif
 
-// Apple AVAudioEngine includes.
-#import <AVFAudio/AVFAudio.h>
-
-// SFX Apple AVAudioEngine Audio Layer.ß
-
-class SFXAVBuffer : public SFXBuffer
-{
-
-};
-
-class SFXAVSource : public SFXSource
-{
-
-};
-
-class SFXAVProvider : public SFXProvider
-{
-public:
-   SFXAVProvider()
-   : SFXProvider("Apple AVAudioEngine"){}
-   virtual ~SFXAVProvider();
-   
-   void init();
-   
-};
-
-class SFXAVDevice : public SFXDevice
+class SFXCADevice : public SFXDevice
 {
 public:
    void init();
 private:
-   AVAudioEngine    AudioGraph;
-   AVAudioNode      Output;
 };
 
-
-#endif /* _SFXAPPLEAVSYSTEM_H_ */
+#endif /* sfxAppleAVSystem_h */
