@@ -444,6 +444,8 @@ endif()
 
 if(APPLE)
    addPath("${srcDir}/sfx2/apple")
+   addPath("${srcDir}/sfx2/apple/coreaudio")
+   addPath("${srcDir}/sfx2/apple/avaudio")
 endif()
 
 mark_as_advanced(AL_ALEXT_PROTOTYPES)
@@ -741,6 +743,7 @@ if (APPLE)
   #grrr damn you sdl!
   addFramework("Carbon")
   addFramework("AudioToolbox")
+  addFramework("AVFoundation")
   addLib("iconv")
 endif()
 
