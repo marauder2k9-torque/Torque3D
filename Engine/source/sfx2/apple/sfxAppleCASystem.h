@@ -23,31 +23,54 @@
 #ifndef _SFXAPPLECASYSTEM_H_
 #define _SFXAPPLECASYSTEM_H_
 
-class SFXAPPLECABuffer : public SFXBuffer
+#ifndef _SFXSYSTEM2_H_
+#include "sfx2/sfxSystem.h"
+#endif
+
+// Apple Core Audio Includes
+#include <CoreAudio/AudioHardware.h>
+#include <AudioToolbox/AudioToolbox.h>
+#include <AudioUnit/AudioUnit.h>
+
+// SFX Apple Core Audio Layer.
+
+class SFXCABuffer : public SFXBuffer
 {
 
 };
 
-class SFXAPPLECASource : public SFXSource
+class SFXCASource : public SFXSource
 {
 
 };
 
-class SFXAPPLECAProvider : public SFXProvider
+class SFXCAProvider : public SFXProvider
 {
+public:
+   SFXCAProvider()
+   : SFXProvider("Apple Core Audio"){}
+   virtual ~SFXCAProvider();
+   
+   void init();
+   
 };
 
-class SFXAPPLECADevice : public SFXDevice
+class SFXCADevice : public SFXDevice
+{
+public:
+   void init();
+private:
+   AUGraph     AudioGraph;
+   AUNode      Output;
+   AudioUnit   OutputUnit;
+};
+
+class SFXCAMixer : public SFXMixer
 {
 
 };
 
-class SFXAPPLECAMixer : public SFXMixer
-{
-
-};
-
-class SFXAPPLECAEffectManager : public SFXEffectManager
+class SFXAEffectManager : public SFXEffectManager
 {
 
 };
