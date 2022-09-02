@@ -37,6 +37,7 @@
 // SFXSystem. But SFXCABuffer, SFXCASource and SFXCAProvider need access
 // to SFXCADevice.
 class SFXCADevice;
+class SFXCAEffectManager;
 
 class SFXCABuffer : public SFXBuffer
 {
@@ -45,7 +46,10 @@ class SFXCABuffer : public SFXBuffer
 
 class SFXCASource : public SFXSource
 {
-
+protected:
+   SFXCAEffectManager*  mEffectManager;
+   AUNode               mSourceNode;
+   AudioUnit            mSourceUnit;
 };
 
 class SFXCAProvider : public SFXProvider
@@ -71,17 +75,17 @@ public:
    // we are changing device or shutting down deInit.
    void deInit();
 private:
-   AUGraph     AudioGraph;
-   AUNode      Output;
-   AudioUnit   OutputUnit;
+   AUGraph              AudioGraph;
+   AUNode               Output;
+   AudioUnit            OutputUnit;
 };
 
 class SFXCAMixer : public SFXMixer
 {
-
+   
 };
 
-class SFXAEffectManager : public SFXEffectManager
+class SFXCAEffectManager : public SFXEffectManager
 {
 
 };

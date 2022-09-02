@@ -35,6 +35,7 @@
 // SFXSystem. But SFXAVBuffer, SFXAVSource and SFXAVProvider need access
 // to SFXAVDeice.
 class SFXAVDevice;
+class SFXAVEffectManager;
 
 class SFXAVBuffer : public SFXBuffer
 {
@@ -43,8 +44,10 @@ class SFXAVBuffer : public SFXBuffer
 
 class SFXAVSource : public SFXSource
 {
-   AVAudioSourceNodeRenderBlock mRenderBlock;
-   AVAudioSourceNode *mSourceNode;
+protected:
+   SFXAVEffectManager*           mEffectManager;
+   AVAudioSourceNodeRenderBlock  mRenderBlock;
+   AVAudioSourceNode*            mSourceNode;
 };
 
 class SFXAVProvider : public SFXProvider
@@ -69,11 +72,15 @@ public:
    SFXAVDevice(String name);
    virtual ~SFXAVDevice();
 protected:
-   AVAudioEngine *mAudioEngine;
-   AVAudioOutputNode *mOutputNode;
-   AVAudioMixerNode *mMixerNode;
-   AVAudioFormat *mOutputFormat;
+   AVAudioEngine*       mAudioEngine;
+   AVAudioOutputNode*   mOutputNode;
+   AVAudioMixerNode*    mMixerNode;
+   AVAudioFormat*       mOutputFormat;
 };
 
+class SFXAVEffectManager : public SFXEffectManager
+{
+   
+};
 
 #endif /* _SFXAPPLEAVSYSTEM_H_ */
