@@ -32,7 +32,11 @@
 #include <AudioToolbox/AudioToolbox.h>
 #include <AudioUnit/AudioUnit.h>
 
-// SFX Apple Core Audio Layer.
+// forward declaration.
+// SFXCADevice talks with all these other classes through the top level
+// SFXSystem. But SFXCABuffer, SFXCASource and SFXCAProvider need access
+// to SFXCADevice.
+class SFXCADevice;
 
 class SFXCABuffer : public SFXBuffer
 {
@@ -53,12 +57,19 @@ public:
    
    void init();
    
+   // initalize the device linked to this provider, with apple its only 1 device for now.
+   void initDevice(SFXCADevice* device);
 };
 
 class SFXCADevice : public SFXDevice
 {
 public:
+   
+   // initialize this device as our active device.
    void init();
+   
+   // we are changing device or shutting down deInit.
+   void deInit();
 private:
    AUGraph     AudioGraph;
    AUNode      Output;

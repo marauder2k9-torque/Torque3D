@@ -20,60 +20,34 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef _SFXAPPLEAVSYSTEM_H_
-#define _SFXAPPLEAVSYSTEM_H_
 
-#include <Foundation/Foundation.h>
-#include <AVFoundation/AVFoundation.h>
+#include "platform/platform.h"
+#include "sfxAppleCASystem.h"
 
-#ifndef _SFXSYSTEM2_H_
-#include "sfx2/sfxSystem.h"
-#endif
+#include "core/string/stringFunctions.h"
+#include "console/console.h"
+#include "core/module.h"
 
-// forward declaration.
-// SFXAVDevice talks with all these other classes through the top level
-// SFXSystem. But SFXAVBuffer, SFXAVSource and SFXAVProvider need access
-// to SFXAVDeice.
-class SFXAVDevice;
-
-class SFXAVBuffer : public SFXBuffer
-{
+MODULE_BEGIN(AVAudio)
+   MODULE_INIT_BEFORE(SFX2)
+   MODULE_SHUTDOWN_AFTER(SFX2)
    
-};
-
-class SFXAVSource : public SFXSource
-{
-   AVAudioSourceNodeRenderBlock mRenderBlock;
-   AVAudioSourceNode *mSourceNode;
-};
-
-class SFXAVProvider : public SFXProvider
-{
-public:
-   SFXAVProvider()
-   : SFXProvider("Apple AVAudioEngine"){}
-   virtual ~SFXAVProvider();
+   SFXAVProvider *mProvider;
    
-   void init() override;
-   
-   // init a device from this provider, with apple we usually only have 1 device.
-   void initDevice(SFXAVDevice* device);
-   
-};
+   MODULE_INIT
+   {
+      mProvider = new SFXAVProvider;
+   }
 
-class SFXAVDevice : public SFXDevice
+   MODULE_SHUTDOWN
+   {
+      delete mProvider;
+   }
+
+MODULE_END
+
+void SFXAVProvider::init()
 {
-public:
-   typedef SFXDevice Parent;
-   void init();
-   SFXAVDevice(String name);
-   virtual ~SFXAVDevice();
-protected:
-   AVAudioEngine *mAudioEngine;
-   AVAudioOutputNode *mOutputNode;
-   AVAudioMixerNode *mMixerNode;
-   AVAudioFormat *mOutputFormat;
-};
+   regProvider(this);
+}
 
-
-#endif /* _SFXAPPLEAVSYSTEM_H_ */

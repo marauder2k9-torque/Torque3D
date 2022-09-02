@@ -146,9 +146,13 @@ public:
 class SFXDevice
 {
 public:
+   // default deconstructor.
    virtual ~SFXDevice();
-protected:
+   
+   // initalise the hardware device.
    virtual void init() = 0;
+protected:
+   String mName;
 };
 
 class SFXMixer
