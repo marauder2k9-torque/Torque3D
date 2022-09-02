@@ -49,13 +49,18 @@
 /// SFXSystem.h holds everything we need for the rest of the engine to use sound.
 /// SFXStream includes the functionality of SFXStream and SFXFileStream - really no need for separates.
 /// </summary>
-
 class Stream;
 class SFXStream;
 
 typedef SFXStream* (*SFXSTREAM_CREATE_FN)(Stream* stream);
 typedef ThreadSafeRef< SFXStream > SFXStreamRef;
 
+/// <summary>
+/// class to bring in all audio files this should be routed through the sfxSystem in
+/// to a sfxBuffer. We could have the sfxBuffer do this also but each file type has
+/// its own way to manage where blocks are aligned and how to split the buffer into
+/// pieces.
+/// </summary>
 class SFXStream : public ThreadSafeRefCount< SFXStream >,
                   public IInputStream< U8 >,
                   public IResettable
@@ -111,17 +116,28 @@ public:
    U8 getBytesPerSample() const { return mBytesPerSample; }
 
 };
-
+/// <summary
+/// buffer holds sfxStream data in a list of buffers. Should define
+/// if buffer is music or otherwise, music shouldn't have any effects applied.
+/// </summary>
 class SFXBuffer
 {
 
 };
 
+/// <summary>
+/// class to manage sources for each api. sfxSources are then routed
+/// to each channel in the mixer, if they require effects then an aux
+/// slot will be attached as well.
+/// </summary>
 class SFXSource
 {
 
 };
 
+/// <summary>
+/// class to hold all audio device providers.
+/// </summary>
 class SFXProvider
 {
 protected:
@@ -143,6 +159,12 @@ public:
    static void initializeAllProviders();
 };
 
+/// <summary>
+/// this is as simple as it gets for a device class. It shouldn't
+/// hold much more than the device name and whether or not it is
+/// a capture device. API's take care of the rest. Pointer for the device
+/// then gets sent around each apis buffer and source classes.
+/// </summary>
 class SFXDevice
 {
 public:
@@ -152,19 +174,35 @@ public:
    // initalise the hardware device.
    virtual void init() = 0;
 protected:
-   String mName;
+   String   mName;
+   String   mDeviceName;
+   bool     mCaptureDevice;
+   
 };
 
+/// <summary>
+/// where to send each source. Also sets up all channels. If a source
+/// has effects then the mixer will send the source to an aux slot with the
+/// effect loaded. How many aux slots is dependent on api.
+/// </summary>
 class SFXMixer
 {
 
 };
 
+/// <summary>
+/// class for setting all the effects parameters. Can add a lot more here.
+/// </summary>
 class SFXEffectManager
 {
-
+public:
+   virtual void SetReverb();
 };
 
+/// <summary>
+/// this is where everything happens. We don't need access to other classes
+/// we just need access to the system and then have it handle everything.
+/// </summary>
 class SFXSystem
 {
 public:
@@ -179,10 +217,8 @@ protected:
 public:
 
    static void init();
-
    static void destroy();
 
 };
-
 
 #endif // !_SFXSYSTEM2_H_
