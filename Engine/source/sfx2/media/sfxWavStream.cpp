@@ -59,6 +59,17 @@ SFXWavStream::SFXWavStream()
    dMemset(&mWaveIDs, 0, sizeof(mWaveIDs));
 }
 
+SFXWavStream* SFXWavStream::create(Stream* stream)
+{
+   SFXWavStream* sfxStream = new SFXWavStream();
+   if (sfxStream->open(stream, true))
+      return sfxStream;
+
+   delete sfxStream;
+   return NULL;
+}
+
+
 SFXWavStream::~SFXWavStream()
 {
    _close();
@@ -76,7 +87,7 @@ bool SFXWavStream::_parseFile()
    WAVEFILEHEADER fileHdr;
    RIFFCHUNK      riffChunk;
    WAVEFMT        waveFmt;
-   LPWAVEFILEINFO pWaveInfo;
+   WAVEFILEINFO*  pWaveInfo;
 
    S32 chunkRemaining = fileHdr.ulRIFFSize + (riffChunk.ulChunkSize & 1);
 
@@ -93,11 +104,13 @@ bool SFXWavStream::_parseFile()
             mStream->read(riffChunk.ulChunkSize, &waveFmt);
             if (waveFmt.usFormatTag == 0x0001)
             {
-               mChannels = waveFmt.usChannels;
+               pWaveInfo->wfType = WF_EX;
+               dMemcpy(&pWaveInfo->wfEXT.Format, &waveFmt, sizeof(PCMWAVEFORMAT));
             }
-            else
+            else if(waveFmt.usFormatTag == 0xFFFE)
             {
-               mStream->read(sizeof(WAVEFORMATEXTENSIBLE), &waveFmt);
+               pWaveInfo->wfType = WF_EXT;
+               dMemcpy(&pWaveInfo->wfEXT, &waveFmt, sizeof(WAVEFORMATEXTENSIBLE));
             }
          }  
          else
@@ -108,8 +121,31 @@ bool SFXWavStream::_parseFile()
       }
       else if (!dStrncmp((const char*)riffChunk.szChunkName, "data", 4))
       {
-
+         pWaveInfo->ulDataSize = riffChunk.ulChunkSize;
+         pWaveInfo->ulDataOffset = mStream->getPosition();
+         U32 pos = mStream->getPosition();
+         mStream->setPosition(pos + riffChunk.ulChunkSize);
       }
+      else
+      {
+         U32 pos = mStream->getPosition();
+         mStream->setPosition(pos + riffChunk.ulChunkSize);
+      }
+
+      if (riffChunk.ulChunkSize & 1)
+      {
+         U32 pos = mStream->getPosition();
+         mStream->setPosition(pos + 1);
+      }
+   }
+
+   if (pWaveInfo->ulDataSize && pWaveInfo->ulDataOffset)
+   {
+      return true;
+   }
+   else
+   {
+      return false;
    }
 
 }

@@ -44,6 +44,89 @@
 #ifndef _TSTREAM_H_
 #include "core/stream/tStream.h"
 #endif
+#ifndef _MMATRIX_H_
+#include "math/mMatrix.h"
+#endif
+#ifndef _DYNAMIC_CONSOLETYPES_H_
+#include "console/dynamicTypes.h"
+#endif
+
+
+//-----------------------------------------------------------------------------
+//    SFXDistanceModel.
+//-----------------------------------------------------------------------------
+enum SFXDistanceModel
+{
+   SFXDistanceModelLinear,                ///< Volume decreases linearly from min to max where it reaches zero.
+   SFXDistanceModelLinearClamped,         ///< Volume decreases after min distance, then decresease to max distance based on rolloff factor.
+   SFXDistanceModelInverse,               ///< Volume decreases in an inverse curve until it reaches zero.
+   SFXDistanceModelInverseClamped,        ///< Volume decreases after min distance then decreases in an inverse curve to max based on rolloff.
+   SFXDistanceModelExponent,              ///< exponential falloff for distance attenuation.
+   SFXDistanceModelExponentClamped,       ///< exponential falloff after min for distance attenuation. 
+};
+
+DefineEnumType(SFXDistanceModel);
+
+/// <summary>
+/// Calculate the gain base on distance. These follow the methods pointed out in the
+/// openal documentation.
+/// </summary>
+/// <param name="model">Which distance moedl are we using.</param>
+/// <param name="minDistance">Min distance to start attenuation.</param>
+/// <param name="maxDistance">Max distance of attenuation.</param>
+/// <param name="distance">Source distance from the listener.</param>
+/// <param name="rolloffFactor">Rolloff factor.</param>
+/// <returns>Gain between 0.0 and 1.0 to be multiplied by the volume of the source.</returns>
+inline F32 SFXDistanceAttenuation(SFXDistanceModel model, F32 minDistance, F32 maxDistance, F32 distance, F32 rolloffFactor)
+{
+   F32 gain = 1.0f;
+
+   switch (model)
+   {
+   case SFXDistanceModelLinear:
+
+      distance = getMin(distance, maxDistance);
+
+      gain = (1 - (distance - minDistance) / (maxDistance - minDistance));
+      break;
+
+   case SFXDistanceModelLinearClamped:
+
+      distance = getMax(distance, minDistance);
+      distance = getMin(distance, maxDistance);
+
+      gain = (1 - (distance - minDistance) / (maxDistance - minDistance));
+      break;
+
+   case SFXDistanceModelInverse:
+
+      gain = minDistance / (minDistance + rolloffFactor * (distance - minDistance));
+      break;
+
+   case SFXDistanceModelInverseClamped:
+
+      distance = getMax(distance, minDistance);
+      distance = getMin(distance, maxDistance);
+
+      gain = minDistance / (minDistance + rolloffFactor * (distance - minDistance));
+      break;
+
+      ///create exponential distance model    
+   case SFXDistanceModelExponent:
+      gain = pow((distance / minDistance), (-rolloffFactor));
+      break;
+
+   case SFXDistanceModelExponentClamped:
+      distance = getMax(distance, minDistance);
+      distance = getMin(distance, maxDistance);
+
+      gain = pow((distance / minDistance), (-rolloffFactor));
+      break;
+
+   }
+
+   return gain;
+}
 
 /// <summary>
 /// SFXSystem.h holds everything we need for the rest of the engine to use sound.
@@ -66,19 +149,13 @@ class SFXStream : public ThreadSafeRefCount< SFXStream >,
                   public IResettable
 {
 protected:
-   typedef Vector< String > ExtensionsVector;
-   typedef Vector< SFXSTREAM_CREATE_FN > CreateFnsVector;
-
-   static ExtensionsVector smExtensions;
-   static CreateFnsVector smCreateFns;
 
    // data needed by apis.
    Stream*  mStream;
    bool     mOwnStream;
-   U32      mSamples;
-   U32      mSamplesPerSec;
-   U8       mBytesPerSample;
-   U8       mBitsPerSample;
+   U32      mSize;
+   U32      mFrequency;
+   U16      mBitsPerSample;
    U8       mChannels;
    U8       mBlockAlign;
 
@@ -90,9 +167,6 @@ protected:
    virtual void _close() = 0;
 
 public:
-
-   static void registerExtension(String ext, SFXSTREAM_CREATE_FN create_fn);
-   static void unregisterExtension(String ext);
 
    static SFXStream* create(String fileName);
    static bool exists(String fileName);
@@ -107,13 +181,11 @@ public:
    void close();
 
    // accessors that we may need.
-   U32 getSampleCount() const { return mSamples; }
-   U32 getDataLength() const { return mSamples * mBytesPerSample; }
-   U32 getDuration() const { return ((U64)mSamples *(U64)1000) / (U64)mSamplesPerSec; }
-   U8 getChannels() const { return mChannels; }
-   U8 getBitsPerSample() const { return mBitsPerSample; }
-   U8 getBitsPerChannel() const { return mBitsPerSample / mChannels; }
-   U8 getBytesPerSample() const { return mBytesPerSample; }
+   U32   getSize() const { return mSize; }
+   U32   getFrequency() const { return mFrequency; }
+   U16   getBitsPerSample() const { return mBitsPerSample; }
+   U8    getChannels() const { return mChannels; }
+   U8    getBlockAlign() const { return mBlockAlign; }
 
 };
 /// <summary
@@ -122,7 +194,6 @@ public:
 /// </summary>
 class SFXBuffer
 {
-
 };
 
 /// <summary>
@@ -132,7 +203,6 @@ class SFXBuffer
 /// </summary>
 class SFXSource
 {
-
 };
 
 /// <summary>
@@ -171,12 +241,24 @@ public:
    // default deconstructor.
    virtual ~SFXDevice();
    
-   // initalise the hardware device.
+   /// <summary>
+   /// Initialize the hardware on each API.
+   /// </summary>
    virtual void init() = 0;
+
+   /// <summary>
+   /// Set the listener properties on the device. (pass on to each API)
+   /// </summary>
+   /// <param name="index">Index of the listener.</param>
+   /// <param name="transform">Transform of the listener.</param>
+   /// <param name="velocity">Velocity of the listener.</param>
+   virtual void setListener(U32 index, MatrixF transform, Point3F velocity);
+
 protected:
    String   mName;
-   String   mDeviceName;
+   String   mAPIDeviceName;
    bool     mCaptureDevice;
+   U32      mMaxSources;
    
 };
 
@@ -213,6 +295,17 @@ protected:
    static SFXSystem* smSingleton;
    SFXSystem();
    ~SFXSystem();
+
+   SourceVector      mSources;
+   FreeSourceVector  mFreeSources;
+
+   // stats
+   U32 mLastSourceUpdateTime;
+   S32 mStatNumSources;
+   S32 mStatNumPlaying;
+   S32 mStatNumCulled;
+   S32 mStatSourceUpdateTime;
+   S32 mStatParameterUpdateTime;
 
 public:
 

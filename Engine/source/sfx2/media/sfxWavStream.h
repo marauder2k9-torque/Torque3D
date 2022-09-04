@@ -39,28 +39,6 @@ enum WAVEFILETYPE
    WF_EXT = 2
 };
 
-enum WAVERESULT
-{
-   WR_OK = 0,
-   WR_INVALIDFILENAME = -1,
-   WR_BADWAVEFILE = -2,
-   WR_INVALIDPARAM = -3,
-   WR_INVALIDWAVEID = -4,
-   WR_NOTSUPPORTEDYET = -5,
-   WR_WAVEMUSTBEMONO = -6,
-   WR_WAVEMUSTBEWAVEFORMATPCM = -7,
-   WR_WAVESMUSTHAVESAMEBITRESOLUTION = -8,
-   WR_WAVESMUSTHAVESAMEFREQUENCY = -9,
-   WR_WAVESMUSTHAVESAMEBITRATE = -10,
-   WR_WAVESMUSTHAVESAMEBLOCKALIGNMENT = -11,
-   WR_OFFSETOUTOFDATARANGE = -12,
-   WR_FILEERROR = -13,
-   WR_OUTOFMEMORY = -14,
-   WR_INVALIDSPEAKERPOS = -15,
-   WR_INVALIDWAVEFILETYPE = -16,
-   WR_NOTWAVEFORMATEXTENSIBLEFORMAT = -17
-};
-
 typedef struct _GUID {
    U32   Data1;
    U16   Data2;
@@ -70,7 +48,7 @@ typedef struct _GUID {
 
 #ifndef _WAVEFORMATEX_
 #define _WAVEFORMATEX_
-typedef struct tWAVEFORMATEX
+typedef struct
 {
    U16      wFormatTag;
    U16      nChannels;
@@ -94,8 +72,21 @@ typedef struct {
    U32             dwChannelMask;    /* which channels are */
                                      /* present in stream  */
    GUID            SubFormat;
-} WAVEFORMATEXTENSIBLE, * PWAVEFORMATEXTENSIBLE;
+} WAVEFORMATEXTENSIBLE;
 #endif // !_WAVEFORMATEXTENSIBLE_
+
+typedef struct {
+   U16    wFormatTag;        /* format type */
+   U16    nChannels;         /* number of channels (i.e. mono, stereo, etc.) */
+   U32   nSamplesPerSec;    /* sample rate */
+   U32   nAvgBytesPerSec;   /* for buffer estimation */
+   U16    nBlockAlign;       /* block size of data */
+} WAVEFORMAT;
+
+typedef struct {
+   WAVEFORMAT  wf;
+   U16         wBitsPerSample;
+} PCMWAVEFORMAT;
 
 typedef struct
 {
@@ -104,7 +95,7 @@ typedef struct
    U8*                  pData;
    U32                  ulDataSize;
    U32                  ulDataOffset;
-} WAVEFILEINFO, * LPWAVEFILEINFO;
+} WAVEFILEINFO;
 
 typedef U32	WAVEID;
 
@@ -123,7 +114,7 @@ protected:
 
 private:
 
-   LPWAVEFILEINFO mWaveIDs[MAX_NUM_WAVEID];
+   WAVEFILEINFO* mWaveIDs[MAX_NUM_WAVEID];
 
 public:
 

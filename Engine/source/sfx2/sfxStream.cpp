@@ -24,9 +24,7 @@
 #include "core/stream/fileStream.h"
 #include "console/console.h"
 #include "core/util/safeDelete.h"
-
-SFXStream::ExtensionsVector SFXStream::smExtensions(__FILE__, __LINE__);
-SFXStream::CreateFnsVector SFXStream::smCreateFns(__FILE__, __LINE__);
+#include "sfx2/media/sfxWavStream.h"
 
 SFXStream::SFXStream()
    :  mStream( NULL ),
@@ -59,64 +57,79 @@ SFXStream::SFXStream(const SFXStream& clone)
 
 }
 
-void SFXStream::registerExtension(String ext, SFXSTREAM_CREATE_FN create_fn)
-{
-   // Register the stream creation first.
-   smExtensions.push_back(ext);
-   smCreateFns.push_back(create_fn);
-}
-
-void SFXStream::unregisterExtension(String ext)
-{
-   for (ExtensionsVector::iterator iter = smExtensions.begin();
-      iter != smExtensions.end(); ++iter)
-      if ((*iter).equal(ext, String::NoCase))
-      {
-         smExtensions.erase(iter);
-         return;
-      }
-}
-
 SFXStream* SFXStream::create(String fileName)
 {
 
    if (exists(fileName))
    {
-      String noExtension = Platform::stripExtension(fileName, smExtensions);
+      String ext;
 
-      SFXStream* sfxStream = NULL;
+      S32 dotPos = fileName.find('.', 0, String::Right);
 
-      for (U32 i = 0; i < smExtensions.size(); i++)
+      if (dotPos != String::NPos)
+         ext = fileName.substr(dotPos);
+
+      if (ext.isNotEmpty())
       {
-         String testName = noExtension + smExtensions[i];
+         SFXStream* sfxStream = NULL;
 
-         Stream* stream = FileStream::createAndOpen(testName, Torque::FS::File::Read);
+         Stream* stream = FileStream::createAndOpen(fileName, Torque::FS::File::Read);
          if (!stream)
-            continue;
+         {
+            Con::printf("SFXStream - Could not create file stream for %s", fileName);
+            return NULL;
+         }
 
-         // Note that the creation function swallows up the 
-         // resource stream and will take care of deleting it.
-         sfxStream = smCreateFns[i](stream);
-         if (sfxStream)
-            return sfxStream;
+         // are we wav?
+         if (ext.equal(".wav", String::NoCase))
+         {
+            sfxStream = SFXWavStream::create(stream);
+            if (sfxStream)
+               return sfxStream;
+         }
+         // are we ogg?
+         if (ext.equal(".ogg", String::NoCase))
+         {
+
+            Stream* stream = FileStream::createAndOpen(fileName, Torque::FS::File::Read);
+            if (!stream)
+               return NULL;
+
+            sfxStream = SFXWavStream::create(stream);
+            if (sfxStream)
+               return sfxStream;
+         }
+
+         // we have reached here, we must be an unknown format?
+         Con::printf("SFXWavStream - Unhandled format!");
+         SAFE_DELETE(stream);
       }
    }
 
    return NULL;
 }
 
-bool SFXStream::exists(String filename)
+bool SFXStream::exists(String fileName)
 {
    // First strip off our current extension (validating 
    // against a list of known extensions so that we don't
    // strip off the last part of a file name with a dot in it.
 
-   String noExtension = Platform::stripExtension(filename, smExtensions);
+   String ext;
 
-   for (U32 i = 0; i < smExtensions.size(); i++)
+   S32 dotPos = fileName.find('.', 0, String::Right);
+
+   if (dotPos != String::NPos)
+      ext = fileName.substr(dotPos);
+
+   if (ext.equal(".wav", String::NoCase))
    {
-      String testName = noExtension + smExtensions[i];
-      if (Torque::FS::IsFile(testName))
+      if (Torque::FS::IsFile(fileName))
+         return true;
+   }
+   else if (ext.equal(".ogg", String::NoCase))
+   {
+      if (Torque::FS::IsFile(fileName))
          return true;
    }
 
