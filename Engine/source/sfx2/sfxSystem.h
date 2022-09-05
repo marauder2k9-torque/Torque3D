@@ -134,6 +134,7 @@ inline F32 SFXDistanceAttenuation(SFXDistanceModel model, F32 minDistance, F32 m
 /// </summary>
 class Stream;
 class SFXStream;
+class SFXDevice;
 
 typedef SFXStream* (*SFXSTREAM_CREATE_FN)(Stream* stream);
 typedef ThreadSafeRef< SFXStream > SFXStreamRef;
@@ -153,6 +154,7 @@ protected:
    // data needed by apis.
    Stream*  mStream;
    bool     mOwnStream;
+   bool     mIsMusic;
    U32      mSize;
    U32      mFrequency;
    U16      mBitsPerSample;
@@ -177,10 +179,12 @@ public:
    virtual U32 read(U8* buffer, U32 length) = 0;
    virtual bool isEOS() const = 0;
 
-   bool open(Stream* stream, bool ownStream = false);
+   bool open(Stream* stream, bool isMusic = false, bool ownStream = false);
    void close();
 
-   // accessors that we may need.
+   /// accessors that we may need.
+   /// music streams will have no effects applied to their source.
+   bool  getIsMusic() const { return mIsMusic; }
    U32   getSize() const { return mSize; }
    U32   getFrequency() const { return mFrequency; }
    U16   getBitsPerSample() const { return mBitsPerSample; }
@@ -194,6 +198,7 @@ public:
 /// </summary>
 class SFXBuffer
 {
+   SFXBuffer(SFXDevice* device);
 };
 
 /// <summary>
@@ -203,6 +208,7 @@ class SFXBuffer
 /// </summary>
 class SFXSource
 {
+   SFXSource(SFXDevice* device);
 };
 
 /// <summary>
@@ -290,14 +296,24 @@ class SFXSystem
 public:
    typedef Vector< SFXSource* > SourceVector;
    typedef Vector< SFXSource* > FreeSourceVector;
+   typedef Vector< SFXBuffer* > BufferVector;
+   typedef Vector< SFXDevice* > SystemDevices;
 
 protected:
    static SFXSystem* smSingleton;
+   static SFXSystem* getSingleton() { return smSingleton; }
    SFXSystem();
    ~SFXSystem();
 
+   // SFXSystems resources. System will loop through
+   // these to update each cycle.
    SourceVector      mSources;
+   BufferVector      mBufferList;
+   SFXDevice*        mCurDevice;
+   
+   // these vectors do not need to be looped for obvious reasons.
    FreeSourceVector  mFreeSources;
+   SystemDevices     mDevicesList;
 
    // stats
    U32 mLastSourceUpdateTime;
@@ -308,9 +324,11 @@ protected:
    S32 mStatParameterUpdateTime;
 
 public:
-
    static void init();
    static void destroy();
+   
+   bool createDevice(const String& providerName, const String& deviceName);
+   SFXSource* createSource(const ThreadSafeRef< SFXStream >& stream, const MatrixF* transform = NULL, const VectorF* velocity = NULL);
 
 };
 

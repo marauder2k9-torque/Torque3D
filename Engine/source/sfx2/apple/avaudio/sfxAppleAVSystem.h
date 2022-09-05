@@ -39,12 +39,18 @@ class SFXAVEffectManager;
 
 class SFXAVBuffer : public SFXBuffer
 {
-   
+public:
+   SFXAVBuffer(SFXDevice* device);
+protected:
+   SFXAVDevice* mDevice;
 };
 
 class SFXAVSource : public SFXSource
 {
+public:
+   SFXAVSource(SFXDevice* device);
 protected:
+   SFXAVDevice*                  mDevice;
    SFXAVEffectManager*           mEffectManager;
    AVAudioSourceNodeRenderBlock  mRenderBlock;
    AVAudioSourceNode*            mSourceNode;
@@ -80,7 +86,10 @@ protected:
 
 class SFXAVEffectManager : public SFXEffectManager
 {
-   
+   SFXAVEffectManager(SFXDevice* device);
+protected:
+   AUNode         mReverbNode;
+   AudioUnit      mReverbUnit;
 };
 
 #endif /* _SFXAPPLEAVSYSTEM_H_ */

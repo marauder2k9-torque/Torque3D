@@ -29,6 +29,7 @@
 SFXStream::SFXStream()
    :  mStream( NULL ),
       mOwnStream(false),
+      mIsMusic(false),
       mSamples(0),
       mSamplesPerSec(0),
       mBytesPerSample(0),
@@ -48,6 +49,7 @@ SFXStream::SFXStream(const SFXStream& clone)
    }
 
    mOwnStream        = true;
+   mIsMusic          = clone.mIsMusic;
    mSamples          = clone.mSamples;
    mSamplesPerSec    = clone.mSamplesPerSec;
    mBytesPerSample   = clone.mBytesPerSample;
@@ -136,13 +138,14 @@ bool SFXStream::exists(String fileName)
    return false;
 }
 
-bool SFXStream::open(Stream* stream, bool ownStream)
+bool SFXStream::open(Stream* stream,bool isMuisic, bool ownStream)
 {
    AssertFatal(stream, "SFXStream::open() - NULL Stream!");
    close();
 
    mStream = stream;
    mOwnStream = ownStream;
+   mIsMusic = isMuisic;
 
    if (_parseFile())
    {
