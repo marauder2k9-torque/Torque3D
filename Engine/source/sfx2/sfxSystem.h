@@ -51,7 +51,36 @@
 #include "console/dynamicTypes.h"
 #endif
 
+//-----------------------------------------------------------------------------
+//    SFXStatus.
+//-----------------------------------------------------------------------------
+enum SFXStatus
+{
+   SFXStatusNull,
+   SFXStatusPlaying,
+   SFXStatusStopped,
+   SFXStatusPaused,
+};
 
+DefineEnumType(SFXStatus);
+
+
+inline const char* SFXStatusToString(SFXStatus status)
+{
+   switch (status)
+   {
+   case SFXStatusPlaying:
+      return "playing";
+   case SFXStatusStopped:
+      return "stopped";
+   case SFXStatusPaused:
+      return "paused";
+   case SFXStatusNull:
+   default:;
+   }
+
+   return "null";
+}
 //-----------------------------------------------------------------------------
 //    SFXDistanceModel.
 //-----------------------------------------------------------------------------
@@ -153,6 +182,7 @@ protected:
 
    // data needed by apis.
    Stream*  mStream;
+   String   mFileName;
    bool     mOwnStream;
    bool     mIsMusic;
    U32      mSize;
@@ -162,8 +192,8 @@ protected:
    U8       mBlockAlign;
 
    SFXStream();
+   SFXStream(bool isMusic);
    SFXStream(const SFXStream& clone);
-
 
    virtual bool _parseFile() = 0;
    virtual void _close() = 0;
@@ -179,7 +209,7 @@ public:
    virtual U32 read(U8* buffer, U32 length) = 0;
    virtual bool isEOS() const = 0;
 
-   bool open(Stream* stream, bool isMusic = false, bool ownStream = false);
+   bool open(Stream* stream, bool ownStream = false);
    void close();
 
    /// accessors that we may need.
@@ -190,6 +220,7 @@ public:
    U16   getBitsPerSample() const { return mBitsPerSample; }
    U8    getChannels() const { return mChannels; }
    U8    getBlockAlign() const { return mBlockAlign; }
+   String getFileName() const { return mFileName; }
 
 };
 /// <summary
@@ -208,7 +239,23 @@ class SFXBuffer
 /// </summary>
 class SFXSource
 {
+public:
    SFXSource(SFXDevice* device);
+   virtual ~SFXSource();
+   virtual bool Init(SFXStream* stream) = 0;
+   virtual void update() = 0;
+
+   virtual void _setStatus(SFXStatus status);
+   virtual SFXStatus _getStatus() const;
+   virtual void play() = 0;
+   virtual void stop() = 0;
+   virtual void pause() = 0;
+protected:
+   SFXDevice*  mDevice;
+   SFXBuffer*  mBuffer;
+   SFXStream*  mStream;
+   SFXStatus   mStatus;
+
 };
 
 /// <summary>
@@ -298,6 +345,7 @@ public:
    typedef Vector< SFXSource* > FreeSourceVector;
    typedef Vector< SFXBuffer* > BufferVector;
    typedef Vector< SFXDevice* > SystemDevices;
+   typedef Vector< SFXStream* > Streams;
 
 protected:
    static SFXSystem* smSingleton;
@@ -315,6 +363,9 @@ protected:
    FreeSourceVector  mFreeSources;
    SystemDevices     mDevicesList;
 
+   // vector to check to make sure we are not creating a stream of the same file.
+   Streams           mCreatedStreams;
+
    // stats
    U32 mLastSourceUpdateTime;
    S32 mStatNumSources;
@@ -328,7 +379,10 @@ public:
    static void destroy();
    
    bool createDevice(const String& providerName, const String& deviceName);
+   SFXSource* createSource(const ThreadSafeRef< SFXStream >& stream);
    SFXSource* createSource(const ThreadSafeRef< SFXStream >& stream, const MatrixF* transform = NULL, const VectorF* velocity = NULL);
+   ThreadSafeRef< SFXStream >* createStream(String fileName);
+   ThreadSafeRef< SFXStream >* createStream(String fileName, bool isMusic = false);
 
 };
 
