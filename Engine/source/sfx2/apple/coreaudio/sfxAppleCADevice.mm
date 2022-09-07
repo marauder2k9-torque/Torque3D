@@ -26,6 +26,12 @@
 #include "console/console.h"
 #include "console/engineAPI.h"
 
+SFXCADevice::SFXCADevice(String name, bool isCapture)
+:Parent(name, isCapture)
+{
+   
+}
+
 void SFXCADevice::init()
 {
    // setup our device info holders.

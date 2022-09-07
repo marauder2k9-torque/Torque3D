@@ -60,7 +60,7 @@ public:
    virtual ~SFXCAProvider();
    
    void init();
-   
+   void findDevices();
    // initalize the device linked to this provider, with apple its only 1 device for now.
    void initDevice(SFXCADevice* device);
 };
@@ -68,7 +68,9 @@ public:
 class SFXCADevice : public SFXDevice
 {
 public:
+   typedef SFXDevice Parent;
    
+   SFXCADevice(String name, bool isCapture);
    // initialize this device as our active device.
    void init();
    

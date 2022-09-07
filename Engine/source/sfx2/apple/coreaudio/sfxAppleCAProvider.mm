@@ -48,5 +48,66 @@ MODULE_END
 
 void SFXCAProvider::init()
 {
+   // this should return the number of output audio devices.
+   UInt32 dataSize = 0;
+   AudioObjectPropertyAddress propertyAddress;
+   propertyAddress.mSelector = kAudioHardwarePropertyDevices;
+   propertyAddress.mScope    = kAudioObjectPropertyScopeOutput; // for input kAudioObjectPropertyScopeInput
+   propertyAddress.mElement  = kAudioObjectPropertyElementMaster;
+   OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize);
+   
+   int count = -1;
+   if (result == noErr) {
+      count = dataSize / sizeof(AudioDeviceID);
+   }
+   
    regProvider(this);
+}
+
+void SFXCAProvider::findDevices()
+{
+   // find our output devices first
+   UInt32 dataSize = 0;
+   AudioObjectPropertyAddress propertyAddress;
+   propertyAddress.mSelector = kAudioHardwarePropertyDevices;
+   propertyAddress.mScope    = kAudioObjectPropertyScopeOutput; // for input kAudioObjectPropertyScopeInput
+   propertyAddress.mElement  = kAudioObjectPropertyElementMaster;
+   OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize);
+
+   int count = -1;
+   if (result == noErr) {
+      count = dataSize / sizeof(AudioDeviceID);
+   }
+
+   AudioDeviceID *audioDevices = dMalloc(dataSize);
+
+   result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize, audioDevices);
+   if(kAudioHardwareNoError != result)
+   {
+      Con::printf("SFXCAProvider - failed to finde system devices!");
+      free(audioDevices), audioDevices = NULL;
+      return;
+   }
+   
+   for(U32 i = 0; i < count; i++)
+   {
+      audioDevices[i];
+   }
+   
+   // now do input devices
+   AudioObjectPropertyAddress propertyAddress;
+   propertyAddress.mSelector = kAudioHardwarePropertyDevices;
+   propertyAddress.mScope    = kAudioObjectPropertyScopeInput; // for input kAudioObjectPropertyScopeInput
+   propertyAddress.mElement  = kAudioObjectPropertyElementMaster;
+   OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize);
+   
+   int count = -1;
+   if (result == noErr) {
+      count = dataSize / sizeof(AudioDeviceID);
+   }
+   
+   for(U32 i = 0; i < count; i++)
+   {
+      
+   }
 }

@@ -75,7 +75,7 @@ class SFXAVDevice : public SFXDevice
 public:
    typedef SFXDevice Parent;
    void init();
-   SFXAVDevice(String name);
+   SFXAVDevice(String name, bool isCapture);
    virtual ~SFXAVDevice();
 protected:
    AVAudioEngine*       mAudioEngine;

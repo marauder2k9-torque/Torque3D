@@ -25,6 +25,10 @@
 #include "console/console.h"
 #include "console/engineAPI.h"
 
+SFXAVDevice::SFXAVDevice(String name, bool captureDevice)
+: Parent(name, captureDevice)
+{}
+
 void SFXAVDevice::init()
 {
    // no idea if this is right.

@@ -395,7 +395,7 @@ protected:
 
    // initialize provider - override by child class.
    virtual void init() = 0;
-
+   virtual void findDevices() = 0;
    // provide a name for provider.
    SFXProvider(const String& name);
 
