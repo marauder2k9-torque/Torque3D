@@ -66,7 +66,7 @@ void SFXCAProvider::init()
 
 void SFXCAProvider::findDevices()
 {
-   // find our output devices first
+   // setup our property address to look for output devices
    UInt32 dataSize = 0;
    AudioObjectPropertyAddress propertyAddress;
    propertyAddress.mSelector = kAudioHardwarePropertyDevices;
@@ -81,33 +81,65 @@ void SFXCAProvider::findDevices()
 
    AudioDeviceID *audioDevices = dMalloc(dataSize);
 
+   // find all output devices and put them into audioDevices.
    result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize, audioDevices);
    if(kAudioHardwareNoError != result)
    {
-      Con::printf("SFXCAProvider - failed to finde system devices!");
+      Con::printf("SFXCAProvider - failed to find system devices!");
       free(audioDevices), audioDevices = NULL;
       return;
    }
    
    for(U32 i = 0; i < count; i++)
    {
-      audioDevices[i];
+      // this may need to be NSString
+      String res;
+      propertyAddress.mSelector = kAudioDevicePropertyDeviceNameCFString; // could be kAudioDevicePropertyDeviceName
+      kAudioDeviceProperty
+      
+      // get audio device property name.
+      OSStatus err = AudioObjectGetPropertyData(audioDevices[i], &propertyAddress, 0, NULL, &dataSize, &res);
+      if(err != noErr) {
+         // couldn't pull name for this device.
+         continue;
+      }
+      Con::printf("SFXCADevice - Found output device %s", res);
+      new SFXCADevice(res,false);
    }
    
    // now do input devices
-   AudioObjectPropertyAddress propertyAddress;
    propertyAddress.mSelector = kAudioHardwarePropertyDevices;
    propertyAddress.mScope    = kAudioObjectPropertyScopeInput; // for input kAudioObjectPropertyScopeInput
    propertyAddress.mElement  = kAudioObjectPropertyElementMaster;
-   OSStatus result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize);
+   result = AudioObjectGetPropertyDataSize(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize);
    
-   int count = -1;
    if (result == noErr) {
       count = dataSize / sizeof(AudioDeviceID);
    }
    
+   // find all input devices and put them into audioDevices.
+   result = AudioObjectGetPropertyData(kAudioObjectSystemObject, &propertyAddress, 0, NULL, &dataSize, audioDevices);
+   if(kAudioHardwareNoError != result)
+   {
+      Con::printf("SFXCAProvider - failed to find system devices!");
+      free(audioDevices), audioDevices = NULL;
+      return;
+   }
+   
    for(U32 i = 0; i < count; i++)
    {
+      // this may need to be NSString
+      String res;
+      propertyAddress.mSelector = kAudioDevicePropertyDeviceNameCFString; // could be kAudioDevicePropertyDeviceName
+      kAudioDeviceProperty
       
+      // get audio device property name.
+      OSStatus err = AudioObjectGetPropertyData(audioDevices[i], &propertyAddress, 0, NULL, &dataSize, &res);
+      if(err != noErr) {
+         // couldn't pull name for this device.
+         continue;
+      }
+      Con::printf("SFXCADevice - Found input device %s", res);
+      new SFXCADevice(res, true);
    }
 }
