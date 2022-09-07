@@ -50,6 +50,18 @@
 #ifndef _DYNAMIC_CONSOLETYPES_H_
 #include "console/dynamicTypes.h"
 #endif
+#ifndef _SIMDATABLOCK_H_
+#include "console/simDatablock.h"
+#endif
+#ifndef _CONSOLETYPES_H_
+#include "console/consoleTypes.h"
+#endif
+
+//-----------------------------------------------------------------------------
+// DEFINES
+//-----------------------------------------------------------------------------
+
+#define NUM_BUFFERS 4
 
 //-----------------------------------------------------------------------------
 //    SFXStatus.
@@ -57,6 +69,7 @@
 enum SFXStatus
 {
    SFXStatusNull,
+   SFXStatusWaiting,
    SFXStatusPlaying,
    SFXStatusStopped,
    SFXStatusPaused,
@@ -81,6 +94,109 @@ inline const char* SFXStatusToString(SFXStatus status)
 
    return "null";
 }
+
+//-----------------------------------------------------------------------------
+//    SFXReverb.
+//-----------------------------------------------------------------------------
+
+
+/// Reverb environment properties.
+///
+/// @note A given device may not implement all properties.
+///restructure our reverbproperties to match openal
+
+class SFXReverbProperties : public SimDataBlock
+{
+public:
+
+   typedef SimDataBlock Parent;
+
+protected:
+
+   F32 flDensity;
+   F32 flDiffusion;
+   F32 flGain;
+   F32 flGainHF;
+   F32 flGainLF;
+   F32 flDecayTime;
+   F32 flDecayHFRatio;
+   F32 flDecayLFRatio;
+   F32 flReflectionsDelay;
+   F32 flLateReverbDelay;
+   F32 flEchoTime;
+   F32 flEchoDepth;
+   F32 flModulationTime;
+   F32 flModulationDepth;
+   F32 flAirAbsorptionGainHF;
+   F32 flHFReference;
+   F32 flLFReference;
+   F32 flRoomRolloffFactor;
+   S32 iDecayHFLimit;
+
+public:
+
+   SFXReverbProperties()
+   {
+      flDensity = 1.0f;
+      flDiffusion = 1.0f;
+      flGain = 0.4f;
+      flGainHF = 0.7f;
+      flGainLF = 0.0024f;
+      flDecayTime = 1.0f;
+      flDecayHFRatio = 1.0f;
+      flDecayLFRatio = 1.0f;
+      flReflectionsDelay = 0.1f;
+      flLateReverbDelay = 0.1f;
+      flEchoTime = 0.2f;
+      flEchoDepth = 0.3f;
+      flModulationTime = 2.0f;
+      flModulationDepth = 0.3f;
+      flAirAbsorptionGainHF = 0.9f;
+      flHFReference = 1000.0f;
+      flLFReference = 30.0f;
+      flRoomRolloffFactor = 3.0f;
+      iDecayHFLimit = 0;
+   }
+
+   void validate()
+   {
+      flDensity = mClampF(flDensity, 0.0f, 1.0f);
+      flDiffusion = mClampF(flDiffusion, 0.0f, 1.0f);
+      flGain = mClampF(flGain, 0.0f, 1.0f);
+      flGainHF = mClampF(flGainHF, 0.0f, 1.0f);
+      flGainLF = mClampF(flGainLF, 0.0f, 1.0f);
+      flDecayTime = mClampF(flDecayTime, 0.1f, 20.0f);
+      flDecayHFRatio = mClampF(flDecayHFRatio, 0.1f, 2.0f);
+      flDecayLFRatio = mClampF(flDecayLFRatio, 0.1f, 2.0f);
+      flReflectionsDelay = mClampF(flReflectionsDelay, 0.0f, 0.3f);
+      flLateReverbDelay = mClampF(flLateReverbDelay, 0.0f, 0.1f);
+      flEchoTime = mClampF(flEchoTime, 0.075f, 0.25f);
+      flEchoDepth = mClampF(flEchoDepth, 0.0f, 1.0f);
+      flModulationTime = mClampF(flModulationTime, 0.04f, 4.0f);
+      flModulationDepth = mClampF(flModulationDepth, 0.0f, 1.0f);
+      flAirAbsorptionGainHF = mClampF(flAirAbsorptionGainHF, 0.892f, 1.0f);
+      flHFReference = mClampF(flHFReference, 1000.0f, 20000.0f);
+      flLFReference = mClampF(flLFReference, 20.0f, 1000.0f);
+      flRoomRolloffFactor = mClampF(flRoomRolloffFactor, 0.0f, 10.0f);
+      iDecayHFLimit = mClampF(iDecayHFLimit, 0, 1);
+   }
+
+   /// SimDatablock
+
+   DECLARE_CONOBJECT(SFXReverbProperties);
+   DECLARE_CATEGORY("SFX");
+   DECLARE_DESCRIPTION("Reverb Properties for an SFX Zone.");
+
+   static void initPersistFields();
+
+   virtual bool onAdd();
+   virtual bool preload(bool server, String& errorStr);
+   virtual void packData(BitStream* stream);
+   virtual void unpackData(BitStream* stream);
+   virtual void inspectPostApply();
+
+};
+
 //-----------------------------------------------------------------------------
 //    SFXDistanceModel.
 //-----------------------------------------------------------------------------
@@ -166,7 +282,6 @@ class SFXStream;
 class SFXDevice;
 
 typedef SFXStream* (*SFXSTREAM_CREATE_FN)(Stream* stream);
-typedef ThreadSafeRef< SFXStream > SFXStreamRef;
 
 /// <summary>
 /// class to bring in all audio files this should be routed through the sfxSystem in
@@ -223,13 +338,20 @@ public:
    String getFileName() const { return mFileName; }
 
 };
+
+typedef ThreadSafeRef< SFXStream > SFXStreamRef;
+
 /// <summary
 /// buffer holds sfxStream data in a list of buffers. Should define
 /// if buffer is music or otherwise, music shouldn't have any effects applied.
 /// </summary>
 class SFXBuffer
 {
-   SFXBuffer(SFXDevice* device);
+public:
+   SFXBuffer();
+   virtual ~SFXBuffer();
+
+   virtual U32 getCurrentOffset() { return -1; }
 };
 
 /// <summary>
@@ -250,11 +372,13 @@ public:
    virtual void play() = 0;
    virtual void stop() = 0;
    virtual void pause() = 0;
+
 protected:
    SFXDevice*  mDevice;
    SFXBuffer*  mBuffer;
    SFXStream*  mStream;
    SFXStatus   mStatus;
+   bool        mReverb;
 
 };
 
@@ -307,7 +431,21 @@ public:
    /// <param name="velocity">Velocity of the listener.</param>
    virtual void setListener(U32 index, MatrixF transform, Point3F velocity);
 
+   /// <summary>
+   /// Get the name for this device.
+   /// </summary>
+   /// <returns>String representing the name of this device.</returns>
+   const String& getName() const { return mName; }
+
+   /// <summary>
+   /// is this a capture device?
+   /// </summary>
+   /// <returns>True if is a capture device.</returns>
+   const bool getIsCapture() const { return mCaptureDevice; }
+
 protected:
+   SFXDevice(const String& name, const bool captureDevice);
+
    String   mName;
    String   mAPIDeviceName;
    bool     mCaptureDevice;
@@ -332,6 +470,12 @@ class SFXEffectManager
 {
 public:
    virtual void SetReverb();
+
+protected:
+   // listeners zone reverb properties.
+   SFXReverbProperties  mCurReverbProps;
+   SFXReverbProperties  mDestinationReverbProps;
+
 };
 
 /// <summary>
@@ -345,11 +489,10 @@ public:
    typedef Vector< SFXSource* > FreeSourceVector;
    typedef Vector< SFXBuffer* > BufferVector;
    typedef Vector< SFXDevice* > SystemDevices;
-   typedef Vector< SFXStream* > Streams;
+   typedef Vector< SFXStreamRef > Streams;
 
 protected:
    static SFXSystem* smSingleton;
-   static SFXSystem* getSingleton() { return smSingleton; }
    SFXSystem();
    ~SFXSystem();
 
@@ -366,6 +509,9 @@ protected:
    // vector to check to make sure we are not creating a stream of the same file.
    Streams           mCreatedStreams;
 
+   // the current distance model.
+   SFXDistanceModel  mDistanceModel;
+
    // stats
    U32 mLastSourceUpdateTime;
    S32 mStatNumSources;
@@ -375,14 +521,23 @@ protected:
    S32 mStatParameterUpdateTime;
 
 public:
+   static SFXSystem* getSingleton() { return smSingleton; }
+
    static void init();
    static void destroy();
-   
-   bool createDevice(const String& providerName, const String& deviceName);
-   SFXSource* createSource(const ThreadSafeRef< SFXStream >& stream);
-   SFXSource* createSource(const ThreadSafeRef< SFXStream >& stream, const MatrixF* transform = NULL, const VectorF* velocity = NULL);
-   ThreadSafeRef< SFXStream >* createStream(String fileName);
-   ThreadSafeRef< SFXStream >* createStream(String fileName, bool isMusic = false);
+   void _update();
+
+   F32 _distanceGain(F32 volume);
+
+   // Initialize a device to be our current device.
+   bool initDevice(const String& providerName, const String& deviceName);
+
+   // initialize sources and send back a reference.
+   SFXSource* initSource(const ThreadSafeRef< SFXStream >& stream);
+   SFXSource* initSource(const ThreadSafeRef< SFXStream >& stream, const MatrixF* transform = NULL, const VectorF* velocity = NULL);
+
+   // these will check to see if a stream with that filename exists and then return a threadsaferef to it. Otherwise they will create a new one.
+   SFXStreamRef createStream(String fileName, bool isMusic = false);
 
 };
 

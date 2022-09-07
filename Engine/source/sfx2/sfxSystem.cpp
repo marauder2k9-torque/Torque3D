@@ -71,3 +71,17 @@ void SFXSystem::destroy()
    delete smSingleton;
    smSingleton = NULL;
 }
+
+//-----------------------------------------------------------------------------
+
+SFXStreamRef SFXSystem::createStream(String fileName, bool isMusic)
+{
+   for (Streams::iterator iter = mCreatedStreams.begin(); iter != mCreatedStreams.end();)
+   {
+      SFXStreamRef stream = *iter;
+      if (stream->getFileName() == fileName)
+         return stream;
+   }
+
+   return nullptr;
+}
