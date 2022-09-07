@@ -32,24 +32,93 @@
 #include "core/module.h"
 
 
-MODULE_BEGIN(SFX2)
+MODULE_BEGIN(SFX)
 
-MODULE_INIT_BEFORE(Sim)
-MODULE_SHUTDOWN_BEFORE(Sim) // Make sure all SimObjects disappear in time.
+   MODULE_INIT_BEFORE(Sim)
+   MODULE_SHUTDOWN_BEFORE(Sim) // Make sure all SimObjects disappear in time.
 
-MODULE_INIT
-{
-   SFXSystem::init();
-}
+   MODULE_INIT
+   {
+      SFXSystem::init();
+   }
 
-MODULE_SHUTDOWN
-{
-   SFXSystem::destroy();
-}
+   MODULE_SHUTDOWN
+   {
+      SFXSystem::destroy();
+   }
 
 MODULE_END;
 
 SFXSystem* SFXSystem::smSingleton = NULL;
+
+ImplementEnumType(SFXStatus,
+   "Playback status of sound source.\n"
+   "@ingroup SFX")
+   {
+      SFXStatusWaiting, "Waiting",
+      "The source is currently waiting for a call to play."
+   },
+   {
+      SFXStatusPlaying, "Playing",
+      "The source is currently playing."
+   },
+   {
+      SFXStatusStopped, "Stopped",
+      "Playback of the source is stopped.  When transitioning to Playing state, playback will start at the beginning "
+         "of the source."
+   },
+   {
+      SFXStatusPaused, "Paused",
+      "Playback of the source is paused.  Resuming playback will play from the current playback position."
+   },
+EndImplementEnumType;
+
+ImplementEnumType(SFXDistanceModel,
+   "Type of volume distance attenuation curve.\n"
+   "The distance model determines the falloff curve applied to the volume of 3D sounds over distance.\n\n"
+   "@ref SFXSource_volume\n\n"
+   "@ref SFX_3d\n\n"
+   "@ingroup SFX")
+   {
+      SFXDistanceModelLinear, "Linear",
+      "Volume attenuates linearly."
+   },
+   {
+      SFXDistanceModelLinearClamped, "Linear Clamped",
+      "Volume attenuates linearly from the reference distance."
+   },
+   {
+      SFXDistanceModelInverse, "Inverse",
+      "Volume attenuates in an inverse curve, attenuating by the rolloff factor. "
+   },
+   {
+      SFXDistanceModelInverseClamped, "Inverse Clamped",
+      "Volume attenuates in an inverse curve, attenuating by the rolloff factor from reference distance. "
+   },
+   {
+      SFXDistanceModelExponent, "Exponential",
+      "Volume attenuates exponentially by the rolloff factor. "
+   },
+   {
+      SFXDistanceModelExponentClamped, "Exponential Clamped",
+      "Volume attenuates exponentially starting from the reference distance, attenuating by the rolloff factor. "
+   },
+EndImplementEnumType;
+
+SFXSystem::SFXSystem()
+   :  mCurDevice(NULL),
+      mLastSourceUpdateTime(0),
+      mStatNumSources(0),
+      mStatNumPlaying(0),
+      mStatNumCulled(0),
+      mDistanceModel(SFXDistanceModelInverseClamped)
+{
+   VECTOR_SET_ASSOCIATION(mSources);
+   VECTOR_SET_ASSOCIATION(mFreeSources);
+   VECTOR_SET_ASSOCIATION(mBufferList);
+   VECTOR_SET_ASSOCIATION(mDevicesList);
+   VECTOR_SET_ASSOCIATION(mRecordDevicesList);
+}
 
 //-----------------------------------------------------------------------------
 
@@ -72,6 +141,27 @@ void SFXSystem::destroy()
    smSingleton = NULL;
 }
 
+void SFXSystem::deinitDevice()
+{
+   if (!mCurDevice)
+      return;
+
+   for (SourceVector::iterator iter = mSources.begin(); iter != mSources.end();)
+   {
+      SFXSource* source = *iter;
+      source->stop();
+   }
+
+   // clear the sources vector.
+   mSources.clear();
+
+   // clear the free sources vector, this is filled when a new device is created.
+   mFreeSources.clear();
+
+   // deinit device here.
+   mCurDevice = NULL;
+}
+
 //-----------------------------------------------------------------------------
 
 SFXStreamRef SFXSystem::createStream(String fileName, bool isMusic)
@@ -84,4 +174,11 @@ SFXStreamRef SFXSystem::createStream(String fileName, bool isMusic)
    }
 
    return nullptr;
+}
+
+void SFXSystem::setDistanceModel(SFXDistanceModel model)
+{
+   const bool changed = (model != mDistanceModel);
+
+   mDistanceModel = model;
 }

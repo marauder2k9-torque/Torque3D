@@ -82,6 +82,8 @@ inline const char* SFXStatusToString(SFXStatus status)
 {
    switch (status)
    {
+   case SFXStatusWaiting:
+      return "waiting";
    case SFXStatusPlaying:
       return "playing";
    case SFXStatusStopped:
@@ -489,6 +491,7 @@ public:
    typedef Vector< SFXSource* > FreeSourceVector;
    typedef Vector< SFXBuffer* > BufferVector;
    typedef Vector< SFXDevice* > SystemDevices;
+   typedef Vector< SFXDevice* > SystemRecordDevices;
    typedef Vector< SFXStreamRef > Streams;
 
 protected:
@@ -503,8 +506,15 @@ protected:
    SFXDevice*        mCurDevice;
    
    // these vectors do not need to be looped for obvious reasons.
-   FreeSourceVector  mFreeSources;
-   SystemDevices     mDevicesList;
+
+   // fresources are filled when a device is created.
+   FreeSourceVector        mFreeSources;
+
+   // device list filled out by the provider.
+   SystemDevices           mDevicesList;
+
+   // input device list filled out by the provider.
+   SystemRecordDevices     mRecordDevicesList;
 
    // vector to check to make sure we are not creating a stream of the same file.
    Streams           mCreatedStreams;
@@ -518,7 +528,6 @@ protected:
    S32 mStatNumPlaying;
    S32 mStatNumCulled;
    S32 mStatSourceUpdateTime;
-   S32 mStatParameterUpdateTime;
 
 public:
    static SFXSystem* getSingleton() { return smSingleton; }
@@ -531,6 +540,7 @@ public:
 
    // Initialize a device to be our current device.
    bool initDevice(const String& providerName, const String& deviceName);
+   void deinitDevice();
 
    // initialize sources and send back a reference.
    SFXSource* initSource(const ThreadSafeRef< SFXStream >& stream);
@@ -539,6 +549,11 @@ public:
    // these will check to see if a stream with that filename exists and then return a threadsaferef to it. Otherwise they will create a new one.
    SFXStreamRef createStream(String fileName, bool isMusic = false);
 
+   void setDistanceModel(SFXDistanceModel model);
+   SFXDistanceModel getDistanceModel() const { return mDistanceModel; }
+
 };
+
+#define SFX SFXSystem::getSingleton()
 
 #endif // !_SFXSYSTEM2_H_

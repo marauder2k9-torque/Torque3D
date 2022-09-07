@@ -205,14 +205,16 @@ public:
    virtual ~SFXALProvider();
 
    void init();
-
+protected:
+   bool _loadApi();
+   U32 ALCVer{ 0 };
 };
 
 class SFXALDevice : public SFXDevice
 {
 public:
    typedef SFXDevice Parent;
-   SFXALDevice();
+   SFXALDevice(String name, bool captureDevice);
    virtual void init();
    virtual ~SFXALDevice();
    virtual void setListener(U32 index, MatrixF transform, Point3F velocity);
@@ -221,13 +223,7 @@ protected:
    ALCdevice*     mDevice;
    ALCcontext*    mContext;
 
-   bool _loadApi();
    bool _loadExtendedApi();
-};
-
-class SFXALMixer : public SFXMixer
-{
-
 };
 
 class SFXALEffectManager : public SFXEffectManager
