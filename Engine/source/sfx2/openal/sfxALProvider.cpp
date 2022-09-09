@@ -75,6 +75,22 @@ void SFXALProvider::init()
    regProvider(this);
 }
 
+void SFXALProvider::findDevices()
+{
+   const char* devices;
+   const char* defaultDeviceName;
+   // find output devies first.
+   if (alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT")) {
+      devices = alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+      defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
+   }
+   else
+   {
+      devices = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+      defaultDeviceName = alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+   }
+}
+
 bool SFXALProvider::_loadApi()
 {
    U32 err = 0;
@@ -127,7 +143,7 @@ bool SFXALProvider::_loadApi()
    LOAD_PROC(alcGetString);
    LOAD_PROC(alcGetIntegerv);
    LOAD_PROC(alcCaptureOpenDevice);
-   LOAD_PROC(alcCaptureCloseDevice);
+   LOAD_PROC(alcCaptureCloseDevice); 
    LOAD_PROC(alcCaptureStart);
    LOAD_PROC(alcCaptureStop);
    LOAD_PROC(alcCaptureSamples);

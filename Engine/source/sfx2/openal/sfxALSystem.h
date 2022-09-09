@@ -27,9 +27,9 @@
 #include "sfx2/sfxSystem.h"
 
 // include OpenAL headers.
-#include "AL/alc.h"
-#include "AL/al.h"
-#include "AL/alext.h"
+#include <AL/alc.h>
+#include <AL/al.h>
+#include <AL/alext.h>
 
 #define MAKE_ALC_VER(major, minor) (((major)<<8) | (minor))
 
@@ -169,7 +169,7 @@ LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv{ nullptr };
 class SFXALBuffer : public SFXBuffer
 {
 public:
-   SFXALBuffer(SFXALDevice* devbice);
+   SFXALBuffer(SFXALDevice* device);
    ~SFXALBuffer();
 
    static SFXALBuffer* createBuffer(SFXALDevice* device, SFXStream stream);
@@ -205,6 +205,8 @@ public:
    virtual ~SFXALProvider();
 
    void init();
+   void findDevices();
+
 protected:
    bool _loadApi();
    U32 ALCVer{ 0 };
@@ -214,8 +216,8 @@ class SFXALDevice : public SFXDevice
 {
 public:
    typedef SFXDevice Parent;
-   SFXALDevice(String name, bool captureDevice);
-   virtual void init();
+   SFXALDevice(String name, String openalName, bool sysDefault, bool captureDevice);
+   virtual bool init();
    virtual ~SFXALDevice();
    virtual void setListener(U32 index, MatrixF transform, Point3F velocity);
 

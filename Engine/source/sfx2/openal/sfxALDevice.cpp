@@ -22,23 +22,36 @@
 
 #include "sfx2/openal/sfxALSystem.h"
 
-SFXALDevice::SFXALDevice(String name, bool captureDevice)
-   :Parent(name, captureDevice)
+SFXALDevice::SFXALDevice(String name, String openalName, bool sysDefault, bool captureDevice)
+   :Parent(name, openalName, sysDefault, captureDevice)
 {
 
 }
 
-void SFXALDevice::init()
+bool SFXALDevice::init()
 {
+   mDevice = alcOpenDevice(mAPIDeviceName);
 
+   mContext = alcCreateContext(mDevice, NULL);
 
+   String name = String::EmptyString;
+   if (alcIsExtensionPresent(mDevice, "ALC_ENUMERATE_ALL_EXT"))
+      name = alcGetString(mDevice, ALC_ALL_DEVICES_SPECIFIER);
+   if (!name || alcGetError(mDevice) != AL_NO_ERROR)
+      name = alcGetString(mDevice, ALC_DEVICE_SPECIFIER);
 
-   if (_loadExtendedApi())
+   Con::printf("SFXALDevice - Initialized %s", name.c_str());
+
+   if (!_loadExtendedApi())
+   {
+      Con::printf("SFXALDevice - Extended EFX not supported by device %s", name);
       return;
+   }
 }
 
 bool SFXALDevice::_loadExtendedApi()
 {
+   bool success = false;
 #define LOAD_PROC(x) do {                                                     \
     x = reinterpret_cast<decltype(x)>(alGetProcAddress(#x));                  \
     if(x)                                                                     \
@@ -79,6 +92,9 @@ bool SFXALDevice::_loadExtendedApi()
       LOAD_PROC(alGetAuxiliaryEffectSlotfv);
       LOAD_PROC(alGetAuxiliaryEffectSloti);
       LOAD_PROC(alGetAuxiliaryEffectSlotiv);
+      success = true;
    }
 #undef LOAD_PROC
+
+   return success;
 }

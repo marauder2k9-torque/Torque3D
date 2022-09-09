@@ -354,6 +354,8 @@ public:
    virtual ~SFXBuffer();
 
    virtual U32 getCurrentOffset() { return -1; }
+
+   virtual void freeBuffer();
 };
 
 /// <summary>
@@ -423,7 +425,7 @@ public:
    /// <summary>
    /// Initialize the hardware on each API.
    /// </summary>
-   virtual void init() = 0;
+   virtual bool init() = 0;
 
    /// <summary>
    /// Set the listener properties on the device. (pass on to each API)
@@ -446,11 +448,12 @@ public:
    const bool getIsCapture() const { return mCaptureDevice; }
 
 protected:
-   SFXDevice(const String& name, const bool captureDevice);
+   SFXDevice(const String& name, const String& apiName, const bool sysDefault, const bool captureDevice);
 
    String   mName;
    String   mAPIDeviceName;
    bool     mCaptureDevice;
+   bool     mDefaultDevice;
    U32      mMaxSources;
    
 };
@@ -475,8 +478,8 @@ public:
 
 protected:
    // listeners zone reverb properties.
-   SFXReverbProperties  mCurReverbProps;
-   SFXReverbProperties  mDestinationReverbProps;
+   SFXReverbProperties  mCurReverb;
+   SFXReverbProperties  mDestReverb;
 
 };
 
@@ -534,16 +537,15 @@ public:
 
    static void init();
    static void destroy();
-   void _update();
+   void update();
 
-   F32 _distanceGain(F32 volume);
+   F32 distanceGain();
 
    // Initialize a device to be our current device.
-   bool initDevice(const String& providerName, const String& deviceName);
+   bool initDevice(const String& deviceName);
    void deinitDevice();
 
    // initialize sources and send back a reference.
-   SFXSource* initSource(const ThreadSafeRef< SFXStream >& stream);
    SFXSource* initSource(const ThreadSafeRef< SFXStream >& stream, const MatrixF* transform = NULL, const VectorF* velocity = NULL);
 
    // these will check to see if a stream with that filename exists and then return a threadsaferef to it. Otherwise they will create a new one.

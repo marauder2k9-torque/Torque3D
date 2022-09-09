@@ -137,6 +137,8 @@ void SFXSystem::destroy()
 {
    AssertWarn(smSingleton != NULL, "SFX has not been initialized!");
 
+   SFX->deinitDevice();
+
    delete smSingleton;
    smSingleton = NULL;
 }
@@ -146,6 +148,7 @@ void SFXSystem::deinitDevice()
    if (!mCurDevice)
       return;
 
+   // stop all sources, stop also clears the buffer data.
    for (SourceVector::iterator iter = mSources.begin(); iter != mSources.end();)
    {
       SFXSource* source = *iter;
@@ -157,6 +160,9 @@ void SFXSystem::deinitDevice()
 
    // clear the free sources vector, this is filled when a new device is created.
    mFreeSources.clear();
+
+   // clear the buffer list.
+   mBufferList.clear();
 
    // deinit device here.
    mCurDevice = NULL;
@@ -182,3 +188,51 @@ void SFXSystem::setDistanceModel(SFXDistanceModel model)
 
    mDistanceModel = model;
 }
+
+bool SFXSystem::initDevice(const String& deviceName)
+{
+   if (mCurDevice)
+   {
+      if (mCurDevice->getName() == deviceName)
+      {
+         Con::printf("SFXSystem - device already initalized as current device!");
+         return false;
+      }
+   }
+
+   return true;
+}
+
+DefineEngineFunction(sfxInitDevice, bool, (const char* deviceName),,
+   "If a sound device is currently initialized, it will be uninitialized first.\n"
+   "If this function fails, it will restore the previously active device.\n"
+   "@param deviceName The name of the device as returned by sfxGetAvailableDevices().\n"
+   "@return True if the initialization was successful, false if not.\n"
+   "@note This function must be called before any of the sound playback functions can be used.\n"
+   "@ref SFX_devices\n"
+   "@ingroup SFX")
+{
+   return SFX->initDevice(deviceName);
+}
+
+DefineEngineFunction(sfxGetDistanceModel, SFXDistanceModel, (), ,
+   "Get the falloff curve type currently being applied to 3D sounds.\n\n"
+   "@return The current distance model type.\n\n"
+   "@ref SFXSource_volume\n\n"
+   "@ref SFX_3d\n\n"
+   "@ingroup SFX")
+{
+   return SFX->getDistanceModel();
+}
+
+//-----------------------------------------------------------------------------
+
+DefineEngineFunction(sfxSetDistanceModel, void, (SFXDistanceModel model), ,
+   "Set the falloff curve type to use for distance-based volume attenuation of 3D sounds.\n\n"
+   "@param model The distance model to use for 3D sound.\n\n"
+   "@note This setting takes effect globally and is applied to all 3D sounds.\n\n"
+   "@ingroup SFX")
+{
+   SFX->setDistanceModel(model);
+}
+
