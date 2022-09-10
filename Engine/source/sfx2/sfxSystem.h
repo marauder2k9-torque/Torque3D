@@ -204,12 +204,12 @@ public:
 //-----------------------------------------------------------------------------
 enum SFXDistanceModel
 {
-   SFXDistanceModelLinear,                ///< Volume decreases linearly from min to max where it reaches zero.
-   SFXDistanceModelLinearClamped,         ///< Volume decreases after min distance, then decresease to max distance based on rolloff factor.
-   SFXDistanceModelInverse,               ///< Volume decreases in an inverse curve until it reaches zero.
-   SFXDistanceModelInverseClamped,        ///< Volume decreases after min distance then decreases in an inverse curve to max based on rolloff.
-   SFXDistanceModelExponent,              ///< exponential falloff for distance attenuation.
-   SFXDistanceModelExponentClamped,       ///< exponential falloff after min for distance attenuation. 
+   SFXDistanceModelLinear,                /// Volume decreases linearly from min to max where it reaches zero.
+   SFXDistanceModelLinearClamped,         /// Volume decreases after min distance, then decresease to max distance based on rolloff factor.
+   SFXDistanceModelInverse,               /// Volume decreases in an inverse curve until it reaches zero.
+   SFXDistanceModelInverseClamped,        /// Volume decreases after min distance then decreases in an inverse curve to max based on rolloff.
+   SFXDistanceModelExponent,              /// exponential falloff for distance attenuation.
+   SFXDistanceModelExponentClamped,       /// exponential falloff after min for distance attenuation.
 };
 
 DefineEnumType(SFXDistanceModel);
@@ -218,12 +218,12 @@ DefineEnumType(SFXDistanceModel);
 /// Calculate the gain base on distance. These follow the methods
 /// pointed out in the openal documentation.
 /// </summary>
-/// <param name="model">Which distance moedl are we using.</param>
-/// <param name="minDistance">Min distance to start attenuation.</param>
-/// <param name="maxDistance">Max distance of attenuation.</param>
-/// <param name="distance">Source distance from the listener.</param>
-/// <param name="rolloffFactor">Rolloff factor.</param>
-/// <returns>Gain between 0.0 and 1.0.</returns>
+/// <param name="model"> Which distance moedl are we using. </param>
+/// <param name="minDistance"> Min distance to start attenuation. </param>
+/// <param name="maxDistance"> Max distance of attenuation. </param>
+/// <param name="distance"> Source distance from the listener. </param>
+/// <param name="rolloffFactor"> Rolloff factor. </param>
+/// <returns> Gain between 0.0 and 1.0. </returns>
 inline F32 SFXDistanceAttenuation(SFXDistanceModel model, F32 minDistance, F32 maxDistance, F32 distance, F32 rolloffFactor)
 {
    F32 gain = 1.0f;
@@ -323,25 +323,26 @@ protected:
 public:
 
    static SFXStream* create(String fileName);
-   static bool exists(String fileName);
+   static bool       exists(String fileName);
 
    // virtuals
    virtual ~SFXStream();
-   virtual void reset() = 0;
-   virtual U32 read(U8* buffer, U32 length) = 0;
-   virtual bool isEOS() const = 0;
+   virtual void   reset() = 0;
+   virtual U32    read(U8* buffer, U32 length) = 0;
+   virtual bool   isEOS() const = 0;
 
    bool open(Stream* stream, bool ownStream = false);
    void close();
 
-   /// accessors that we may need.
-   /// music streams will have no effects applied to their source.
-   bool  getIsMusic() const { return mIsMusic; }
-   U32   getSize() const { return mSize; }
-   U32   getFrequency() const { return mFrequency; }
-   U16   getBitsPerSample() const { return mBitsPerSample; }
-   U8    getChannels() const { return mChannels; }
-   U8    getBlockAlign() const { return mBlockAlign; }
+   // Accessors that we may need.
+   // Music streams will have no effects applied to their source.
+   // The sound asset should be marked as music.
+   bool   getIsMusic() const { return mIsMusic; }
+   U32    getSize() const { return mSize; }
+   U32    getFrequency() const { return mFrequency; }
+   U16    getBitsPerSample() const { return mBitsPerSample; }
+   U8     getChannels() const { return mChannels; }
+   U8     getBlockAlign() const { return mBlockAlign; }
    String getFileName() const { return mFileName; }
 
 };
@@ -482,6 +483,7 @@ public:
    virtual void SetReverb();
 
 protected:
+   
    // listeners zone reverb properties.
    SFXReverbProperties  mCurReverb;
    SFXReverbProperties  mDestReverb;
@@ -511,23 +513,25 @@ protected:
    BufferVector      mBufferList;
    SFXDevice*        mCurDevice;
 
-   // these vectors do not need to be looped for obvious reasons.
-   // fresources are filled when a device is created.
+   // These vectors do not need to be looped for obvious reasons.
+   // @NOTE: These resources are filled when provider and a device is created.
    SourceVector      mFreeSources;
 
-   // device list filled out by the provider.
+   // Device list filled out by the provider.
    SystemDevices     mDevicesList;
 
-   // input device list filled out by the provider.
+   // Input device list filled out by the provider.
    SystemDevices     mRecordDevicesList;
 
-   // vector to check to make sure we are not creating a stream of the same file.
+   // Vector to check to make sure we are not creating a stream of the same file.
    Streams           mCreatedStreams;
 
-   // the current distance model.
+   // The current distance model.
    SFXDistanceModel  mDistanceModel;
+   
+   //---------------------------------------------
 
-   // stats
+   // Stats
    U32 mLastSourceUpdateTime;
    S32 mStatNumSources;
    S32 mStatNumPlaying;
@@ -550,9 +554,11 @@ public:
    // initialize sources and send back a reference.
    SFXSource* initSource(const ThreadSafeRef< SFXStream >& stream, const MatrixF* transform = NULL, const VectorF* velocity = NULL);
 
-   // these will check to see if a stream with that filename exists and then return a threadsaferef to it. Otherwise they will create a new one.
+   // These will check to see if a stream with that filename exists and then return a threadsaferef to it.
+   // Otherwise they will create a new one.
    SFXStreamRef createStream(String fileName, bool isMusic = false);
 
+   // Set the distance model for gain attenuation.
    void setDistanceModel(SFXDistanceModel model);
    SFXDistanceModel getDistanceModel() const { return mDistanceModel; }
 

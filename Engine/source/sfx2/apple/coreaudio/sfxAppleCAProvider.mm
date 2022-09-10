@@ -93,18 +93,18 @@ void SFXCAProvider::findDevices()
    for(U32 i = 0; i < count; i++)
    {
       // this may need to be NSString
-      String res;
+      String outDevice;
       propertyAddress.mSelector = kAudioDevicePropertyDeviceNameCFString; // could be kAudioDevicePropertyDeviceName
       kAudioDeviceProperty
       
       // get audio device property name.
-      OSStatus err = AudioObjectGetPropertyData(audioDevices[i], &propertyAddress, 0, NULL, &dataSize, &res);
+      OSStatus err = AudioObjectGetPropertyData(audioDevices[i], &propertyAddress, 0, NULL, &dataSize, &outDevice);
       if(err != noErr) {
          // couldn't pull name for this device.
          continue;
       }
-      Con::printf("SFXCADevice - Found output device %s", res);
-      new SFXCADevice(res,false);
+      Con::printf("SFXCADevice - Found output device %s", outDevice);
+      new SFXCADevice(outDevice, false);
    }
    
    // now do input devices
@@ -129,17 +129,17 @@ void SFXCAProvider::findDevices()
    for(U32 i = 0; i < count; i++)
    {
       // this may need to be NSString
-      String res;
+      String inDevice;
       propertyAddress.mSelector = kAudioDevicePropertyDeviceNameCFString; // could be kAudioDevicePropertyDeviceName
       kAudioDeviceProperty
       
       // get audio device property name.
-      OSStatus err = AudioObjectGetPropertyData(audioDevices[i], &propertyAddress, 0, NULL, &dataSize, &res);
+      OSStatus err = AudioObjectGetPropertyData(audioDevices[i], &propertyAddress, 0, NULL, &dataSize, &inDevice);
       if(err != noErr) {
          // couldn't pull name for this device.
          continue;
       }
-      Con::printf("SFXCADevice - Found input device %s", res);
-      new SFXCADevice(res, true);
+      Con::printf("SFXCADevice - Found input device %s", inDevice);
+      new SFXCADevice(inDevice, true);
    }
 }
