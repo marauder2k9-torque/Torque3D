@@ -215,60 +215,65 @@ enum SFXDistanceModel
 DefineEnumType(SFXDistanceModel);
 
 /// <summary>
-/// Calculate the gain base on distance. These follow the methods pointed out in the
-/// openal documentation.
+/// Calculate the gain base on distance. These follow the methods
+/// pointed out in the openal documentation.
 /// </summary>
 /// <param name="model">Which distance moedl are we using.</param>
 /// <param name="minDistance">Min distance to start attenuation.</param>
 /// <param name="maxDistance">Max distance of attenuation.</param>
 /// <param name="distance">Source distance from the listener.</param>
 /// <param name="rolloffFactor">Rolloff factor.</param>
-/// <returns>Gain between 0.0 and 1.0 to be multiplied by the volume of the source.</returns>
+/// <returns>Gain between 0.0 and 1.0.</returns>
 inline F32 SFXDistanceAttenuation(SFXDistanceModel model, F32 minDistance, F32 maxDistance, F32 distance, F32 rolloffFactor)
 {
    F32 gain = 1.0f;
 
    switch (model)
    {
-   case SFXDistanceModelLinear:
+      // create the linear distance model.
+      case SFXDistanceModelLinear:
 
-      distance = getMin(distance, maxDistance);
+         distance = getMin(distance, maxDistance);
 
-      gain = (1 - (distance - minDistance) / (maxDistance - minDistance));
-      break;
+         gain = (1 - (distance - minDistance) / (maxDistance - minDistance));
+         break;
 
-   case SFXDistanceModelLinearClamped:
+      // create the linear clamped distance model.
+      case SFXDistanceModelLinearClamped:
 
-      distance = getMax(distance, minDistance);
-      distance = getMin(distance, maxDistance);
+         distance = getMax(distance, minDistance);
+         distance = getMin(distance, maxDistance);
 
-      gain = (1 - (distance - minDistance) / (maxDistance - minDistance));
-      break;
+         gain = (1 - (distance - minDistance) / (maxDistance - minDistance));
+         break;
 
-   case SFXDistanceModelInverse:
+      // create the inverse distance model.
+      case SFXDistanceModelInverse:
 
-      gain = minDistance / (minDistance + rolloffFactor * (distance - minDistance));
-      break;
+         gain = minDistance / (minDistance + rolloffFactor * (distance - minDistance));
+         break;
 
-   case SFXDistanceModelInverseClamped:
+      // create the inverse clamped distance model.
+      case SFXDistanceModelInverseClamped:
 
-      distance = getMax(distance, minDistance);
-      distance = getMin(distance, maxDistance);
+         distance = getMax(distance, minDistance);
+         distance = getMin(distance, maxDistance);
 
-      gain = minDistance / (minDistance + rolloffFactor * (distance - minDistance));
-      break;
+         gain = minDistance / (minDistance + rolloffFactor * (distance - minDistance));
+         break;
 
-      ///create exponential distance model    
-   case SFXDistanceModelExponent:
-      gain = pow((distance / minDistance), (-rolloffFactor));
-      break;
+      // create exponential distance model.
+      case SFXDistanceModelExponent:
+         gain = pow((distance / minDistance), (-rolloffFactor));
+         break;
 
-   case SFXDistanceModelExponentClamped:
-      distance = getMax(distance, minDistance);
-      distance = getMin(distance, maxDistance);
+      // create exponential clamped distance model.
+      case SFXDistanceModelExponentClamped:
+         distance = getMax(distance, minDistance);
+         distance = getMin(distance, maxDistance);
 
-      gain = pow((distance / minDistance), (-rolloffFactor));
-      break;
+         gain = pow((distance / minDistance), (-rolloffFactor));
+         break;
 
    }
 
@@ -491,10 +496,8 @@ class SFXSystem
 {
 public:
    typedef Vector< SFXSource* > SourceVector;
-   typedef Vector< SFXSource* > FreeSourceVector;
    typedef Vector< SFXBuffer* > BufferVector;
    typedef Vector< SFXDevice* > SystemDevices;
-   typedef Vector< SFXDevice* > SystemRecordDevices;
    typedef Vector< SFXStreamRef > Streams;
 
 protected:
@@ -507,17 +510,16 @@ protected:
    SourceVector      mSources;
    BufferVector      mBufferList;
    SFXDevice*        mCurDevice;
-   
-   // these vectors do not need to be looped for obvious reasons.
 
+   // these vectors do not need to be looped for obvious reasons.
    // fresources are filled when a device is created.
-   FreeSourceVector        mFreeSources;
+   SourceVector      mFreeSources;
 
    // device list filled out by the provider.
-   SystemDevices           mDevicesList;
+   SystemDevices     mDevicesList;
 
    // input device list filled out by the provider.
-   SystemRecordDevices     mRecordDevicesList;
+   SystemDevices     mRecordDevicesList;
 
    // vector to check to make sure we are not creating a stream of the same file.
    Streams           mCreatedStreams;
