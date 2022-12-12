@@ -105,18 +105,13 @@ SFXStream* SFXStream::create(String fileName)
          // are we ogg?
          if (ext.equal(".ogg", String::NoCase))
          {
-
-            Stream* stream = FileStream::createAndOpen(fileName, Torque::FS::File::Read);
-            if (!stream)
-               return NULL;
-
             sfxStream = SFXWavStream::create(stream);
             if (sfxStream)
                return sfxStream;
          }
 
          // we have reached here, we must be an unknown format?
-         Con::printf("SFXWavStream - Unhandled format!");
+         Con::printf("SFXStream - Unhandled format!");
          SAFE_DELETE(stream);
       }
    }

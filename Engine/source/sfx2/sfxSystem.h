@@ -288,8 +288,6 @@ class Stream;
 class SFXStream;
 class SFXDevice;
 
-typedef SFXStream* (*SFXSTREAM_CREATE_FN)(Stream* stream);
-
 /// <summary>
 /// class to bring in all audio files this should be routed through the sfxSystem in
 /// to a sfxBuffer. We could have the sfxBuffer do this also but each file type has
@@ -303,9 +301,7 @@ class SFXStream : public ThreadSafeRefCount< SFXStream >,
 protected:
 
    // data needed by apis.
-   Stream*  mStream;
    String   mFileName;
-   bool     mOwnStream;
    bool     mIsMusic;
    U32      mSize;
    U32      mFrequency;
@@ -321,6 +317,8 @@ protected:
    virtual void _close() = 0;
 
 public:
+   Stream* mStream;
+   bool    mOwnStream;
 
    static SFXStream* create(String fileName);
    static bool       exists(String fileName);
@@ -336,7 +334,7 @@ public:
 
    // Accessors that we may need.
    // Music streams will have no effects applied to their source.
-   // The sound asset should be marked as music.
+   // The sound asset should pass in this value.
    bool   getIsMusic() const { return mIsMusic; }
    U32    getSize() const { return mSize; }
    U32    getFrequency() const { return mFrequency; }
@@ -350,8 +348,7 @@ public:
 typedef ThreadSafeRef< SFXStream > SFXStreamRef;
 
 /// <summary
-/// buffer holds sfxStream data in a list of buffers. Should define
-/// if buffer is music or otherwise, music shouldn't have any effects applied.
+/// buffer holds sfxStream data.
 /// </summary>
 class SFXBuffer
 {

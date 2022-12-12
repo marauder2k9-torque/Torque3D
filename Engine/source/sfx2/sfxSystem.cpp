@@ -172,12 +172,15 @@ void SFXSystem::deinitDevice()
 
 SFXStreamRef SFXSystem::createStream(String fileName, bool isMusic)
 {
+   // check to see if a stream exists. if so return it.
    for (Streams::iterator iter = mCreatedStreams.begin(); iter != mCreatedStreams.end();)
    {
       SFXStreamRef stream = *iter;
       if (stream->getFileName() == fileName)
          return stream;
    }
+
+   // if we get here we need to create a stream.
 
    return nullptr;
 }

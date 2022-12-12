@@ -62,8 +62,15 @@ SFXWavStream::SFXWavStream()
 SFXWavStream* SFXWavStream::create(Stream* stream)
 {
    SFXWavStream* sfxStream = new SFXWavStream();
+
+   // this sets mStream and mOwnStream and parsesFile
    if (sfxStream->open(stream, true))
+   {
+      //handle the parsed data here.
+
+
       return sfxStream;
+   }
 
    delete sfxStream;
    return NULL;
@@ -148,4 +155,11 @@ bool SFXWavStream::_parseFile()
       return false;
    }
 
+}
+
+void SFXWavStream::reset()
+{
+   AssertFatal(mStream, "SFXWavStream::reset() - Stream is null!");
+   AssertFatal(mDataStart != -1, "SFXWavStream::seek() - Data start offset is invalid!");
+   mStream->setPosition(mDataStart);
 }

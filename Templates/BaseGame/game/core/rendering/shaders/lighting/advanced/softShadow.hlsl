@@ -22,51 +22,25 @@
 
 #include "../../shaderModel.hlsl"
 
-#if defined( SOFTSHADOW ) && defined( SOFTSHADOW_HIGH_QUALITY )
-
-#define NUM_PRE_TAPS 4
 #define NUM_TAPS 12
 
 /// The non-uniform poisson disk used in the
 /// high quality shadow filtering.
 static float2 sNonUniformTaps[NUM_TAPS] = 
 {      
-   // These first 4 taps are located around the edges
-   // of the disk and are used to predict fully shadowed
-   // or unshadowed areas.
-   { 0.992833, 0.979309 },
-   { -0.998585, 0.985853 },
-   { 0.949299, -0.882562 },
-   { -0.941358, -0.893924 },
-
-   // The rest of the samples.
-   { 0.545055, -0.589072 },
-   { 0.346526, 0.385821 },
-   { -0.260183, 0.334412 },
-   { 0.248676, -0.679605 },
-   { -0.569502, -0.390637 },
-   { -0.614096, 0.212577 },
-   { -0.259178, 0.876272 },
-   { 0.649526, 0.864333 },
+	{-.326,-.406},
+	{-.840,-.074},
+	{-.696, .457},
+	{-.203, .621},
+	{ .962,-.195},
+	{ .473,-.480},
+	{ .519, .767},
+	{ .185,-.893},
+	{ .507, .064},
+	{ .896, .412},
+	{-.322,-.933},
+	{-.792,-.598}
 };
-
-#else
-
-#define NUM_PRE_TAPS 5
-
-/// The non-uniform poisson disk used in the
-/// high quality shadow filtering.
-static float2 sNonUniformTaps[NUM_PRE_TAPS] = 
-{      
-   { 0.892833, 0.959309 },
-   { -0.941358, -0.873924 },
-   { -0.260183, 0.334412 },
-   { 0.348676, -0.679605 },
-   { -0.569502, -0.390637 },
-};
-
-#endif
-
 
 /// The texture used to do per-pixel pseudorandom
 /// rotations of the filter taps.
@@ -115,42 +89,24 @@ float softShadow_filter(   TORQUE_SAMPLER2D(shadowMap),
       float shadow = saturate( exp( esmFactor * ( occluder - distToLight ) ) );
 
    #else
-      // Lookup the random rotation for this screen pixel.
-      float2 sinCos = ( TORQUE_TEX2DLOD(gTapRotationTex, float4(vpos * 16, 0, 0)).rg - 0.5) * 2;
 
-      // Do the prediction taps first.
-      float shadow = softShadow_sampleTaps(  TORQUE_SAMPLER2D_MAKEARG(shadowMap),
-                                             sinCos,
-                                             shadowPos,
-                                             filterRadius,
-                                             distToLight,
-                                             esmFactor,
-                                             0,
-                                             NUM_PRE_TAPS );
-
-      // We live with only the pretap results if we don't
-      // have high quality shadow filtering enabled.
-      #ifdef SOFTSHADOW_HIGH_QUALITY
-
-         // Only do the expensive filtering if we're really
-         // in a partially shadowed area.
-         if ( shadow * ( 1.0 - shadow ) * max( dotNL, 0 ) > 0.06 )
-         {
-            shadow += softShadow_sampleTaps( TORQUE_SAMPLER2D_MAKEARG(shadowMap),
-                                             sinCos,
-                                             shadowPos,
-                                             filterRadius,
-                                             distToLight,
-                                             esmFactor,
-                                             NUM_PRE_TAPS,
-                                             NUM_TAPS );
-                                             
-            // This averages the taps above with the results
-            // of the prediction samples.
-            shadow *= 0.5;                              
-         }
-
-      #endif // SOFTSHADOW_HIGH_QUALITY
+	 // Only do the expensive filtering if we're really
+	 // in a partially shadowed area.
+	 if ( shadow * ( 1.0 - shadow ) * max( dotNL, 0 ) > 0.06 )
+	 {
+		shadow += softShadow_sampleTaps( TORQUE_SAMPLER2D_MAKEARG(shadowMap),
+										 sinCos,
+										 shadowPos,
+										 filterRadius,
+										 distToLight,
+										 esmFactor,
+										 0,
+										 NUM_TAPS );
+										 
+		// This averages the taps above with the results
+		// of the prediction samples.
+		shadow *= 0.5;                              
+	 }
 
    #endif // SOFTSHADOW
 
