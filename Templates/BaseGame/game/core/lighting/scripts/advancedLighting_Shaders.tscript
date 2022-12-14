@@ -51,7 +51,7 @@ singleton GFXStateBlockData( AL_VectorLightState )
 
    samplersDefined = true;
    samplerStates[0] = SamplerClampPoint;  // G-buffer
-   samplerStates[1] = SamplerClampPoint;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
+   samplerStates[1] = ShadowSampler;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
    samplerStates[2] = SamplerWrapPoint;   // gTapRotationTex Random Direction Map
    samplerStates[3] = SamplerClampPoint;   // colorBuffer
    samplerStates[4] = SamplerClampPoint;   // matInfoBuffer

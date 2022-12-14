@@ -53,7 +53,8 @@
 #define TORQUE_TEXCUBELOD(tex,coords) texture_##tex.SampleLevel(tex,coords.xyz,coords.w)
 #define TORQUE_TEXCUBEARRAYLOD(tex,coords,id,lod) texture_##tex.SampleLevel(tex,float4(coords.xyz,id),lod)
 // Tex2d comparison
-#define TORQUE_TEX2DCMP(tex,coords,compare) texture_##tex.SampleCmpLevelZero(tex,coords,compare)
+#define TORQUE_TEX2DCMPZERO(tex,coords,compare) texture_##tex.SampleCmpLevelZero(tex,coords,compare)
+#define TORQUE_TEX2DCMP(tex,coords,compare) texture_##tex.SampleCmp(tex,coords,compare)
 
 #define TORQUE_TEX2DGATHER(tex,coords,compare,offset) texture_##tex.GatherCmp(tex,coords,compare,offset)
 
