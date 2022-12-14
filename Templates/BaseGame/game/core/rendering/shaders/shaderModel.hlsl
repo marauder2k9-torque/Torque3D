@@ -55,8 +55,9 @@
 // Tex2d comparison
 #define TORQUE_TEX2DCMPZERO(tex,coords,compare) texture_##tex.SampleCmpLevelZero(tex,coords,compare)
 #define TORQUE_TEX2DCMP(tex,coords,compare) texture_##tex.SampleCmp(tex,coords,compare)
-
+#define TORQUE_TEX2DGATHERRED(tex,coords,offset) texture_##tex.GatherRed(tex,coords,offset)
 #define TORQUE_TEX2DGATHER(tex,coords,compare,offset) texture_##tex.GatherCmp(tex,coords,compare,offset)
+#define TORQUE_TEX2DGETSIZE(tex, outX, outY) texture_##tex.GetDimensions(outX, outY)
 
 //helper if you want to pass sampler/texture in a function
 //2D

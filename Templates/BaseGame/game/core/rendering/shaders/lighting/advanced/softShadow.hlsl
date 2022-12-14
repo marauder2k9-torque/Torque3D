@@ -26,6 +26,12 @@
 
 #define g_MinVariance 0.000001
 
+float2 VogelDiskScale(float2 mapSize, int sampleSize)
+{
+	float2 texelSize = 2.0 / mapSize;
+	return texelSize * sampleSize;
+}
+
 float2 VogelDisk(int sampleIndex, int sampleCount, float gradient)
 {
 	float gA = 2.4f;
@@ -80,76 +86,6 @@ float ChebyshevUpperBound(float2 moments, float t)
 	return max(p, p_max);
 }
 
-float AvgOccluderDepthPenumbra(float zShadow, float avgDepth)
-{
-	float penumbra = (zShadow - avgDepth) / avgDepth;
-	penumbra *= penumbra;
-	return saturate(80.0f * penumbra);
-}
-
-float AvgOccluderDepthPenumbra(float lightSize, float zShadow, float avgDepth)
-{
-	float penumbra = lightSize * (zShadow - avgDepth) / avgDepth;
-	return penumbra;
-}
-
-float Penumbra(TORQUE_SAMPLER2D(shadowMap3), float gradient, float2 shadowUV, float zShadow, float filterRadius, int sampleCount)
-{
-	float avgOccluderDepth = 0.0f;
-	float occluderCount = 0.0f;
-	float penumbraFilterMaxSize = 8.0 / 1024.0;
-	[unroll(16)]
-	for(int i = 0; i < sampleCount; i++)
-	{
-		float2 sampleUV = VogelDisk(i, sampleCount, gradient) * penumbraFilterMaxSize ;
-		sampleUV = shadowUV + sampleUV;
-		float occDepth = TORQUE_TEX2D( shadowMap3, sampleUV ).r;
-		if(occDepth < zShadow)
-		{
-			avgOccluderDepth += occDepth;
-			occluderCount += 1.0f;
-		}
-	}
-	
-	if(occluderCount > 0.0f)
-	{
-		avgOccluderDepth /= occluderCount;
-		return AvgOccluderDepthPenumbra(1000.0f, zShadow, avgOccluderDepth);
-	}
-	else
-	{
-		return 0.0f;
-	}
-}
-
-	
-float ShadowContribution(TORQUE_SAMPLER2D(shadowMap2),
-						float2 screenPos,
-						float2 shadowPos,
-						float filterRadius,
-						float distToLight,
-						float esmFactor) 
-{   
-	float shadow = 0;
-	float2 tap = 0;
-	float gradient = 6.28318530718 * GradientNoise(screenPos);
-	float penumbra = Penumbra(TORQUE_SAMPLER2D_MAKEARG(shadowMap2), gradient, shadowPos, distToLight, filterRadius, NUM_TAPS);
-	// Read the moments from the variance shadow map
-	[unroll(16)]
-	for ( int t = 0; t < NUM_TAPS; t++ )
-    {
-		tap = VogelDisk(t, NUM_TAPS, gradient);
-		tap = shadowPos + tap * penumbra * filterRadius;
-		
-		float2 moments = TORQUE_TEX2D( shadowMap2, tap ).xy;
-		// Compute the Chebyshev upper bound.
-		shadow += ChebyshevUpperBound(moments, distToLight);
-	}
-	
-	return shadow;
-} 
-
-
 /// The texture used to do per-pixel pseudorandom
 /// rotations of the filter taps.
 TORQUE_UNIFORM_SAMPLER2D(gTapRotationTex, 2);
@@ -160,6 +96,7 @@ TORQUE_SAMPLER2DCMP(shadowMapCMP),
 						   float2 screenPos,
                            float2 vpos,
                            float2 shadowPos,
+						   float cascade,
                            float filterRadius,
                            float distToLight,
                            float dotNL,
@@ -175,14 +112,45 @@ TORQUE_SAMPLER2DCMP(shadowMapCMP),
 
    #else
    
-    
-	float shadow = ShadowContribution(TORQUE_SAMPLER2D_MAKEARG(shadowMap), 
-									screenPos, 
-									shadowPos,
-									filterRadius,
-									distToLight,
-									esmFactor);
-									 
+    float gradient = 6.28318530718 * GradientNoise(screenPos);
+	float2 textureSize;
+	TORQUE_TEX2DGETSIZE(shadowMap, textureSize.x, textureSize.y);
+	float2 shadowFilterSize = VogelDiskScale(textureSize, 4);
+   
+    float avgOccDepth = 0;
+	float occCount = 0;
+	[unroll]
+	for(int i = 0; i < NUM_TAPS; i++)
+	{
+		float2 sampleUV = VogelDisk(i, NUM_TAPS, gradient);
+		sampleUV = shadowPos + sampleUV * shadowFilterSize;
+		float occDepth = TORQUE_TEX2DLOD(shadowMap, float4(sampleUV,0,cascade) ).r;
+		if(occDepth < distToLight)
+		{
+			avgOccDepth += occDepth;
+			occCount += 1.0f;
+		}
+	}
+	
+	// early out.
+	if(occCount <= 0.0)
+	{
+		return 1.0;
+	}
+	
+	avgOccDepth /= occCount;
+	float penumbra = ((distToLight - avgOccDepth) * 1000.0f) / avgOccDepth;
+	penumbra *= penumbra;
+	float shadow = 0;
+	[unroll]
+	for ( int t = 0; t < NUM_TAPS; t++ )
+    {
+		float2 tap = VogelDisk(t, NUM_TAPS, gradient);
+		tap = shadowPos + tap * penumbra * shadowFilterSize * filterRadius;
+		
+		float2 moments = TORQUE_TEX2D( shadowMap, tap ).xy;
+		shadow += ChebyshevUpperBound(moments, distToLight);
+	}
 
    #endif // SOFTSHADOW
 

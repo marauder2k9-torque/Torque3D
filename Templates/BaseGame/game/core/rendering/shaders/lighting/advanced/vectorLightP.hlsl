@@ -78,103 +78,98 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
                                 float dotNL)
 {
       // Compute shadow map coordinate
-      float4 pxlPosLightProj = mul(worldToLightProj, float4(worldPos,1));
-      float2 baseShadowCoord = pxlPosLightProj.xy / pxlPosLightProj.w;   
-
-      // Distance to light, in shadowmap space
+	  // Distance to light, in shadowmap space
+	  float4 pxlPosLightProj = mul(worldToLightProj, float4(worldPos,1));
+	  float2 baseShadowCoord = pxlPosLightProj.xy / pxlPosLightProj.w;   
       float distToLight = pxlPosLightProj.z / pxlPosLightProj.w;
-         
-      // Figure out which split to sample from.  Basically, we compute the shadowmap sample coord
-      // for all of the splits and then check if its valid.  
-      float4 shadowCoordX = baseShadowCoord.xxxx;
-      float4 shadowCoordY = baseShadowCoord.yyyy;
-      float4 farPlaneDists = distToLight.xxxx;      
-      shadowCoordX *= scaleX;
-      shadowCoordY *= scaleY;
-      shadowCoordX += offsetX;
-      shadowCoordY += offsetY;
-      farPlaneDists *= farPlaneScalePSSM;
-      
-      // If the shadow sample is within -1..1 and the distance 
-      // to the light for this pixel is less than the far plane 
-      // of the split, use it.
-      float4 finalMask;
-      if (  shadowCoordX.x > -0.99 && shadowCoordX.x < 0.99 && 
-            shadowCoordY.x > -0.99 && shadowCoordY.x < 0.99 &&
+	  
+	  float4 farPlaneDists = distToLight.xxxx;
+	  farPlaneDists *= farPlaneScalePSSM;
+	  
+	  float4 cascadeX = (baseShadowCoord.xxxx * scaleX) + offsetX;
+	  float4 cascadeY = (baseShadowCoord.yyyy * scaleY) + offsetY;
+	  
+	  float4 inCascadeX = abs(cascadeX) <= 1.0;
+	  float4 inCascadeY = abs(cascadeY) <= 1.0;
+	  float4 inCascade = inCascadeX * inCascadeY;
+	  
+	  float4 cascadeMask; // = inCascade;
+	  //cascadeMask.yzw = (1.0 - cascadeMask.x) * cascadeMask.yzw;
+	  //cascadeMask.zw = (1.0 - cascadeMask.y) * cascadeMask.zw;
+	  //cascadeMask.w = (1.0 - cascadeMask.z) * cascadeMask.w;
+	  
+	  if (  cascadeX.x > -0.99 && cascadeX.x < 0.99 && 
+            cascadeY.x > -0.99 && cascadeY.x < 0.99 &&
             farPlaneDists.x < 1.0 )
-         finalMask = float4(1, 0, 0, 0);
+         cascadeMask = float4(1, 0, 0, 0);
 
-      else if (   shadowCoordX.y > -0.99 && shadowCoordX.y < 0.99 &&
-                  shadowCoordY.y > -0.99 && shadowCoordY.y < 0.99 && 
+      else if (   cascadeX.y > -0.99 && cascadeX.y < 0.99 &&
+                  cascadeY.y > -0.99 && cascadeY.y < 0.99 && 
                   farPlaneDists.y < 1.0 )
-         finalMask = float4(0, 1, 0, 0);
+         cascadeMask = float4(0, 1, 0, 0);
 
-      else if (   shadowCoordX.z > -0.99 && shadowCoordX.z < 0.99 && 
-                  shadowCoordY.z > -0.99 && shadowCoordY.z < 0.99 && 
+      else if (   cascadeX.z > -0.99 && cascadeX.z < 0.99 && 
+                  cascadeY.z > -0.99 && cascadeY.z < 0.99 && 
                   farPlaneDists.z < 1.0 )
-         finalMask = float4(0, 0, 1, 0);
+         cascadeMask = float4(0, 0, 1, 0);
          
       else
-         finalMask = float4(0, 0, 0, 1);
-         
-      float3 debugColor = float3(0,0,0);
+         cascadeMask = float4(0, 0, 0, 1);
+	  
+	  /// should be passed to shadowfilter.
+	  float bestCascade = dot(cascadeMask, float4(0.0, 1.0, 2.0, 3.0));
+	  
+	  float3 debugColor = float3(0,0,0);
    
       #ifdef NO_SHADOW
          debugColor = float3(1.0,1.0,1.0);
       #endif
 	  
       #ifdef PSSM_DEBUG_RENDER
-         if ( finalMask.x > 0 )
+         if ( cascadeMask.x > 0 )
             debugColor += float3( 1, 0, 0 );
-         else if ( finalMask.y > 0 )
+         else if ( cascadeMask.y > 0 )
             debugColor += float3( 0, 1, 0 );
-         else if ( finalMask.z > 0 )
+         else if ( cascadeMask.z > 0 )
             debugColor += float3( 0, 0, 1 );
-         else if ( finalMask.w > 0 )
+         else if ( cascadeMask.w > 0 )
             debugColor += float3( 1, 1, 0 );
       #endif
-
-      // Here we know what split we're sampling from, so recompute the texcoord location
-      // Yes, we could just use the result from above, but doing it this way actually saves
-      // shader instructions.
-      float2 finalScale;
-      finalScale.x = dot(finalMask, scaleX);
-      finalScale.y = dot(finalMask, scaleY);
-
-      float2 finalOffset;
-      finalOffset.x = dot(finalMask, offsetX);
-      finalOffset.y = dot(finalMask, offsetY);
-
-      float2 shadowCoord;                  
-      shadowCoord = baseShadowCoord * finalScale;      
-      shadowCoord += finalOffset;
-
-      // Convert to texcoord space
-      shadowCoord = 0.5 * shadowCoord + float2(0.5, 0.5);
-      shadowCoord.y = 1.0f - shadowCoord.y;
-
-      // Move around inside of atlas 
-      float2 aOffset;
-      aOffset.x = dot(finalMask, atlasXOffset);
-      aOffset.y = dot(finalMask, atlasYOffset);
-
-      shadowCoord *= atlasScale;
-      shadowCoord += aOffset;
-              
-      // Each split has a different far plane, take this into account.
-      float farPlaneScale = dot( farPlaneScalePSSM, finalMask );
+	  
+	  float3 uvd;
+	  uvd.x = dot(cascadeX, cascadeMask);
+	  uvd.y = dot(cascadeY, cascadeMask);
+	  uvd.z = pxlPosLightProj.z;
+	  
+	  uvd.xy = 0.5 * uvd.xy + 0.5;
+	  uvd.y = 1.0 - uvd.y;
+	  
+	  float2 aOffset;
+      aOffset.x = dot(cascadeMask, atlasXOffset);
+      aOffset.y = dot(cascadeMask, atlasYOffset);
+	  
+	  uvd.xy *= atlasScale;
+	  uvd.xy += aOffset;
+	  
+	  // Each split has a different far plane, take this into account.
+      float farPlaneScale = dot( farPlaneScalePSSM, cascadeMask );
       distToLight *= farPlaneScale;
-
-      return float4(debugColor, softShadow_filter(  
+	  
+      float4 shadowSample = float4(debugColor, softShadow_filter(  
 	  TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap),
 	  TORQUE_SAMPLER2D_MAKEARG(sourceShadowMapCMP),
 	  screenPos, 
 	  texCoord, 
-	  shadowCoord, 
-	  farPlaneScale * shadowSoftness,
+	  uvd.xy, 
+	  bestCascade,
+	  shadowSoftness,
       distToLight, 
 	  dotNL, 
-	  dot( finalMask, overDarkPSSM ) ) );
+	  dot( cascadeMask, overDarkPSSM ) ) );
+	  
+	  shadowSample.a = saturate(shadowSample.a + 1.0 - any(cascadeMask));
+	  
+	  return shadowSample;
 };
 
 
