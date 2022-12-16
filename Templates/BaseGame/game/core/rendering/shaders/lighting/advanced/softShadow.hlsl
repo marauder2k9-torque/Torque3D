@@ -92,7 +92,6 @@ TORQUE_UNIFORM_SAMPLER2D(gTapRotationTex, 2);
 
 float softShadow_filter(   
 						   TORQUE_SAMPLER2D(shadowMap),
-						   TORQUE_SAMPLER2DCMP(shadowMapCMP),
 						   float2 screenPos,
                            float2 vpos,
                            float3 shadowPos,
@@ -132,7 +131,7 @@ float softShadow_filter(
 	for ( int t = 0; t < NUM_TAPS; t++ )
     {
 		float2 tap = VogelDisk(t, NUM_TAPS, gradient);
-		tap = shadowPos.xy + tap * penumbra * filterRadius;
+		tap = shadowPos.xy + tap * filterRadius;
 		
 		float2 moments = TORQUE_TEX2DLOD( shadowMap, float4(tap,0,cascade) ).xy;
 		shadow += ChebyshevUpperBound(moments, shadowPos.z);

@@ -51,48 +51,7 @@ struct ConvexConnectP
 
    float3 decodeShadowCoord( float3 paraVec )
    {
-      // Flip y and z
-      paraVec = paraVec.xzy;
-      
-      #ifndef SHADOW_PARABOLOID
-
-         bool calcBack = (paraVec.z < 0.0);
-         if ( calcBack )
-         {
-            paraVec.z = paraVec.z * -1.0;
-            
-            #ifdef SHADOW_DUALPARABOLOID
-               paraVec.x = -paraVec.x;
-            #endif
-         }
-
-      #endif
-
-      float3 shadowCoord;
-      shadowCoord.x = (paraVec.x / (2*(1 + paraVec.z))) + 0.5;
-      shadowCoord.y = 1-((paraVec.y / (2*(1 + paraVec.z))) + 0.5);
-      shadowCoord.z = 0;
-      
-      // adjust the co-ordinate slightly if it is near the extent of the paraboloid
-      // this value was found via experementation
-      // NOTE: this is wrong, it only biases in one direction, not towards the uv 
-      // center ( 0.5 0.5 ).
-      float offsetVal = 0.95;
-      shadowCoord.xy *= offsetVal;
-      shadowCoord.xy += (1.0-offsetVal).xx / 2.0;
-
-      #ifndef SHADOW_PARABOLOID
-
-         // If this is the back, offset in the atlas
-         if ( calcBack )
-            shadowCoord.x += 1.0;
-         
-         // Atlasing front and back maps, so scale
-         shadowCoord.x *= 0.5;
-
-      #endif
-
-      return shadowCoord;
+      return paraVec;
    }
 
 #endif
@@ -101,7 +60,7 @@ TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
 #ifdef SHADOW_CUBE
 TORQUE_UNIFORM_SAMPLERCUBE(shadowMap, 1);
 #else
-TORQUE_UNIFORM_SAMPLER2DCMP(shadowMap, 1);
+TORQUE_UNIFORM_SAMPLER2D(shadowMap, 1);
 #endif
 //contains gTapRotationTex sampler 
 #include "softShadow.hlsl"
@@ -173,9 +132,31 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
       float shadowed = saturate( exp( lightParams.y * ( occ - distToLight ) ) );
 
    #else
-      float2 shadowCoord = decodeShadowCoord( mul( worldToLightProj, -surfaceToLight.L ) ).xy;
-      float4 shadowed = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, shadowSoftness, distToLight, surfaceToLight.NdotL, lightParams.y);
-	  float shadowed = shadowed_colors.a;
+	  
+	  float3 paraVec = decodeShadowCoord(mul( worldToLightProj, -surfaceToLight.L));
+	  paraVec = paraVec.xzy;
+	  
+	  float len = length(paraVec);
+	  float2 shadowCoord;
+	  float depthShadow = 1.0;
+	  if(paraVec.z >= 0.0f)
+	  {
+		 shadowCoord.x = (paraVec.x / (1.0f + paraVec.z)) * 0.5 + 0.5;
+		 shadowCoord.y = 1.0f - ((paraVec.y / (1.0f + paraVec.z)) * 0.5 + 0.5f);
+		 shadowCoord.x *= 0.5;
+		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, float3(shadowCoord,distToLight), 0, shadowSoftness);
+	  }
+	  else
+	  {
+		 
+		 shadowCoord.x = 1.0f - (paraVec.x / (1.0f - paraVec.z)) * 0.5 + 0.5;
+		 shadowCoord.y = 1.0f - ((paraVec.y / (1.0f - paraVec.z)) * 0.5 + 0.5f);
+		 shadowCoord.x *= 0.5;
+		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, float3(shadowCoord,distToLight), 0, shadowSoftness);
+	  }
+	  
+	  float shadowed = depthShadow;
+      
    #endif
    
    #endif // !NO_SHADOW

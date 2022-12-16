@@ -269,12 +269,6 @@ bool LightShadowMap::setTextureStage( U32 currTexFlag, LightingShaderConstants* 
          GFX->setTexture(reg, mShadowMapTex);
       }
 
-      reg = lsc->mShadowMapCMPSC->getSamplerRegister();
-      if (reg != -1)
-      {
-         GFX->setTexture(reg, mShadowMapTex);
-      }
-
       return true;
    } else if ( currTexFlag == Material::DynamicLightMask )
    {
@@ -435,7 +429,6 @@ LightingShaderConstants::LightingShaderConstants()
       mVectorLightColorSC(NULL),
       mVectorLightBrightnessSC(NULL),
       mShadowMapSC(NULL),
-      mShadowMapCMPSC(NULL),
       mShadowMapSizeSC(NULL), 
       mCookieMapSC(NULL),
       mRandomDirsConst(NULL),
@@ -449,14 +442,9 @@ LightingShaderConstants::LightingShaderConstants()
       mWorldToLightProjSC(NULL), 
       mViewToLightProjSC(NULL),
       mCascadeSplitsSC(NULL),
-      mScaleXSC(NULL), 
-      mScaleYSC(NULL),
-      mOffsetXSC(NULL), 
-      mOffsetYSC(NULL), 
-      mFarPlaneScalePSSM(NULL)
+      mCascadeOffsetsSC(NULL),
+      mCascadeScalesSC(NULL)
 {
-   mCascadeOffsetsSC[4] = NULL;
-   mCascadeScalesSC[4] = NULL;
 }
 
 LightingShaderConstants::~LightingShaderConstants()
@@ -497,7 +485,6 @@ void LightingShaderConstants::init(GFXShader* shader)
    mVectorLightBrightnessSC = shader->getShaderConstHandle(ShaderGenVars::vectorLightBrightness);
 
    mShadowMapSC = shader->getShaderConstHandle("$shadowMap");
-   mShadowMapCMPSC = shader->getShaderConstHandle("$shadowMapCMP");
    mShadowMapSizeSC = shader->getShaderConstHandle("$shadowMapSize");
 
    mCookieMapSC = shader->getShaderConstHandle("$cookieMap");
@@ -514,17 +501,8 @@ void LightingShaderConstants::init(GFXShader* shader)
    mWorldToLightProjSC = shader->getShaderConstHandle("$worldToLightProj");
    mViewToLightProjSC = shader->getShaderConstHandle("$viewToLightProj");
    mCascadeSplitsSC = shader->getShaderConstHandle("$cascadeSplits");
-   for (int i = 0; i < 4; i++)
-   {
-      mCascadeOffsetsSC[i] = shader->getShaderConstHandle(String::ToString("$cascadeOffsets%d", i));
-      mCascadeScalesSC[i] = shader->getShaderConstHandle(String::ToString("$cascadeScales%d", i));
-   }
-
-   mScaleXSC = shader->getShaderConstHandle("$scaleX");
-   mScaleYSC = shader->getShaderConstHandle("$scaleY");
-   mOffsetXSC = shader->getShaderConstHandle("$offsetX");
-   mOffsetYSC = shader->getShaderConstHandle("$offsetY");
-   mFarPlaneScalePSSM = shader->getShaderConstHandle("$farPlaneScalePSSM");
+   mCascadeOffsetsSC = shader->getShaderConstHandle("$cascadeOffsets");
+   mCascadeScalesSC = shader->getShaderConstHandle("$cascadeScales");
    mInit = true;
 }
 

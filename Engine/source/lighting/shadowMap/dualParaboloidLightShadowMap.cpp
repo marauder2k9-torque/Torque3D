@@ -83,19 +83,16 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
    const F32 paraboloidNearPlane = 0.01f;
    const F32 renderPosOffset = 0.01f;
    
-   // Alter for creation of scene state if this is a single pass map
-   if(bUseSinglePassDPM)
+
+   SceneManager* sceneManager = diffuseState->getSceneManager();
+   
+   // Front map render
    {
-      VectorF camDir;
-      MatrixF temp = mLight->getTransform();
-      temp.getColumn(1, &camDir);
-      temp.setPosition(mLight->getPosition() - camDir * (lightRadius + renderPosOffset));
-      temp.inverse();
-      GFX->setWorldMatrix(temp);
-      GFX->setOrtho(-lightRadius, lightRadius, -lightRadius, lightRadius, paraboloidNearPlane, 2.0f * lightRadius, true);
-   }
-   else
-   {
+      GFXDEBUGEVENT_SCOPE(DualParaboloidLightShadowMap_Render_FrontFacingParaboloid, ColorI::RED);
+
+      mShadowMapScale.set(0.5f, 1.0f);
+      mShadowMapOffset.set(-0.5f, 0.0f);
+
       VectorF camDir;
       MatrixF temp = mLight->getTransform();
       temp.getColumn(1, &camDir);
@@ -104,12 +101,7 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
       GFX->setWorldMatrix(temp);
 
       GFX->setOrtho(-lightRadius, lightRadius, -lightRadius, lightRadius, paraboloidNearPlane, lightRadius, true);
-   }
 
-   SceneManager* sceneManager = diffuseState->getSceneManager();
-   
-   // Front map render
-   {
       SceneRenderState frontMapRenderState
       (
          sceneManager,
@@ -124,16 +116,8 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
       frontMapRenderState.setDiffuseCameraTransform( diffuseState->getCameraTransform() );
       frontMapRenderState.setWorldToScreenScale( diffuseState->getWorldToScreenScale() );
 
-      if(bUseSinglePassDPM)
-      {
-         GFX->setWorldMatrix(mWorldToLightProj);
-         frontMapRenderState.getRenderPass()->getMatrixSet().setSceneView(mWorldToLightProj);
-         GFX->setOrtho(-lightRadius, lightRadius, -lightRadius, lightRadius, paraboloidNearPlane, lightRadius, true);
-      }
-
-      GFXDEBUGEVENT_SCOPE( DualParaboloidLightShadowMap_Render_FrontFacingParaboloid, ColorI::RED );
-      mShadowMapScale.set(0.5f, 1.0f);
-      mShadowMapOffset.set(-0.5f, 0.0f);
+      frontMapRenderState.getRenderPass()->getMatrixSet().setSceneView(temp);
+      
       sceneManager->renderSceneNoLights( &frontMapRenderState, SHADOW_TYPEMASK );
       _debugRender( &frontMapRenderState );
    }
@@ -141,7 +125,7 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
    // Back map render 
    if(!bUseSinglePassDPM)
    {
-      GFXDEBUGEVENT_SCOPE( DualParaboloidLightShadowMap_Render_BackFacingParaboloid, ColorI::RED );
+      GFXDEBUGEVENT_SCOPE( DualParaboloidLightShadowMap_Render_BackFacingParaboloid, ColorI::GREEN );
 
       mShadowMapScale.set(0.5f, 1.0f);
       mShadowMapOffset.set(0.5f, 0.0f);
@@ -159,8 +143,9 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
       temp.inverse();
       GFX->setWorldMatrix(temp);
 
-      // Create an inverted scene state for the back-map
+      GFX->setOrtho(-lightRadius, lightRadius, -lightRadius, lightRadius, paraboloidNearPlane, lightRadius, true);
 
+      // Create an inverted scene state for the back-map
       SceneRenderState backMapRenderState
       (
          sceneManager,

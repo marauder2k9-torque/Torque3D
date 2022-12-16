@@ -96,7 +96,6 @@ struct LightingShaderConstants
    GFXShaderConstHandle* mVectorLightBrightnessSC;
 
    GFXShaderConstHandle* mShadowMapSC;
-   GFXShaderConstHandle* mShadowMapCMPSC;
    GFXShaderConstHandle* mShadowMapSizeSC;
 
    GFXShaderConstHandle* mCookieMapSC;
@@ -118,13 +117,8 @@ struct LightingShaderConstants
    GFXShaderConstHandle* mWorldToLightProjSC;
    GFXShaderConstHandle* mViewToLightProjSC;
    GFXShaderConstHandle* mCascadeSplitsSC;
-   GFXShaderConstHandle* mCascadeOffsetsSC[4];
-   GFXShaderConstHandle* mCascadeScalesSC[4];
-   GFXShaderConstHandle* mScaleXSC;
-   GFXShaderConstHandle* mScaleYSC;
-   GFXShaderConstHandle* mOffsetXSC;
-   GFXShaderConstHandle* mOffsetYSC;
-   GFXShaderConstHandle* mFarPlaneScalePSSM;
+   GFXShaderConstHandle* mCascadeOffsetsSC;
+   GFXShaderConstHandle* mCascadeScalesSC;
 
    LightingShaderConstants();
    ~LightingShaderConstants();

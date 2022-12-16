@@ -352,7 +352,7 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
             // Calculate a new far plane, add a fudge factor to avoid bringing
             // the far plane in too close.
             F32 newFar = pfar * clipAABB.maxExtents.z + 1.0f;
-            mFarPlaneScalePSSM[i] = (pfar - pnear) / (newFar - pnear);
+            mScaleProj[i].z = (pfar - pnear) / (newFar - pnear);
             GFX->setOrtho(left, right, bottom, top, pnear, newFar, true);
          }
       }
@@ -455,14 +455,14 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
             aXOff(Point4F::Zero), 
             aYOff(Point4F::Zero);
 
+   static AlignedArray<Point4F> cascadeOffsetsAlignedArray(mNumSplits, sizeof(Point4F));
+   static AlignedArray<Point4F> cascadeScalesAlignedArray(mNumSplits, sizeof(Point4F));
+
    for (U32 i = 0; i < mNumSplits; i++)
    {
-      params->setSafe(lsc->mCascadeOffsetsSC[i], mOffsetProj[i]);
-      params->setSafe(lsc->mCascadeScalesSC[i], mScaleProj[i]);
-      sx[i] = mScaleProj[i].x;
-      sy[i] = mScaleProj[i].y;
-      ox[i] = mOffsetProj[i].x;
-      oy[i] = mOffsetProj[i].y;
+
+      cascadeOffsetsAlignedArray[i] = mOffsetProj[i];
+      cascadeScalesAlignedArray[i] = mScaleProj[i];
    }
 
    Point2F shadowMapAtlas;
@@ -477,7 +477,7 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
    }
    else
    {
-      shadowMapAtlas.set(0.5f, 0.5f);
+      shadowMapAtlas.set(0.500f, 0.500f);
   
       // 2x2
       for (U32 i = 0; i < mNumSplits; i++)
@@ -490,12 +490,9 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
    }
 
    // These values change based on static/dynamic.
+   params->setSafe(lsc->mCascadeOffsetsSC, cascadeOffsetsAlignedArray);
+   params->setSafe(lsc->mCascadeScalesSC, cascadeScalesAlignedArray);
    params->setSafe(lsc->mCascadeSplitsSC, mCascadeSplit);
-   params->setSafe(lsc->mScaleXSC, sx);
-   params->setSafe(lsc->mScaleYSC, sy);
-   params->setSafe(lsc->mOffsetXSC, ox);
-   params->setSafe(lsc->mOffsetYSC, oy);
-   params->setSafe(lsc->mFarPlaneScalePSSM, mFarPlaneScalePSSM);
 
    params->setSafe(lsc->mAtlasXOffsetSC, aXOff);
    params->setSafe(lsc->mAtlasYOffsetSC, aYOff);

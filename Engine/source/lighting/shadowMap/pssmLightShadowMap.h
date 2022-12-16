@@ -66,7 +66,6 @@ protected:
    RectI mViewports[MAX_SPLITS];
    Point4F mScaleProj[MAX_SPLITS];
    Point4F mOffsetProj[MAX_SPLITS];
-   Point4F mFarPlaneScalePSSM;
    F32 mLogWeight;
    F32 mShadowDistance;
 };
