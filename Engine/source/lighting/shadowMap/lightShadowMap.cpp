@@ -75,7 +75,6 @@ GFX_ImplementTextureProfile( ShadowMapProfile,
 GFX_ImplementTextureProfile( ShadowMapZProfile,
                              GFXTextureProfile::DiffuseMap, 
                              GFXTextureProfile::PreserveSize | 
-                             GFXTextureProfile::NoMipmap | 
                              GFXTextureProfile::ZTarget |
                              GFXTextureProfile::Pooled,
                              GFXTextureProfile::NONE );
@@ -447,15 +446,17 @@ LightingShaderConstants::LightingShaderConstants()
       mFadeStartLength(NULL), 
       mOverDarkFactorPSSM(NULL), 
       mTapRotationTexSC(NULL),
-
       mWorldToLightProjSC(NULL), 
       mViewToLightProjSC(NULL),
+      mCascadeSplitsSC(NULL),
       mScaleXSC(NULL), 
       mScaleYSC(NULL),
       mOffsetXSC(NULL), 
       mOffsetYSC(NULL), 
       mFarPlaneScalePSSM(NULL)
 {
+   mCascadeOffsetsSC[4] = NULL;
+   mCascadeScalesSC[4] = NULL;
 }
 
 LightingShaderConstants::~LightingShaderConstants()
@@ -512,12 +513,18 @@ void LightingShaderConstants::init(GFXShader* shader)
 
    mWorldToLightProjSC = shader->getShaderConstHandle("$worldToLightProj");
    mViewToLightProjSC = shader->getShaderConstHandle("$viewToLightProj");
+   mCascadeSplitsSC = shader->getShaderConstHandle("$cascadeSplits");
+   for (int i = 0; i < 4; i++)
+   {
+      mCascadeOffsetsSC[i] = shader->getShaderConstHandle(String::ToString("$cascadeOffsets%d", i));
+      mCascadeScalesSC[i] = shader->getShaderConstHandle(String::ToString("$cascadeScales%d", i));
+   }
+
    mScaleXSC = shader->getShaderConstHandle("$scaleX");
    mScaleYSC = shader->getShaderConstHandle("$scaleY");
    mOffsetXSC = shader->getShaderConstHandle("$offsetX");
    mOffsetYSC = shader->getShaderConstHandle("$offsetY");
    mFarPlaneScalePSSM = shader->getShaderConstHandle("$farPlaneScalePSSM");
-
    mInit = true;
 }
 

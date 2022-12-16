@@ -57,16 +57,18 @@ protected:
    void _calcSplitPos(const Frustum& currFrustum);
    Box3F _calcClipSpaceAABB(const Frustum& f, const MatrixF& transform, F32 farDist);
    void _calcPlanesCullForShadowCasters(Vector< Vector<PlaneF> > &out, const Frustum &viewFrustum, const Point3F &_ligthDir);
-   void _roundProjection(const MatrixF& lightMat, const MatrixF& cropMatrix, Point3F &offset, U32 splitNum);
+   void _roundProjection(const MatrixF& lightMat, const MatrixF& cropMatrix, Point3F &offset, Point3F &otherCorner, U32 splitNum);
 
    static const S32 MAX_SPLITS = 4;
    U32 mNumSplits;
+   Point4F mCascadeSplit;
    F32 mSplitDist[MAX_SPLITS+1];   // +1 because we store a cap
    RectI mViewports[MAX_SPLITS];
-   Point3F mScaleProj[MAX_SPLITS];
-   Point3F mOffsetProj[MAX_SPLITS];
+   Point4F mScaleProj[MAX_SPLITS];
+   Point4F mOffsetProj[MAX_SPLITS];
    Point4F mFarPlaneScalePSSM;
    F32 mLogWeight;
+   F32 mShadowDistance;
 };
 
 #endif

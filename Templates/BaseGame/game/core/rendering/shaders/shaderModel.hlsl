@@ -44,6 +44,7 @@
 // Sampling functions
 #define TORQUE_TEX1D(tex,coords) texture_##tex.Sample(tex,coords)
 #define TORQUE_TEX2D(tex,coords) texture_##tex.Sample(tex,coords)
+#define TORQUE_TEX2DGRAD(tex,coords, ddx, ddy) texture_##tex.SampleGrad(tex,coords,ddx,ddy)
 #define TORQUE_TEX2DPROJ(tex,coords) texture_##tex.Sample(tex,coords.xy / coords.w)
 #define TORQUE_TEX3D(tex,coords) texture_##tex.Sample(tex,coords)
 #define TORQUE_TEXCUBE(tex,coords) texture_##tex.Sample(tex,coords)

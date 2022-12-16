@@ -22,10 +22,9 @@
 
 singleton GFXSamplerStateData(ShadowSampler)
 {
-   addressModeU = GFXAddressMirror;
-   addressModeV = GFXAddressMirror;
-   magFilter = GFXTextureFilterLinear;
-   minFilter = GFXTextureFilterLinear;
+   magFilter = GFXTextureFilterAnisotropic;
+   minFilter = GFXTextureFilterAnisotropic;
+   mipFilter = GFXTextureFilterAnisotropic;
    samplerFunc = GFXCmpGreater;
 };
 
@@ -81,7 +80,7 @@ singleton shaderData( AL_VectorLightShader )
    samplerNames[4] = "$matInfoBuffer";
    samplerNames[5] = "$shadowMapCMP";
    
-   pixVersion = 3.0;
+   pixVersion = 4.0;
 };
 
 singleton CustomMaterial( AL_VectorLightMaterial )
@@ -97,7 +96,7 @@ singleton CustomMaterial( AL_VectorLightMaterial )
    
    target = "AL_FormatToken";
    
-   pixVersion = 3.0;
+   pixVersion = 4.0;
 };
 
 //------------------------------------------------------------------------------
