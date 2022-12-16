@@ -89,6 +89,8 @@ uniform float3x3 worldToLightProj;
 
 uniform float4x4 cameraToWorld;
 
+#define ERR 0.005f
+
 float4 main(   ConvexConnectP IN ) : SV_TARGET
 {   
    // Compute scene UV
@@ -133,7 +135,7 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 
    #else
 	  
-	  float3 paraVec = decodeShadowCoord(mul( worldToLightProj, -surfaceToLight.L));
+	  float3 paraVec = mul( worldToLightProj, -surfaceToLight.L);
 	  paraVec = paraVec.xzy;
 	  
 	  float len = length(paraVec);
@@ -144,6 +146,7 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 		 shadowCoord.x = (paraVec.x / (1.0f + paraVec.z)) * 0.5 + 0.5;
 		 shadowCoord.y = 1.0f - ((paraVec.y / (1.0f + paraVec.z)) * 0.5 + 0.5f);
 		 shadowCoord.x *= 0.5;
+		 shadowCoord.y -= ERR;
 		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, float3(shadowCoord,distToLight), 0, shadowSoftness);
 	  }
 	  else
@@ -152,10 +155,11 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 		 shadowCoord.x = 1.0f - (paraVec.x / (1.0f - paraVec.z)) * 0.5 + 0.5;
 		 shadowCoord.y = 1.0f - ((paraVec.y / (1.0f - paraVec.z)) * 0.5 + 0.5f);
 		 shadowCoord.x *= 0.5;
+		 shadowCoord.y -= ERR;
 		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, float3(shadowCoord,distToLight), 0, shadowSoftness);
 	  }
-	  
-	  float shadowed = depthShadow;
+		
+	  float shadowed = saturate( exp( lightParams.y * ( depthShadow - distToLight ) ) );
       
    #endif
    
