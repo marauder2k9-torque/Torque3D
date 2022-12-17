@@ -154,7 +154,8 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
 	  texCoord, 
 	  shadowPos,
 	  cascadeId,
-	  cascadeScales[cascadeId].z * shadowSoftness));
+	  cascadeScales[cascadeId].z * shadowSoftness,
+	  dotNL));
 	  
 	  #if USEBLEND
 	  
@@ -206,7 +207,8 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
 							  texCoord, 
 							  nextCascadePos, 
 							  cascadeId,
-							  cascadeScales[cascadeId].z * shadowSoftness);
+							  cascadeScales[cascadeId].z * shadowSoftness,
+							  dotNL);
 							  
 		   float lerpAmt = smoothstep(0.0f, alpha, fadeFactor);
 		

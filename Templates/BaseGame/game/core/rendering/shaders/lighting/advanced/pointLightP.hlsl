@@ -130,7 +130,8 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
    #ifdef SHADOW_CUBE
 
       // TODO: We need to fix shadow cube to handle soft shadows!
-      float occ = TORQUE_TEXCUBE( shadowMap, mul( worldToLightProj, -surfaceToLight.L ) ).r;
+	  float3 paraVec = mul( worldToLightProj, -surfaceToLight.L);
+	  float occ = softShadow_filterCube(TORQUE_SAMPLERCUBE_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, paraVec, distToLight, 0, shadowSoftness, surfaceToLight.NdotL);
       float shadowed = saturate( exp( lightParams.y * ( occ - distToLight ) ) );
 
    #else
@@ -139,7 +140,8 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 	  paraVec = paraVec.xzy;
 	  
 	  float len = length(paraVec);
-	  float2 shadowCoord;
+	  float3 shadowCoord;
+	  shadowCoord.z = distToLight;
 	  float depthShadow = 1.0;
 	  if(paraVec.z >= 0.0f)
 	  {
@@ -147,7 +149,7 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 		 shadowCoord.y = 1.0f - ((paraVec.y / (1.0f + paraVec.z)) * 0.5 + 0.5f);
 		 shadowCoord.x *= 0.5;
 		 shadowCoord.y -= ERR;
-		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, float3(shadowCoord,distToLight), 0, shadowSoftness);
+		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
 	  }
 	  else
 	  {
@@ -156,9 +158,9 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 		 shadowCoord.y = 1.0f - ((paraVec.y / (1.0f - paraVec.z)) * 0.5 + 0.5f);
 		 shadowCoord.x *= 0.5;
 		 shadowCoord.y -= ERR;
-		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, float3(shadowCoord,distToLight), 0, shadowSoftness);
+		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
 	  }
-		
+	  
 	  float shadowed = saturate( exp( lightParams.y * ( depthShadow - distToLight ) ) );
       
    #endif

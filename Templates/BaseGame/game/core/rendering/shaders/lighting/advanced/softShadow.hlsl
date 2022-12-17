@@ -44,6 +44,18 @@ float2 VogelDisk(int sampleIndex, int sampleCount, float gradient)
 	return float2(r * cosine, r * sine);
 }
 
+float3 VogelDiskCube(int sampleIndex, int sampleCount, float gradient)
+{
+	float gA = 2.4f;
+	float r = sqrt(sampleIndex + 0.5f) / sqrt(sampleCount);
+	float theta = sampleIndex * gA + gradient;
+	
+	float sine, cosine;
+	sincos(theta, sine, cosine);
+	
+	return float3(r * cosine, r * sine, sin(theta));
+}
+
 float GradientNoise(float2 screenPos)
 {
 	float3 mag = float3(0.06711056f, 0.00583715f, 52.9829189f);
@@ -76,14 +88,16 @@ float ReduceLightBleeding(float p_max, float Amount)
 
 float ChebyshevUpperBound(float2 moments, float t) 
 {    
-	float p = (t <= moments.x);   
+	if(t <= moments.x)
+		return 1.0f;
+		
 	float var = moments.y - (moments.x * moments.x);   
 	var = max(var, g_MinVariance);   
 	// Compute probabilistic upper bound 
 	float d = t - moments.x;
 	float p_max = var / (var + d*d);
 	p_max = ReduceLightBleeding(p_max, 0.98);
-	return max(p, p_max);
+	return p_max;
 }
 
 /// The texture used to do per-pixel pseudorandom
@@ -96,13 +110,14 @@ float softShadow_filter(
                            float2 vpos,
                            float3 shadowPos,
 						   uint cascade,
-                           float filterRadius)
+                           float filterRadius,
+						   float dotNL)
 {
     float gradient = 6.28318530718 * GradientNoise(screenPos);
 	float2 textureSize;
 	TORQUE_TEX2DGETSIZE(shadowMap, textureSize.x, textureSize.y);
 	float2 shadowFilterSize = VogelDiskScale(textureSize, 4);
-   
+	
     float avgOccDepth = 0;
 	float occCount = 0;
 	[unroll]
@@ -135,6 +150,30 @@ float softShadow_filter(
 		
 		float2 moments = TORQUE_TEX2DLOD( shadowMap, float4(tap,0,cascade) ).xy;
 		shadow += ChebyshevUpperBound(moments, shadowPos.z);
+	}
+	
+   return shadow = shadow / float(NUM_TAPS);
+}
+
+float softShadow_filterCube(   
+						   TORQUE_SAMPLERCUBE(shadowMap),
+						   float2 screenPos,
+                           float2 vpos,
+                           float3 shadowPos,
+						   float distToLight,
+						   uint cascade,
+                           float filterRadius,
+						   float dotNL)
+{
+    float gradient = 6.28318530718 * GradientNoise(screenPos);
+	float shadow = 1.0;
+	[unroll]
+	for ( int t = 0; t < NUM_TAPS; t++ )
+    {
+		float3 tap = VogelDiskCube(t, NUM_TAPS, gradient);
+		tap = shadowPos.xyz + tap * filterRadius;
+		
+		shadow += TORQUE_TEXCUBE( shadowMap, tap ).x;
 	}
 	
    return shadow = shadow / float(NUM_TAPS);
