@@ -144,7 +144,6 @@ void ShadowMapManager::deactivate()
    getSceneManager()->getPreRenderSignal().remove( this, &ShadowMapManager::_onPreRender );
 
    SAFE_DELETE(mShadowMapPass);
-   mTapRotationTex = NULL;
 
    // Clean up our shadow texture memory.
    LightShadowMap::releaseAllTextures();
@@ -163,35 +162,6 @@ void ShadowMapManager::_onPreRender( SceneManager *sg, const SceneRenderState *s
 
 void ShadowMapManager::_onTextureEvent( GFXTexCallbackCode code )
 {
-   if ( code == GFXZombify )
-      mTapRotationTex = NULL;
-}
-
-GFXTextureObject* ShadowMapManager::getTapRotationTex()
-{
-   if ( mTapRotationTex.isValid() )
-      return mTapRotationTex;
-
-   mTapRotationTex.set( 64, 64, GFXFormatR8G8B8A8, &ShadowMapTexProfile, 
-                        "ShadowMapManager::getTapRotationTex" );
-
-   GFXLockedRect *rect = mTapRotationTex.lock();
-   U8 *f = rect->bits;
-   F32 angle;
-   for( U32 i = 0; i < 64*64; i++, f += 4 )
-   {         
-      // We only pack the rotations into the red
-      // and green channels... the rest are empty.
-      angle = M_2PI_F * gRandGen.randF();
-      f[0] = U8_MAX * ( ( 1.0f + mSin( angle ) ) * 0.5f );
-      f[1] = U8_MAX * ( ( 1.0f + mCos( angle ) ) * 0.5f );
-      f[2] = 0;
-      f[3] = 0;
-   }
-
-   mTapRotationTex.unlock();
-
-   return mTapRotationTex;
 }
 
 void ShadowMapManager::updateShadowDisable()

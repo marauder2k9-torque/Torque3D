@@ -100,10 +100,6 @@ float ChebyshevUpperBound(float2 moments, float t)
 	return p_max;
 }
 
-/// The texture used to do per-pixel pseudorandom
-/// rotations of the filter taps.
-TORQUE_UNIFORM_SAMPLER2D(gTapRotationTex, 2);
-
 float softShadow_filter(   
 						   TORQUE_SAMPLER2D(shadowMap),
 						   float2 screenPos,
@@ -113,46 +109,61 @@ float softShadow_filter(
                            float filterRadius,
 						   float dotNL)
 {
-    float gradient = 6.28318530718 * GradientNoise(screenPos);
-	float2 textureSize;
-	TORQUE_TEX2DGETSIZE(shadowMap, textureSize.x, textureSize.y);
-	float2 shadowFilterSize = VogelDiskScale(textureSize, 4);
-	
-    float avgOccDepth = 0;
-	float occCount = 0;
-	[unroll]
-	for(int i = 0; i < NUM_TAPS; i++)
+
+	float earlyTest = TORQUE_TEX2DLOD( shadowMap, float4(shadowPos.xy,0,cascade)).x;
+	if ( shadowPos.z * ( 1.0 - shadowPos.z ) * max( dotNL, 0 ) < 0.001 )
+		return 1.0;
+
+	if(earlyTest < shadowPos.z)
 	{
-		float2 sampleUV = VogelDisk(i, NUM_TAPS, gradient);
-		sampleUV = shadowPos.xy + sampleUV * shadowFilterSize;
-		float occDepth = TORQUE_TEX2DLOD(shadowMap, float4(sampleUV,0,cascade) ).r;
-		if(occDepth < shadowPos.z)
+		float gradient = 6.28318530718 * GradientNoise(screenPos);
+		float2 textureSize;
+		TORQUE_TEX2DGETSIZE(shadowMap, textureSize.x, textureSize.y);
+		float2 shadowFilterSize = VogelDiskScale(textureSize, 4);
+		
+		float avgOccDepth = 0;
+		float occCount = 0;
+		[unroll]
+		for(int i = 0; i < NUM_TAPS; i++)
 		{
-			avgOccDepth += occDepth;
-			occCount += 1.0f;
+			float2 sampleUV = VogelDisk(i, NUM_TAPS, gradient);
+			sampleUV = shadowPos.xy + sampleUV * shadowFilterSize;
+			float occDepth = TORQUE_TEX2DLOD(shadowMap, float4(sampleUV,0,cascade) ).r;
+			if(occDepth < shadowPos.z)
+			{
+				avgOccDepth += occDepth;
+				occCount += 1.0f;
+			}
 		}
+		
+		// early out.
+		if(occCount <= 0.0)
+		{
+			return 1.0;
+		}
+		
+		float3 shadowPosDX = ddx_fine(shadowPos);
+		float3 shadowPosDY = ddy_fine(shadowPos);
+		
+		avgOccDepth /= occCount;
+		float penumbra = ((shadowPos.z - avgOccDepth) * 1000.0f) / avgOccDepth;
+		float shadow = 1.0;
+		[unroll]
+		for ( int t = 0; t < NUM_TAPS; t++ )
+		{
+			float2 tap = VogelDisk(t, NUM_TAPS, gradient);
+			tap = shadowPos.xy + tap * filterRadius;
+			
+			float depth = TORQUE_TEX2DLOD( shadowMap, float4(tap,0,cascade)).x;
+			shadow += ChebyshevUpperBound(float2(depth, depth*depth), shadowPos.z);
+		}
+		
+		return shadow = shadow / float(NUM_TAPS);
 	}
-	
-	// early out.
-	if(occCount <= 0.0)
+	else
 	{
 		return 1.0;
 	}
-	
-	avgOccDepth /= occCount;
-	float penumbra = ((shadowPos.z - avgOccDepth) * 1000.0f) / avgOccDepth;
-	float shadow = 1.0;
-	[unroll]
-	for ( int t = 0; t < NUM_TAPS; t++ )
-    {
-		float2 tap = VogelDisk(t, NUM_TAPS, gradient);
-		tap = shadowPos.xy + tap * filterRadius;
-		
-		float2 moments = TORQUE_TEX2DLOD( shadowMap, float4(tap,0,cascade) ).xy;
-		shadow += ChebyshevUpperBound(moments, shadowPos.z);
-	}
-	
-   return shadow = shadow / float(NUM_TAPS);
 }
 
 float softShadow_filterCube(   

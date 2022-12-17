@@ -26,6 +26,7 @@
 #include "../../lighting.hlsl"
 #include "../shadowMap/shadowMapIO_HLSL.h"
 #include "../../torque.hlsl"
+#include "softShadow.hlsl"
 
 struct ConvexConnectP
 {
@@ -62,8 +63,7 @@ TORQUE_UNIFORM_SAMPLERCUBE(shadowMap, 1);
 #else
 TORQUE_UNIFORM_SAMPLER2D(shadowMap, 1);
 #endif
-//contains gTapRotationTex sampler 
-#include "softShadow.hlsl"
+TORQUE_UNIFORM_SAMPLER2D(shadowMapBack, 2);
 TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 3);
 TORQUE_UNIFORM_SAMPLER2D(matInfoBuffer, 4);
 #ifdef USE_COOKIE_TEX
@@ -120,8 +120,8 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
    [branch]
 	if(dist < lightRange)
 	{     
-      float distToLight = dist / lightRange;
       SurfaceToLight surfaceToLight = createSurfaceToLight(surface, L);
+	  float distToLight = dist / lightRange;
 
    #ifdef NO_SHADOW
       float shadowed = 1.0;
@@ -132,7 +132,7 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
       // TODO: We need to fix shadow cube to handle soft shadows!
 	  float3 paraVec = mul( worldToLightProj, -surfaceToLight.L);
 	  float occ = softShadow_filterCube(TORQUE_SAMPLERCUBE_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, paraVec, distToLight, 0, shadowSoftness, surfaceToLight.NdotL);
-      float shadowed = saturate( exp( lightParams.y * ( occ - distToLight ) ) );
+      float shadowed = saturate( exp(( occ - distToLight ) ) );
 
    #else
 	  
@@ -142,26 +142,22 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 	  float len = length(paraVec);
 	  float3 shadowCoord;
 	  shadowCoord.z = distToLight;
-	  float depthShadow = 1.0;
+	  float depthShadow;
 	  if(paraVec.z >= 0.0f)
 	  {
-		 shadowCoord.x = (paraVec.x / (1.0f + paraVec.z)) * 0.5 + 0.5;
-		 shadowCoord.y = 1.0f - ((paraVec.y / (1.0f + paraVec.z)) * 0.5 + 0.5f);
-		 shadowCoord.x *= 0.5;
-		 shadowCoord.y -= ERR;
+		 shadowCoord.x = (paraVec.x / (2.0f * (1.0f + paraVec.z))) + 0.5;
+		 shadowCoord.y = 1.0f - ((paraVec.y / (2.0f * (1.0f + paraVec.z))) + 0.5);
 		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
 	  }
 	  else
 	  {
 		 
-		 shadowCoord.x = 1.0f - (paraVec.x / (1.0f - paraVec.z)) * 0.5 + 0.5;
-		 shadowCoord.y = 1.0f - ((paraVec.y / (1.0f - paraVec.z)) * 0.5 + 0.5f);
-		 shadowCoord.x *= 0.5;
-		 shadowCoord.y -= ERR;
-		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
+		 shadowCoord.x = 1.0f - (paraVec.x / (2.0f * (1.0f - paraVec.z))) + 0.5;
+		 shadowCoord.y = 1.0f - ((paraVec.y / (2.0f * (1.0f - paraVec.z))) + 0.5);
+		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMapBack), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
 	  }
 	  
-	  float shadowed = saturate( exp( lightParams.y * ( depthShadow - distToLight ) ) );
+	  float shadowed = saturate( exp(( depthShadow - distToLight) ) );
       
    #endif
    

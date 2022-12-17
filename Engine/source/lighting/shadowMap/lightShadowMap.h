@@ -96,6 +96,7 @@ struct LightingShaderConstants
    GFXShaderConstHandle* mVectorLightBrightnessSC;
 
    GFXShaderConstHandle* mShadowMapSC;
+   GFXShaderConstHandle* mShadowMapBackSC;
    GFXShaderConstHandle* mShadowMapSizeSC;
 
    GFXShaderConstHandle* mCookieMapSC;
@@ -110,8 +111,6 @@ struct LightingShaderConstants
    // fadeStartLength.y = 1 / Length of fade
    GFXShaderConstHandle* mFadeStartLength;
    GFXShaderConstHandle* mOverDarkFactorPSSM;
-
-   GFXShaderConstHandle* mTapRotationTexSC;
 
    // Static Specific:   
    GFXShaderConstHandle* mWorldToLightProjSC;

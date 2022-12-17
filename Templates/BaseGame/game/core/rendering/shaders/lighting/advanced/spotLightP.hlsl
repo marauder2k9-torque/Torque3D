@@ -27,6 +27,7 @@
 #include "../../lighting.hlsl"
 #include "../shadowMap/shadowMapIO_HLSL.h"
 #include "../../torque.hlsl"
+#include "softShadow.hlsl"
 
 struct ConvexConnectP
 {
@@ -38,13 +39,11 @@ struct ConvexConnectP
 
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
 TORQUE_UNIFORM_SAMPLER2D(shadowMap, 1);
-//contains gTapRotationTex sampler 
-#include "softShadow.hlsl"
-TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 3);
-TORQUE_UNIFORM_SAMPLER2D(matInfoBuffer, 4);
+TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 2);
+TORQUE_UNIFORM_SAMPLER2D(matInfoBuffer, 3);
 #ifdef USE_COOKIE_TEX
 /// The texture for cookie rendering.
-TORQUE_UNIFORM_SAMPLER2D(cookieMap, 5);
+TORQUE_UNIFORM_SAMPLER2D(cookieMap, 4);
 
 #endif
 uniform float4 rtParams0;
@@ -158,9 +157,9 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 	  float att = 1;
 	  att *= getDistanceAtt(surfaceToLight.L, lightInvSqrRange);
       att *= getSpotAngleAtt(-surfaceToLight.L, lightDirection, lightSpotParams, lightRange);
-	  float3 lCol = lightColor.rgb *(lightBrightness / (4.0 * 3.14159265359));
-	  float3 radince = lCol * att;
-	  float3 factor = saturate(surfaceToLight.NdotL) * shadowed * radince;
+	  float3 lCol = lightColor.rgb *(lightBrightness / (4.0 * M_PI_F));
+	  float3 radiance = lCol * att;
+	  float3 factor = saturate(surfaceToLight.NdotL) * shadowed * radiance;
 	  lighting = evaluateStandardBRDF(surface,surfaceToLight) * factor;
 	  //
    }

@@ -27,14 +27,12 @@
 #include "../../torque.hlsl"
 #include "../../lighting.hlsl"
 #include "../shadowMap/shadowMapIO_HLSL.h"
+#include "softShadow.hlsl"
 
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
 TORQUE_UNIFORM_SAMPLER2D(shadowMap, 1);
-//contains gTapRotationTex sampler 
-#include "softShadow.hlsl"
-TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 3);
-TORQUE_UNIFORM_SAMPLER2D(matInfoBuffer, 4);
-TORQUE_UNIFORM_SAMPLER2DCMP(shadowMapCmp, 5);
+TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 2);
+TORQUE_UNIFORM_SAMPLER2D(matInfoBuffer, 3);
 
 uniform float  lightBrightness;
 uniform float3 lightDirection;
@@ -67,18 +65,7 @@ uniform float4 cascadeScales[4];
 #define USEBLEND 1
 #define ERR 0.0005f
 
-float3 GetShadowOffset(TORQUE_SAMPLER2D(shadowMapSize), float nDotL, float3 normal)
-{
-	float offsetScale = 0.001f;
-	float2 shadowSize;
-	TORQUE_TEX2DGETSIZE(shadowMapSize, shadowSize.x, shadowSize.y);
-	float texel = 2.0f / shadowSize.x;
-	float normalOffset = saturate(1.0 - nDotL);
-	return texel * offsetScale * normalOffset * normal;
-}
-
 float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
-								TORQUE_SAMPLER2DCMP(sourceShadowMapCMP),
 								float2 screenPos,
                                 float2 texCoord,
                                 float4x4 worldToLightProj,
@@ -254,7 +241,6 @@ float4 main(FarFrustumQuadConnectP IN) : SV_TARGET
 
       float4 shadowed_colors = AL_VectorLightShadowCast( 
 	  TORQUE_SAMPLER2D_MAKEARG(shadowMap), 
-	  TORQUE_SAMPLER2D_MAKEARG(shadowMapCmp),
 	  IN.hpos.xy, 
 	  IN.uv0.xy,
 	  worldToLightProj, 

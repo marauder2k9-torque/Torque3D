@@ -99,7 +99,6 @@ LightShadowMap::LightShadowMap( LightInfo *light )
 LightShadowMap::~LightShadowMap()
 {
    mTarget = NULL;
-
    releaseTextures();
 
    smShadowMaps.remove( this );
@@ -270,7 +269,8 @@ bool LightShadowMap::setTextureStage( U32 currTexFlag, LightingShaderConstants* 
       }
 
       return true;
-   } else if ( currTexFlag == Material::DynamicLightMask )
+   }
+   else if ( currTexFlag == Material::DynamicLightMask )
    {
       S32 reg = lsc->mCookieMapSC->getSamplerRegister();
    	if ( reg != -1 )
@@ -429,6 +429,7 @@ LightingShaderConstants::LightingShaderConstants()
       mVectorLightColorSC(NULL),
       mVectorLightBrightnessSC(NULL),
       mShadowMapSC(NULL),
+      mShadowMapBackSC(NULL),
       mShadowMapSizeSC(NULL), 
       mCookieMapSC(NULL),
       mRandomDirsConst(NULL),
@@ -437,8 +438,7 @@ LightingShaderConstants::LightingShaderConstants()
       mAtlasYOffsetSC(NULL),
       mAtlasScaleSC(NULL), 
       mFadeStartLength(NULL), 
-      mOverDarkFactorPSSM(NULL), 
-      mTapRotationTexSC(NULL),
+      mOverDarkFactorPSSM(NULL),
       mWorldToLightProjSC(NULL), 
       mViewToLightProjSC(NULL),
       mCascadeSplitsSC(NULL),
@@ -485,6 +485,7 @@ void LightingShaderConstants::init(GFXShader* shader)
    mVectorLightBrightnessSC = shader->getShaderConstHandle(ShaderGenVars::vectorLightBrightness);
 
    mShadowMapSC = shader->getShaderConstHandle("$shadowMap");
+   mShadowMapBackSC = shader->getShaderConstHandle("$shadowMapBack");
    mShadowMapSizeSC = shader->getShaderConstHandle("$shadowMapSize");
 
    mCookieMapSC = shader->getShaderConstHandle("$cookieMap");
@@ -496,7 +497,6 @@ void LightingShaderConstants::init(GFXShader* shader)
 
    mFadeStartLength = shader->getShaderConstHandle("$fadeStartLength");
    mOverDarkFactorPSSM = shader->getShaderConstHandle("$overDarkPSSM");
-   mTapRotationTexSC = shader->getShaderConstHandle( "$gTapRotationTex" );
 
    mWorldToLightProjSC = shader->getShaderConstHandle("$worldToLightProj");
    mViewToLightProjSC = shader->getShaderConstHandle("$viewToLightProj");
@@ -627,10 +627,9 @@ LightShadowMap* ShadowMapParams::getOrCreateShadowMap()
 
          if ( shadowType == ShadowType_CubeMap )
             newShadowMap = new CubeLightShadowMap( mLight );
-         else if ( shadowType == ShadowType_Paraboloid )
-            newShadowMap = new ParaboloidLightShadowMap( mLight );
          else
-            newShadowMap = new DualParaboloidLightShadowMap( mLight );
+            newShadowMap = new DualParaboloidLightShadowMap(mLight);
+
          break;
    
       default:

@@ -23,18 +23,31 @@
 #ifndef _DUALPARABOLOIDLIGHTSHADOWMAP_H_
 #define _DUALPARABOLOIDLIGHTSHADOWMAP_H_
 
-#ifndef _PARABOLOIDLIGHTSHADOWMAP_H_
-#include "lighting/shadowMap/paraboloidLightShadowMap.h"
+#ifndef _LIGHTSHADOWMAP_H_
+#include "lighting/shadowMap/lightShadowMap.h"
 #endif
 
-class DualParaboloidLightShadowMap : public ParaboloidLightShadowMap
+class DualParaboloidLightShadowMap : public LightShadowMap
 {
-   typedef ParaboloidLightShadowMap Parent;
+   typedef LightShadowMap Parent;
 
 public:
    DualParaboloidLightShadowMap( LightInfo *light );
 
+   // Light shadow map.
+   // only true if both textures are valid.
+   virtual bool hasShadowTex() const { return mParaboloidFront.isValid() && mParaboloidBack.isValid(); }
+   virtual ShadowType getShadowType() const { return ShadowType_DualParaboloid; }
    virtual void _render( RenderPassManager* renderPass, const SceneRenderState *diffuseState );
+   virtual void setShaderParameters(GFXShaderConstBuffer* params, LightingShaderConstants* lsc);
+   virtual void releaseTextures();
+   virtual bool setTextureStage(U32 currTexFlag, LightingShaderConstants* lsc);
+
+protected:
+   GFXTexHandle mParaboloidFront;
+   GFXTexHandle mParaboloidBack;
+   Point2F mShadowMapScale;
+   Point2F mShadowMapOffset;
 };
 
 #endif // _DUALPARABOLOIDLIGHTSHADOWMAP_H_

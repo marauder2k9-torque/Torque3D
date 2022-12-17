@@ -36,8 +36,56 @@
 #include "math/util/matrixSet.h"
 
 DualParaboloidLightShadowMap::DualParaboloidLightShadowMap( LightInfo *light )
-   : Parent( light )
+   : Parent( light ),
+   mShadowMapScale(1, 1),
+   mShadowMapOffset(0, 0)
 {
+}
+
+bool DualParaboloidLightShadowMap::setTextureStage(U32 currTexFlag, LightingShaderConstants* lsc)
+{
+   if (currTexFlag == Material::DynamicLight)
+   {
+      S32 reg = lsc->mShadowMapSC->getSamplerRegister();
+      if (reg != -1)
+         GFX->setTexture(reg, mParaboloidFront);
+
+      return true;
+   }
+   else if (currTexFlag == Material::DynamicLightBack)
+   {
+      S32 reg = lsc->mShadowMapBackSC->getSamplerRegister();
+      if (reg != -1)
+         GFX->setTexture(reg, mParaboloidBack);
+
+      return true;
+   }
+
+   return false;
+}
+
+void DualParaboloidLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, LightingShaderConstants* lsc)
+{
+   ShadowMapParams* p = mLight->getExtended<ShadowMapParams>();
+   if (lsc->mLightParamsSC->isValid())
+   {
+      Point4F lightParams(mLight->getRange().x, p->overDarkFactor.x, 0.0f, 0.0f);
+      params->set(lsc->mLightParamsSC, lightParams);
+   }
+
+   // Atlasing parameters (only used in the dual case, set here to use same shaders)
+   params->setSafe(lsc->mAtlasScaleSC, mShadowMapScale);
+   params->setSafe(lsc->mAtlasXOffsetSC, mShadowMapOffset);
+
+   // The softness is a factor of the texel size.
+   params->setSafe(lsc->mShadowSoftnessConst, p->shadowSoftness * (1.0f / mTexSize));
+}
+
+void DualParaboloidLightShadowMap::releaseTextures()
+{
+   Parent::releaseTextures();
+   mParaboloidFront = NULL;
+   mParaboloidBack = NULL;
 }
 
 void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
@@ -45,21 +93,29 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
 {
    PROFILE_SCOPE(DualParaboloidLightShadowMap_render);
 
-   const ShadowMapParams *p = mLight->getExtended<ShadowMapParams>();
    const LightMapParams *lmParams = mLight->getExtended<LightMapParams>();
    const bool bUseLightmappedGeometry = lmParams ? !lmParams->representedInLightmap || lmParams->includeLightmappedGeometryInShadow : true;
 
-   const U32 texSize = getBestTexSize( 2 );
+   const U32 texSize = getBestTexSize();
 
-   if (  mShadowMapTex.isNull() || 
+   if (mParaboloidFront.isNull() ||
          mTexSize != texSize )
    {
       mTexSize = texSize;
 
-      mShadowMapTex.set(   mTexSize * 2, mTexSize, 
-                           ShadowMapFormat, &ShadowMapProfile, 
-                           "DualParaboloidLightShadowMap" );
-      mShadowMapDepth = _getDepthTarget( mShadowMapTex->getWidth(), mShadowMapTex->getHeight() );
+      mParaboloidFront.set(   mTexSize, mTexSize,
+                              ShadowMapFormat, &ShadowMapProfile, 
+                              "DualParaboloidLightShadowMapFront" );
+   }
+
+   if (mParaboloidBack.isNull() ||
+      mTexSize != texSize)
+   {
+      mTexSize = texSize;
+
+      mParaboloidBack.set( mTexSize, mTexSize,
+                           ShadowMapFormat, &ShadowMapProfile,
+                           "DualParaboloidLightShadowMapBack");
    }
 
    GFXFrustumSaver frustSaver;
@@ -67,13 +123,6 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
 
    // Set and Clear target
    GFX->pushActiveRenderTarget();
-
-   mTarget->attachTexture(GFXTextureTarget::Color0, mShadowMapTex);
-   mTarget->attachTexture( GFXTextureTarget::DepthStencil, mShadowMapDepth );
-   GFX->setActiveRenderTarget(mTarget);
-   GFX->clear(GFXClearTarget | GFXClearStencil | GFXClearZBuffer, ColorI::WHITE, 1.0f, 0);
-
-   const bool bUseSinglePassDPM = (p->shadowType == ShadowType_DualParaboloidSinglePass);
 
    // Set up matrix and visible distance
    mWorldToLightProj = mLight->getTransform();
@@ -90,8 +139,10 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
    {
       GFXDEBUGEVENT_SCOPE(DualParaboloidLightShadowMap_Render_FrontFacingParaboloid, ColorI::RED);
 
-      mShadowMapScale.set(0.5f, 1.0f);
-      mShadowMapOffset.set(-0.5f, 0.0f);
+      mTarget->attachTexture(GFXTextureTarget::Color0, mParaboloidFront);
+      mTarget->attachTexture(GFXTextureTarget::DepthStencil, _getDepthTarget(mTexSize, mTexSize));
+      GFX->setActiveRenderTarget(mTarget);
+      GFX->clear(GFXClearTarget | GFXClearStencil | GFXClearZBuffer, ColorI::WHITE, 1.0f, 0);
 
       VectorF camDir;
       MatrixF temp = mLight->getTransform();
@@ -120,15 +171,20 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
       
       sceneManager->renderSceneNoLights( &frontMapRenderState, SHADOW_TYPEMASK );
       _debugRender( &frontMapRenderState );
-   }
-   
-   // Back map render 
-   if(!bUseSinglePassDPM)
-   {
-      GFXDEBUGEVENT_SCOPE( DualParaboloidLightShadowMap_Render_BackFacingParaboloid, ColorI::GREEN );
 
-      mShadowMapScale.set(0.5f, 1.0f);
-      mShadowMapOffset.set(0.5f, 0.0f);
+      mTarget->resolve();
+   }
+   GFX->popActiveRenderTarget();
+   // Back map render
+   // Set and Clear target
+   GFX->pushActiveRenderTarget();
+   {
+      GFXDEBUGEVENT_SCOPE( DualParaboloidLightShadowMap_Render_BackFacingParaboloid, ColorI::RED);
+
+      mTarget->attachTexture(GFXTextureTarget::Color0, mParaboloidBack);
+      mTarget->attachTexture(GFXTextureTarget::DepthStencil, _getDepthTarget(mTexSize, mTexSize));
+      GFX->setActiveRenderTarget(mTarget);
+      GFX->clear(GFXClearTarget | GFXClearStencil | GFXClearZBuffer, ColorI::WHITE, 1.0f, 0);
 
       // Invert direction on camera matrix
       VectorF right, forward;
@@ -165,8 +221,9 @@ void DualParaboloidLightShadowMap::_render(  RenderPassManager* renderPass,
       // Draw scene
       sceneManager->renderSceneNoLights( &backMapRenderState );
       _debugRender( &backMapRenderState );
-   }
 
-   mTarget->resolve();
+      mTarget->resolve();
+   }
    GFX->popActiveRenderTarget();
 }
+

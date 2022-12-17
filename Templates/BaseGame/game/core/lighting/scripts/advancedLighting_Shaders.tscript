@@ -50,11 +50,9 @@ singleton GFXStateBlockData( AL_VectorLightState )
 
    samplersDefined = true;
    samplerStates[0] = SamplerClampPoint;  // G-buffer
-   samplerStates[1] = ShadowSampler;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
-   samplerStates[2] = SamplerWrapPoint;   // gTapRotationTex Random Direction Map
+   samplerStates[1] = SamplerClampLinear;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
    samplerStates[3] = SamplerClampPoint;   // colorBuffer
    samplerStates[4] = SamplerClampPoint;   // matInfoBuffer
-   samplerStates[5] = ShadowSampler;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
    
    cullDefined = true;
    cullMode = GFXCullNone;
@@ -75,10 +73,8 @@ singleton shaderData( AL_VectorLightShader )
    
    samplerNames[0] = "$deferredBuffer";
    samplerNames[1] = "$shadowMap";
-   samplerNames[2] = "$gTapRotationTex";
-   samplerNames[3] = "$colorBuffer";
-   samplerNames[4] = "$matInfoBuffer";
-   samplerNames[5] = "$shadowMapCMP";
+   samplerNames[2] = "$colorBuffer";
+   samplerNames[3] = "$matInfoBuffer";
    
    pixVersion = 4.0;
 };
@@ -92,7 +88,6 @@ singleton CustomMaterial( AL_VectorLightMaterial )
    sampler["shadowMap"] = "$dynamiclight";
    sampler["colorBuffer"] = "#color";
    sampler["matInfoBuffer"] = "#matinfo";
-   sampler["shadowMapCMP"] = "$dynamiclight";
    
    target = "AL_FormatToken";
    
@@ -123,11 +118,11 @@ singleton GFXStateBlockData( AL_ConvexLightState )
 
    samplersDefined = true;
    samplerStates[0] = SamplerClampPoint;  // G-buffer
-   samplerStates[1] = SamplerClampPoint;  // Shadow Map (Do not use linear, these are perspective projections)
-   samplerStates[2] = SamplerWrapPoint;   // gTapRotationTex Random Direction Map
+   samplerStates[1] = SamplerClampLinear;  // Shadow Map (Do not use linear, these are perspective projections)
+   samplerStates[2] = SamplerClampLinear;  // Shadow Map Back (Do not use linear, these are perspective projections)
    samplerStates[3] = SamplerClampPoint;  // colorBuffer
    samplerStates[4] = SamplerClampPoint;  // matInfoBuffer
-   samplerStates[5] = SamplerClampLinear; // Cookie Map
+   samplerStates[5] = SamplerClampLinear;   // Cookie map
    
    cullDefined = true;
    cullMode = GFXCullCW;
@@ -148,7 +143,7 @@ singleton shaderData( AL_PointLightShader )
 
    samplerNames[0] = "$deferredBuffer";
    samplerNames[1] = "$shadowMap";
-   samplerNames[2] = "$gTapRotationTex";
+   samplerNames[2] = "$shadowMapBack";
    samplerNames[3] = "$colorBuffer";
    samplerNames[4] = "$matInfoBuffer";
    samplerNames[5] = "$cookieMap";
@@ -163,10 +158,11 @@ singleton CustomMaterial( AL_PointLightMaterial )
    
    sampler["deferredBuffer"] = "#deferred";
    sampler["shadowMap"] = "$dynamiclight";
-   sampler["cookieMap"] = "$dynamiclightmask";
+   sampler["shadowMapBack"] = "$dynamiclightback";
    sampler["colorBuffer"] = "#color";
    sampler["matInfoBuffer"] = "#matinfo";
-   
+   sampler["cookieMap"] = "$dynamiclightmask";
+
    target = "AL_FormatToken";
    
    pixVersion = 3.0;
@@ -183,10 +179,9 @@ singleton shaderData( AL_SpotLightShader )
    
    samplerNames[0] = "$deferredBuffer";
    samplerNames[1] = "$shadowMap";
-   samplerNames[2] = "$gTapRotationTex";
-   samplerNames[3] = "$colorBuffer";
-   samplerNames[4] = "$matInfoBuffer";
-   samplerNames[5] = "$cookieMap";
+   samplerNames[2] = "$colorBuffer";
+   samplerNames[3] = "$matInfoBuffer";
+   samplerNames[4] = "$cookieMap";
 
    pixVersion = 3.0;
 };

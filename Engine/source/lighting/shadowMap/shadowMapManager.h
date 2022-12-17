@@ -73,8 +73,6 @@ public:
    virtual void activate();
    virtual void deactivate();
 
-   GFXTextureObject* getTapRotationTex();
-
    /// The shadow map deactivation signal.
    static Signal<void(void)> smShadowDeactivateSignal;
 
@@ -88,9 +86,6 @@ protected:
 
    ShadowMapPass *mShadowMapPass;
    LightShadowMap *mCurrentShadowMap;
-
-   ///
-   GFXTexHandle mTapRotationTex;
 
    bool mIsActive;
 

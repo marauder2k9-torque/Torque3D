@@ -442,10 +442,6 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
    AssertFatal(mNumSplits > 0 && mNumSplits <= MAX_SPLITS,
       avar("PSSMLightShadowMap::_setNumSplits() - Splits must be between 1 and %d!", MAX_SPLITS));
 
-   if ( lsc->mTapRotationTexSC->isValid() )
-      GFX->setTexture( lsc->mTapRotationTexSC->getSamplerRegister(), 
-                        SHADOWMGR->getTapRotationTex() );
-
    const ShadowMapParams *p = mLight->getExtended<ShadowMapParams>();
 
    Point4F  sx(Point4F::Zero), 

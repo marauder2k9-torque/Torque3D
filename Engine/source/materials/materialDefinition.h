@@ -93,6 +93,7 @@ public:
       ReflectBuff,
       Misc,
       DynamicLight,
+      DynamicLightBack,
       DynamicLightMask,
       NormalizeCube,
       TexTarget,
