@@ -51,8 +51,8 @@ singleton GFXStateBlockData( AL_VectorLightState )
    samplersDefined = true;
    samplerStates[0] = SamplerClampPoint;  // G-buffer
    samplerStates[1] = SamplerClampLinear;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
-   samplerStates[3] = SamplerClampPoint;   // colorBuffer
-   samplerStates[4] = SamplerClampPoint;   // matInfoBuffer
+   samplerStates[2] = SamplerClampPoint;   // colorBuffer
+   samplerStates[3] = SamplerClampPoint;   // matInfoBuffer
    
    cullDefined = true;
    cullMode = GFXCullNone;
