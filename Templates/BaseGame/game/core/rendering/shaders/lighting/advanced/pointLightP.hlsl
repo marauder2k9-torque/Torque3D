@@ -63,12 +63,11 @@ TORQUE_UNIFORM_SAMPLERCUBE(shadowMap, 1);
 #else
 TORQUE_UNIFORM_SAMPLER2D(shadowMap, 1);
 #endif
-TORQUE_UNIFORM_SAMPLER2D(shadowMapBack, 2);
-TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 3);
-TORQUE_UNIFORM_SAMPLER2D(matInfoBuffer, 4);
+TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 2);
+TORQUE_UNIFORM_SAMPLER2D(matInfoBuffer, 3);
 #ifdef USE_COOKIE_TEX
 /// The texture for cookie rendering.
-TORQUE_UNIFORM_SAMPLERCUBE(cookieMap, 5);
+TORQUE_UNIFORM_SAMPLERCUBE(cookieMap, 4);
 #endif
 
 uniform float4 rtParams0;
@@ -147,6 +146,7 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 	  {
 		 shadowCoord.x = (paraVec.x / (2.0f * (1.0f + paraVec.z))) + 0.5;
 		 shadowCoord.y = 1.0f - ((paraVec.y / (2.0f * (1.0f + paraVec.z))) + 0.5);
+		 shadowCoord.x *= 0.5;
 		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
 	  }
 	  else
@@ -154,7 +154,8 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 		 
 		 shadowCoord.x = 1.0f - (paraVec.x / (2.0f * (1.0f - paraVec.z))) + 0.5;
 		 shadowCoord.y = 1.0f - ((paraVec.y / (2.0f * (1.0f - paraVec.z))) + 0.5);
-		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMapBack), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
+		 shadowCoord.x *= 0.5;
+		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
 	  }
 	  
 	  float shadowed = saturate( exp(( depthShadow - distToLight) ) );
