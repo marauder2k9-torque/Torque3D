@@ -43,6 +43,9 @@ singleton GFXStateBlockData( AL_VectorLightState )
    colorWriteGreen = true;
    colorWriteAlpha = false; //disable alpha write
    
+   multiSample = true;
+   aliasLine = true;
+   
    zDefined = true;
    zEnable = false;
    zWriteEnable = true;
@@ -50,7 +53,7 @@ singleton GFXStateBlockData( AL_VectorLightState )
 
    samplersDefined = true;
    samplerStates[0] = SamplerClampPoint;  // G-buffer
-   samplerStates[1] = SamplerClampLinear;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
+   samplerStates[1] = ShadowSampler;  // Shadow Map (Do not change this to linear, as all cards can not filter equally.)
    samplerStates[2] = SamplerClampPoint;   // colorBuffer
    samplerStates[3] = SamplerClampPoint;   // matInfoBuffer
    
@@ -119,13 +122,12 @@ singleton GFXStateBlockData( AL_ConvexLightState )
    samplersDefined = true;
    samplerStates[0] = SamplerClampPoint;  // G-buffer
    samplerStates[1] = SamplerClampLinear;  // Shadow Map (Do not use linear, these are perspective projections)
-   samplerStates[2] = SamplerClampLinear;  // Shadow Map Back (Do not use linear, these are perspective projections)
-   samplerStates[3] = SamplerClampPoint;  // colorBuffer
-   samplerStates[4] = SamplerClampPoint;  // matInfoBuffer
-   samplerStates[5] = SamplerClampLinear;   // Cookie map
+   samplerStates[2] = SamplerClampPoint;  // colorBuffer
+   samplerStates[3] = SamplerClampPoint;  // matInfoBuffer
+   samplerStates[4] = SamplerClampLinear;   // Cookie map
    
    cullDefined = true;
-   cullMode = GFXCullCW;
+   cullMode = GFXCullNone;
    
    stencilDefined = true;
    stencilEnable = false;
@@ -143,10 +145,9 @@ singleton shaderData( AL_PointLightShader )
 
    samplerNames[0] = "$deferredBuffer";
    samplerNames[1] = "$shadowMap";
-   samplerNames[2] = "$shadowMapBack";
-   samplerNames[3] = "$colorBuffer";
-   samplerNames[4] = "$matInfoBuffer";
-   samplerNames[5] = "$cookieMap";
+   samplerNames[2] = "$colorBuffer";
+   samplerNames[3] = "$matInfoBuffer";
+   samplerNames[4] = "$cookieMap";
    
    pixVersion = 3.0;
 };
@@ -158,7 +159,6 @@ singleton CustomMaterial( AL_PointLightMaterial )
    
    sampler["deferredBuffer"] = "#deferred";
    sampler["shadowMap"] = "$dynamiclight";
-   sampler["shadowMapBack"] = "$dynamiclightback";
    sampler["colorBuffer"] = "#color";
    sampler["matInfoBuffer"] = "#matinfo";
    sampler["cookieMap"] = "$dynamiclightmask";

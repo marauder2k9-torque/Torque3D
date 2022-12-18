@@ -41,8 +41,6 @@ void ParaboloidVertTransformHLSL::processVert(  Vector<ShaderComponent*> &compon
    if ( !inPosition )
       inPosition = (Var*)LangElement::find( "position" );
 
-   const bool isSinglePass = fd.features[ MFT_IsSinglePassParaboloid ];
-
    ShaderConnector *connectComp = dynamic_cast<ShaderConnector *>( componentList[C_CONNECTOR] );
 
    // Grab connector out position.
@@ -70,19 +68,6 @@ void ParaboloidVertTransformHLSL::processVert(  Vector<ShaderComponent*> &compon
    // Swizzle z and y post-transform
    meta->addStatement( new GenOp( "   @ = mul(@, float4(@.xyz,1)).xzyw;\r\n", outPosition, worldViewOnly, inPosition ) );
    meta->addStatement( new GenOp( "   float L = length(@.xyz);\r\n", outPosition ) ); 
-
-   if ( isSinglePass )
-   {
-      // Flip the z in the back case
-      Var *outIsBack = connectComp->getElement( RT_TEXCOORD );
-      outIsBack->setType( "float" );
-      outIsBack->setName( "isBack" );
-      outIsBack->setStructName( "OUT" );
-
-      meta->addStatement( new GenOp( "   bool isBack = @.z < 0.0;\r\n", outPosition ) ); 
-      meta->addStatement( new GenOp( "   @ = isBack ? -1.0 : 1.0;\r\n", outIsBack ) ); 
-      meta->addStatement( new GenOp( "   if ( isBack ) @.z = -@.z;\r\n", outPosition, outPosition ) );
-   }
 
    meta->addStatement( new GenOp( "   @ /= L;\r\n", outPosition ) ); 
    meta->addStatement( new GenOp( "   @.z = @.z + 1.0;\r\n", outPosition, outPosition ) ); 
@@ -113,18 +98,13 @@ void ParaboloidVertTransformHLSL::processVert(  Vector<ShaderComponent*> &compon
    // Scale and offset so it shows up in the atlas properly.
    meta->addStatement( new GenOp( "   @.xy *= @.xy;\r\n", outPosition, atlasScale ) ); 
 
-   if ( isSinglePass )
-      meta->addStatement( new GenOp( "   @.x += isBack ? 0.5 : -0.5;\r\n", outPosition ) );
-   else
-   {
-      Var *atlasOffset = new Var;
-      atlasOffset->setType( "float2" );
-      atlasOffset->setName( "atlasXOffset" );
-      atlasOffset->uniform = true;
-      atlasOffset->constSortPos = cspPass;  
+   Var *atlasOffset = new Var;
+   atlasOffset->setType( "float2" );
+   atlasOffset->setName( "atlasXOffset" );
+   atlasOffset->uniform = true;
+   atlasOffset->constSortPos = cspPass;  
 
-      meta->addStatement( new GenOp( "   @.xy += @;\r\n", outPosition, atlasOffset ) );
-   }
+   meta->addStatement( new GenOp( "   @.xy += @;\r\n", outPosition, atlasOffset ) );
 
    output = meta;
 }
@@ -136,16 +116,12 @@ void ParaboloidVertTransformHLSL::processPix(   Vector<ShaderComponent*> &compon
 
    MultiLine *meta = new MultiLine;
 
-   const bool isSinglePass = fd.features[ MFT_IsSinglePassParaboloid ];
-   if ( isSinglePass )
-   {
-      // Cull things on the back side of the map.
-      Var *isBack = connectComp->getElement( RT_TEXCOORD );
-      isBack->setName( "isBack" );
-      isBack->setStructName( "IN" );
-      isBack->setType( "float" );
-      meta->addStatement( new GenOp( "   clip( abs( @ ) - 0.999 );\r\n", isBack ) );
-   }
+   // Grab connector in position.
+   RegisterType type = RT_SVPOSITION;
+
+   Var* inPosition = connectComp->getElement(type);
+   inPosition->setName("vpos");
+   inPosition->setStructName("IN");
 
    // Cull pixels outside of the valid paraboloid.
    Var *posXY = connectComp->getElement( RT_TEXCOORD );

@@ -429,7 +429,6 @@ LightingShaderConstants::LightingShaderConstants()
       mVectorLightColorSC(NULL),
       mVectorLightBrightnessSC(NULL),
       mShadowMapSC(NULL),
-      mShadowMapBackSC(NULL),
       mShadowMapSizeSC(NULL), 
       mCookieMapSC(NULL),
       mRandomDirsConst(NULL),
@@ -485,7 +484,6 @@ void LightingShaderConstants::init(GFXShader* shader)
    mVectorLightBrightnessSC = shader->getShaderConstHandle(ShaderGenVars::vectorLightBrightness);
 
    mShadowMapSC = shader->getShaderConstHandle("$shadowMap");
-   mShadowMapBackSC = shader->getShaderConstHandle("$shadowMapBack");
    mShadowMapSizeSC = shader->getShaderConstHandle("$shadowMapSize");
 
    mCookieMapSC = shader->getShaderConstHandle("$cookieMap");
@@ -562,7 +560,7 @@ void ShadowMapParams::_validate()
 
       case LightInfo::Point:
          if ( shadowType < ShadowType_Paraboloid )
-            shadowType = ShadowType_DualParaboloidSinglePass;
+            shadowType = ShadowType_DualParaboloid;
          break;
       
       default:

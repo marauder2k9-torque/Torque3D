@@ -35,17 +35,11 @@ public:
    DualParaboloidLightShadowMap( LightInfo *light );
 
    // Light shadow map.
-   // only true if both textures are valid.
-   virtual bool hasShadowTex() const { return mParaboloidFront.isValid() && mParaboloidBack.isValid(); }
    virtual ShadowType getShadowType() const { return ShadowType_DualParaboloid; }
    virtual void _render( RenderPassManager* renderPass, const SceneRenderState *diffuseState );
    virtual void setShaderParameters(GFXShaderConstBuffer* params, LightingShaderConstants* lsc);
-   virtual void releaseTextures();
-   virtual bool setTextureStage(U32 currTexFlag, LightingShaderConstants* lsc);
 
 protected:
-   GFXTexHandle mParaboloidFront;
-   GFXTexHandle mParaboloidBack;
    Point2F mShadowMapScale;
    Point2F mShadowMapOffset;
 };

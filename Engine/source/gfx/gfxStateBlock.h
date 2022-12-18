@@ -118,6 +118,8 @@ struct GFXStateBlockDesc
    // Rasterizer
    bool cullDefined;
    GFXCullMode cullMode;
+   bool aliasLine;
+   bool multiSample;
 
    // Depth
    bool zDefined;

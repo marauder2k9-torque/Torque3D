@@ -96,7 +96,6 @@ struct LightingShaderConstants
    GFXShaderConstHandle* mVectorLightBrightnessSC;
 
    GFXShaderConstHandle* mShadowMapSC;
-   GFXShaderConstHandle* mShadowMapBackSC;
    GFXShaderConstHandle* mShadowMapSizeSC;
 
    GFXShaderConstHandle* mCookieMapSC;

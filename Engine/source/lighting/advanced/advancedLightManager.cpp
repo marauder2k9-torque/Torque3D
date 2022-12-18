@@ -481,20 +481,6 @@ bool AdvancedLightManager::setTextureStage(  const SceneData &sgData,
 
       return true;
    }
-   if (currTexFlag == Material::DynamicLightBack)
-   {
-      // Static
-      if (lsm && lsm->getLightInfo()->getCastShadows())
-         return lsm->setTextureStage(currTexFlag, lsc);
-
-      /* Theres only one shadow map that uses this for now.
-      S32 reg = lsc->mShadowMapSC->getSamplerRegister();
-      if (reg != -1)
-         GFX->setTexture(reg, GFXTexHandle::ONE);
-         */
-
-      return true;
-   }
    else if ( currTexFlag == Material::DynamicLightMask )
    {
       S32 reg = lsc->mCookieMapSC->getSamplerRegister();

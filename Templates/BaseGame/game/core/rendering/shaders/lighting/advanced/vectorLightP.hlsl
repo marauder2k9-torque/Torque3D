@@ -160,9 +160,6 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
 			
 			// Convert to texcoord space
 			cascadePos.xy = 0.5 * cascadePos.xy + float2(0.5, 0.5);
-			cascadePos.xy *= atlasScale;
-			cascadePos.x += aOffset.x - ERR;
-			cascadePos.y += aOffset.y - ERR;
 			cascadePos = abs(cascadePos * 2.0f - 1.0f);
 			
 			float distToEdge = 1.0f - max(max(cascadePos.x, cascadePos.y), cascadePos.z);

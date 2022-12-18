@@ -89,6 +89,8 @@ void ShadowMaterialHook::init( BaseMatInstance *inMat )
    GFXStateBlockDesc forced;
    forced.setBlend( false );
    forced.setAlphaTest( false );
+   forced.aliasLine = true;
+   forced.multiSample = true;
 
    // We should force on zwrite as the deferred
    // will disable it by default.

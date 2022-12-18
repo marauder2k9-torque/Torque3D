@@ -114,7 +114,7 @@ void PSSMLightShadowMap::_setNumSplits( U32 numSplits, U32 texSize )
 
    mShadowMapTex.set(   texWidth, texHeight, 
                         ShadowMapFormat, &ShadowMapProfile, 
-                        "PSSMLightShadowMap" );
+                        "PSSMLightShadowMap",1, 0);
 }
 
 void PSSMLightShadowMap::_calcSplitPos(const Frustum& currFrustum)
@@ -141,7 +141,7 @@ void PSSMLightShadowMap::_calcSplitPos(const Frustum& currFrustum)
    for (U32 i = 0; i < mNumSplits; i++)
    {
       F32 step = (F32) (i+1) / (F32) mNumSplits;
-      F32 logSplit = minZ * mPow(mAbs(ratio), step);
+      F32 logSplit = minZ * mPow(ratio, step);
       F32 uniScale = minZ + range * step;
       F32 d = mLogWeight * (logSplit - uniScale) + uniScale;
       mSplitDist[i] = (d - nearDist) / clipRange;

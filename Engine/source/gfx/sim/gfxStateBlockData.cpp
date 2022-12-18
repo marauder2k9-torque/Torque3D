@@ -141,6 +141,11 @@ void GFXStateBlockData::initPersistFields()
 
    endGroup( "Color Write" );
 
+      addField("multiSample", TypeBool, Offset(mState.multiSample, GFXStateBlockData),
+         "Set to true if the culling state is not all defaults.");
+
+      addField("aliasLine", TypeBool, Offset(mState.aliasLine, GFXStateBlockData),
+         "Set to true if the culling state is not all defaults.");
 
    addGroup( "Culling" );
 

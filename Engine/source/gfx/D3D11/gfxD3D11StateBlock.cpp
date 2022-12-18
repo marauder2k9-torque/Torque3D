@@ -126,8 +126,8 @@ GFXD3D11StateBlock::GFXD3D11StateBlock(const GFXStateBlockDesc& desc)
    const INT depthMul = INT((1 << 24) - 1);
    mRasterizerDesc.DepthBias = mDesc.zBias * depthMul;
    mRasterizerDesc.SlopeScaledDepthBias = mDesc.zSlopeBias;
-   mRasterizerDesc.AntialiasedLineEnable = FALSE;
-   mRasterizerDesc.MultisampleEnable = FALSE;
+   mRasterizerDesc.AntialiasedLineEnable = mDesc.aliasLine;
+   mRasterizerDesc.MultisampleEnable = mDesc.multiSample;
    mRasterizerDesc.ScissorEnable = FALSE;
    mRasterizerDesc.FrontCounterClockwise = FALSE;
    mRasterizerDesc.DepthBiasClamp = D3D11_DEFAULT_DEPTH_BIAS_CLAMP;

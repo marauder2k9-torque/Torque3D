@@ -68,6 +68,8 @@ GFXStateBlockDesc::GFXStateBlockDesc()
    // Rasterizer
    cullDefined = false;
    cullMode = GFXCullCCW;
+   aliasLine = false;
+   multiSample = false;
 
    // Depth
    zDefined = false;
@@ -151,6 +153,9 @@ void GFXStateBlockDesc::addDesc(const GFXStateBlockDesc& desc)
       cullDefined = true;
       cullMode = desc.cullMode;
    }
+
+   multiSample = desc.multiSample;
+   aliasLine = desc.aliasLine;
 
    // Depth
    if (desc.zDefined)
