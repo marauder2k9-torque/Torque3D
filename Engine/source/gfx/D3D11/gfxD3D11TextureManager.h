@@ -33,7 +33,7 @@ class GFXD3D11TextureManager : public GFXTextureManager
 public:
    GFXD3D11TextureManager();
    virtual ~GFXD3D11TextureManager();
-   void createResourceView(U32 height, U32 width, U32 depth, DXGI_FORMAT format, U32 numMipLevels,U32 usageFlags, GFXTextureObject *inTex);
+   void createResourceView(U32 height, U32 width, U32 depth, DXGI_FORMAT format, U32 numMipLevels,U32 usageFlags, U32 antialiasLevel, GFXTextureObject *inTex);
 protected:
 
    // GFXTextureManager

@@ -40,6 +40,8 @@ public:
    virtual ShadowType getShadowType() const { return ShadowType_PSSM; }
    virtual void _render( RenderPassManager* renderPass, const SceneRenderState *diffuseState );
    virtual void setShaderParameters(GFXShaderConstBuffer* params, LightingShaderConstants* lsc);
+   virtual void releaseTextures();
+   virtual bool setTextureStage(U32 currTexFlag, LightingShaderConstants* lsc);
 
    /// Used to scale TSShapeInstance::smDetailAdjust to have
    /// objects lod quicker when in the PSSM shadow.
@@ -63,11 +65,14 @@ protected:
    U32 mNumSplits;
    Point4F mCascadeSplit;
    F32 mSplitDist[MAX_SPLITS+1];   // +1 because we store a cap
-   RectI mViewports[MAX_SPLITS];
+   RectI mViewport;
    Point4F mScaleProj[MAX_SPLITS];
    Point4F mOffsetProj[MAX_SPLITS];
    F32 mLogWeight;
    F32 mShadowDistance;
+
+   Vector<GFXTexHandle> mPSSMTexArray;
+   GFXTextureArrayHandle mPSSMTextureArray;
 };
 
 #endif

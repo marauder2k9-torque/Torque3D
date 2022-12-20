@@ -46,6 +46,19 @@ enum ShadowType
 
 DefineEnumType( ShadowType );
 
+///
+enum ShadowMethod
+{
+   ShadowMethod_None = -1,
+   ShadowMethod_VSM,
+   ShadowMethod_EVSM,
+   ShadowMethod_MSM,
+   ShadowMethod_PCF,
+   ShadowMethod_Count,
+};
+
+DefineEnumType(ShadowMethod);
+
 
 /// The different shadow filter modes used when rendering 
 /// shadowed lights.

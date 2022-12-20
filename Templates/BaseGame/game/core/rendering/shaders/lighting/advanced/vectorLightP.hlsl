@@ -30,7 +30,7 @@
 #include "softShadow.hlsl"
 
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
-TORQUE_UNIFORM_SAMPLER2D(shadowMap, 1);
+TORQUE_UNIFORM_SAMPLER2DARRAY(shadowMap, 1);
 TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 2);
 TORQUE_UNIFORM_SAMPLER2D(matInfoBuffer, 3);
 
@@ -60,12 +60,24 @@ uniform float4 cascadeSplits;
 
 uniform float4 cascadeOffsets[4];
 uniform float4 cascadeScales[4];
+uniform int shadowMethod;
 
 #define USEPROJECTION 1
 #define USEBLEND 1
 #define ERR 0.0005f
 
-float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
+float3 GetShadowPosOffset(TORQUE_SAMPLER2DARRAY(sourceShadowMap), in float nDotL, in float3 normal)
+{
+    float2 shadowMapSize;
+    float numSlices;
+    TORQUE_TEX2DGETSIZEZARRAY(sourceShadowMap, shadowMapSize.x, shadowMapSize.y, numSlices);
+    float texelSize = 2.0f / shadowMapSize.x;
+    float nmlOffsetScale = saturate(1.0f - nDotL);
+    return texelSize * 0.001f * nmlOffsetScale * normal;
+}
+
+
+float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 								float2 screenPos,
                                 float2 texCoord,
                                 float4x4 worldToLightProj,
@@ -74,7 +86,8 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
 								float4 cascadeScales[4],
                                 float dotNL,
 								float3 normal,
-								float depth)
+								float depth,
+								int shadowMethod)
 {
       // Compute shadow map coordinate
 	  float4 pxlPosLightProj = mul(worldToLightProj, float4(worldPos,1));
@@ -93,33 +106,31 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
 			cascadePos *= cascadeScales[i].xyz;
 			cascadePos += cascadeOffsets[i].xyz;
 			cascadePos = abs(cascadePos);
-			if(all(cascadePos < 0.99f))
+			if(all(cascadePos <= 0.99f))
                 cascadeId = i;
 		#else
 			if(depth <= cascadeSplits[i])
 			cascadeId = i;
 		#endif
-			
 	  }
 	  
 	  float3 shadowPos = float3(pxlPosLightProj.xy / pxlPosLightProj.w, pxlPosLightProj.z / pxlPosLightProj.w);
+	  
+	  float3 shadowPosDX = ddx_fine(shadowPos);
+	  float3 shadowPosDY = ddy_fine(shadowPos);
+	  
 	  shadowPos *= cascadeScales[cascadeId].xyz;
 	  shadowPos += cascadeOffsets[cascadeId].xyz;
+	  
+	  shadowPosDX *= cascadeScales[cascadeId].xyz;
+	  shadowPosDX += cascadeOffsets[cascadeId].xyz;
+	  
+	  shadowPosDY *= cascadeScales[cascadeId].xyz;
+	  shadowPosDY += cascadeOffsets[cascadeId].xyz;
 	  
 	  // Convert to texcoord space
       shadowPos.xy = 0.5 * shadowPos.xy + float2(0.5, 0.5);
       shadowPos.y = 1.0f - shadowPos.y;
-	  
-	  float2 aOffset;
-      aOffset.x = atlasXOffset[cascadeId];
-      aOffset.y = atlasYOffset[cascadeId];
-	  
-	  shadowPos.xy *= atlasScale;
-	  shadowPos.x += aOffset.x - ERR;
-	  shadowPos.y += aOffset.y - ERR;
-	  
-	  float3 shadowPosDX = ddx_fine(shadowPos);
-      float3 shadowPosDY = ddy_fine(shadowPos);
 	  
 	  float3 debugColor = float3(0,0,0);
 	  
@@ -135,14 +146,18 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
 		debugColor = CascadeColors[cascadeId];
       #endif
 	  
-      float4 shadowSample = float4(debugColor, softShadow_filter(  
+      float4 shadowSample = float4(debugColor, SampleShadow(  
 	  TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap),
 	  screenPos, 
 	  texCoord, 
 	  shadowPos,
+	  shadowPosDX,
+	  shadowPosDY,
 	  cascadeId,
-	  cascadeScales[cascadeId].z * shadowSoftness,
-	  dotNL));
+	  shadowSoftness,
+	  overDarkPSSM[cascadeId],
+	  dotNL,
+	  shadowMethod));
 	  
 	  #if USEBLEND
 	  
@@ -162,41 +177,37 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2D(sourceShadowMap),
 			cascadePos.xy = 0.5 * cascadePos.xy + float2(0.5, 0.5);
 			cascadePos = abs(cascadePos * 2.0f - 1.0f);
 			
-			float distToEdge = 1.0f - max(max(cascadePos.x, cascadePos.y), cascadePos.z);
+			float distToEdge = 1.0f -  max(max(cascadePos.x, cascadePos.y), cascadePos.z);
             fadeFactor = max(distToEdge, fadeFactor);
 		  #endif
 	  
 		  float alpha = 0.1;
-		  cascadeId = cascadeId + 1;
-		  
 		  float3 nextCascadePos = float3(pxlPosLightProj.xy / pxlPosLightProj.w, pxlPosLightProj.z / pxlPosLightProj.w);
-		  nextCascadePos *= cascadeScales[cascadeId].xyz;
-		  nextCascadePos += cascadeOffsets[cascadeId].xyz;
-			  
-		  // Convert to texcoord space
+		  nextCascadePos *= cascadeScales[cascadeId + 1].xyz;
+		  nextCascadePos += cascadeOffsets[cascadeId + 1].xyz;
+		  
 		  nextCascadePos.xy = 0.5 * nextCascadePos.xy + float2(0.5, 0.5);
 		  nextCascadePos.y = 1.0f - nextCascadePos.y;
-		  nextCascadePos.xy *= atlasScale;
 		  
-		  float2 aOffset;
-		  aOffset.x = atlasXOffset[cascadeId];
-		  aOffset.y = atlasYOffset[cascadeId];
+		  float3 nextShadowPosDX = ddx_fine(nextCascadePos);
+		  float3 nextShadowPosDY = ddy_fine(nextCascadePos);
 		  
-		  nextCascadePos.x += aOffset.x - ERR;
-		  nextCascadePos.y += aOffset.y - ERR;
-		  
-		  float nextShadow = softShadow_filter(  
-							  TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap),
-							  screenPos, 
-							  texCoord, 
-							  nextCascadePos, 
-							  cascadeId,
-							  cascadeScales[cascadeId].z * shadowSoftness,
-							  dotNL);
-							  
+		  float nextShadow = SampleShadow(  
+		  				  TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap),
+		  				  screenPos, 
+		  				  texCoord, 
+		  				  nextCascadePos,
+		  				  nextShadowPosDX,
+		  				  nextShadowPosDY,
+		  				  cascadeId + 1,
+		  				  shadowSoftness,
+		  				  overDarkPSSM[cascadeId],
+		  				  dotNL,
+		  				  shadowMethod);
+		  				  
 		   float lerpAmt = smoothstep(0.0f, alpha, fadeFactor);
-		
-		   shadowSample.a = lerp(nextShadow, shadowSample.a, lerpAmt);
+			
+			   shadowSample.a = lerp(nextShadow, shadowSample.a, lerpAmt);
 	  }
 	  
 	  #endif
@@ -246,7 +257,8 @@ float4 main(FarFrustumQuadConnectP IN) : SV_TARGET
 	  cascadeScales,
 	  surfaceToLight.NdotL,
 	  surface.N,
-	  surface.depth);
+	  surface.depth,
+	  shadowMethod);
 
       float shadow = shadowed_colors.a;
 	  

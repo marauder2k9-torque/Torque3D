@@ -88,6 +88,8 @@ uniform float3x3 worldToLightProj;
 
 uniform float4x4 cameraToWorld;
 
+uniform int shadowMethod;
+
 #define ERR 0.005f
 
 float4 main(   ConvexConnectP IN ) : SV_TARGET

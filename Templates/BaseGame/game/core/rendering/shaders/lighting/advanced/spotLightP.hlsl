@@ -68,6 +68,8 @@ uniform float shadowSoftness;
 uniform float4x4 cameraToWorld;
 uniform float4x4 worldToCamera;
 
+uniform int shadowMethod;
+
 float4 main(   ConvexConnectP IN ) : SV_TARGET
 {   
    // Compute scene UV

@@ -97,6 +97,7 @@ struct LightingShaderConstants
 
    GFXShaderConstHandle* mShadowMapSC;
    GFXShaderConstHandle* mShadowMapSizeSC;
+   GFXShaderConstHandle* mShadowSampleMethodSC;
 
    GFXShaderConstHandle* mCookieMapSC;
 
@@ -117,6 +118,8 @@ struct LightingShaderConstants
    GFXShaderConstHandle* mCascadeSplitsSC;
    GFXShaderConstHandle* mCascadeOffsetsSC;
    GFXShaderConstHandle* mCascadeScalesSC;
+
+   
 
    LightingShaderConstants();
    ~LightingShaderConstants();
@@ -332,7 +335,7 @@ public:
 
    ///
    ShadowType shadowType;
-
+   ShadowMethod shadowMethod;
    /// @}
 
    /// @name Exponential Shadow Map Parameters

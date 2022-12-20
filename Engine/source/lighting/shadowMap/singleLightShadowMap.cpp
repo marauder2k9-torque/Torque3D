@@ -110,6 +110,8 @@ void SingleLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Lig
 {
    ShadowMapParams *p = mLight->getExtended<ShadowMapParams>();
 
+   params->setSafe(lsc->mShadowSampleMethodSC, p->shadowMethod);
+
    if ( lsc->mLightParamsSC->isValid() )
    {
       Point4F lightParams( mLight->getRange().x, 
@@ -119,6 +121,5 @@ void SingleLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Lig
       params->set(lsc->mLightParamsSC, lightParams);
    }
 
-   // The softness is a factor of the texel size.
-   params->setSafe( lsc->mShadowSoftnessConst, p->shadowSoftness * ( 1.0f / mTexSize ) );
+   params->setSafe(lsc->mShadowSoftnessConst, p->shadowSoftness * (1.0f / mTexSize));
 }

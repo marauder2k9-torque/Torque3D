@@ -53,6 +53,14 @@ ImplementEnumType( ShadowType,
    { ShadowType_CubeMap,                  "CubeMap" },
 EndImplementEnumType;
 
+ImplementEnumType(ShadowMethod,
+   "\n\n"
+   "@ingroup AdvancedLighting")
+   { ShadowMethod_VSM,                    "VSM"},
+   { ShadowMethod_EVSM,                   "EVSM"},
+   { ShadowMethod_MSM,                    "MSM"},
+   { ShadowMethod_PCF,                    "PCF" },
+EndImplementEnumType;
 
 AdvancedLightManager AdvancedLightManager::smSingleton;
 
@@ -276,6 +284,7 @@ void AdvancedLightManager::_initLightFields()
 
       DEFINE_LIGHT_FIELD( attenuationRatio, TypePoint3F, NULL );
       DEFINE_LIGHT_FIELD( shadowType, TYPEID< ShadowType >(), ConsoleBaseType::getType( TYPEID< ShadowType >() )->getEnumTable() );
+      DEFINE_LIGHT_FIELD( shadowMethod, TYPEID< ShadowMethod>(), ConsoleBaseType::getType( TYPEID< ShadowMethod >() )->getEnumTable());
       DEFINE_LIGHT_FIELD( texSize, TypeS32, NULL );
       DEFINE_LIGHT_FIELD( cookie, TypeStringFilename, NULL );      
       DEFINE_LIGHT_FIELD( numSplits, TypeS32, NULL );
@@ -299,6 +308,9 @@ void AdvancedLightManager::_initLightFields()
 
       ADD_LIGHT_FIELD( "shadowType", TYPEID< ShadowType >(), shadowType,
          "The type of shadow to use on this light." );
+
+      ADD_LIGHT_FIELD("shadowMethod", TYPEID< ShadowMethod >(), shadowMethod,
+         "The shadow sampling method.");
 
       ADD_LIGHT_FIELD( "cookie", TypeStringFilename, cookie,
          "A custom pattern texture which is projected from the light." );

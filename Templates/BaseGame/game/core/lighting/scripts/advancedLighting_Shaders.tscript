@@ -25,7 +25,7 @@ singleton GFXSamplerStateData(ShadowSampler)
    magFilter = GFXTextureFilterAnisotropic;
    minFilter = GFXTextureFilterAnisotropic;
    mipFilter = GFXTextureFilterAnisotropic;
-   samplerFunc = GFXCmpGreater;
+   samplerFunc = GFXCmpAlways;
 };
 
 // Vector Light State

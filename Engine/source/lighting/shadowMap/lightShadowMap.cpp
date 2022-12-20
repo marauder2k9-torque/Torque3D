@@ -252,7 +252,7 @@ GFXTextureObject* LightShadowMap::_getDepthTarget( U32 width, U32 height )
    // Get a depth texture target from the pooled profile
    // which is returned as a temporary.
    GFXTexHandle depthTex( width, height, GFXFormatD24S8, &ShadowMapZProfile, 
-      "LightShadowMap::_getDepthTarget()" );
+      "LightShadowMap::_getDepthTarget()");
 
    return depthTex;
 }
@@ -429,7 +429,8 @@ LightingShaderConstants::LightingShaderConstants()
       mVectorLightColorSC(NULL),
       mVectorLightBrightnessSC(NULL),
       mShadowMapSC(NULL),
-      mShadowMapSizeSC(NULL), 
+      mShadowMapSizeSC(NULL),
+      mShadowSampleMethodSC(NULL),
       mCookieMapSC(NULL),
       mRandomDirsConst(NULL),
       mShadowSoftnessConst(NULL), 
@@ -485,7 +486,6 @@ void LightingShaderConstants::init(GFXShader* shader)
 
    mShadowMapSC = shader->getShaderConstHandle("$shadowMap");
    mShadowMapSizeSC = shader->getShaderConstHandle("$shadowMapSize");
-
    mCookieMapSC = shader->getShaderConstHandle("$cookieMap");
 
    mShadowSoftnessConst = shader->getShaderConstHandle("$shadowSoftness");
@@ -501,6 +501,7 @@ void LightingShaderConstants::init(GFXShader* shader)
    mCascadeSplitsSC = shader->getShaderConstHandle("$cascadeSplits");
    mCascadeOffsetsSC = shader->getShaderConstHandle("$cascadeOffsets");
    mCascadeScalesSC = shader->getShaderConstHandle("$cascadeScales");
+   mShadowSampleMethodSC = shader->getShaderConstHandle("$shadowMethod");
    mInit = true;
 }
 
@@ -526,6 +527,8 @@ ShadowMapParams::ShadowMapParams( LightInfo *light )
 {
    attenuationRatio.set( 0.0f, 1.0f, 1.0f );
    shadowType = ShadowType_Spot;
+
+   shadowMethod = ShadowMethod_PCF;
    overDarkFactor.set(2000.0f, 1000.0f, 500.0f, 100.0f);
    numSplits = 4;
    logWeight = 0.91f;
@@ -681,6 +684,7 @@ void ShadowMapParams::packUpdate( BitStream *stream ) const
    ((ShadowMapParams*)this)->_validate();
 
    stream->writeInt( shadowType, 8 );
+   stream->writeInt( shadowMethod, 8 );
    
    mathWrite( *stream, attenuationRatio );
    
@@ -710,6 +714,12 @@ void ShadowMapParams::unpackUpdate( BitStream *stream )
       // map so it can be reallocated on the next render.
       shadowType = newType;
       SAFE_DELETE( mShadowMap );
+   }
+
+   ShadowMethod newMethod = (ShadowMethod)stream->readInt(8);
+   if (shadowMethod != newMethod)
+   {
+      shadowMethod = newMethod;
    }
 
    mathRead( *stream, &attenuationRatio );

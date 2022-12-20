@@ -135,7 +135,7 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
 
       if (!retTex->mProfile->isSystemMemory())
       {
-         createResourceView(height, width, depth, d3dTextureFormat, numMipLevels, bindFlags, retTex);
+         createResourceView(height, width, depth, d3dTextureFormat, numMipLevels, bindFlags, antialiasLevel, retTex);
       }
 
       retTex->mTextureSize.set(width, height, depth);
@@ -156,9 +156,8 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
 
 			default:
 			{
-				antialiasLevel = 0;
-				D3D11DEVICE->CheckMultisampleQualityLevels(d3dTextureFormat, antialiasLevel, &numQualityLevels);
-				AssertFatal(numQualityLevels, "Invalid AA level!");
+				//D3D11DEVICE->CheckMultisampleQualityLevels(d3dTextureFormat, antialiasLevel, &numQualityLevels);
+				//AssertFatal(numQualityLevels, "Invalid AA level!");
 				break;
 			}
 		}
@@ -222,7 +221,7 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
 
 		if (!retTex->mProfile->isSystemMemory())
 		{
-         createResourceView(height, width, depth, d3dTextureFormat, numMipLevels, bindFlags, retTex);
+         createResourceView(height, width, depth, d3dTextureFormat, numMipLevels, bindFlags, antialiasLevel, retTex);
 		}
 
 		// Get the actual size of the texture...
@@ -533,7 +532,7 @@ bool GFXD3D11TextureManager::_loadTexture(GFXTextureObject *aTexture, DDSFile *d
    return true;
 }
 
-void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth, DXGI_FORMAT format, U32 numMipLevels,U32 usageFlags, GFXTextureObject *inTex)
+void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth, DXGI_FORMAT format, U32 numMipLevels,U32 usageFlags, U32 antialiasLevel, GFXTextureObject *inTex)
 {
 	GFXD3D11TextureObject *tex = static_cast<GFXD3D11TextureObject*>(inTex);
 	ID3D11Resource* resource = NULL;
@@ -564,9 +563,15 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
 		}
 		else
 		{
-			desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			desc.Texture2D.MipLevels = -1;
-			desc.Texture2D.MostDetailedMip = 0;
+
+         if (antialiasLevel > 1)
+            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+         else
+         {
+            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+            desc.Texture2D.MipLevels = -1;
+            desc.Texture2D.MostDetailedMip = 0;
+         }
 		}
 		
 		hr = D3D11DEVICE->CreateShaderResourceView(resource,&desc, tex->getSRViewPtr());
@@ -577,8 +582,13 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
 	{
 		D3D11_RENDER_TARGET_VIEW_DESC desc;
 		desc.Format = format;
-		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		desc.Texture2D.MipSlice = 0;
+      if (antialiasLevel > 1)
+         desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+      else
+      {
+         desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+         desc.Texture2D.MipSlice = 0;
+      }
 		hr = D3D11DEVICE->CreateRenderTargetView(resource, &desc, tex->getRTViewPtr());
 		AssertFatal(SUCCEEDED(hr), "CreateRenderTargetView:: failed to create view!");
 	}
@@ -587,8 +597,13 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
 	{
 		D3D11_DEPTH_STENCIL_VIEW_DESC desc;
 		desc.Format = format;
-		desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
-		desc.Texture2D.MipSlice = 0;
+      if (antialiasLevel > 1)
+         desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+      else
+      {
+         desc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+         desc.Texture2D.MipSlice = 0;
+      }
 		desc.Flags = 0;
 		hr = D3D11DEVICE->CreateDepthStencilView(resource,&desc, tex->getDSViewPtr());
 		AssertFatal(SUCCEEDED(hr), "CreateDepthStencilView:: failed to create view!");

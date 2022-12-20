@@ -89,7 +89,7 @@ void ShadowMaterialHook::init( BaseMatInstance *inMat )
    GFXStateBlockDesc forced;
    forced.setBlend( false );
    forced.setAlphaTest( false );
-   forced.aliasLine = true;
+   forced.aliasLine = false;
    forced.multiSample = true;
 
    // We should force on zwrite as the deferred
@@ -189,7 +189,7 @@ void ShadowMaterialHook::_overrideFeatures(  ProcessedMaterial *mat,
          type == MFT_DiffuseMap ||
          type == MFT_IsTranslucent ||
          type == MFT_UseInstancing ||
-         type == MFT_EyeSpaceDepthOut)
+         type == MFT_ShadowDepthOut)
             newFeatures.addFeature(type);
       else if (type.getGroup() == MFG_PreTransform ||
             type.getGroup() == MFG_Transform ||
@@ -221,7 +221,7 @@ void ShadowMaterialHook::_overrideFeatures(  ProcessedMaterial *mat,
    if (newFeatures.hasFeature( MFT_ParaboloidVertTransform ) )
       newFeatures.addFeature( MFT_DepthOut );
    else
-      newFeatures.addFeature( MFT_EyeSpaceDepthOut );
+      newFeatures.addFeature(MFT_ShadowDepthOut);
 
    fd.features = newFeatures;
 }

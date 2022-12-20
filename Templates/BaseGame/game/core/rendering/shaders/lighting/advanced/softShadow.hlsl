@@ -25,6 +25,31 @@
 #define NUM_TAPS 16
 
 #define g_MinVariance 0.0000001
+#define ShadowVSM 0
+#define ShadowESM 1
+#define ShadowMSM 2
+#define ShadowPCF 3
+
+//-----------------------------------------------------------------------------
+// HELPER FUNCTIONS
+//-----------------------------------------------------------------------------
+float2 GetEVSMExponent(float pos, float neg)
+{
+	float max = 42.0f;
+	
+	float2 exponents = float2(pos, neg);
+	
+	return min(exponents, max);
+}
+
+float2 WarpDepth(float depth, float2 exponents)
+{
+	depth = 2.0f * depth - 1.0f;
+	float pos = exp(exponents.x * depth);
+	float neg = -exp(-exponents.y * depth);
+	
+	return float2(pos, neg);
+}
 
 float2 VogelDiskScale(float2 mapSize, int sampleSize)
 {
@@ -100,70 +125,72 @@ float ChebyshevUpperBound(float2 moments, float t)
 	return p_max;
 }
 
-float softShadow_filter(   
-						   TORQUE_SAMPLER2D(shadowMap),
+float ChebyshevUpperBound(float2 moments, float t, float minVar) 
+{    
+	if(t <= moments.x)
+		return 1.0f;
+		
+	float var = moments.y - (moments.x * moments.x);   
+	var = max(var, minVar);   
+	// Compute probabilistic upper bound 
+	float d = t - moments.x;
+	float p_max = var / (var + d*d);
+	p_max = ReduceLightBleeding(p_max, 0.98);
+	return p_max;
+}
+
+float SampleShadowPCF(   
+						   TORQUE_SAMPLER2DARRAY(shadowMap),
 						   float2 screenPos,
-                           float2 vpos,
                            float3 shadowPos,
+						   float esmFactor,
 						   uint cascade,
                            float filterRadius,
 						   float dotNL)
 {
 
-	float earlyTest = TORQUE_TEX2DLOD( shadowMap, float4(shadowPos.xy,0,cascade)).x;
-	if ( shadowPos.z * ( 1.0 - shadowPos.z ) * max( dotNL, 0 ) < 0.001 )
-		return 1.0;
-
-	if(earlyTest < shadowPos.z)
+	float gradient = 6.28318530718 * GradientNoise(screenPos);
+	float2 textureSize;
+	float numSlices;
+	TORQUE_TEX2DGETSIZEZARRAY(shadowMap, textureSize.x, textureSize.y, numSlices);
+	float2 shadowFilterSize = VogelDiskScale(textureSize, 4);
+	
+	float avgOccDepth = 0;
+	float occCount = 0;
+	[unroll]
+	for(int i = 0; i < NUM_TAPS; i++)
 	{
-		float gradient = 6.28318530718 * GradientNoise(screenPos);
-		float2 textureSize;
-		TORQUE_TEX2DGETSIZE(shadowMap, textureSize.x, textureSize.y);
-		float2 shadowFilterSize = VogelDiskScale(textureSize, 4);
-		
-		float avgOccDepth = 0;
-		float occCount = 0;
-		[unroll]
-		for(int i = 0; i < NUM_TAPS; i++)
+		float2 sampleUV = VogelDisk(i, NUM_TAPS, gradient);
+		sampleUV = shadowPos.xy + sampleUV * shadowFilterSize;
+		float occDepth = TORQUE_TEX2DLEVEL(shadowMap, float4(sampleUV,cascade,0)).r;
+		if(occDepth < shadowPos.z)
 		{
-			float2 sampleUV = VogelDisk(i, NUM_TAPS, gradient);
-			sampleUV = shadowPos.xy + sampleUV * shadowFilterSize;
-			float occDepth = TORQUE_TEX2DLOD(shadowMap, float4(sampleUV,0,cascade) ).r;
-			if(occDepth < shadowPos.z)
-			{
-				avgOccDepth += occDepth;
-				occCount += 1.0f;
-			}
+			avgOccDepth += occDepth;
+			occCount += 1.0f;
 		}
-		
-		// early out.
-		if(occCount <= 0.0)
-		{
-			return 1.0;
-		}
-		
-		float3 shadowPosDX = ddx_fine(shadowPos);
-		float3 shadowPosDY = ddy_fine(shadowPos);
-		
-		avgOccDepth /= occCount;
-		float penumbra = ((shadowPos.z - avgOccDepth) * 1000.0f) / avgOccDepth;
-		float shadow = 1.0;
-		[unroll]
-		for ( int t = 0; t < NUM_TAPS; t++ )
-		{
-			float2 tap = VogelDisk(t, NUM_TAPS, gradient);
-			tap = shadowPos.xy + tap * filterRadius;
-			
-			float depth = TORQUE_TEX2DLOD( shadowMap, float4(tap,0,cascade)).x;
-			shadow += ChebyshevUpperBound(float2(depth, depth*depth), shadowPos.z);
-		}
-		
-		return shadow = shadow / float(NUM_TAPS);
 	}
-	else
+	
+	// early out.
+	if(occCount <= 0.0)
 	{
 		return 1.0;
 	}
+	
+	
+	avgOccDepth /= occCount;
+	float penumbra = ((shadowPos.z - avgOccDepth) * 1000.0f) / avgOccDepth;
+	float shadow = 1.0;
+	[unroll]
+	for ( int t = 0; t < NUM_TAPS; t++ )
+	{
+		float2 tap = VogelDisk(t, NUM_TAPS, gradient);
+		tap = shadowPos.xy + tap * penumbra * filterRadius;
+		
+		float depth = TORQUE_TEX2DLEVEL( shadowMap, float4(tap,cascade,0)).x;
+		shadow += saturate(exp2(esmFactor * (depth - shadowPos.z)) );
+	}
+	
+	return shadow = shadow / float(NUM_TAPS);
 }
 
 float softShadow_filterCube(   
@@ -188,4 +215,62 @@ float softShadow_filterCube(
 	}
 	
    return shadow = shadow / float(NUM_TAPS);
+}
+
+//-----------------------------------------------------------------------------
+// VSM
+//-----------------------------------------------------------------------------
+float SampleShadowVSM(  TORQUE_SAMPLER2DARRAY(shadowMap),
+                        float3 shadowPos,
+						float3 shadowPosDX,
+						float3 shadowPosDY,
+						uint cascade)
+{
+	float2 depth = TORQUE_TEX2DGRAD(shadowMap, float3(shadowPos.xy, cascade), shadowPosDX.xy, shadowPosDY.xy).xy;
+	return ChebyshevUpperBound(depth, shadowPos.z, 0.0000001);
+}
+
+//-----------------------------------------------------------------------------
+// EVSM
+//-----------------------------------------------------------------------------
+float SampleShadowEVSM( TORQUE_SAMPLER2DARRAY(shadowMap),
+						float3 shadowPos,
+						uint cascade)
+{
+	// positive and negative exponents should be a shader input.
+	float2 exponents = GetEVSMExponent(40.0f, 5.0f);
+	float2 warpDepth = WarpDepth(shadowPos.z, exponents);
+	
+	float3 shadowPosDX = ddx_fine(shadowPos);
+    float3 shadowPosDY = ddy_fine(shadowPos);
+	
+	float4 depth = TORQUE_TEX2DGRAD(shadowMap, float3(shadowPos.xy, cascade), shadowPosDX.xy, shadowPosDY.xy);
+	
+	float2 depthScale = exponents * warpDepth;
+	float2 minVar = depthScale * depthScale;
+	
+	float posContrib = ChebyshevUpperBound(depth.xz, warpDepth.x, g_MinVariance);
+	float negContrib = ChebyshevUpperBound(depth.yw, warpDepth.y, g_MinVariance);
+	
+	return min(posContrib, negContrib);
+}
+
+float SampleShadow( TORQUE_SAMPLER2DARRAY(shadowMap),
+					float2 screenPos,
+                    float2 vpos,
+                    float3 shadowPos,
+					float3 shadowPosDX,
+					float3 shadowPosDY,
+					uint cascade,
+                    float filterRadius,
+					float esmFactor,
+					float dotNL,
+					int samplerMethod)
+{
+		
+	float shadow = 1.0;
+	
+	shadow = SampleShadowPCF(TORQUE_SAMPLER2D_MAKEARG(shadowMap), screenPos, shadowPos, esmFactor, cascade, filterRadius, dotNL);
+	
+	return shadow;
 }

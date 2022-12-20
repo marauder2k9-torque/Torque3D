@@ -43,11 +43,27 @@ public:
    virtual const char* getOutputVarName() const { return "eyeSpaceDepth"; }
 };
 
+class ShadowDepthOutHLSL : public ShaderFeatureHLSL
+{
+protected:
+   ShaderIncludeDependency mComputeDepth;
+public:
+   ShadowDepthOutHLSL();
+   // ShaderFeature
+   virtual void processVert(Vector<ShaderComponent*>& componentList, const MaterialFeatureData& fd);
+   virtual void processPix(Vector<ShaderComponent*>& componentList, const MaterialFeatureData& fd);
+   virtual Resources getResources(const MaterialFeatureData& fd);
+   virtual String getName() { return "Shadow Depth (Out)"; }
+   virtual Material::BlendOp getBlendOp() { return Material::None; }
+   virtual const char* getOutputVarName() const { return "eyeSpaceDepth"; }
+};
 
 class DepthOutHLSL : public ShaderFeatureHLSL
 {
+protected:
+   ShaderIncludeDependency mComputeDepth;
 public:
-
+   DepthOutHLSL();
    // ShaderFeature
    virtual void processVert( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd );
    virtual void processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd );

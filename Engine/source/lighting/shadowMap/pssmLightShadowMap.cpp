@@ -38,6 +38,7 @@
 #include "ts/tsShapeInstance.h"
 #include "console/consoleTypes.h"
 #include "math/mathUtils.h"
+#include "materials/materialDefinition.h"
 
 
 AFTER_MODULE_INIT( Sim )
@@ -72,6 +73,31 @@ PSSMLightShadowMap::PSSMLightShadowMap( LightInfo *light )
       mSplitDist[i] = mPow(F32(i/MAX_SPLITS),2.0f);
 
    mIsViewDependent = true;
+   VECTOR_SET_ASSOCIATION(mPSSMTexArray);
+}
+
+bool PSSMLightShadowMap::setTextureStage(U32 currTexFlag, LightingShaderConstants* lsc)
+{
+   if (currTexFlag == Material::DynamicLight)
+   {
+      S32 reg = lsc->mShadowMapSC->getSamplerRegister();
+      if (reg != -1)
+         GFX->setTextureArray(reg, mPSSMTextureArray);
+
+      return true;
+   }
+
+   return false;
+}
+
+void PSSMLightShadowMap::releaseTextures()
+{
+   Parent::releaseTextures();
+   mPSSMTextureArray = NULL;
+   for (U32 i = 0; i < mPSSMTexArray.size(); i++)
+   {
+      mPSSMTexArray[i] = NULL;
+   }
 }
 
 void PSSMLightShadowMap::_setNumSplits( U32 numSplits, U32 texSize )
@@ -83,38 +109,23 @@ void PSSMLightShadowMap::_setNumSplits( U32 numSplits, U32 texSize )
   
    mNumSplits = numSplits;
    mTexSize = texSize;
-   F32 texWidth, texHeight;
 
-   // If the split count is less than 4 then do a
-   // 1xN layout of shadow maps...
-   if ( mNumSplits < 4 )
+   mViewport.extent.set(texSize, texSize);
+   mViewport.point.set(0, 0);
+
+   mPSSMTexArray.setSize(mNumSplits);
+   for (U32 i = 0; i < mNumSplits; i++)
    {
-      texHeight = texSize;
-      texWidth = texSize * mNumSplits;
-
-      for ( U32 i = 0; i < 4; i++ )
-      {
-         mViewports[i].extent.set(texSize, texSize);
-         mViewports[i].point.set(texSize*i, 0);
-      }
-   } 
-   else 
-   {
-      // ... with 4 splits do a 2x2.
-      texWidth = texHeight = texSize * 2;
-
-      for ( U32 i = 0; i < 4; i++ )
-      {
-         F32 xOff = (i == 1 || i == 3) ? 0.5f : 0.0f;
-         F32 yOff = (i > 1) ? 0.5f : 0.0f;
-         mViewports[i].extent.set( texSize, texSize );
-         mViewports[i].point.set(xOff * texWidth, yOff * texHeight );
-      }
+      mPSSMTexArray[i].set(texSize, texSize,
+                           ShadowMapFormat, &ShadowMapProfile,
+                           String::ToString("PSSMLightShadowMap%d",i), 1, 0);
    }
 
-   mShadowMapTex.set(   texWidth, texHeight, 
-                        ShadowMapFormat, &ShadowMapProfile, 
-                        "PSSMLightShadowMap",1, 0);
+
+   if (mPSSMTextureArray.isNull())
+   {
+      mPSSMTextureArray = GFX->createTextureArray();
+   }
 }
 
 void PSSMLightShadowMap::_calcSplitPos(const Frustum& currFrustum)
@@ -168,8 +179,8 @@ Box3F PSSMLightShadowMap::_calcClipSpaceAABB(const Frustum& f, const MatrixF& tr
    // Calculate frustum bounding sphere radius
    F32 radius = 0.0f;
    for (U32 i = 0; i < 8; i++)      
-      radius = getMax(radius, (f.getPoints()[i] - center).lenSquared());
-   radius = mFloor( mSqrt(radius) );
+      radius = getMax(radius, (f.getPoints()[i] - center).len());
+   radius = mCeil( radius * 16.0f ) / 16.0f;
       
    // Now build box for sphere
    Box3F result;
@@ -185,52 +196,33 @@ Box3F PSSMLightShadowMap::_calcClipSpaceAABB(const Frustum& f, const MatrixF& tr
 
 // This "rounds" the projection matrix to remove subtexel movement during shadow map
 // rasterization.  This is here to reduce shadow shimmering.
-void PSSMLightShadowMap::_roundProjection(const MatrixF& lightMat, const MatrixF& cropMatrix, Point3F &offset, Point3F& otherCorner, U32 splitNum)
+void PSSMLightShadowMap::_roundProjection(const MatrixF& lightMat, const MatrixF& cropMatrix, Point3F &offset, Point3F &otherCorner, U32 splitNum)
 {
    // Round to the nearest shadowmap texel, this helps reduce shimmering
    MatrixF currentProj = GFX->getProjectionMatrix();
-   currentProj = cropMatrix * currentProj * lightMat;
+   currentProj = cropMatrix * (currentProj * lightMat);
+
+   Point2F texelsToTexture(mTexSize / 2.0f, mTexSize / 2.0f);
 
    // Project origin to screen.
-   Point4F originShadow4F(0,0,0,1);
+   Point4F originShadow4F(0, 0, 0, 1);
    currentProj.mul(originShadow4F);
    Point2F originShadow(originShadow4F.x / originShadow4F.w, originShadow4F.y / originShadow4F.w);
-
-   Point4F farShadow4F(1, 1, 1, 1);
-   currentProj.mul(farShadow4F);
-   Point2F farShadow(farShadow4F.x / farShadow4F.w, farShadow4F.y / farShadow4F.w);
-
-   // Convert to texture space (0..shadowMapSize)
-   F32 tX = mNumSplits < 4 ? mShadowMapTex->getWidth() / mNumSplits : mShadowMapTex->getWidth() / 2;
-   Point2F texelsToTexture(tX / 2.0f, mShadowMapTex->getHeight() / 2.0f);
-   if (mNumSplits >= 4)
-   {
-      //texelsToTexture.x *= 0.5f;
-      texelsToTexture.y *= 0.5f;
-   }
-
    originShadow.convolve(texelsToTexture);
-   farShadow.convolve(texelsToTexture);
 
    // Clamp to texel boundary
    Point2F originRounded;
    originRounded.x = mFloor(originShadow.x + 0.5f);
    originRounded.y = mFloor(originShadow.y + 0.5f);
-   originRounded -= originShadow;
-   originRounded.convolveInverse(texelsToTexture);
 
-   // Clamp to texel boundary
-   Point2F farRounded;
-   farRounded.x = mFloor(farShadow.x + 0.5f);
-   farRounded.y = mFloor(farShadow.y + 0.5f);
-   farRounded -= farShadow;
-   farRounded.convolveInverse(texelsToTexture);
+   // Subtract origin to get an offset to recenter everything on texel boundaries
+   originRounded -= originShadow;
+
+   // Convert back to texels (0..1) and offset
+   originRounded.convolveInverse(texelsToTexture);
 
    offset.x += originRounded.x;
    offset.y += originRounded.y;
-
-   otherCorner.x += 1.0f / (farShadow.x - offset.x);
-   otherCorner.y += 1.0f / (farShadow.y - offset.y);
 }
 
 void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
@@ -242,14 +234,13 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
    const LightMapParams *lmParams = mLight->getExtended<LightMapParams>();
    const bool bUseLightmappedGeometry = lmParams ? !lmParams->representedInLightmap || lmParams->includeLightmappedGeometryInShadow : true;
 
-   const U32 texSize = getBestTexSize( params->numSplits < 4 ? params->numSplits : 2 );
+   const U32 texSize = getBestTexSize();
 
-   if (  mShadowMapTex.isNull() || 
-         mNumSplits != params->numSplits || 
-         mTexSize != texSize )
+   if (mPSSMTextureArray.isNull() ||
+         mNumSplits != params->numSplits ||
+         mTexSize != texSize)
    {
-      _setNumSplits( params->numSplits, texSize );
-      mShadowMapDepth = _getDepthTarget( mShadowMapTex->getWidth(), mShadowMapTex->getHeight() );   
+      _setNumSplits( params->numSplits, texSize);
    }
    mLogWeight = params->logWeight;
    mShadowDistance = params->shadowDistance;
@@ -264,11 +255,7 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
 
    // Set our render target
    GFX->pushActiveRenderTarget();
-   mTarget->attachTexture( GFXTextureTarget::Color0, mShadowMapTex );
-   mTarget->attachTexture( GFXTextureTarget::DepthStencil, mShadowMapDepth );
-   GFX->setActiveRenderTarget( mTarget );
-   GFX->clear( GFXClearStencil | GFXClearZBuffer | GFXClearTarget, ColorI(255,255,255), 1.0f, 0 );
-
+  
    // Calculate our standard light matrices
    MatrixF lightMatrix;
    calcLightMatrices( lightMatrix, fullFrustum);
@@ -297,15 +284,20 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
 
    for (U32 i = 0; i < mNumSplits; i++)
    {
+      mTarget->attachTexture(GFXTextureTarget::Color0, mPSSMTexArray[i]);
+      mTarget->attachTexture(GFXTextureTarget::DepthStencil, _getDepthTarget(mTexSize, mTexSize));
+      GFX->setActiveRenderTarget(mTarget);
+      GFX->clear(GFXClearStencil | GFXClearZBuffer | GFXClearTarget, ColorI(255, 255, 255), 1.0f, 0);
+
       GFXTransformSaver splitSaver;
 
       // Calculate a sub-frustum
       Frustum subFrustum(fullFrustum);
-      subFrustum.cropNearFar(mSplitDist[i], mSplitDist[i+1]);
+      subFrustum.cropNearFar(mSplitDist[i], mSplitDist[i + 1]);
 
       // Calculate our AABB in the light's clip space.
       Box3F clipAABB = _calcClipSpaceAABB(subFrustum, lightViewProj, fullFrustum.getFarDist());
- 
+
       // Calculate our crop matrix
       Point3F scale( 2.0f / (clipAABB.maxExtents.x - clipAABB.minExtents.x),
                      2.0f / (clipAABB.maxExtents.y - clipAABB.minExtents.y),
@@ -318,7 +310,7 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
       //
       // Still is it the right thing to do?
       //
-      scale.y = scale.x = ( getMin( scale.x, scale.y ) ); 
+      scale.y = scale.x = (getMin(scale.x, scale.y));
       //scale.x = mFloor(scale.x); 
       //scale.y = mFloor(scale.y); 
 
@@ -342,7 +334,7 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
       bool isOrtho;
       {
          F32 left, right, bottom, top, nearDist, farDist;
-         GFX->getFrustum(&left, &right, &bottom, &top, &nearDist, &farDist,&isOrtho);
+         GFX->getFrustum(&left, &right, &bottom, &top, &nearDist, &farDist, &isOrtho);
          // BTRTODO: Fix me!
          farDist = clipAABB.maxExtents.z;
          if (!isOrtho)
@@ -365,7 +357,7 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
       GFX->setProjectionMatrix(alightProj);
 
       // Render into the quad of the shadow map we are using.
-      GFX->setViewport(mViewports[i]);
+      GFX->setViewport(mViewport);
 
       SceneManager* sceneManager = diffuseState->getSceneManager();
 
@@ -379,10 +371,10 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
       scale *= 0.5f;
       croppedFrustum.set(
          isOrtho,
-         uncroppedFrustum.getNearLeft() / scale.x,
-         uncroppedFrustum.getNearRight() / scale.x,
-         uncroppedFrustum.getNearTop() / scale.y,
-         uncroppedFrustum.getNearBottom() / scale.y,
+         uncroppedFrustum.getNearLeft(),
+         uncroppedFrustum.getNearRight(),
+         uncroppedFrustum.getNearTop(),
+         uncroppedFrustum.getNearBottom(),
          uncroppedFrustum.getNearDist(),
          uncroppedFrustum.getFarDist(),
          uncroppedFrustum.getTransform()
@@ -390,40 +382,35 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
 
       MatrixF camera = GFX->getWorldMatrix();
       camera.inverse();
-      croppedFrustum.setTransform( camera );
+      croppedFrustum.setTransform(camera);
 
       // Setup the scene state and use the diffuse state
       // camera position and screen metrics values so that
       // lod is done the same as in the diffuse pass.
-
       SceneRenderState shadowRenderState
       (
          sceneManager,
          SPT_Shadow,
-         SceneCameraState( diffuseState->getViewport(), croppedFrustum,
-                           GFX->getWorldMatrix(), GFX->getProjectionMatrix() ),
+         SceneCameraState(diffuseState->getViewport(), croppedFrustum,
+            GFX->getWorldMatrix(), GFX->getProjectionMatrix()),
          renderPass
       );
 
-      shadowRenderState.getMaterialDelegate().bind( this, &LightShadowMap::getShadowMaterial );
-      shadowRenderState.renderNonLightmappedMeshes( true );
-      shadowRenderState.renderLightmappedMeshes( bUseLightmappedGeometry );
+      shadowRenderState.getMaterialDelegate().bind(this, &LightShadowMap::getShadowMaterial);
+      shadowRenderState.renderNonLightmappedMeshes(true);
+      shadowRenderState.renderLightmappedMeshes(bUseLightmappedGeometry);
 
-      shadowRenderState.setDiffuseCameraTransform( diffuseState->getCameraTransform() );
-      shadowRenderState.setWorldToScreenScale( diffuseState->getWorldToScreenScale() );
-
-      PlaneSetF planeSet( _extraCull[i].address(), _extraCull[i].size() );
-      shadowRenderState.getCullingState().setExtraPlanesCull( planeSet );
+      shadowRenderState.setDiffuseCameraTransform(diffuseState->getCameraTransform());
+      shadowRenderState.setWorldToScreenScale(diffuseState->getWorldToScreenScale());
 
       U32 objectMask = SHADOW_TYPEMASK;
-      if ( i == mNumSplits-1 && params->lastSplitTerrainOnly )
+      if (i == mNumSplits - 1 && params->lastSplitTerrainOnly)
          objectMask = TerrainObjectType;
 
-      sceneManager->renderSceneNoLights( &shadowRenderState, objectMask );
+      sceneManager->renderSceneNoLights(&shadowRenderState, objectMask);
 
-      shadowRenderState.getCullingState().clearExtraPlanesCull();
-
-      _debugRender( &shadowRenderState );
+      _debugRender(&shadowRenderState);
+      mTarget->resolve();
    }
 
    // Restore the original TS lod settings.
@@ -431,8 +418,14 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
    TSShapeInstance::smDetailAdjust = savedDetailAdjust;
 
    // Release our render target
-   mTarget->resolve();
    GFX->popActiveRenderTarget();
+
+   mPSSMTextureArray->set(mTexSize, mTexSize, mPSSMTexArray.size(), ShadowMapFormat, 1);
+
+   if (!mPSSMTextureArray->fromTextureArray(mPSSMTexArray, mPSSMTexArray.size()))
+   {
+      Con::errorf("PSSMLightShadowMap::_setNumSplits - issue setting up texture array!");
+   }
 }
 
 void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, LightingShaderConstants* lsc)
@@ -461,38 +454,10 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
       cascadeScalesAlignedArray[i] = mScaleProj[i];
    }
 
-   Point2F shadowMapAtlas;
-   if (mNumSplits < 4)
-   {
-      shadowMapAtlas.x = 1.0f / (F32)mNumSplits;
-      shadowMapAtlas.y = 1.0f;
-   
-      // 1xmNumSplits
-      for (U32 i = 0; i < mNumSplits; i++)
-         aXOff[i] = (F32)i * shadowMapAtlas.x;
-   }
-   else
-   {
-      shadowMapAtlas.set(0.500f, 0.500f);
-  
-      // 2x2
-      for (U32 i = 0; i < mNumSplits; i++)
-      {
-         if (i == 1 || i == 3)
-            aXOff[i] = 0.5f;
-         if (i > 1)
-            aYOff[i] = 0.5f;
-      }
-   }
-
    // These values change based on static/dynamic.
    params->setSafe(lsc->mCascadeOffsetsSC, cascadeOffsetsAlignedArray);
    params->setSafe(lsc->mCascadeScalesSC, cascadeScalesAlignedArray);
    params->setSafe(lsc->mCascadeSplitsSC, mCascadeSplit);
-
-   params->setSafe(lsc->mAtlasXOffsetSC, aXOff);
-   params->setSafe(lsc->mAtlasYOffsetSC, aYOff);
-   params->setSafe(lsc->mAtlasScaleSC, shadowMapAtlas);
 
    Point4F lightParams( mLight->getRange().x, p->overDarkFactor.x, 0.0f, 0.0f );
    params->setSafe( lsc->mLightParamsSC, lightParams );
@@ -508,8 +473,9 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
    
    params->setSafe( lsc->mOverDarkFactorPSSM, p->overDarkFactor);
 
-   // The softness is a factor of the texel size.
-   params->setSafe( lsc->mShadowSoftnessConst, p->shadowSoftness * ( 1.0f / mTexSize ) );
+   params->setSafe(lsc->mShadowSoftnessConst, p->shadowSoftness * (1.0f / mTexSize));
+
+   params->setSafe(lsc->mShadowSampleMethodSC, (S32)(p->shadowMethod));
 }
 
 void PSSMLightShadowMap::_calcPlanesCullForShadowCasters(Vector< Vector<PlaneF> > &out, const Frustum &viewFrustum, const Point3F &_ligthDir)

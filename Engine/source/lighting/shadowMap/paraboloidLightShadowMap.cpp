@@ -56,6 +56,9 @@ ShadowType ParaboloidLightShadowMap::getShadowType() const
 void ParaboloidLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, LightingShaderConstants* lsc)
 {
    ShadowMapParams *p = mLight->getExtended<ShadowMapParams>();
+
+   params->setSafe(lsc->mShadowSampleMethodSC, p->shadowMethod);
+
    if ( lsc->mLightParamsSC->isValid() )
    {
       Point4F lightParams( mLight->getRange().x, p->overDarkFactor.x, 0.0f, 0.0f);
@@ -66,8 +69,8 @@ void ParaboloidLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params,
    params->setSafe( lsc->mAtlasScaleSC, mShadowMapScale );
    params->setSafe( lsc->mAtlasXOffsetSC, mShadowMapOffset );
 
-   // The softness is a factor of the texel size.
-   params->setSafe( lsc->mShadowSoftnessConst, p->shadowSoftness * ( 1.0f / mTexSize ) );
+   // The softness factor is calculated in the shader.
+   params->setSafe(lsc->mShadowSoftnessConst, p->shadowSoftness * (1.0f / mTexSize));
 }
 
 void ParaboloidLightShadowMap::_render(   RenderPassManager* renderPass,
