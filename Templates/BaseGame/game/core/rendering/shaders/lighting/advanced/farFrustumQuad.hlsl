@@ -26,7 +26,7 @@ struct FarFrustumQuadConnectV
 	float4 hpos : TORQUE_POSITION;
    float2 uv0 : TEXCOORD0;
    float3 wsEyeRay : TEXCOORD1;
-   float3 vsEyeRay : TEXCOORD2;
+   float3 vsEyeDir : TEXCOORD2;
 };
 
 struct FarFrustumQuadConnectP
@@ -34,7 +34,7 @@ struct FarFrustumQuadConnectP
 	float4 hpos  : TORQUE_POSITION;
    float2 uv0 : TEXCOORD0;
    float3 wsEyeRay : TEXCOORD1;
-   float3 vsEyeRay : TEXCOORD2;
+   float3 vsEyeDir : TEXCOORD2;
 };
 
 

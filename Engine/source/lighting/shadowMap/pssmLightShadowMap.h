@@ -28,6 +28,9 @@
 #ifndef _MATHUTIL_FRUSTUM_H_
 #include "math/util/frustum.h"
 #endif
+#ifndef _POSTFX_H_
+#include "postFx/postEffect.h"
+#endif
 
 
 class PSSMLightShadowMap : public LightShadowMap
@@ -53,6 +56,11 @@ public:
    /// @see TSShapeInstance::smSmallestVisiblePixelSize
    static F32 smSmallestVisiblePixelSize;
 
+   /// <summary>
+   /// Filter shadow map, should really only be used in vsm.
+   /// </summary>
+    void filterShadowMap();
+
 protected:
 
    void _setNumSplits( U32 numSplits, U32 texSize );
@@ -71,7 +79,6 @@ protected:
    F32 mLogWeight;
    F32 mShadowDistance;
 
-   Vector<GFXTexHandle> mPSSMTexArray;
    GFXTextureArrayHandle mPSSMTextureArray;
 };
 

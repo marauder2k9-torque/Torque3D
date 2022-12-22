@@ -427,6 +427,7 @@ void AdvancedLightManager::setLightInfo(  ProcessedMaterial *pmat,
                               lsc->mViewToLightProjSC->getType() );
       }
 
+      shaderConsts->setSafe( lsc->mShadowMapResSC, (F32)lsm->getTexSize() );
       shaderConsts->setSafe( lsc->mShadowMapSizeSC, 1.0f / (F32)lsm->getTexSize() );
 
       // Do this last so that overrides can properly override parameters previously set

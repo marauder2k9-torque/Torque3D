@@ -430,6 +430,7 @@ LightingShaderConstants::LightingShaderConstants()
       mVectorLightBrightnessSC(NULL),
       mShadowMapSC(NULL),
       mShadowMapSizeSC(NULL),
+      mShadowMapResSC(NULL),
       mShadowSampleMethodSC(NULL),
       mCookieMapSC(NULL),
       mRandomDirsConst(NULL),
@@ -486,6 +487,7 @@ void LightingShaderConstants::init(GFXShader* shader)
 
    mShadowMapSC = shader->getShaderConstHandle("$shadowMap");
    mShadowMapSizeSC = shader->getShaderConstHandle("$shadowMapSize");
+   mShadowMapResSC = shader->getShaderConstHandle("$shadowRes");
    mCookieMapSC = shader->getShaderConstHandle("$cookieMap");
 
    mShadowSoftnessConst = shader->getShaderConstHandle("$shadowSoftness");

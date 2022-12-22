@@ -61,7 +61,7 @@ void ParaboloidLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params,
 
    if ( lsc->mLightParamsSC->isValid() )
    {
-      Point4F lightParams( mLight->getRange().x, p->overDarkFactor.x, 0.0f, 0.0f);
+      Point4F lightParams( mLight->getRange().x, p->overDarkFactor.x, mLight->getLightSize(), 0.0f);
       params->set( lsc->mLightParamsSC, lightParams );
    }
 

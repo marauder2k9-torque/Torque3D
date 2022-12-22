@@ -202,14 +202,14 @@ float3 BRDF_GetDebugDiffuse(in Surface surface, in SurfaceToLight surfaceToLight
 //https://seblagarde.files.wordpress.com/2015/07/course_notes_moving_frostbite_to_pbr_v32.pdf
 float smoothDistanceAtt ( float squaredDistance , float invSqrAttRadius )
 {
-   float factor = squaredDistance * invSqrAttRadius ;
-   float smoothFactor = saturate (1.0f - factor * factor );
+   float factor = pow(squaredDistance * invSqrAttRadius, 4) ;
+   float smoothFactor = pow(saturate (1.0f - factor * factor ),2);
    return smoothFactor * smoothFactor;
 }
 
 float getDistanceAtt( float3 unormalizedLightVector , float invSqrAttRadius )
 {
-   float sqrDist = dot( unormalizedLightVector, unormalizedLightVector );
+   float sqrDist = dot( unormalizedLightVector, unormalizedLightVector ) + 1;
    float attenuation = 1.0  / sqrDist * smoothDistanceAtt ( sqrDist , invSqrAttRadius );
    return attenuation;
 }
@@ -242,7 +242,7 @@ float3 evaluateStandardBRDF(Surface surface, SurfaceToLight surfaceToLight)
 
 float3 getDirectionalLight(Surface surface, SurfaceToLight surfaceToLight, float3 lightColor, float lightIntensity, float shadow)
 {
-   float3 factor = lightColor * max(surfaceToLight.NdotL* shadow * lightIntensity, 0.0f) ;
+   float3 factor = lightColor * max(surfaceToLight.NdotL * shadow * lightIntensity, 0.0f);
    return evaluateStandardBRDF(surface,surfaceToLight) * factor;
 }
 
@@ -250,9 +250,7 @@ float3 getPunctualLight(Surface surface, SurfaceToLight surfaceToLight, float3 l
 {
    float attenuation = 1;
    attenuation *= getDistanceAtt(surfaceToLight.Lu, radius);
-   float3 lCol = lightColor.rgb *(lightIntensity / (4.0 * 3.14159265359));
-   float3 radince = lCol * attenuation;
-   float3 factor = saturate(surfaceToLight.NdotL) * shadow * radince;
+   float3 factor = lightColor * max(surfaceToLight.NdotL * shadow * lightIntensity * attenuation, 0.0f);
    return evaluateStandardBRDF(surface,surfaceToLight) * factor;
 }
 

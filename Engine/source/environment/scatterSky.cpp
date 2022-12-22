@@ -167,6 +167,7 @@ ScatterSky::ScatterSky()
    mUseNightCubemap = false;
    mNightCubemapName = StringTable->EmptyString();
    mSunSize = 1.0f;
+   mLightScale = 100.0f;
 
    INIT_ASSET(MoonMat);
 
@@ -271,6 +272,7 @@ void ScatterSky::_conformLights()
    mLight->setCastShadows( mCastShadows );
    mLight->setStaticRefreshFreq(mStaticRefreshFreq);
    mLight->setDynamicRefreshFreq(mDynamicRefreshFreq);
+   mLight->setLightSize(mLightScale);
 
    FogData fog = getSceneManager()->getFogData();
    fog.color = mFogColor;
@@ -387,6 +389,9 @@ void ScatterSky::initPersistFields()
       addField( "brightness", TypeF32, Offset( mBrightness, ScatterSky ),
          "The brightness of the ScatterSky's light object." );
 
+      addField("lightSize", TypeF32, Offset(mLightScale, ScatterSky),
+         "The size of the light, this is used in the penumbra calculation.");
+
    endGroup( "Lighting" );
 
    addGroup( "Misc" );
@@ -455,6 +460,7 @@ U32 ScatterSky::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
       stream->write( mMieScattering4PI );
 
       stream->write( mSunSize );
+      stream->write( mLightScale );
 
       stream->write( mSkyBrightness );
 
@@ -542,6 +548,7 @@ void ScatterSky::unpackUpdate(NetConnection *con, BitStream *stream)
       stream->read( &mMieScattering4PI );
 
       stream->read( &mSunSize );
+      stream->read( &mLightScale );
 
       stream->read( &mSkyBrightness );
 

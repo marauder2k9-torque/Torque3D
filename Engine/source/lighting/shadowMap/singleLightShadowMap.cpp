@@ -116,7 +116,7 @@ void SingleLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Lig
    {
       Point4F lightParams( mLight->getRange().x, 
                            p->overDarkFactor.x, 
-                           0.0f, 
+                           mLight->getLightSize(),
                            0.0f );
       params->set(lsc->mLightParamsSC, lightParams);
    }

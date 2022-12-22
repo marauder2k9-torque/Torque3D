@@ -124,6 +124,7 @@ void PointLight::_conformLights()
    mLight->setTransform( getRenderTransform() );
 
    mLight->setRange( mRadius );
+   mLight->setLightSize( mRadius );
 
    mLight->setColor( mColor );
 

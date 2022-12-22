@@ -58,6 +58,7 @@ public:
    virtual const Point2I getSize() { return mTargetSize; }
    virtual GFXFormat getFormat() { return mTargetFormat; }
    virtual void attachTexture(RenderSlot slot, GFXTextureObject *tex, U32 mipLevel=0, U32 zOffset = 0);
+   virtual void attachTextureArray(RenderSlot slot, GFXTextureArray* tex, U32 texSlot, U32 mipLevel);
    virtual void attachTexture(RenderSlot slot, GFXCubemap *tex, U32 face, U32 mipLevel=0);
    virtual void resolve();
 

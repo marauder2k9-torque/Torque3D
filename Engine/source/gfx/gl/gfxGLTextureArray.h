@@ -14,7 +14,7 @@ public:
    ~GFXGLTextureArray() { Release(); };
 
    void init() override;
-
+   void initDynamic(U32 texSize, GFXFormat faceFormat = GFXFormatR8G8B8A8, U32 mipLevels = 0, U32 arraySize = 0) override {}
    void setToTexUnit(U32 tuNum) override;
 
    void bind(U32 textureUnit) const;

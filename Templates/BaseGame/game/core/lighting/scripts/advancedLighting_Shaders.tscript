@@ -22,9 +22,10 @@
 
 singleton GFXSamplerStateData(ShadowSampler)
 {
-   magFilter = GFXTextureFilterAnisotropic;
-   minFilter = GFXTextureFilterAnisotropic;
-   mipFilter = GFXTextureFilterAnisotropic;
+   magFilter = GFXTexureFilterLinear;
+   minFilter = GFXTexureFilterLinear;
+   mipFilter = GFXTexureFilterLinear;
+   maxAnisotropy = 16;
    samplerFunc = GFXCmpAlways;
 };
 
@@ -44,7 +45,7 @@ singleton GFXStateBlockData( AL_VectorLightState )
    colorWriteAlpha = false; //disable alpha write
    
    multiSample = true;
-   aliasLine = true;
+   aliasLine = false;
    
    zDefined = true;
    zEnable = false;
@@ -291,6 +292,17 @@ singleton shaderData( PrefiterCubemapShader )
    
    pixVersion = 3.0;
 };
+
+singleton shaderData( PrefilterShadowMap )
+{
+   DXVertexShaderFile = $Core::CommonShaderPath @ "/lighting/advanced/cubemapV.hlsl";
+   DXPixelShaderFile  = $Core::CommonShaderPath @ "/lighting/advanced/shadowBlurP.hlsl";
+   
+   samplerNames[0] = "$shadowMap";
+   
+   pixVersion = 3.0;
+};
+
 
 //
 singleton ShaderData( PFX_ReflectionProbeArray )

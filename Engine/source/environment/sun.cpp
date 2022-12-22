@@ -63,6 +63,7 @@ Sun::Sun()
    mLightColor.set(0.7f, 0.7f, 0.7f);
    mLightAmbient.set(0.3f, 0.3f, 0.3f);
    mBrightness = 1.0f;
+   mLightScale = 100.0f;
    mSunAzimuth = 0.0f;
    mSunElevation = 35.0f;
    mCastShadows = true;
@@ -167,7 +168,10 @@ void Sun::initPersistFields()
          "Adjust the Sun's global contrast/intensity");      
 
       addField( "castShadows", TypeBool, Offset( mCastShadows, Sun ), 
-         "Enables/disables shadows cast by objects due to Sun light");    
+         "Enables/disables shadows cast by objects due to Sun light");
+
+      addField("lightScale", TypeF32, Offset(mLightScale, Sun),
+         "Light scale is used by the penumbra calculation");
 
       //addField("staticRefreshFreq", TypeS32, Offset(mStaticRefreshFreq, Sun), "static shadow refresh rate (milliseconds)");
       //addField("dynamicRefreshFreq", TypeS32, Offset(mDynamicRefreshFreq, Sun), "dynamic shadow refresh rate (milliseconds)");
@@ -225,7 +229,8 @@ U32 Sun::packUpdate(NetConnection *conn, U32 mask, BitStream *stream )
       stream->write( mSunElevation );
       stream->write( mLightColor );
       stream->write( mLightAmbient );
-      stream->write( mBrightness );      
+      stream->write( mBrightness );
+      stream->write(mLightScale);
       stream->writeFlag( mCastShadows ); 
       stream->write(mStaticRefreshFreq);
       stream->write(mDynamicRefreshFreq);
@@ -262,7 +267,8 @@ void Sun::unpackUpdate( NetConnection *conn, BitStream *stream )
       stream->read( &mSunElevation );
       stream->read( &mLightColor );
       stream->read( &mLightAmbient );
-      stream->read( &mBrightness );      
+      stream->read( &mBrightness );
+      stream->read(&mLightScale);
       mCastShadows = stream->readFlag();
       stream->read(&mStaticRefreshFreq);
       stream->read(&mDynamicRefreshFreq);
@@ -429,6 +435,7 @@ void Sun::_conformLights()
    lightDirection.normalize();
    mLight->setDirection( -lightDirection );
    mLight->setBrightness( mBrightness );
+   mLight->setLightSize(mLightScale);
 
    // Now make sure the colors are within range.
    mLightColor.clamp();

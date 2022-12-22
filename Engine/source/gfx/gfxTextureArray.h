@@ -47,6 +47,7 @@ public:
    GFXTextureArray();
 
    virtual void init() = 0;
+   virtual void initDynamic(U32 texSize, GFXFormat faceFormat = GFXFormatR8G8B8A8, U32 mipLevels = 0, U32 arraySize = 0) = 0;
    virtual void set(U32 width, U32 height, U32 size, GFXFormat format, U32 mipLevels = 0);
    virtual bool fromTextureArray(const Vector<GFXTexHandle> &textureArray, U32 capacity = 0);
    virtual void setTexture(const GFXTexHandle &texture, U32 slot);

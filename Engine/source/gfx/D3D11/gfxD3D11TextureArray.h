@@ -23,6 +23,7 @@ public:
    ~GFXD3D11TextureArray() { Release();  };
 
    void init();
+   virtual void initDynamic(U32 texSize, GFXFormat faceFormat, U32 mipLevels, U32 arraySize);
    void setToTexUnit(U32 tuNum) override;
 
    void createResourceView(DXGI_FORMAT format, U32 numMipLevels, U32 usageFlags);
@@ -34,22 +35,27 @@ public:
 
 
    ID3D11ShaderResourceView* getSRView();
-   ID3D11RenderTargetView* getRTView();
+   ID3D11RenderTargetView* getRTView(U32 rtSlot);
    ID3D11DepthStencilView* getDSView();
 
    ID3D11ShaderResourceView** getSRViewPtr();
-   ID3D11RenderTargetView** getRTViewPtr();
+   ID3D11RenderTargetView** getRTViewPtr(U32 rtSlot);
    ID3D11DepthStencilView** getDSViewPtr();
+
+   ID3D11Texture2D* get2DTex();
 
 protected:
    void _setTexture(const GFXTexHandle& texture, U32 slot) override;
 
 private:
    ID3D11ShaderResourceView* mSRView; // for shader resource input
-   ID3D11RenderTargetView* mRTView; // for render targets
+   Vector<ID3D11RenderTargetView*> mRTView; // for render targets
    ID3D11DepthStencilView* mDSView; //render target view for depth stencil
    ID3D11Texture2D* mTextureArray;
    D3D11_TEXTURE2D_DESC mTextureArrayDesc;
+
+   bool mAutoGenMips;
+   bool mDynamic;
 };
 
 

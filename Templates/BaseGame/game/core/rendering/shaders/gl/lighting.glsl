@@ -217,7 +217,7 @@ float getDistanceAtt( vec3 unormalizedLightVector , float invSqrAttRadius )
  float getSpotAngleAtt( vec3 normalizedLightVector , vec3 lightDir , vec2 lightSpotParams )
  {
    float cd = dot ( lightDir , normalizedLightVector );
-   float attenuation = saturate ( ( cd - lightSpotParams.x ) / lightSpotParams.y );
+   float attenuation = saturate ( cd * lightSpotParams.x  + lightSpotParams.y );
    // smooth the transition
    return sqr(attenuation);
 }
@@ -249,7 +249,8 @@ vec3 getDirectionalLight(Surface surface, SurfaceToLight surfaceToLight, vec3 li
 
 vec3 getPunctualLight(Surface surface, SurfaceToLight surfaceToLight, vec3 lightColor, float lightIntensity, float radius, float shadow)
 {
-   float attenuation = getDistanceAtt(surfaceToLight.Lu, radius);
+   float attenuation = 1;
+   attenuation *= getDistanceAtt(surfaceToLight.Lu, radius);
    vec3 factor = lightColor * max(surfaceToLight.NdotL * shadow * lightIntensity * attenuation, 0.0f);
    return evaluateStandardBRDF(surface,surfaceToLight) * factor;
 }

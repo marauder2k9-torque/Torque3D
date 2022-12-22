@@ -125,6 +125,8 @@ protected:
 
    Point3F mRange;
 
+   F32 mLightSize;
+
    F32 mInnerConeAngle;
 
    F32 mOuterConeAngle;
@@ -184,6 +186,9 @@ public:
    const Point3F& getRange() const { return mRange; }
    void setRange( const Point3F &range ) { mRange = range; }
    void setRange( F32 range ) { mRange.set( range, range, range ); }
+
+   const F32& getLightSize() const { return mLightSize; }
+   void setLightSize(const F32 &size) { mLightSize = size; }
 
    F32 getInnerConeAngle() const { return mInnerConeAngle; }
    void setInnerConeAngle( F32 val ) { mInnerConeAngle = val; }

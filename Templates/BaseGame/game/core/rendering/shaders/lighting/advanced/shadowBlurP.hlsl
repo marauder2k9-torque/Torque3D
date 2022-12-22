@@ -20,24 +20,34 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "../../hlslStructs.hlsl"
-#include "farFrustumQuad.hlsl"
+#include "../../torque.hlsl"
 
-uniform float4 rtParams0;
-
-FarFrustumQuadConnectV main( VertexIn_PNTT IN )
+struct ConnectData
 {
-   FarFrustumQuadConnectV OUT;
+    float4 hpos     : SV_Position;
+    float2 uv      : TEXCOORD;
+};
 
-   OUT.hpos = float4( IN.uv0, 0, 1 );
+TORQUE_UNIFORM_SAMPLER2DARRAY(shadowMap, 0);
 
-   // Get a RT-corrected UV from the SS coord
-   OUT.uv0 = getUVFromSSPos( OUT.hpos.xyz, rtParams0 );
-   
-   // Interpolators will generate eye rays the 
-   // from far-frustum corners.
-   OUT.wsEyeRay = IN.tangent;
-   OUT.vsEyeDir = IN.normal;
+uniform float2 resolution;
+uniform float2 blurDir;
+uniform int blurSamples;
 
-   return OUT;
+float4 main(ConnectData IN) : TORQUE_TARGET0
+{
+	float2 texel = 1 / resolution;
+	float blurSizeInv = 1 / float(blurSamples);
+	float2 sampleOffset = texel * blurDir;
+	float2 offset = 0.5 * float(blurSamples - 1) * sampleOffset;
+	float2 baseTex = IN.uv - offset;
+	
+	float4 sum = float4(0,0,0,0);
+	for(int i = 0; i < blurSamples; ++i)
+	{
+		sum += TORQUE_TEX2DLEVEL(shadowMap, float4(baseTex + i * sampleOffset, 0, 0) );
+	}
+	
+	
+	return sum * blurSizeInv;
 }

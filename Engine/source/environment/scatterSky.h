@@ -220,6 +220,7 @@ protected:
    LinearColorF mFogScale;
 
    LightInfo *mLight;
+   F32 mLightScale;
 
    bool mCastShadows;
    S32 mStaticRefreshFreq;

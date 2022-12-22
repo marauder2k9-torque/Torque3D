@@ -39,6 +39,7 @@
 #include "console/consoleTypes.h"
 #include "math/mathUtils.h"
 #include "materials/materialDefinition.h"
+#include "postFx/postEffect.h"
 
 
 AFTER_MODULE_INIT( Sim )
@@ -62,7 +63,6 @@ AFTER_MODULE_INIT( Sim )
 F32 PSSMLightShadowMap::smDetailAdjustScale = 0.85f;
 F32 PSSMLightShadowMap::smSmallestVisiblePixelSize = 25.0f;
 
-
 PSSMLightShadowMap::PSSMLightShadowMap( LightInfo *light )
    :  LightShadowMap( light ),
       mNumSplits( 1 ),
@@ -73,7 +73,6 @@ PSSMLightShadowMap::PSSMLightShadowMap( LightInfo *light )
       mSplitDist[i] = mPow(F32(i/MAX_SPLITS),2.0f);
 
    mIsViewDependent = true;
-   VECTOR_SET_ASSOCIATION(mPSSMTexArray);
 }
 
 bool PSSMLightShadowMap::setTextureStage(U32 currTexFlag, LightingShaderConstants* lsc)
@@ -94,10 +93,6 @@ void PSSMLightShadowMap::releaseTextures()
 {
    Parent::releaseTextures();
    mPSSMTextureArray = NULL;
-   for (U32 i = 0; i < mPSSMTexArray.size(); i++)
-   {
-      mPSSMTexArray[i] = NULL;
-   }
 }
 
 void PSSMLightShadowMap::_setNumSplits( U32 numSplits, U32 texSize )
@@ -113,18 +108,10 @@ void PSSMLightShadowMap::_setNumSplits( U32 numSplits, U32 texSize )
    mViewport.extent.set(texSize, texSize);
    mViewport.point.set(0, 0);
 
-   mPSSMTexArray.setSize(mNumSplits);
-   for (U32 i = 0; i < mNumSplits; i++)
-   {
-      mPSSMTexArray[i].set(texSize, texSize,
-                           ShadowMapFormat, &ShadowMapProfile,
-                           String::ToString("PSSMLightShadowMap%d",i), 1, 0);
-   }
-
-
    if (mPSSMTextureArray.isNull())
    {
       mPSSMTextureArray = GFX->createTextureArray();
+      mPSSMTextureArray->initDynamic(mTexSize, LightShadowMap::ShadowMapFormat, 1, mNumSplits);
    }
 }
 
@@ -149,7 +136,7 @@ void PSSMLightShadowMap::_calcSplitPos(const Frustum& currFrustum)
       mCascadeSplit[i] = (nearDist + mSplitDist[i]) / clipRange;
    }*/
 
-   for (U32 i = 0; i < mNumSplits; i++)
+   for (U32 i = 1; i < mNumSplits; i++)
    {
       F32 step = (F32) (i+1) / (F32) mNumSplits;
       F32 logSplit = minZ * mPow(ratio, step);
@@ -160,6 +147,7 @@ void PSSMLightShadowMap::_calcSplitPos(const Frustum& currFrustum)
    }
 
    mSplitDist[0] = nearDist;
+   mCascadeSplit[0] = (nearDist + mSplitDist[0]) / clipRange;
    mSplitDist[mNumSplits] = farDist;
    mCascadeSplit[mNumSplits] = (nearDist + mSplitDist[mNumSplits]) / clipRange;
 
@@ -284,7 +272,7 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
 
    for (U32 i = 0; i < mNumSplits; i++)
    {
-      mTarget->attachTexture(GFXTextureTarget::Color0, mPSSMTexArray[i]);
+      mTarget->attachTextureArray(GFXTextureTarget::Color0, mPSSMTextureArray, i);
       mTarget->attachTexture(GFXTextureTarget::DepthStencil, _getDepthTarget(mTexSize, mTexSize));
       GFX->setActiveRenderTarget(mTarget);
       GFX->clear(GFXClearStencil | GFXClearZBuffer | GFXClearTarget, ColorI(255, 255, 255), 1.0f, 0);
@@ -420,12 +408,9 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
    // Release our render target
    GFX->popActiveRenderTarget();
 
-   mPSSMTextureArray->set(mTexSize, mTexSize, mPSSMTexArray.size(), ShadowMapFormat, 1);
+   GFX->clearTextureStateImmediate(0);
 
-   if (!mPSSMTextureArray->fromTextureArray(mPSSMTexArray, mPSSMTexArray.size()))
-   {
-      Con::errorf("PSSMLightShadowMap::_setNumSplits - issue setting up texture array!");
-   }
+   filterShadowMap();
 }
 
 void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, LightingShaderConstants* lsc)
@@ -459,7 +444,7 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
    params->setSafe(lsc->mCascadeScalesSC, cascadeScalesAlignedArray);
    params->setSafe(lsc->mCascadeSplitsSC, mCascadeSplit);
 
-   Point4F lightParams( mLight->getRange().x, p->overDarkFactor.x, 0.0f, 0.0f );
+   Point4F lightParams( mLight->getRange().x, p->overDarkFactor.x, mLight->getLightSize(), 0.0f );
    params->setSafe( lsc->mLightParamsSC, lightParams );
 
    Point2F fadeStartLength(p->fadeStartDist, 0.0f);
@@ -476,6 +461,73 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
    params->setSafe(lsc->mShadowSoftnessConst, p->shadowSoftness * (1.0f / mTexSize));
 
    params->setSafe(lsc->mShadowSampleMethodSC, (S32)(p->shadowMethod));
+}
+
+void PSSMLightShadowMap::filterShadowMap()
+{
+   GFXTextureTargetRef renderTarget = GFX->allocRenderToTextureTarget(false);
+
+   GFXTransformSaver saver;
+
+   ShaderData* prefilterShaderData;
+   GFXShaderRef prefilterShader = Sim::findObject("PrefilterShadowMap", prefilterShaderData) ? prefilterShaderData->getShader() : NULL;
+   if (!prefilterShader)
+   {
+      Con::errorf("filterShadowMap::filterShadowMap() - could not find filterShadowMap");
+      return;
+   }
+
+   GFXShaderConstBufferRef prefilterConsts = prefilterShader->allocConstBuffer();
+   GFXShaderConstHandle* prefilterResolutionSC = prefilterShader->getShaderConstHandle("$resolution");
+   GFXShaderConstHandle* prefilterBlurDirSC = prefilterShader->getShaderConstHandle("$blurDir");
+   GFXShaderConstHandle* prefilterBlurSamplesSC = prefilterShader->getShaderConstHandle("$blurSamples");
+
+   GFXStateBlockDesc desc;
+   desc.zEnable = false;
+   desc.samplersDefined = true;
+   desc.samplers[0].addressModeU = GFXAddressClamp;
+   desc.samplers[0].addressModeV = GFXAddressClamp;
+   desc.samplers[0].addressModeW = GFXAddressClamp;
+   desc.samplers[0].magFilter = GFXTextureFilterLinear;
+   desc.samplers[0].minFilter = GFXTextureFilterLinear;
+   desc.samplers[0].mipFilter = GFXTextureFilterLinear;
+
+   GFXStateBlockRef preStateBlock;
+   preStateBlock = GFX->createStateBlock(desc);
+   GFX->setStateBlock(preStateBlock);
+
+   GFX->pushActiveRenderTarget();
+   GFX->setShader(prefilterShader);
+   GFX->setShaderConstBuffer(prefilterConsts);
+   GFX->setTextureArray(0, mPSSMTextureArray);
+   GFXTextureArrayHandle arrayOut;
+   arrayOut = GFX->createTextureArray();
+   arrayOut->initDynamic(mTexSize, LightShadowMap::ShadowMapFormat, 1, mNumSplits);
+
+   prefilterConsts->setSafe(prefilterResolutionSC, Point2F((F32)mTexSize, (F32)mTexSize));
+   prefilterConsts->setSafe(prefilterBlurDirSC, Point2F(0.0,1.0));
+   prefilterConsts->setSafe(prefilterBlurSamplesSC, 3);
+
+   renderTarget->attachTextureArray(GFXTextureTarget::Color0, arrayOut, 0);
+   GFX->setActiveRenderTarget(renderTarget, false);//we set the viewport ourselves
+   GFX->setViewport(RectI(0, 0, mTexSize, mTexSize));
+   GFX->clear(GFXClearTarget, LinearColorF::BLACK, 1.0f, 0);
+   GFX->drawPrimitive(GFXTriangleList, 0, 1);
+   renderTarget->resolve();
+   GFX->popActiveRenderTarget();
+
+   GFX->clearTextureStateImmediate(0);
+
+   GFX->pushActiveRenderTarget();
+   GFX->setTextureArray(0, arrayOut);
+   prefilterConsts->setSafe(prefilterBlurDirSC, Point2F(1.0, 0.0));
+   renderTarget->attachTextureArray(GFXTextureTarget::Color0, mPSSMTextureArray, 0);
+   GFX->setActiveRenderTarget(renderTarget, false);//we set the viewport ourselves
+   GFX->setViewport(RectI(0, 0, mTexSize, mTexSize));
+   GFX->drawPrimitive(GFXTriangleList, 0, 1);
+   renderTarget->resolve();
+
+   GFX->popActiveRenderTarget();
 }
 
 void PSSMLightShadowMap::_calcPlanesCullForShadowCasters(Vector< Vector<PlaneF> > &out, const Frustum &viewFrustum, const Point3F &_ligthDir)

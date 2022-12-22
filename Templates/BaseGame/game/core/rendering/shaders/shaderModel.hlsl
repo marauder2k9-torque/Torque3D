@@ -33,10 +33,24 @@
 #define TORQUE_TARGET3 SV_Target3
 #define TORQUE_TARGET4 SV_Target4
 #define TORQUE_TARGET5 SV_Target5
+
+//Seperate texture and sampler functions. used for different shadow methods.
+#define TORQUE_UNIFORM_TEXTURE2D(tex,regist) uniform Texture2D texture_##tex : register(T##regist)
+#define TORQUE_UNIFORM_TEXTURE2DARRAY(tex,regist) uniform Texture2DArray texture_##tex : register(T##regist)
+#define TORQUE_SAMPLERSTATE(samplerName, regist) uniform SamplerState samplerName : register(S##regist)
+#define TORQUE_SAMPLERCOMPARISONSTATE(samplerName, regist) uniform SamplerComparisonState samplerName : register(S##regist)
+#define TORQUE_SAMPLETEXTURE(tex, samplerName, coord) texture_##tex.Sample(samplerName, coords)
+#define TORQUE_SAMPLECMPZEROTEXTURE(tex, samplerName, coord, compare) texture_##tex.SampleCmpLevelZero(samplerName, coords,compare)
+#define TORQUE_SAMPLECMPTEXTURE(tex, samplerName, coord, compare) texture_##tex.SampleCmp(samplerName, coords,compare)
+
+
 // Sampler uniforms
 //1D is emulated to a 2D for now
 #define TORQUE_UNIFORM_SAMPLER1D(tex,regist) uniform Texture2D texture_##tex : register(T##regist); uniform SamplerState tex : register(S##regist)
 #define TORQUE_UNIFORM_SAMPLER2D(tex,regist) uniform Texture2D texture_##tex : register(T##regist); uniform SamplerState tex : register(S##regist)
+#define TORQUE_UNIFORM_SAMPLER2DMS(tex,regist) uniform Texture2DMS<float> texture_##tex : register(T##regist); uniform SamplerState tex : register(S##regist)
+#define TORQUE_UNIFORM_SAMPLER2DARRAY(tex,regist) uniform Texture2DArray texture_##tex : register(T##regist); uniform SamplerState tex : register(S##regist)
+#define TORQUE_UNIFORM_SAMPLER2DCMPARRAY(tex,regist) uniform Texture2DArray texture_##tex : register(T##regist); uniform SamplerComparisonState tex : register(S##regist)
 #define TORQUE_UNIFORM_SAMPLER2DCMP(tex,regist) uniform Texture2D texture_##tex : register(T##regist); uniform SamplerComparisonState tex : register(S##regist)
 #define TORQUE_UNIFORM_SAMPLER3D(tex,regist) uniform Texture3D texture_##tex : register(T##regist); uniform SamplerState tex : register(S##regist)
 #define TORQUE_UNIFORM_SAMPLERCUBE(tex,regist) uniform TextureCube texture_##tex : register(T##regist); uniform SamplerState tex : register(S##regist)
@@ -51,6 +65,7 @@
 #define TORQUE_TEXCUBEARRAY(tex,coords) texture_##tex.Sample(tex,coords)
 // The mipmap LOD is specified in coord.w
 #define TORQUE_TEX2DLOD(tex,coords) texture_##tex.SampleLevel(tex,coords.xy,coords.w)
+#define TORQUE_TEX2DLEVEL(tex,coords) texture_##tex.SampleLevel(tex,coords.xyz,coords.w)
 #define TORQUE_TEXCUBELOD(tex,coords) texture_##tex.SampleLevel(tex,coords.xyz,coords.w)
 #define TORQUE_TEXCUBEARRAYLOD(tex,coords,id,lod) texture_##tex.SampleLevel(tex,float4(coords.xyz,id),lod)
 // Tex2d comparison
@@ -58,12 +73,16 @@
 #define TORQUE_TEX2DCMP(tex,coords,compare) texture_##tex.SampleCmp(tex,coords,compare)
 #define TORQUE_TEX2DGATHERRED(tex,coords,offset) texture_##tex.GatherRed(tex,coords,offset)
 #define TORQUE_TEX2DGATHER(tex,coords,compare,offset) texture_##tex.GatherCmp(tex,coords,compare,offset)
-#define TORQUE_TEX2DGETSIZE(tex, outX, outY) texture_##tex.GetDimensions(outX, outY)
+#define TORQUE_TEX2DGETSIZE(tex,outX,outY) texture_##tex.GetDimensions(outX, outY)
+#define TORQUE_TEX2DMSGETSIZE(tex,outX,outY,samples) texture_##tex.GetDimensions(outX, outY, samples)
+#define TORQUE_TEX2DGETSIZEZARRAY(tex,outX,outY,slices) texture_##tex.GetDimensions(outX, outY, slices)
 
 //helper if you want to pass sampler/texture in a function
 //2D
 #define TORQUE_SAMPLER2D(tex) Texture2D texture_##tex, SamplerState tex
+#define TORQUE_SAMPLER2DMS(tex) Texture2DMS texture_##tex, SamplerState tex
 #define TORQUE_SAMPLER2DARRAY(tex) Texture2DArray texture_##tex, SamplerState tex
+#define TORQUE_SAMPLER2DCMPARRAY(tex) Texture2DArray texture_##tex, SamplerComparisonState tex
 #define TORQUE_SAMPLER2D_MAKEARG(tex) texture_##tex, tex
 // Sampler comparison state - use above MAKEARG with this
 #define TORQUE_SAMPLER2DCMP(tex) Texture2D texture_##tex, SamplerComparisonState tex

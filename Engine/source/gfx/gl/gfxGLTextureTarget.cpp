@@ -326,6 +326,11 @@ void GFXGLTextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *tex, 
       mTargets[slot] = NULL;
 }
 
+void GFXGLTextureTarget::attachTextureArray(RenderSlot slot, GFXTextureArray* tex, U32 texSlot, U32 mipLevel/*=0*/)
+{
+   // need to fill this out.
+}
+
 void GFXGLTextureTarget::attachTexture( RenderSlot slot, GFXCubemap *tex, U32 face, U32 mipLevel/*=0*/ )
 {
    // No depth cubemaps, sorry

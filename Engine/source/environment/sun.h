@@ -57,6 +57,7 @@ protected:
    LinearColorF mLightAmbient;
 
    F32 mBrightness;
+   F32 mLightScale;
 
    bool mAnimateSun;
    F32  mTotalTime;

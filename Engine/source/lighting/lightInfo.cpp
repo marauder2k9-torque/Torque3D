@@ -46,6 +46,7 @@ LightInfo::LightInfo()
       mBrightness( 1.0f ),
       mAmbient( 0.0f, 0.0f, 0.0f, 1.0f ), 
       mRange( 1.0f, 1.0f, 1.0f ),
+      mLightSize(10.0f),
       mInnerConeAngle( 90.0f ), 
       mType( Vector ),
       mOuterConeAngle( 90.0f ),
@@ -71,6 +72,7 @@ void LightInfo::set( const LightInfo *light )
    mBrightness = light->mBrightness;
    mAmbient = light->mAmbient;
    mRange = light->mRange;
+   mLightSize = light->mLightSize;
    mInnerConeAngle = light->mInnerConeAngle;
    mOuterConeAngle = light->mOuterConeAngle;
    mType = light->mType;

@@ -41,6 +41,7 @@ class Point2I;
 class PlatformWindow;
 class GFXCubemap;
 class GFXTextureObject;
+class GFXTextureArray;
 
 /// Base class for a target to which GFX can render.
 ///
@@ -179,6 +180,15 @@ public:
    /// @param zOffset  If this is a depth texture, what z level are we 
    ///                 rendering to?
    virtual void attachTexture(RenderSlot slot, GFXTextureObject *tex, U32 mipLevel=0, U32 zOffset = 0) = 0;
+
+   /// Attach a surface to a given slot as part of this render target.
+   ///
+   /// @param slot What slot is used for multiple render target (MRT) effects.
+   ///             Most of the time you'll use Color0.
+   /// @param tex A textureArray and miplevel to bind for rendering, or else NULL/0
+   ///            to clear a slot.
+   /// @param mipLevel What level of this texture are we rendering to?
+   virtual void attachTextureArray(RenderSlot slot, GFXTextureArray* tex, U32 texSlot, U32 mipLevel = 0) = 0;
 
    /// Support binding to cubemaps.
    ///

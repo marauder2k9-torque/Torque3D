@@ -82,6 +82,8 @@ uniform float4 lightParams;
 
 uniform float lightRange;
 uniform float lightInvSqrRange;
+uniform float shadowRes;
+uniform float shadowMapSize;
 uniform float shadowSoftness;
 uniform float4x4 worldToCamera;
 uniform float3x3 worldToLightProj;
@@ -134,22 +136,22 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 	  float3 paraVec = mul( worldToLightProj, -surfaceToLight.L);
 	  float occ = softShadow_filterCube(TORQUE_SAMPLERCUBE_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, paraVec, distToLight, 0, shadowSoftness, surfaceToLight.NdotL);
       float shadowed = saturate( exp(( occ - distToLight ) ) );
-
-   #else
-	  
+     
+   #else                
+	       
 	  float3 paraVec = mul( worldToLightProj, -surfaceToLight.L);
 	  paraVec = paraVec.xzy;
 	  
-	  float len = length(paraVec);
+	  float len = length(paraVec);    
 	  float3 shadowCoord;
-	  shadowCoord.z = distToLight;
-	  float depthShadow;
-	  if(paraVec.z >= 0.0f)
-	  {
-		 shadowCoord.x = (paraVec.x / (2.0f * (1.0f + paraVec.z))) + 0.5;
+	  shadowCoord.z = distToLight; 
+	  float depthShadow; 
+	  if(paraVec.z >= 0.0f)    
+	  { 
+		 shadowCoord.x = (paraVec.x / (2.0f * (1.0f + paraVec.z))) + 0.5; 
 		 shadowCoord.y = 1.0f - ((paraVec.y / (2.0f * (1.0f + paraVec.z))) + 0.5);
 		 shadowCoord.x *= 0.5;
-		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
+		 depthShadow = SampleShadow(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, shadowRes, shadowMapSize, lightParams.z, 0, shadowSoftness, lightParams.y, surfaceToLight.NdotL, 0);
 	  }
 	  else
 	  {
@@ -157,10 +159,10 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 		 shadowCoord.x = 1.0f - (paraVec.x / (2.0f * (1.0f - paraVec.z))) + 0.5;
 		 shadowCoord.y = 1.0f - ((paraVec.y / (2.0f * (1.0f - paraVec.z))) + 0.5);
 		 shadowCoord.x *= 0.5;
-		 depthShadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, 0, shadowSoftness, surfaceToLight.NdotL);
+		 depthShadow = SampleShadow(TORQUE_SAMPLER2D_MAKEARG(shadowMap), IN.pos.xy, ssPos.xy, shadowCoord, shadowRes, shadowMapSize, lightParams.z, 0, shadowSoftness, lightParams.y, surfaceToLight.NdotL, 0);
 	  }
 	  
-	  float shadowed = saturate( exp(( depthShadow - distToLight) ) );
+	  float shadowed = depthShadow;
       
    #endif
    

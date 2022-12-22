@@ -194,6 +194,7 @@ public:
    void Release() override {}
    void setToTexUnit(U32 tuNum) override { }
    void init() override { }
+   void initDynamic(U32 texSize, GFXFormat faceFormat = GFXFormatR8G8B8A8, U32 mipLevels = 0, U32 arraySize = 0)  override {}
 
 protected:
    void _setTexture(const GFXTexHandle& texture, U32 slot) override { }

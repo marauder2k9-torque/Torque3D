@@ -23,6 +23,7 @@
 #include "platform/platform.h"
 #include "gfx/D3D11/gfxD3D11Target.h"
 #include "gfx/D3D11/gfxD3D11Cubemap.h"
+#include "gfx/D3D11/gfxD3D11TextureArray.h"
 #include "gfx/D3D11/gfxD3D11EnumTranslate.h"
 #include "gfx/gfxDebugEvent.h"
 #include "gfx/gfxStringEnumTranslate.h"
@@ -180,6 +181,64 @@ void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *te
 
 }
 
+void GFXD3D11TextureTarget::attachTextureArray(RenderSlot slot, GFXTextureArray* tex, U32 texSlot, U32 mipLevel/*=0*/)
+{
+   GFXDEBUGEVENT_SCOPE(GFXPCD3D11TextureTarget_attachTexture_Cubemap, ColorI::RED);
+
+   AssertFatal(slot < MaxRenderSlotId, "GFXD3D11TextureTarget::attachTexture - out of range slot.");
+
+   // Mark state as dirty so device can know to update.
+   invalidateState();
+
+   // Release what we had, it's definitely going to change.
+   SAFE_RELEASE(mTargetViews[slot]);
+   SAFE_RELEASE(mTargets[slot]);
+   SAFE_RELEASE(mTargetSRViews[slot]);
+
+   mResolveTargets[slot] = NULL;
+
+   // Cast the texture object to D3D...
+   AssertFatal(!tex || static_cast<GFXD3D11TextureArray*>(tex), "GFXD3DTextureTarget::attachTexture - invalid cubemap object.");
+
+   if (slot == Color0)
+   {
+      mTargetSize = Point2I::Zero;
+      mTargetFormat = GFXFormatR8G8B8A8;
+   }
+
+   // Are we clearing?
+   if (!tex)
+   {
+      // Yup - just exit, it'll stay NULL.      
+      return;
+   }
+
+   GFXD3D11TextureArray* texArray = static_cast<GFXD3D11TextureArray*>(tex);
+
+   mTargets[slot] = texArray->get2DTex();
+   mTargets[slot]->AddRef();
+   mTargetViews[slot] = texArray->getRTView(texSlot);
+   mTargetViews[slot]->AddRef();
+   mTargetSRViews[slot] = texArray->getSRView();
+   mTargetSRViews[slot]->AddRef();
+
+   // Update surface size
+   if (slot == Color0)
+   {
+      ID3D11Texture2D* surface = mTargets[Color0];
+      if (surface)
+      {
+         D3D11_TEXTURE2D_DESC sd;
+         surface->GetDesc(&sd);
+         mTargetSize = Point2I(sd.Width, sd.Height);
+
+         S32 format = sd.Format;
+         GFXREVERSE_LOOKUP(GFXD3D11TextureFormat, GFXFormat, format);
+         mTargetFormat = (GFXFormat)format;
+      }
+   }
+
+}
 
 void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXCubemap *tex, U32 face, U32 mipLevel/*=0*/ )
 {

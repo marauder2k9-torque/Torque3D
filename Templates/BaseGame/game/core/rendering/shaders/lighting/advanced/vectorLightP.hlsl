@@ -40,26 +40,22 @@ uniform float3 lightDirection;
 uniform float4 lightColor;
 uniform float4 lightAmbient;
 
-uniform float shadowSoftness;
-
-uniform float4 atlasXOffset;
-uniform float4 atlasYOffset;
 uniform float4 zNearFarInvNearFar;
-uniform float4 lightMapParams;
-uniform float4 overDarkPSSM;
 
+uniform float4 lightParams;
+ 
 uniform float2 fadeStartLength;
-uniform float2 atlasScale;
-
 uniform float4x4 eyeMat;
-uniform float4x4 cameraToWorld;
+uniform float4x4 cameraToWorld; 
 
-// Static Shadows
+// Shadows       
 uniform float4x4 worldToLightProj;
-uniform float4 cascadeSplits;
-
-uniform float4 cascadeOffsets[4];
+uniform float4 cascadeSplits; 
+uniform float4 cascadeOffsets[4];  
 uniform float4 cascadeScales[4];
+uniform float shadowSoftness;
+uniform float shadowRes;
+uniform float shadowMapSize;
 uniform int shadowMethod;
 
 #define USEPROJECTION 1
@@ -95,7 +91,7 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 	  
 	  // Distance to light, in shadowmap space
       float distToLight = pxlPosLightProj.z / pxlPosLightProj.w;
-	  
+	   
 	  uint cascadeId = 3;
 	  [unroll]
 	  for(int i = 3; i >= 0; --i)
@@ -111,38 +107,38 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 		#else
 			if(depth <= cascadeSplits[i])
 			cascadeId = i;
-		#endif
+		#endif 
 	  }
 	  
-	  float3 shadowPos = float3(pxlPosLightProj.xy / pxlPosLightProj.w, pxlPosLightProj.z / pxlPosLightProj.w);
+	  
+	  float3 offset = GetShadowPosOffset(TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap), dotNL, normal) / abs(cascadeScales[cascadeId].z);
+	  float3 samplePos = worldPos + offset;
+	  float3 shadowPos = mul(worldToLightProj, float4(samplePos,1)).xyz;
 	  
 	  float3 shadowPosDX = ddx_fine(shadowPos);
 	  float3 shadowPosDY = ddy_fine(shadowPos);
 	  
+	  shadowPosDX *= cascadeScales[cascadeId].xyz;
+	  shadowPosDY *= cascadeScales[cascadeId].xyz;
+	  
 	  shadowPos *= cascadeScales[cascadeId].xyz;
 	  shadowPos += cascadeOffsets[cascadeId].xyz;
-	  
-	  shadowPosDX *= cascadeScales[cascadeId].xyz;
-	  shadowPosDX += cascadeOffsets[cascadeId].xyz;
-	  
-	  shadowPosDY *= cascadeScales[cascadeId].xyz;
-	  shadowPosDY += cascadeOffsets[cascadeId].xyz;
 	  
 	  // Convert to texcoord space
       shadowPos.xy = 0.5 * shadowPos.xy + float2(0.5, 0.5);
       shadowPos.y = 1.0f - shadowPos.y;
 	  
 	  float3 debugColor = float3(0,0,0);
-	  
+	        
 	  #ifdef PSSM_DEBUG_RENDER
          const float3 CascadeColors[4] =
         {
             float3(1.0f, 0.0, 0.0f),
             float3(0.0f, 1.0f, 0.0f),
-            float3(0.0f, 0.0f, 1.0f),
-            float3(1.0f, 1.0f, 0.0f)
-        };
-		
+            float3(0.0f, 0.0f, 1.0f), 
+            float3(1.0f, 1.0f, 0.0f) 
+        };    
+		     
 		debugColor = CascadeColors[cascadeId];
       #endif
 	  
@@ -153,14 +149,17 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 	  shadowPos,
 	  shadowPosDX,
 	  shadowPosDY,
+	  shadowRes,
+	  shadowMapSize,
+	  lightParams.z,
 	  cascadeId,
 	  shadowSoftness,
-	  overDarkPSSM[cascadeId],
+	  lightParams.y,
 	  dotNL,
 	  shadowMethod));
 	  
-	  #if USEBLEND
-	  
+	  #if USEBLEND      
+	      
 	  if(cascadeId != 3)
 	  {
 	  
@@ -180,28 +179,39 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 			float distToEdge = 1.0f -  max(max(cascadePos.x, cascadePos.y), cascadePos.z);
             fadeFactor = max(distToEdge, fadeFactor);
 		  #endif
-	  
+	   
 		  float alpha = 0.1;
-		  float3 nextCascadePos = float3(pxlPosLightProj.xy / pxlPosLightProj.w, pxlPosLightProj.z / pxlPosLightProj.w);
+		  
+		  float3 nextOffset = GetShadowPosOffset(TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap), dotNL, normal) / abs(cascadeScales[cascadeId + 1].z);
+		  float3 nextSamplePos = worldPos + nextOffset;
+	      float3 nextCascadePos = mul(worldToLightProj, float4(nextSamplePos,1)).xyz;
+		  
+		  float3 nextShadowPosDX = ddx_fine(nextCascadePos);
+		  float3 nextShadowPosDY = ddy_fine(nextCascadePos);
+		  
+		  nextShadowPosDX *= cascadeScales[cascadeId + 1].xyz;
+		  nextShadowPosDY *= cascadeScales[cascadeId + 1].xyz;
+		  
 		  nextCascadePos *= cascadeScales[cascadeId + 1].xyz;
 		  nextCascadePos += cascadeOffsets[cascadeId + 1].xyz;
 		  
 		  nextCascadePos.xy = 0.5 * nextCascadePos.xy + float2(0.5, 0.5);
 		  nextCascadePos.y = 1.0f - nextCascadePos.y;
 		  
-		  float3 nextShadowPosDX = ddx_fine(nextCascadePos);
-		  float3 nextShadowPosDY = ddy_fine(nextCascadePos);
 		  
 		  float nextShadow = SampleShadow(  
 		  				  TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap),
 		  				  screenPos, 
 		  				  texCoord, 
 		  				  nextCascadePos,
-		  				  nextShadowPosDX,
-		  				  nextShadowPosDY,
+						  nextShadowPosDX,
+						  nextShadowPosDY,
+						  shadowRes, 
+						  shadowMapSize,
+						  lightParams.z,
 		  				  cascadeId + 1,
 		  				  shadowSoftness,
-		  				  overDarkPSSM[cascadeId],
+		  				  lightParams.y,
 		  				  dotNL,
 		  				  shadowMethod);
 		  				  
@@ -231,9 +241,9 @@ float4 main(FarFrustumQuadConnectP IN) : SV_TARGET
    if (getFlag(surface.matFlag, 0))
    {   
       return float4(0, 0, 0, 0);
-	}
+   }   
    
-   //create surface to light                           
+   //create surface to light                            
    SurfaceToLight surfaceToLight = createSurfaceToLight(surface, -lightDirection);
 
    //light color might be changed by PSSM_DEBUG_RENDER
@@ -255,11 +265,11 @@ float4 main(FarFrustumQuadConnectP IN) : SV_TARGET
 	  surface.P, 
 	  cascadeOffsets,
 	  cascadeScales,
-	  surfaceToLight.NdotL,
-	  surface.N,
+	  surfaceToLight.NdotL, 
+	  surface.N, 
 	  surface.depth,
 	  shadowMethod);
-
+    
       float shadow = shadowed_colors.a;
 	  
       #ifdef PSSM_DEBUG_RENDER
@@ -269,16 +279,16 @@ float4 main(FarFrustumQuadConnectP IN) : SV_TARGET
       shadow = lerp( shadow, 1.0, saturate( fadeOutAmt ) );
 
       #ifdef PSSM_DEBUG_RENDER
-         if ( fadeOutAmt > 1.0 )
-            lightingColor = 1.0;
-      #endif
-
-   #endif //NO_SHADOW
+         if ( fadeOutAmt > 1.0 ) 
+            lightingColor = 1.0;  
+      #endif  
+ 
+   #endif //NO_SHADOW  
    
    #ifdef DIFFUSE_LIGHT_VIZ
       float3 factor = lightingColor.rgb * max(surfaceToLight.NdotL, 0) * shadow * lightBrightness;
       float3 diffuse = BRDF_GetDebugDiffuse(surface,surfaceToLight) * factor;
-
+ 
       float3 final = max(0.0f, diffuse);
       return float4(final, 0);
    #endif
