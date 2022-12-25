@@ -92,28 +92,28 @@ float4 main( PFXVertToPix IN ) : TORQUE_TARGET0
 {
    float4 sample = hdrDecode( TORQUE_TEX2D( sceneTex, IN.uv0 ) );
    float adaptedLum = TORQUE_TEX2D( luminanceTex, float2( 0.5f, 0.5f ) ).r;
-   float4 bloom = TORQUE_TEX2D( bloomTex, IN.uv2 ); 
-        	    
+   float4 bloom = TORQUE_TEX2D( bloomTex, IN.uv2 );
+   
    // Add the bloom effect.     
-   sample += bloom;         
-   		 	
+   sample += bloom;
+   
 	//Apply Exposure     
-   sample.rgb *= TO_Exposure(sample.rgb, exposureValue, colorFilter); 
-                                        
+   sample.rgb *= TO_Exposure(sample.rgb, exposureValue, colorFilter);
+   
    	//Apply Saturation
-   sample.rgb = TO_Saturation(sample.rgb, saturationValue);	      	    
-                                                         
+   sample.rgb = TO_Saturation(sample.rgb, saturationValue);
+   
    // Apply Screen contrast 
    sample.rgb = ((sample.rgb - 0.5f) * Contrast) + 0.5f;
       
    // Apply Screen brightness
    //sample.rgb += Brightness;
-                                                  
+   
    	 //Apply Color Contrast   
    sample.r = TO_LogContrast(sample.r, logContrast);
    sample.g = TO_LogContrast(sample.g, logContrast);  
    sample.b = TO_LogContrast(sample.b, logContrast);
-                                                                                                     
+   
    //tonemapping - TODO fix up eye adaptation
    if ( g_fEnableToneMapping > 0.0f )  
    {    
@@ -123,16 +123,15 @@ float4 main( PFXVertToPix IN ) : TORQUE_TARGET0
 	   {  	     		 
          adaptedLum = saturate(adaptedLum); 
          float linearExposure = (g_fMiddleGray * rcp(adaptedLum));
-         adapation = log2(max(linearExposure, 0.0001f));     
-		          
+         adapation = log2(max(linearExposure, 0.0001f));
+		 
          sample.rgb = Tonemap(exposureValue * sample.rgb *exp2(adapation)); 
 	   }   
          
         else {
 		
 		  sample.rgb = Tonemap(sample.rgb);
-	    }		
-      	           
+	    }
    }      
       
    return sample;

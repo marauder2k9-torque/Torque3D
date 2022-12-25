@@ -198,20 +198,19 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    kD *= 1.0f - surface.metalness;
 
    float2 envBRDF = TORQUE_TEX2DLOD(BRDFTexture, float4(surface.NdotV, surface.roughness,0,0)).rg;
-   specular *= F * envBRDF.x + surface.f90 * envBRDF.y;
-   irradiance *= kD * surface.baseColor.rgb;
-
-   //AO
-   irradiance *= surface.ao;
+   specular = specular * (F * envBRDF.x + surface.f90 * envBRDF.y);
+   float3 diffuse = irradiance * surface.baseColor.rgb;
    specular *= computeSpecOcclusion(surface.NdotV, surface.ao, surface.roughness);
+   
+   float3 ambient = (kD * diffuse + specular) * surface.ao;
 
    //http://marmosetco.tumblr.com/post/81245981087
    float horizonOcclusion = 1.3;
    float horizon = saturate( 1 + horizonOcclusion * dot(surface.R, surface.N));
    horizon *= horizon;
 #if CAPTURING == 1
-    return float4(lerp((irradiance + specular* horizon), surface.baseColor.rgb,surface.metalness),0);
+    return float4(lerp((ambient + specular* horizon), surface.baseColor.rgb,surface.metalness),0);
 #else
-   return float4((irradiance + specular* horizon)*ambientColor, 0);//alpha writes disabled   
+   return float4((ambient * horizon)*ambientColor, 0);//alpha writes disabled   
 #endif
 }
