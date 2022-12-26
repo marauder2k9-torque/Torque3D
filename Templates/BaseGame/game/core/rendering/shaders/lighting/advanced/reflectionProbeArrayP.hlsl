@@ -194,13 +194,13 @@ float4 main(PFXVertToPix IN) : SV_TARGET
 #endif
    //energy conservation
    float3 F = FresnelSchlickRoughness(surface.NdotV, surface.f0, surface.roughness);
-   float3 kD = 1.0f - F;
+   float3 kS = F;
+   float3 kD = 1.0f - kS;
    kD *= 1.0f - surface.metalness;
 
    float2 envBRDF = TORQUE_TEX2DLOD(BRDFTexture, float4(surface.NdotV, surface.roughness,0,0)).rg;
    specular = specular * (F * envBRDF.x + surface.f90 * envBRDF.y);
    float3 diffuse = irradiance * surface.baseColor.rgb;
-   specular *= computeSpecOcclusion(surface.NdotV, surface.ao, surface.roughness);
    
    float3 ambient = (kD * diffuse + specular) * surface.ao;
 
