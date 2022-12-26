@@ -59,7 +59,7 @@ uniform float shadowMapSize;
 uniform int shadowMethod;
 
 #define USEPROJECTION 1
-#define USEBLEND 1
+#define USEBLEND 0
 #define ERR 0.0005f
 
 float3 GetShadowPosOffset(TORQUE_SAMPLER2DARRAY(sourceShadowMap), in float nDotL, in float3 normal)
@@ -107,13 +107,10 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 		#else
 			if(depth <= cascadeSplits[i])
 			cascadeId = i;
-		#endif 
-	  }
-	  
-	  
-	  float3 offset = GetShadowPosOffset(TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap), dotNL, normal) / abs(cascadeScales[cascadeId].z);
-	  float3 samplePos = worldPos + offset;
-	  float3 shadowPos = mul(worldToLightProj, float4(samplePos,1)).xyz;
+		#endif  
+	  }         
+	         
+	  float3 shadowPos = float3(baseShadowCoord, distToLight);
 	  
 	  float3 shadowPosDX = ddx_fine(shadowPos);
 	  float3 shadowPosDY = ddy_fine(shadowPos);
@@ -125,12 +122,13 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 	  shadowPos += cascadeOffsets[cascadeId].xyz;
 	  
 	  // Convert to texcoord space
+	  // convert all floats to between [0,1]
       shadowPos.xy = 0.5 * shadowPos.xy + float2(0.5, 0.5);
       shadowPos.y = 1.0f - shadowPos.y;
-	  
-	  float3 debugColor = float3(0,0,0);
+	   
+	  float3 debugColor = float3(0,0,0); 
 	        
-	  #ifdef PSSM_DEBUG_RENDER
+	  #ifdef PSSM_DEBUG_RENDER 
          const float3 CascadeColors[4] =
         {
             float3(1.0f, 0.0, 0.0f),
@@ -158,6 +156,7 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 	  dotNL,
 	  shadowMethod));
 	  
+	  
 	  #if USEBLEND      
 	      
 	  if(cascadeId != 3)
@@ -180,25 +179,21 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
             fadeFactor = max(distToEdge, fadeFactor);
 		  #endif
 	   
-		  float alpha = 0.1;
-		  
-		  float3 nextOffset = GetShadowPosOffset(TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap), dotNL, normal) / abs(cascadeScales[cascadeId + 1].z);
-		  float3 nextSamplePos = worldPos + nextOffset;
-	      float3 nextCascadePos = mul(worldToLightProj, float4(nextSamplePos,1)).xyz;
+		  float alpha = 0.01;  
+	      float3 nextCascadePos = float3(baseShadowCoord, distToLight);
 		  
 		  float3 nextShadowPosDX = ddx_fine(nextCascadePos);
 		  float3 nextShadowPosDY = ddy_fine(nextCascadePos);
 		  
 		  nextShadowPosDX *= cascadeScales[cascadeId + 1].xyz;
 		  nextShadowPosDY *= cascadeScales[cascadeId + 1].xyz;
-		  
+		     
 		  nextCascadePos *= cascadeScales[cascadeId + 1].xyz;
 		  nextCascadePos += cascadeOffsets[cascadeId + 1].xyz;
 		  
 		  nextCascadePos.xy = 0.5 * nextCascadePos.xy + float2(0.5, 0.5);
 		  nextCascadePos.y = 1.0f - nextCascadePos.y;
-		  
-		  
+		   
 		  float nextShadow = SampleShadow(  
 		  				  TORQUE_SAMPLER2D_MAKEARG(sourceShadowMap),
 		  				  screenPos, 
@@ -223,6 +218,8 @@ float4 AL_VectorLightShadowCast( TORQUE_SAMPLER2DARRAY(sourceShadowMap),
 	  #endif
 
 	  //shadowSample.a = saturate(shadowSample.a + 1.0 - any(cascadeMask));
+	  
+	  
 	  
 	  return shadowSample;
 };

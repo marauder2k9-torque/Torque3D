@@ -310,10 +310,8 @@ float SampleShadow( TORQUE_SAMPLER2DARRAY(shadowMap),
 	{
 		float2 tap = VogelDisk(i, 16, gradient);
 		tap = shadowPos.xy + penumbraFilter * tap;
-		if ( shadow * (1.0 - shadow) * max( dotNL, 0 ) > esmFactor)
-			shadow += SampleShadowVSM(TORQUE_SAMPLER2D_MAKEARG(shadowMap), float3(tap,shadowPos.z), shadowPosDX, shadowPosDY, cascade);
-		else
-			break;
+		shadow += SampleShadowVSM(TORQUE_SAMPLER2D_MAKEARG(shadowMap), float3(tap,shadowPos.z), shadowPosDX, shadowPosDY, cascade);
+
 	}
 	
 	//shadow = SampleShadowPCF(TORQUE_SAMPLER2D_MAKEARG(shadowMap), screenPos, shadowPos, esmFactor, cascade, filterRadius, dotNL);
@@ -349,10 +347,8 @@ float SampleShadow( TORQUE_SAMPLER2DARRAY(shadowMap),
 	{
 		float2 tap = VogelDisk(i, 16, gradient);
 		tap = shadowPos.xy + penumbraFilter * tap;
-		if ( shadow * (1.0 - shadow) * max( dotNL, 0 ) > esmFactor)
-			shadow += SampleShadowVSM(TORQUE_SAMPLER2D_MAKEARG(shadowMap), float3(tap,shadowPos.z), cascade);
-		else
-			break;
+		shadow += SampleShadowVSM(TORQUE_SAMPLER2D_MAKEARG(shadowMap), float3(tap,shadowPos.z), cascade);
+
 	}
 	
 	//shadow = SampleShadowPCF(TORQUE_SAMPLER2D_MAKEARG(shadowMap), screenPos, shadowPos, esmFactor, cascade, filterRadius, dotNL);

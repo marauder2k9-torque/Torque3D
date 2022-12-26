@@ -84,6 +84,7 @@ bool GuiMaterialPreview::onWake()
    mFakeSun->setDirection( VectorF( 0.0f, 0.707f, -0.707f ) );
 	mFakeSun->setPosition( mFakeSun->getDirection() * -10000.0f );
    mFakeSun->setRange( 2000000.0f );
+   mFakeSun->setCastShadows(false);
 
    return true;
 }
@@ -372,6 +373,9 @@ void GuiMaterialPreview::renderWorld(const RectI &updateRect)
    FogData savedFogData = gClientSceneGraph->getFogData();
    gClientSceneGraph->setFogData( FogData() );  // no fog in preview window
 
+   LIGHTMGR->unregisterAllLights();
+   LIGHTMGR->setSpecialLight(LightManager::slSunLightType, mFakeSun);
+
    RenderPassManager* renderPass = gClientSceneGraph->getDefaultRenderPass();
    SceneRenderState state
    (
@@ -396,8 +400,7 @@ void GuiMaterialPreview::renderWorld(const RectI &updateRect)
    renderPass->assignSharedXform(RenderPassManager::View, MatrixF::Identity);
    renderPass->assignSharedXform(RenderPassManager::Projection, GFX->getProjectionMatrix());
 
-   LIGHTMGR->unregisterAllLights();
-   LIGHTMGR->setSpecialLight( LightManager::slSunLightType, mFakeSun );
+   
 
    if ( mModel )
       mModel->render( rdata );

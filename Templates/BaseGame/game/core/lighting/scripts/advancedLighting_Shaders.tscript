@@ -22,6 +22,9 @@
 
 singleton GFXSamplerStateData(ShadowSampler)
 {
+   addressModeU = GFXAddressClamp;
+   addressModeV = GFXAddressClamp;
+   addressModeW = GFXAddressClamp;
    magFilter = GFXTexureFilterLinear;
    minFilter = GFXTexureFilterLinear;
    mipFilter = GFXTexureFilterLinear;
