@@ -13,6 +13,7 @@ uniform float3 ambientColor;
 uniform float4 rtParams0;
 uniform float4 vsFarPlane;
 uniform float4x4 cameraToWorld;
+uniform float4x4 invCameraMat;
 uniform float2 targetSize;
 
 //cubemap arrays require all the same size. so shared mips# value
@@ -56,13 +57,10 @@ float4 RayMarch(float3 dir, float3 viewPos, float3 screenPos, float2 screenUV, f
 		DepthDiff = samplePos.z - Depth;
 		if(0.0 < DepthDiff)
 		{
-			if(Depth - prevDepth > thickness)
-			{
 				float blend = (prevDepthDiff - DepthDiff) / max(prevDepth, Depth) * 0.5 + 0.5;
 				samplePos = lerp(prevSamplePos, samplePos, blend);
 				mask = lerp(0.0, 1.0, blend);
 				break;
-			}
 		}
 		else
 		{
@@ -93,7 +91,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
 
    //create surface
    float3 viewDir = TORQUE_TEX2D(stochNorm,IN.uv0.xy).rgb;
-   Surface surface = createSurface(float4(viewDir,normDepth.w), TORQUE_SAMPLER2D_MAKEARG(colorBuffer),TORQUE_SAMPLER2D_MAKEARG(matInfoBuffer),
+   Surface surface = createSurface(normDepth, TORQUE_SAMPLER2D_MAKEARG(colorBuffer),TORQUE_SAMPLER2D_MAKEARG(matInfoBuffer),
       IN.uv0.xy, eyePosWorld, IN.wsEyeRay, cameraToWorld);
 
    //early out if emissive
@@ -107,22 +105,19 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    
    float3 viewPos = getView(screenPos);
    
-   // may be replaced with surface.R
-   float3 dir = normalize(mul(cameraToWorld, float4(viewDir,1)).xyz); 
-   
    float jit = random(IN.uv0.xy);
-   float stepSize = (1.0 / (float)32);
+   float stepSize = (1.0 / (float)16);
    stepSize = stepSize * jit + stepSize;
     
    float rayMask = 0.0;
-   float4 rayTrace = RayMarch(viewDir, surface.P, screenPos, IN.uv0.xy, stepSize, 32, 1.0);
+   float4 rayTrace = RayMarch(viewDir, surface.P, screenPos, IN.uv0.xy, stepSize, 16, 1.0);  
    float3 hitUV = rayTrace.xyz;
    rayMask = rayTrace.w; 
 
    #ifdef USE_SSAO_MASK
       float ssao =  1.0 - TORQUE_TEX2D( ssaoMask, viewportCoordToRenderTarget( IN.uv0.xy, rtParams6 ) ).r;
       surface.ao = min(surface.ao, ssao);  
-   #endif
+   #endif 
 
    float alpha = 1;
    float wetAmmout = 0;

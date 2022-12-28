@@ -202,7 +202,7 @@ function reflectionProbeArrayPostFX::SetupSSGI(%this)
 		stateBlock = PFX_SSGIDownsampleStateBlock;
 		texture[0] = "$inTex";
 		target = "$outTex";
-		targetScale = "0.25 0.25";
+		targetScale = "0.5 0.5";
 		targetClear = PFXTargetClear_OnDraw;
 		targetClearColor = "0 0 0 0";
 	};
@@ -219,6 +219,8 @@ function reflectionProbeArrayPostFX::SetupSSGI(%this)
 		targetClearColor = "0 0 0 0";
 	};
 	%ssgiFX.add(%ssgiUp);
+	
+	
 	%this.add(%ssgiFX);
 }
 
