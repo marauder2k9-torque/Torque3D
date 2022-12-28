@@ -214,12 +214,14 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float horizon = saturate( 1 + horizonOcclusion * dot(surface.R, surface.N));
    horizon *= horizon;
    
+   indirect *= float4(lerp((irradiance + specular* horizon), surface.baseColor.rgb, 1-surface.metalness),0);
+   indirect.rgb *= ambientColor;
+    
    float4 sceneOut = float4(0,0,0,0); 
 #if CAPTURING == 1
-    sceneOut = float4(lerp((irradiance + specular* horizon), surface.baseColor.rgb,surface.metalness),0);
+    return float4(lerp((irradiance + specular* horizon), surface.baseColor.rgb,surface.metalness),0);
 #else
-    sceneOut = float4((irradiance + specular* horizon)*ambientColor, 0);//alpha writes disabled    
-#endif
+    return float4((irradiance + specular + indirect.rgb * horizon)*ambientColor, 0); //alpha writes disabled    
+#endif 
 
-	return sceneOut += indirect;
 }

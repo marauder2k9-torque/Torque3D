@@ -893,6 +893,10 @@ void RenderProbeMgr::render( SceneRenderState *state )
          mProbeArrayEffect->setTexture(8, pTexObj);
       }
    }
+   else
+   {
+      mProbeArrayEffect->setTexture(8, GFXTexHandle(NULL));
+   }
 
    mProbeArrayEffect->setShaderConst("$numProbes", (S32)mProbeData.effectiveProbeCount);
    mProbeArrayEffect->setShaderConst("$skylightCubemapIdx", (S32)mProbeData.skyLightIdx);

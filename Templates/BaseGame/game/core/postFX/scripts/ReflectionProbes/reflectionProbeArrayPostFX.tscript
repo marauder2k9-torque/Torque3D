@@ -1,3 +1,54 @@
+//
+singleton ShaderData( PFX_ReflectionProbeArray )
+{
+   DXVertexShaderFile   = $Core::CommonShaderPath @ "/postFX/postFxV.hlsl";
+   DXPixelShaderFile    = $Core::CommonShaderPath @ "/lighting/advanced/reflectionProbeArrayP.hlsl";
+
+   OGLVertexShaderFile  = $Core::CommonShaderPath @ "/postFX/gl/postFxV.glsl";
+   OGLPixelShaderFile   = $Core::CommonShaderPath @ "/lighting/advanced/gl/reflectionProbeArrayP.glsl";
+   
+   samplerNames[0] = "$deferredBuffer";
+   samplerNames[1] = "$colorBuffer";
+   samplerNames[2] = "$matInfoBuffer";
+   samplerNames[3] = "$BRDFTexture";
+   samplerNames[4] = "$specularCubemapAR";
+   samplerNames[5] = "$irradianceCubemapAR";
+   samplerNames[6] = "$WetnessTexture";
+   samplerNames[7] = "$diffuseIndirect";
+   samplerNames[8] = "$ssaoMask";
+
+   pixVersion = 2.0;
+};  
+
+singleton GFXStateBlockData( PFX_ReflectionProbeArrayStateBlock )
+{  
+   alphaDefined = true;
+   alphaTestEnable = true;
+   alphaTestRef = 1;
+   alphaTestFunc = GFXCmpGreaterEqual;
+         
+   // Do a one to one blend.
+   blendDefined = true;
+   blendEnable = true;
+   blendSrc = GFXBlendOne;
+   blendDest = GFXBlendOne;
+   
+   zDefined = true;
+   zEnable = false;
+   zWriteEnable = false;
+   
+   samplersDefined = true;
+   samplerStates[0] = SamplerClampPoint;
+   samplerStates[1] = SamplerClampPoint;
+   samplerStates[2] = SamplerClampPoint;
+   samplerStates[3] = SamplerClampPoint;
+   samplerStates[4] = SamplerClampLinear;
+   samplerStates[5] = SamplerClampLinear;
+   samplerStates[6] = SamplerWrapPoint;
+   samplerStates[7] = SamplerClampPoint;
+   samplerStates[8] = SamplerClampPoint;
+};
+
 singleton ShaderData(PFX_ScreenSpaceGI)
 {
    DXVertexShaderFile   = $Core::CommonShaderPath @ "/postFX/postFxV.hlsl";
@@ -107,6 +158,70 @@ singleton GFXStateBlockData( PFX_SSGIInit )
    samplerStates[2] = SamplerClampPoint;
 };
 
+function reflectionProbeArrayPostFX::onAdd( %this )
+{
+	%this.SetupSSGI();
+	PostFXManager.registerPostEffect(%this);
+}
+
+function reflectionProbeArrayPostFX::SetupSSGI(%this)
+{
+	%ssgiFX = new PostEffect()
+	{
+		// Generate stochastic normals.
+		shader = PFX_ScreenSpaceGI;
+		stateBlock = PFX_SSGIInit;
+		
+		texture[0] = "#deferred";
+		texture[1] = "#color";
+		texture[2] = "#matinfo";
+		allowReflectPass = true;
+		target = "$outTex";
+		targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 0";
+	};
+	
+	%ssgiRay = new PostEffect()
+	{
+		shader = PFX_ScreenSpaceGIRay;
+		stateBlock = PFX_ScreenSpaceGIRayStateBlock;
+		texture[0] = "#deferred";
+		texture[1] = "#color";
+		texture[2] = "#matinfo";
+		texture[7] = "$inTex";
+		allowReflectPass = true;
+		target = "$outTex";
+		targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 0";
+	};
+	%ssgiFX.add(%ssgiRay);
+	
+	%ssgiDown = new PostEffect()
+	{
+		shader = PFX_SSGIDownsample;
+		stateBlock = PFX_SSGIDownsampleStateBlock;
+		texture[0] = "$inTex";
+		target = "$outTex";
+		targetScale = "0.25 0.25";
+		targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 0";
+	};
+	%ssgiFX.add(%ssgiDown);
+	
+	%ssgiUp = new PostEffect()
+	{
+	    internalName = "diffuseIndirect";
+		shader = PFX_SSGIUpsample;
+		stateBlock = PFX_SSGIDownsampleStateBlock;
+		texture[0] = "$inTex";
+		target = "#diffuseIndirect";
+		targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 0";
+	};
+	%ssgiFX.add(%ssgiUp);
+	%this.add(%ssgiFX);
+}
+
 singleton PostEffect( reflectionProbeArrayPostFX )
 {
    // Do not allow the selection effect to work in reflection 
@@ -118,66 +233,12 @@ singleton PostEffect( reflectionProbeArrayPostFX )
    renderPriority = 9999;
    enabled = true;
    
-   // Generate stochastic normals.
-   shader = PFX_ScreenSpaceGI;
-   stateBlock = PFX_SSGIInit;
-
+   shader = PFX_ReflectionProbeArray;
+   stateBlock = PFX_ReflectionProbeArrayStateBlock;
+   
    texture[0] = "#deferred";
    texture[1] = "#color";
    texture[2] = "#matinfo";
+   texture[7] = "#diffuseIndirect";
    allowReflectPass = true;
-   target = "$outTex";
-   targetFormat = "GFXFormatR16G16B16A16F";
-   targetClear = PFXTargetClear_OnDraw;
-   targetClearColor = "0 0 0 0";
-
-   
-   new PostEffect()
-   {
-		shader = PFX_ScreenSpaceGIRay;
-		stateBlock = PFX_ScreenSpaceGIRayStateBlock;
-		texture[0] = "#deferred";
-	    texture[1] = "#color";
-	    texture[2] = "#matinfo";
-		texture[7] = "$inTex";
-	    allowReflectPass = true;
-		target = "$outTex";
-		targetFormat = "GFXFormatR16G16B16A16F";
-        targetClear = PFXTargetClear_OnDraw;
-        targetClearColor = "0 0 0 0";
-   };
-   
-   new PostEffect()
-   {
-		shader = PFX_SSGIDownsample;
-		stateBlock = PFX_SSGIDownsampleStateBlock;
-		texture[0] = "$inTex";
-		target = "$outTex";
-		targetFormat = "GFXFormatR16G16B16A16F";
-        targetClear = PFXTargetClear_OnDraw;
-        targetClearColor = "0 0 0 0";
-   };
-   
-   new PostEffect()
-   {
-		shader = PFX_SSGIUpsample;
-		stateBlock = PFX_SSGIDownsampleStateBlock;
-		texture[0] = "$inTex";
-		target = "$outTex";
-		targetFormat = "GFXFormatR16G16B16A16F";
-        targetClear = PFXTargetClear_OnDraw;
-        targetClearColor = "0 0 0 0";
-   };
-   
-   new PostEffect()
-   {
-	   shader = PFX_ReflectionProbeArray;
-	   stateBlock = PFX_ReflectionProbeArrayStateBlock;
-
-	   texture[0] = "#deferred";
-	   texture[1] = "#color";
-	   texture[2] = "#matinfo";
-	   texture[7] = "$inTex";
-	   allowReflectPass = true;
-   };
 };
