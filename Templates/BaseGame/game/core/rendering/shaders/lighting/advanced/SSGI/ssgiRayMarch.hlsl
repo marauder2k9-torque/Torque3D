@@ -1,8 +1,9 @@
-#include "../../postFX/postFx.hlsl"
-#include "../../shaderModel.hlsl"
-#include "../../shaderModelAutoGen.hlsl"
-#include "../../lighting.hlsl"
-#include "../../brdf.hlsl"
+#include "../../../postFX/postFx.hlsl"
+#include "../../../shaderModel.hlsl"
+#include "../../../shaderModelAutoGen.hlsl"
+#include "../../../lighting.hlsl"
+#include "../../../brdf.hlsl"
+
 
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
 TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 1);
@@ -12,6 +13,7 @@ uniform float3 ambientColor;
 uniform float4 rtParams0;
 uniform float4 vsFarPlane;
 uniform float4x4 cameraToWorld;
+uniform float2 targetSize;
 
 //cubemap arrays require all the same size. so shared mips# value
 uniform float cubeMips;
@@ -21,9 +23,7 @@ uniform int numProbes;
 TORQUE_UNIFORM_SAMPLERCUBEARRAY(specularCubemapAR, 4);
 TORQUE_UNIFORM_SAMPLERCUBEARRAY(irradianceCubemapAR, 5);
 TORQUE_UNIFORM_SAMPLER2D(WetnessTexture, 6);
-
-TORQUE_UNIFORM_SAMPLER2D(diffuseIndirect, 7);
-
+TORQUE_UNIFORM_SAMPLER2D(stochNorm, 7);
 #ifdef USE_SSAO_MASK
 TORQUE_UNIFORM_SAMPLER2D(ssaoMask, 8);
 uniform float4 rtParams7;
@@ -37,12 +37,54 @@ uniform float4x4  worldToObjArray[MAX_PROBES];
 uniform float4    refScaleArray[MAX_PROBES];
 uniform float4    probeConfigData[MAX_PROBES];   //r,g,b/mode,radius,atten
 
-#if DEBUGVIZ_CONTRIB
-uniform float4    probeContribColors[MAX_PROBES];
-#endif
-
 uniform int skylightCubemapIdx;
 uniform int SkylightDamp;
+
+float4 RayMarch(float3 dir, float3 viewPos, float3 screenPos, float2 screenUV, float stepSize, int stepCount, float thickness)
+{
+	float mask = 0.0; 
+	float3 samplePos = float3(screenPos.xy * 0.5 + 0.5, screenPos.z);
+	float Depth;
+    float DepthDiff = 0;
+	
+	float prevDepth = samplePos.z;
+	float prevDepthDiff = 0.0;
+	float3 prevSamplePos = samplePos;
+	for(int i = 0; i < stepCount; i++)
+	{
+		Depth = TORQUE_DEFERRED_UNCONDITION( deferredBuffer, samplePos.xy).w;
+		DepthDiff = samplePos.z - Depth;
+		if(0.0 < DepthDiff)
+		{
+			if(Depth - prevDepth > thickness)
+			{
+				float blend = (prevDepthDiff - DepthDiff) / max(prevDepth, Depth) * 0.5 + 0.5;
+				samplePos = lerp(prevSamplePos, samplePos, blend);
+				mask = lerp(0.0, 1.0, blend);
+				break;
+			}
+		}
+		else
+		{
+			prevDepthDiff = -Depth;
+			prevSamplePos = samplePos;
+		}
+		prevDepth = Depth;
+		samplePos += dir * stepSize;
+	}
+	
+	return float4(samplePos, mask);
+}
+
+float3 getView(float3 screenPos)
+{
+	float4 viewPos = mul(cameraToWorld, float4(screenPos, 1));
+	return viewPos.xyz / viewPos.w;
+}
+
+float random (float2 uv) {
+    return frac(sin(dot(uv, float2(12.9898, 78.233))) * 43758.5453123); //simple random function
+}
 
 float4 main(PFXVertToPix IN) : SV_TARGET
 {
@@ -50,7 +92,8 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float4 normDepth = TORQUE_DEFERRED_UNCONDITION(deferredBuffer, IN.uv0.xy);
 
    //create surface
-   Surface surface = createSurface(normDepth, TORQUE_SAMPLER2D_MAKEARG(colorBuffer),TORQUE_SAMPLER2D_MAKEARG(matInfoBuffer),
+   float3 viewDir = TORQUE_TEX2D(stochNorm,IN.uv0.xy).rgb;
+   Surface surface = createSurface(float4(viewDir,normDepth.w), TORQUE_SAMPLER2D_MAKEARG(colorBuffer),TORQUE_SAMPLER2D_MAKEARG(matInfoBuffer),
       IN.uv0.xy, eyePosWorld, IN.wsEyeRay, cameraToWorld);
 
    //early out if emissive
@@ -58,9 +101,27 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    {
       return float4(surface.albedo, 0);
    }
+   
+   // SSGI raymarch - need this to feed into the uv coord for cubemaps
+   float3 screenPos = float3(IN.uv0.xy * 2 - 1, normDepth.a);
+   
+   float3 viewPos = getView(screenPos);
+   
+   // may be replaced with surface.R
+   float3 dir = normalize(mul(cameraToWorld, float4(viewDir,1)).xyz); 
+   
+   float jit = random(IN.uv0.xy);
+   float stepSize = (1.0 / (float)16);
+   stepSize = stepSize * jit + stepSize;
+    
+   float rayMask = 0.0;
+   float4 rayTrace = RayMarch(surface.R, surface.P, screenPos, IN.uv0.xy, stepSize, 16, 1.0); 
+    
+   float3 hitUV = rayTrace.xyz;
+   rayMask = rayTrace.w; 
 
    #ifdef USE_SSAO_MASK
-      float ssao =  1.0 - TORQUE_TEX2D( ssaoMask, viewportCoordToRenderTarget( IN.uv0.xy, rtParams7 ) ).r;
+      float ssao =  1.0 - TORQUE_TEX2D( ssaoMask, viewportCoordToRenderTarget( IN.uv0.xy, rtParams6 ) ).r;
       surface.ao = min(surface.ao, ssao);  
    #endif
 
@@ -125,25 +186,6 @@ float4 main(PFXVertToPix IN) : SV_TARGET
             contribution[i] = blendFactor[i]/blendFacSum*blendCap;
          }
       }
-      
-#if DEBUGVIZ_ATTENUATION == 1
-      float contribAlpha = 0;
-      for (i = 0; i < numProbes; i++)
-      {
-         contribAlpha += contribution[i];
-      }
-
-      return float4(contribAlpha,contribAlpha,contribAlpha, 1);
-#endif
-
-#if DEBUGVIZ_CONTRIB == 1
-      float3 finalContribColor = float3(0, 0, 0);
-      for (i = 0; i < numProbes; i++)
-      {
-         finalContribColor += contribution[i] * float3(fmod(i+1,2),fmod(i+1,3),fmod(i+1,4));
-      }
-      return float4(finalContribColor, 1);
-#endif
    }
    for (i = 0; i < numProbes; i++)
    {
@@ -162,13 +204,8 @@ float4 main(PFXVertToPix IN) : SV_TARGET
       wetAmmout += alpha;
    dampen(surface, TORQUE_SAMPLER2D_MAKEARG(WetnessTexture), accumTime, wetAmmout*dampness);
    
-   // Radiance (Specular)
-#if DEBUGVIZ_SPECCUBEMAP == 0
+   float3 sampleColor = float3(0.0, 0.0, 0.0);
    float lod = roughnessToMipLevel(surface.roughness, cubeMips);
-#elif DEBUGVIZ_SPECCUBEMAP == 1
-   float lod = 0;
-#endif
-
 #if SKYLIGHT_ONLY == 0
    for (i = 0; i < numProbes; i++)
    {
@@ -176,50 +213,31 @@ float4 main(PFXVertToPix IN) : SV_TARGET
       if (contrib > 0.0f)
       {
          int cubemapIdx = probeConfigData[i].a;
-         float3 dir = boxProject(surface.P, surface.R, worldToObjArray[i], refScaleArray[i].xyz, refPosArray[i].xyz);
 
-         irradiance += TORQUE_TEXCUBEARRAYLOD(irradianceCubemapAR, dir, cubemapIdx, 0).xyz * contrib;
-         specular += TORQUE_TEXCUBEARRAYLOD(specularCubemapAR, dir, cubemapIdx, lod).xyz * contrib;
+         irradiance += TORQUE_TEXCUBEARRAYLOD(irradianceCubemapAR, hitUV, cubemapIdx, 0).xyz * contrib;
+         specular += TORQUE_TEXCUBEARRAYLOD(specularCubemapAR, hitUV, cubemapIdx, lod).xyz * contrib;
       }
    }
 #endif
    if(skylightCubemapIdx != -1 && alpha >= 0.001)
    {
-      irradiance = lerp(irradiance,TORQUE_TEXCUBEARRAYLOD(irradianceCubemapAR, surface.R, skylightCubemapIdx, 0).xyz,alpha);
-      specular = lerp(specular,TORQUE_TEXCUBEARRAYLOD(specularCubemapAR, surface.R, skylightCubemapIdx, lod).xyz,alpha);
+      irradiance = lerp(irradiance,TORQUE_TEXCUBEARRAYLOD(irradianceCubemapAR, hitUV, skylightCubemapIdx, 0).xyz,alpha);
+      specular = lerp(specular,TORQUE_TEXCUBEARRAYLOD(specularCubemapAR, hitUV, skylightCubemapIdx, lod).xyz,alpha);
    }
-
-#if DEBUGVIZ_SPECCUBEMAP == 1 && DEBUGVIZ_DIFFCUBEMAP == 0
-   return float4(specular, 1);
-#elif DEBUGVIZ_DIFFCUBEMAP == 1
-   return float4(irradiance, 1);
-#endif
-
-   float4 indirect = TORQUE_TEX2D( diffuseIndirect, IN.uv0.xy);
    
    //energy conservation
    float3 F = FresnelSchlickRoughness(surface.NdotV, surface.f0, surface.roughness);
-   float3 kD = 1.0f - F;
+   float3 kS = F;
+   float3 kD = 1.0f - kS;
    kD *= 1.0f - surface.metalness;
 
    float2 envBRDF = TORQUE_TEX2DLOD(BRDFTexture, float4(surface.NdotV, surface.roughness,0,0)).rg;
-   specular *= F * envBRDF.x + surface.f90 * envBRDF.y;
-   irradiance *= kD * surface.baseColor.rgb;
-
-   //AO
-   irradiance *= surface.ao;
-   specular *= computeSpecOcclusion(surface.NdotV, surface.ao, surface.roughness);
-   //http://marmosetco.tumblr.com/post/81245981087
-   float horizonOcclusion = 1.3;
-   float horizon = saturate( 1 + horizonOcclusion * dot(surface.R, surface.N));
-   horizon *= horizon;
+   specular = specular * (F * envBRDF.x + surface.f90 * envBRDF.y);
+   float3 diffuse = irradiance * surface.baseColor.rgb;
    
-   float4 sceneOut = float4(0,0,0,0); 
-#if CAPTURING == 1
-    sceneOut = float4(lerp((irradiance + specular* horizon), surface.baseColor.rgb,surface.metalness),0);
-#else
-    sceneOut = float4((irradiance + specular* horizon)*ambientColor, 0);//alpha writes disabled    
-#endif
+   float3 ambient = (kD * diffuse + specular) * surface.ao;
 
-	return sceneOut += indirect;
+	sampleColor = TORQUE_TEX2D(colorBuffer, hitUV.xy).rgb;
+	sampleColor = lerp(ambient, sampleColor, alpha);
+	return float4(sampleColor,1);
 }

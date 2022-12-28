@@ -890,13 +890,10 @@ void RenderProbeMgr::render( SceneRenderState *state )
       if (pTexObj)
       {
          mProbeArrayEffect->setShaderMacro("USE_SSAO_MASK");
-         mProbeArrayEffect->setTexture(7, pTexObj);
+         mProbeArrayEffect->setTexture(8, pTexObj);
       }
    }
-   else
-   {
-      mProbeArrayEffect->setTexture(7, GFXTexHandle(NULL));
-   }
+
    mProbeArrayEffect->setShaderConst("$numProbes", (S32)mProbeData.effectiveProbeCount);
    mProbeArrayEffect->setShaderConst("$skylightCubemapIdx", (S32)mProbeData.skyLightIdx);
    mProbeArrayEffect->setShaderConst(ShaderGenVars::skylightDamp, mProbeData.skyLightDamp);
