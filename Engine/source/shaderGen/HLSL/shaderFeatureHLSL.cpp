@@ -1049,7 +1049,10 @@ void DiffuseMapFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
    }
    else
    {
-       meta->addStatement(new GenOp("@ = @.Sample(@, @);\r\n", colorDecl, diffuseMapTex, diffuseMap, inTex));
+      meta->addStatement(new GenOp("@ = @.Sample(@, @);\r\n", colorDecl, diffuseMapTex, diffuseMap, inTex));
+
+      // convert red to linear. this should be wrapped in a function.
+      meta->addStatement(new GenOp("\r\n@.rgb = rgbToSrgb(@.rgb);\r\n", diffColor, diffColor));
 
       meta->addStatement(new GenOp("   @;\r\n", assignColor(diffColor, Material::Mul, NULL, targ)));
    }   

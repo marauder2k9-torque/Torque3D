@@ -168,6 +168,7 @@ struct SurfaceToLight
 	float NdotL;			// cos(angle between N and L)
 	float HdotV;			// cos(angle between H and V) = HdotL = cos(angle between H and L)
 	float NdotH;			// cos(angle between N and H)
+	float LdotH;
 };
 
 inline SurfaceToLight createSurfaceToLight(in Surface surface, in float3 L)
@@ -179,6 +180,7 @@ inline SurfaceToLight createSurfaceToLight(in Surface surface, in float3 L)
 	surfaceToLight.NdotL = saturate(dot(surfaceToLight.L, surface.N));
 	surfaceToLight.HdotV = saturate(dot(surfaceToLight.H, surface.V));
 	surfaceToLight.NdotH = saturate(dot(surfaceToLight.H, surface.N));
+	surfaceToLight.LdotH = saturate(dot(surfaceToLight.L, surfaceToLight.H));
 
 	return surfaceToLight;
 }
@@ -224,13 +226,13 @@ float getDistanceAtt( float3 unormalizedLightVector , float invSqrAttRadius )
 float3 evaluateStandardBRDF(Surface surface, SurfaceToLight surfaceToLight)
 {
    //lambert diffuse
-   float3 Fd = surface.albedo.rgb * M_1OVER_PI_F;
+   float3 Fd = surface.albedo.rgb * Fd_Burley(surface.NdotV, surfaceToLight.NdotL, surfaceToLight.LdotH, surface.linearRoughnessSq);
     
    //GGX specular
    float3 F = F_Schlick(surface.f0, surface.f90, surfaceToLight.HdotV);
    float Vis = V_SmithGGXCorrelated(surface.NdotV, surfaceToLight.NdotL, surface.linearRoughnessSq);
    float D = D_GGX(surfaceToLight.NdotH, surface.linearRoughnessSq);
-   float3 Fr = D * F * Vis;
+   float3 Fr = (D * Vis) * F;
 
 #if CAPTURING == 1
     return saturate(lerp(Fd + Fr,surface.f0,surface.metalness));

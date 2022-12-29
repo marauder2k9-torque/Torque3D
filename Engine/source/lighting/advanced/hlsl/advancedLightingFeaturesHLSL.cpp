@@ -313,12 +313,12 @@ void DeferredBumpFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
       //
       Var *gbNormal = new Var;
       gbNormal->setName( "gbNormal" );
-      gbNormal->setType( "half3" );
+      gbNormal->setType( "float3" );
       LangElement *gbNormalDecl = new DecOp( gbNormal );
 
       // Normalize is done later... 
       // Note: The reverse mul order is intentional. Affine matrix.
-      meta->addStatement( new GenOp( "   @ = (half3)mul( @.xyz, @ );\r\n", gbNormalDecl, bumpNorm, viewToTangent ) );
+      meta->addStatement( new GenOp( "   @ = mul( @.xyz, @ );\r\n", gbNormalDecl, bumpNorm, viewToTangent ) );
 
       output = meta;
       return;

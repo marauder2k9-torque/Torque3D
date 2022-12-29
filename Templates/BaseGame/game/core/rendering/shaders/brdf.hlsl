@@ -41,6 +41,11 @@ float3 F_Schlick(float3 f0, float f90, float u)
 	return f0 + (f90 - f0) * pow(1.f - u, 5.f);
 }
 
+float F_Schlick(float f0, float f90, float u)
+{
+	return f0 + (f90 - f0) * pow(1.f - u, 5.f);
+} 
+
 float3 FresnelSchlickRoughness(float cosTheta, float3 F0, float roughness)
 {
 	float3 ret = float3(0.0, 0.0, 0.0);
@@ -71,6 +76,13 @@ float D_GGX(float NdotH, float alphaRoughnessSq)
 {
 	float f = (NdotH * alphaRoughnessSq - NdotH) * NdotH + 1;
 	return alphaRoughnessSq / (M_PI_F * f * f);
+}
+
+float Fd_Burley(float NoV, float NoL, float LoH, float roughness) {
+    float f90 = 0.5 + 2.0 * roughness * LoH * LoH;
+    float lightScatter = F_Schlick(NoL, 1.0, f90);
+    float viewScatter = F_Schlick(NoV, 1.0, f90);
+    return lightScatter * viewScatter * M_1OVER_PI_F;
 }
 
 #endif

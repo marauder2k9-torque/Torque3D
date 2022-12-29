@@ -29,9 +29,9 @@ uniform float2 oneOverTargetSize;
 float4 main(PFXVertToPix IN) : SV_TARGET
 {
   float4 upSample = float4(0, 0, 0, 0);
-  float x = 0.01;
-  float y = 0.01;
-   
+  float x = 0.008;
+  float y = 0.008;
+    
   float3 a = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y + y)).rgb;
   float3 b = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y + y)).rgb;
   float3 c = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y + y)).rgb;

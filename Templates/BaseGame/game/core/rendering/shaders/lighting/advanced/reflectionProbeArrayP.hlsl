@@ -63,8 +63,10 @@ float4 main(PFXVertToPix IN) : SV_TARGET
       float ssao =  1.0 - TORQUE_TEX2D( ssaoMask, viewportCoordToRenderTarget( IN.uv0.xy, rtParams7 ) ).r;
       surface.ao = min(surface.ao, ssao);  
    #endif
-
-   float alpha = 1;
+   
+   float4 indirect = TORQUE_TEX2D( diffuseIndirect, IN.uv0.xy);
+   float alpha = indirect.a;
+   
    float wetAmmout = 0;
 #if SKYLIGHT_ONLY == 0
    int i = 0;
@@ -77,7 +79,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float contribution[MAX_PROBES];
    
    float blendCap = 0;
-   if (alpha > 0)
+   if (alpha < 1)
    {
       //Process prooooobes
       for (i = 0; i < numProbes; i++)
@@ -122,7 +124,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
          {
             //normalize, but in the range of the highest value applied
             //to preserve blend vs skylight
-            contribution[i] = blendFactor[i]/blendFacSum*blendCap;
+            contribution[i] = blendFactor[i]/blendFacSum*blendCap*(1-indirect.a);
          }
       }
       
@@ -168,7 +170,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
 #elif DEBUGVIZ_SPECCUBEMAP == 1
    float lod = 0;
 #endif
-
+	
 #if SKYLIGHT_ONLY == 0
    for (i = 0; i < numProbes; i++)
    {
@@ -187,15 +189,16 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    {
       irradiance = lerp(irradiance,TORQUE_TEXCUBEARRAYLOD(irradianceCubemapAR, surface.R, skylightCubemapIdx, 0).xyz,alpha);
       specular = lerp(specular,TORQUE_TEXCUBEARRAYLOD(specularCubemapAR, surface.R, skylightCubemapIdx, lod).xyz,alpha);
-   }
-
+   }  
+   irradiance = lerp(irradiance,indirect.rgb,indirect.a);
+   
 #if DEBUGVIZ_SPECCUBEMAP == 1 && DEBUGVIZ_DIFFCUBEMAP == 0
    return float4(specular, 1);
 #elif DEBUGVIZ_DIFFCUBEMAP == 1
    return float4(irradiance, 1);
 #endif
 
-   float4 indirect = TORQUE_TEX2D( diffuseIndirect, IN.uv0.xy);
+   
    
    //energy conservation
    float3 F = FresnelSchlickRoughness(surface.NdotV, surface.f0, surface.roughness);
@@ -213,13 +216,15 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float horizonOcclusion = 1.3;
    float horizon = saturate( 1 + horizonOcclusion * dot(surface.R, surface.N));
    horizon *= horizon;
-   
-   indirect *= float4(lerp((irradiance + specular* horizon), surface.baseColor.rgb,1-surface.metalness),0);
     
+	indirect.rgb *= surface.baseColor.rgb;
+	 
+	float4 sampleCol = float4(0,0,0,0);
 #if CAPTURING == 1
     return float4(lerp((irradiance + specular* horizon), surface.baseColor.rgb,surface.metalness),0);
-#else
-    return float4((irradiance + specular * horizon)*ambientColor, 0) + indirect; //alpha writes disabled
+#else 
+    sampleCol = float4((irradiance + specular * horizon)*ambientColor, 0); //alpha writes disabled
 #endif 
+	return sampleCol; 
 
 }

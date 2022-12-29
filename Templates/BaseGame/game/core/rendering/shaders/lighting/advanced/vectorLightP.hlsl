@@ -27,8 +27,8 @@
 #include "../../torque.hlsl"
 #include "../../lighting.hlsl"
 #include "../shadowMap/shadowMapIO_HLSL.h"
-#include "softShadow.hlsl"
-
+#include "softShadow.hlsl"   
+  
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
 TORQUE_UNIFORM_SAMPLER2DARRAY(shadowMap, 1);
 TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 2);

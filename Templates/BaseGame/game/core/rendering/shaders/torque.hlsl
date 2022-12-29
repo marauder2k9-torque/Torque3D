@@ -374,5 +374,37 @@ float3 getCubeDir(int face, float2 uv)
 	return normalize(dir);
 }
 
+//RGB->SRGB
+float rgbToSrgb(float col)
+{
+	if(col < 0.0031308)
+	{
+		return (col < 0.0) ? 0.0 : col * 12.92;
+	}
+	
+	return 1.055 * pow(col, 1.0 / 2.4) - 0.055;
+}
+
+float3 rgbToSrgb(float3 col)
+{
+	return float3(rgbToSrgb(col.r), rgbToSrgb(col.g), rgbToSrgb(col.b));
+}
+
+//SRGB->RGB
+float srgbToRgb(float col)
+{
+	if(col < 0.04045)
+	{
+		return (col < 0.0) ? 0.0 : col * (1.0/12.92);
+	}
+	
+	return pow((col + 0.055) * (1.0 / 1.055), 2.4);
+}
+
+float3 srgbToRgb(float3 col)
+{
+	return float3(srgbToRgb(col.r), srgbToRgb(col.g), srgbToRgb(col.b));
+}
+
 #define sqr(a)		((a)*(a))
 #endif // _TORQUE_HLSL_

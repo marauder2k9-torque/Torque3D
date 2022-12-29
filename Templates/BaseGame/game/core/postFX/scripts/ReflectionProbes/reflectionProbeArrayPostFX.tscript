@@ -69,14 +69,8 @@ singleton ShaderData(PFX_ScreenSpaceGIRay)
    samplerNames[0] = "$deferredBuffer";
    samplerNames[1] = "$colorBuffer";
    samplerNames[2] = "$matInfoBuffer";
-   samplerNames[3] = "$BRDFTexture";
-   samplerNames[4] = "$specularCubemapAR";
-   samplerNames[5] = "$irradianceCubemapAR";
-   samplerNames[6] = "$WetnessTexture";
-   samplerNames[7] = "$stochNorm";
-   samplerNames[8] = "$ssaoMask";
-   
-   
+   samplerNames[3] = "$stochNorm";
+    
    pixVersion = 2.0;
 };
 
@@ -122,11 +116,6 @@ singleton GFXStateBlockData( PFX_ScreenSpaceGIRayStateBlock )
    samplerStates[1] = SamplerClampPoint;
    samplerStates[2] = SamplerClampPoint;
    samplerStates[3] = SamplerClampPoint;
-   samplerStates[4] = SamplerClampLinear;
-   samplerStates[5] = SamplerClampLinear;
-   samplerStates[6] = SamplerWrapPoint;
-   samplerStates[7] = SamplerClampPoint;
-   samplerStates[8] = SamplerClampPoint;
 };
 
 singleton GFXStateBlockData( PFX_SSGIDownsampleStateBlock )
@@ -188,7 +177,7 @@ function reflectionProbeArrayPostFX::SetupSSGI(%this)
 		texture[0] = "#deferred";
 		texture[1] = "#color";
 		texture[2] = "#matinfo";
-		texture[7] = "$inTex";
+		texture[3] = "$inTex";
 		allowReflectPass = true;
 		target = "$outTex";
 		targetClear = PFXTargetClear_OnDraw;

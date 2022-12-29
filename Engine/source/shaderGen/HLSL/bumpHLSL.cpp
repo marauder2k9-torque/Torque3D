@@ -456,15 +456,15 @@ void NormalsOutFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
       // precision for normals and performs much better
       // on older Geforce cards.
       //
-      meta->addStatement( new GenOp( "   @ = normalize( half3( @ ) );\r\n", wsNormal, wsNormal ) );      
+      meta->addStatement( new GenOp( "   @ = normalize(  @ );\r\n", wsNormal, wsNormal ) );      
    }
 
    LangElement *normalOut;
    Var *outColor = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::DefaultTarget));
    if ( outColor && !fd.features[MFT_AlphaTest] )
-      normalOut = new GenOp( "float4( ( -@ + 1 ) * 0.5, @.a )", wsNormal, outColor );
+      normalOut = new GenOp( "float4( ( @ + 1 ) * 0.5, @.a )", wsNormal, outColor );
    else
-      normalOut = new GenOp( "float4( ( -@ + 1 ) * 0.5, 1 )", wsNormal );
+      normalOut = new GenOp( "float4( ( @ + 1 ) * 0.5, 1 )", wsNormal );
 
    meta->addStatement( new GenOp( "   @;\r\n", 
       assignColor( normalOut, Material::None ) ) );
