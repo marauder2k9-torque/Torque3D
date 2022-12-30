@@ -32,7 +32,7 @@ float4 RayMarch(float3 dir, float3 viewPos, float3 screenPos, float2 screenUV, f
 		{
 				float blend = (prevDepthDiff - DepthDiff) / max(prevDepth, Depth) * 0.5 + 0.5;
 				samplePos = lerp(prevSamplePos, samplePos, blend);
-				mask = lerp(0.0, 1.0, blend);
+				mask = blend;
 				break;
 		}
 		else
@@ -79,14 +79,15 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float3 viewPos = getView(screenPos);
    
    float jit = random(IN.uv0.xy);
-   float stepSize = (1.0 / (float)32);
+   float stepSize = (1.0 / (float)16);
    stepSize = stepSize * jit + stepSize;
     float3 dir = normalize(mul(cameraToWorld, float4(viewDir,1)).xyz);
    float rayMask = 0.0;
-   float4 rayTrace = RayMarch(viewDir, surface.P, screenPos, IN.uv0.xy, stepSize, 32, 1.0);  
-   float3 hitUV = rayTrace.xyz;  
-   rayMask = rayTrace.w;
+   float4 rayTrace = RayMarch(viewDir, surface.P, screenPos, IN.uv0.xy, stepSize,16, 1.0);  
+   float3 hitUV = rayTrace.xyz;
+   rayMask = rayTrace.w; 
+   rayMask = dot(viewDir,mul(invCameraMat, float4(surface.N, 1)).xyz);
 
-	float3 sampleColor = TORQUE_TEX2D(colorBuffer, hitUV.xy).rgb;
+	float3 sampleColor = TORQUE_TEX2D(colorBuffer, hitUV.xy).rgb * 5.0;
 	return float4(sampleColor,rayMask);
 }

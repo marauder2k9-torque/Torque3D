@@ -32,28 +32,27 @@ float4 main(PFXVertToPix IN) : SV_TARGET
   float x = oneOverTargetSize.x;
   float y = oneOverTargetSize.y;
   
-  float3 a = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - 2 * x, IN.uv0.y + 2*y)).rgb;
-  float3 b = TORQUE_TEX2D(inputTex, float2(IN.uv0.x		   , IN.uv0.y + 2*y)).rgb;
-  float3 c = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + 2 * x, IN.uv0.y + 2*y)).rgb;
+  float4 a = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - 2 * x, IN.uv0.y + 2*y));
+  float4 b = TORQUE_TEX2D(inputTex, float2(IN.uv0.x		   , IN.uv0.y + 2*y));
+  float4 c = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + 2 * x, IN.uv0.y + 2*y));
+	   
+  float4 d = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - 2 * x, IN.uv0.y));
+  float4 e = TORQUE_TEX2D(inputTex, float2(IN.uv0.x		   , IN.uv0.y));
+  float4 f = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + 2 * x, IN.uv0.y));
+	   
+  float4 g = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - 2 * x, IN.uv0.y - 2*y));
+  float4 h = TORQUE_TEX2D(inputTex, float2(IN.uv0.x		   , IN.uv0.y - 2*y));
+  float4 i = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + 2 * x, IN.uv0.y - 2*y));
+	   
+  float4 j = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y + y));
+  float4 k = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y + y));
+  float4 l = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y - y));
+  float4 m = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y - y));
   
-  float3 d = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - 2 * x, IN.uv0.y)).rgb;
-  float3 e = TORQUE_TEX2D(inputTex, float2(IN.uv0.x		   , IN.uv0.y)).rgb;
-  float3 f = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + 2 * x, IN.uv0.y)).rgb;
-  
-  float3 g = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - 2 * x, IN.uv0.y - 2*y)).rgb;
-  float3 h = TORQUE_TEX2D(inputTex, float2(IN.uv0.x		   , IN.uv0.y - 2*y)).rgb;
-  float3 i = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + 2 * x, IN.uv0.y - 2*y)).rgb;
-  
-  float3 j = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y + y)).rgb;
-  float3 k = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y + y)).rgb;
-  float3 l = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y - y)).rgb;
-  float3 m = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y - y)).rgb;
-  
-  downSample.rgb = e*0.125;
-  downSample.rgb += (a+c+g+i)*0.03125;
-  downSample.rgb += (b+d+f+h)*0.0625;
-  downSample.rgb += (j+k+l+m)*0.125;
-  downSample.a = 1.0;
+  downSample = e*0.125;
+  downSample += (a+c+g+i)*0.03125;
+  downSample += (b+d+f+h)*0.0625;
+  downSample += (j+k+l+m)*0.125;
   
   return downSample;
 }

@@ -29,26 +29,25 @@ uniform float2 oneOverTargetSize;
 float4 main(PFXVertToPix IN) : SV_TARGET
 {
   float4 upSample = float4(0, 0, 0, 0);
-  float x = 0.008;
-  float y = 0.008;
+  float x = 0.001;
+  float y = 0.001;
     
-  float3 a = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y + y)).rgb;
-  float3 b = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y + y)).rgb;
-  float3 c = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y + y)).rgb;
+  float4 a = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y + y));
+  float4 b = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y + y));
+  float4 c = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y + y));
+	   
+  float4 d = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y));
+  float4 e = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y));
+  float4 f = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y));
+	   
+  float4 g = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y - y));
+  float4 h = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y - y));
+  float4 i = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y - y));
   
-  float3 d = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y)).rgb;
-  float3 e = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y)).rgb;
-  float3 f = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y)).rgb;
-
-  float3 g = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y - y)).rgb;
-  float3 h = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y - y)).rgb;
-  float3 i = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y - y)).rgb;
-  
-  upSample.rgb = e*4.0;
-  upSample.rgb += (b+d+f+h)*2.0;
-  upSample.rgb += (a+c+g+i);
-  upSample.rgb *= 1.0 / 16.0;
-  upSample.a = 1.0;
+  upSample = e*4.0;
+  upSample += (b+d+f+h)*2.0;
+  upSample += (a+c+g+i);
+  upSample *= 1.0 / 16.0;
   
   return upSample;
 }

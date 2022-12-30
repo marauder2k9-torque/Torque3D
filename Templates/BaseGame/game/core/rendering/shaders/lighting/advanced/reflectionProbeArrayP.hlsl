@@ -65,7 +65,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    #endif
    
    float4 indirect = TORQUE_TEX2D( diffuseIndirect, IN.uv0.xy);
-   float alpha = indirect.a;
+   float alpha = 1;
    
    float wetAmmout = 0;
 #if SKYLIGHT_ONLY == 0
@@ -79,7 +79,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float contribution[MAX_PROBES];
    
    float blendCap = 0;
-   if (alpha < 1)
+   if (alpha > 0)
    {
       //Process prooooobes
       for (i = 0; i < numProbes; i++)
@@ -124,7 +124,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
          {
             //normalize, but in the range of the highest value applied
             //to preserve blend vs skylight
-            contribution[i] = blendFactor[i]/blendFacSum*blendCap*(1-indirect.a);
+            contribution[i] = blendFactor[i]/blendFacSum*blendCap;
          }
       }
       
@@ -185,12 +185,14 @@ float4 main(PFXVertToPix IN) : SV_TARGET
       }
    }
 #endif
+	
    if(skylightCubemapIdx != -1 && alpha >= 0.001)
    {
       irradiance = lerp(irradiance,TORQUE_TEXCUBEARRAYLOD(irradianceCubemapAR, surface.R, skylightCubemapIdx, 0).xyz,alpha);
       specular = lerp(specular,TORQUE_TEXCUBEARRAYLOD(specularCubemapAR, surface.R, skylightCubemapIdx, lod).xyz,alpha);
    }  
-   irradiance = lerp(irradiance,indirect.rgb,indirect.a);
+   irradiance = lerp(irradiance,indirect.rgb,indirect.a); 
+   specular = lerp(specular,indirect.rgb,indirect.a); 
    
 #if DEBUGVIZ_SPECCUBEMAP == 1 && DEBUGVIZ_DIFFCUBEMAP == 0
    return float4(specular, 1);
@@ -198,8 +200,6 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    return float4(irradiance, 1);
 #endif
 
-   
-   
    //energy conservation
    float3 F = FresnelSchlickRoughness(surface.NdotV, surface.f0, surface.roughness);
    float3 kD = 1.0f - F;
@@ -216,8 +216,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float horizonOcclusion = 1.3;
    float horizon = saturate( 1 + horizonOcclusion * dot(surface.R, surface.N));
    horizon *= horizon;
-    
-	indirect.rgb *= surface.baseColor.rgb;
+	 
 	 
 	float4 sampleCol = float4(0,0,0,0);
 #if CAPTURING == 1
