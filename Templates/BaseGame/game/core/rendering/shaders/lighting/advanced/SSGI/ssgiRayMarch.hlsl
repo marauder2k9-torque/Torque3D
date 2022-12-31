@@ -83,10 +83,10 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    stepSize = stepSize * jit + stepSize;
     float3 dir = normalize(mul(cameraToWorld, float4(viewDir,1)).xyz);
    float rayMask = 0.0;
-   float4 rayTrace = RayMarch(viewDir, surface.P, screenPos, IN.uv0.xy, stepSize,16, 1.0);  
+   float4 rayTrace = RayMarch(viewDir, surface.P, screenPos, IN.uv0.xy, stepSize * 1.25,16, 1.0);  
    float3 hitUV = rayTrace.xyz;
    rayMask = rayTrace.w; 
-   rayMask = dot(viewDir,mul(invCameraMat, float4(surface.N, 1)).xyz);
+   rayMask = dot(viewDir,mul( float4(surface.N, 1),invCameraMat).xyz);
 
 	float3 sampleColor = TORQUE_TEX2D(colorBuffer, hitUV.xy).rgb * 5.0;
 	return float4(sampleColor,rayMask);

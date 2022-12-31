@@ -42,12 +42,12 @@ static const float3x3 ACESOutputMat =
 
 float3 RRTAndODTFit(float3 x, float w)
 {
-     float3 a = (x * (x + 0.0245786f) - 0.000090537f) / (x * (0.983729f * x + 0.4329510f) + 0.238081f);
-     float3 b = (w * (w + 0.0245786f) - 0.000090537f) / (w * (0.983729f * w + 0.4329510f) + 0.238081f);
-     return a/b;
+    float3 a = (x * (x + 0.0245786f) - 0.000090537f) / (x * (0.983729f * x + 0.4329510f) + 0.238081f);
+    float3 b = (w * (w + 0.0245786f) - 0.000090537f) / (w * (0.983729f * w + 0.4329510f) + 0.238081f);
+    return a/b;
 }
 
-float3 ACESFitted(float3 x, float w)
+float3 ACESFitted(float3 x, float w, float gamma)
 {
      x = mul(ACESInputMat, x);
 
@@ -55,9 +55,13 @@ float3 ACESFitted(float3 x, float w)
      x = RRTAndODTFit(x, w);
 
      x = mul(ACESOutputMat, x);
+	 
+	 // clamp
+	 x = saturate(x);
+	 // this should be gamma value
+	 x = pow(x, float3(gamma, gamma, gamma));
      
-     // Clamp to [0, 1]
-    return saturate(x);
+    return x;
      
 }
 

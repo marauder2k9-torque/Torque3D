@@ -73,4 +73,12 @@ float D_GGX(float NdotH, float alphaRoughnessSq)
 	return alphaRoughnessSq / (M_PI_F * f * f);
 }
 
+float D_Charlie(float NdotH, float roughness)
+{
+	float invAlpha = 1.0 / roughness;
+	float cos2h = NdotH * NdotH;
+	float sin2h = max( 1.0 - cos2h, 0.0078125);
+	return (2.0 + invAlpha) * pow(sin2h, invAlpha * 0.5) / (M_2PI_F);
+}
+
 #endif

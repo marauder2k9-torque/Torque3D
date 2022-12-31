@@ -42,9 +42,9 @@ uniform float g_fTonemapMode;
 //uniform float g_fBloomScale;
 uniform float g_fOneOverGamma;
 uniform float Brightness;
-uniform float Contrast;
-
-//Explicit HDR Params
+uniform float Contrast; 
+    
+//Explicit HDR Params 
 uniform float exposureValue;
 uniform float whitePoint;
 uniform float logContrast;
@@ -58,11 +58,11 @@ float3 Tonemap(float3 x)
     //ACES           
     if(g_fTonemapMode == 1.0f)    
    {              
-      x = ACESFitted(x, whitePoint) * 1.4f; //ACES is crushing our blacks, need to pre-expose!  
+      x = ACESFitted(x, whitePoint, g_fOneOverGamma); //ACES is crushing our blacks, need to pre-expose!  
    }                             
-   //Filmic Helji	       
-   if(g_fTonemapMode == 2.0f) 
-   {             
+   //Filmic Helji
+   if(g_fTonemapMode == 2.0f)
+   { 
       x = TO_Hejl(x, whitePoint);
    }   
    //Hable Uncharted 2          
@@ -71,7 +71,7 @@ float3 Tonemap(float3 x)
       x = TO_HableU2(x, whitePoint);         
    }      
                            
-   //Reinhard       
+   //Reinhard      
    if (g_fTonemapMode == 4.0)
    {   
 	  float L = hdrLuminance(x);   
@@ -82,7 +82,7 @@ float3 Tonemap(float3 x)
    //Linear Tonemap  
    else if (g_fTonemapMode == 5.0)
    {  
-      x = toLinear(TO_Linear(toGamma(x)));   	   
+      x = TO_Linear(x); 
    }
         
    return x;
@@ -91,7 +91,7 @@ float3 Tonemap(float3 x)
 float4 main( PFXVertToPix IN ) : TORQUE_TARGET0
 {
    float4 sample = hdrDecode( TORQUE_TEX2D( sceneTex, IN.uv0 ) );
-   float adaptedLum = TORQUE_TEX2D( luminanceTex, float2( 0.5f, 0.5f ) ).r;
+   float adaptedLum = TORQUE_TEX2DLOAD( luminanceTex, int3(0,0,0) ).r;
    float4 bloom = TORQUE_TEX2D( bloomTex, IN.uv2 ); 
         	    
    // Add the bloom effect.     
@@ -106,14 +106,14 @@ float4 main( PFXVertToPix IN ) : TORQUE_TARGET0
    // Apply Screen contrast 
    sample.rgb = ((sample.rgb - 0.5f) * Contrast) + 0.5f;
       
-   // Apply Screen brightness
-   //sample.rgb += Brightness;
-                                                  
-   	 //Apply Color Contrast   
+   // Apply Screen brightness 
+   //sample.rgb += Brightness;    
+            
+   //Apply Color Contrast     
    sample.r = TO_LogContrast(sample.r, logContrast);
    sample.g = TO_LogContrast(sample.g, logContrast);  
-   sample.b = TO_LogContrast(sample.b, logContrast);
-                                                                                                     
+   sample.b = TO_LogContrast(sample.b, logContrast); 
+   
    //tonemapping - TODO fix up eye adaptation
    if ( g_fEnableToneMapping > 0.0f )  
    {    

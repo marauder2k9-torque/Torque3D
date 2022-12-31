@@ -45,7 +45,7 @@ singleton GFXStateBlockData( PFX_ReflectionProbeArrayStateBlock )
    samplerStates[4] = SamplerClampLinear;
    samplerStates[5] = SamplerClampLinear;
    samplerStates[6] = SamplerWrapPoint;
-   samplerStates[7] = SamplerClampPoint;
+   samplerStates[7] = SamplerClampLinear;
    samplerStates[8] = SamplerClampPoint;
 };
 
@@ -195,6 +195,7 @@ function reflectionProbeArrayPostFX::SetupSSGI(%this)
 		targetClear = PFXTargetClear_OnDraw;
 		targetClearColor = "0 0 0 0";
 	};
+	
 	%ssgiFX.add(%ssgiDown);
 	
 	%ssgiUp = new PostEffect()

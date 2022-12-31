@@ -284,7 +284,11 @@ function HDRPostFX::setShaderConsts( %this )
  else if($PostFX::HDRPostFX::tonemapMode $= "Linear")
       %tonemapMode = 5;
  
-      
+   %strength = $PostFX::HDRPostFX::intensity;
+    if (!$PostFX::HDRPostFX::enableBloom || !$pref::PostFX::EnableHDRBloom)
+      %strength = 0.0;
+
+   
    %combinePass.setShaderConst( "$g_fTonemapMode", %tonemapMode );
    
    %clampedGamma  = mClamp( $pref::Video::Gamma, 2.0, 2.5);
@@ -302,6 +306,7 @@ function HDRPostFX::setShaderConsts( %this )
    {
      %mip = %bloom.getObject(%this.mipsCount + %idx);
      %mip.setShaderConst("$filterRadius", $PostFX::HDRPostFX::radius);
+     %mip.setShaderConst("$mipId", %idx);
    }
 
    %strength = $PostFX::HDRPostFX::intensity;
