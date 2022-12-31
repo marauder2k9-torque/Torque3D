@@ -81,9 +81,9 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float jit = random(IN.uv0.xy);
    float stepSize = (1.0 / (float)16);
    stepSize = stepSize * jit + stepSize;
-    float3 dir = normalize(mul(cameraToWorld, float4(viewDir,1)).xyz);
+   float3 dir = normalize(mul(float4(viewDir,1), cameraToWorld)).xyz;
    float rayMask = 0.0;
-   float4 rayTrace = RayMarch(viewDir, surface.P, screenPos, IN.uv0.xy, stepSize * 1.25,16, 1.0);  
+   float4 rayTrace = RayMarch(dir, surface.P, screenPos, IN.uv0.xy, stepSize * 1.8, 16, 1.0);  
    float3 hitUV = rayTrace.xyz;
    rayMask = rayTrace.w; 
    rayMask = dot(viewDir,mul( float4(surface.N, 1),invCameraMat).xyz);

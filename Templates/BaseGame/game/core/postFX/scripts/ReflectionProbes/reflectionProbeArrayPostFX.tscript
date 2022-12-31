@@ -94,6 +94,17 @@ singleton ShaderData( PFX_SSGIUpsample )
    pixVersion = 2.0;
 };
 
+singleton ShaderData( PFX_SSGITemporal )
+{
+   DXVertexShaderFile = $Core::CommonShaderPath @ "/postFX/postFxV.hlsl";
+   DXPixelShaderFile  = $Core::CommonShaderPath @ "/lighting/advanced/SSGI/ssgiUpsampleTemporal.hlsl";
+   
+   samplerNames[1] = "$deferredTex";
+   samplerNames[0] = "$inputTex";
+   
+   pixVersion = 2.0;
+};
+
 singleton GFXStateBlockData( PFX_ScreenSpaceGIRayStateBlock )
 {  
    alphaDefined = true;
@@ -116,6 +127,13 @@ singleton GFXStateBlockData( PFX_ScreenSpaceGIRayStateBlock )
    samplerStates[1] = SamplerClampPoint;
    samplerStates[2] = SamplerClampPoint;
    samplerStates[3] = SamplerClampPoint;
+};
+
+singleton GFXStateBlockData( PFX_SSGITemporalStateBlock )
+{
+   samplersDefined = true;
+   samplerStates[0] = SamplerClampPoint;
+   samplerStates[1] = SamplerClampPoint;
 };
 
 singleton GFXStateBlockData( PFX_SSGIDownsampleStateBlock )
@@ -195,21 +213,44 @@ function reflectionProbeArrayPostFX::SetupSSGI(%this)
 		targetClear = PFXTargetClear_OnDraw;
 		targetClearColor = "0 0 0 0";
 	};
-	
+	%ssgiFX.add(%ssgiDown);
+
+   %ssgiDown = new PostEffect()
+	{
+		shader = PFX_SSGIDownsample;
+		stateBlock = PFX_SSGIDownsampleStateBlock;
+		texture[0] = "$inTex";
+		target = "$outTex";
+		targetScale = "0.5 0.5";
+		targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 0";
+	};
 	%ssgiFX.add(%ssgiDown);
 	
 	%ssgiUp = new PostEffect()
 	{
-	    internalName = "diffuseIndirect";
 		shader = PFX_SSGIUpsample;
 		stateBlock = PFX_SSGIDownsampleStateBlock;
 		texture[0] = "$inTex";
-		target = "#diffuseIndirect";
+		target = "$outTex";
+      targetScale = "2.0 2.0";
 		targetClear = PFXTargetClear_OnDraw;
 		targetClearColor = "0 0 0 0";
 	};
 	%ssgiFX.add(%ssgiUp);
-	
+
+   %ssgiUp = new PostEffect()
+	{
+      internalName = "diffuseIndirect";
+		shader = PFX_SSGIUpsample;
+		stateBlock = PFX_SSGIDownsampleStateBlock;
+		texture[0] = "$inTex";
+		target = "#diffuseIndirect";
+      targetScale = "2.0 2.0";
+		targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 0";
+	};
+	%ssgiFX.add(%ssgiUp);
 	
 	%this.add(%ssgiFX);
 }

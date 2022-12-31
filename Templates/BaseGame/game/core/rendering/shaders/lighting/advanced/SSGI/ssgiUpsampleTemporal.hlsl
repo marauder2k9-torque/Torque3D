@@ -20,34 +20,31 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "core/rendering/shaders/postFX/postFx.hlsl" 
+#include "core/rendering/shaders/postFX/postFx.hlsl"
+#include "core/rendering/shaders/torque.hlsl"
+#include "core/rendering/shaders/shaderModelAutoGen.hlsl"
 
-
+TORQUE_UNIFORM_SAMPLER2D(deferredTex, 1);
 TORQUE_UNIFORM_SAMPLER2D(inputTex, 0);
+
 uniform float2 oneOverTargetSize;
+uniform float4x4 matPrevScreenToWorld;
+uniform float4x4 matWorldToScreen;
 
 float4 main(PFXVertToPix IN) : SV_TARGET
 {
-  float4 upSample = float4(0, 0, 0, 0);
-  float x = 6 * oneOverTargetSize.x;
-  float y = 6 * oneOverTargetSize.y;
-    
-  float4 a = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y + y));
-  float4 b = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y + y));
-  float4 c = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y + y));
-	   
-  float4 d = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y));
-  float4 e = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y));
-  float4 f = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y));
-	   
-  float4 g = TORQUE_TEX2D(inputTex, float2(IN.uv0.x - x, IN.uv0.y - y));
-  float4 h = TORQUE_TEX2D(inputTex, float2(IN.uv0.x,     IN.uv0.y - y));
-  float4 i = TORQUE_TEX2D(inputTex, float2(IN.uv0.x + x, IN.uv0.y - y));
-  
-  upSample = e*4.0;
-  upSample += (b+d+f+h)*2.0;
-  upSample += (a+c+g+i);
-  upSample *= 1.0 / 16.0;
-  
-  return upSample;
+  float4 deferred = TORQUE_DEFERRED_UNCONDITION(deferredTex, IN.uv0.xy);
+  float4 screenPos = float4(IN.uv0.x*2-1, IN.uv0.y*2-1, deferred.a*2-1, 1);
+  // calculate position in world
+  float4 D = mul(screenPos, matWorldToScreen);
+  float4 worldPos = D;
+
+  float4 prevPos = mul(worldPos, matPrevScreenToWorld);
+
+  float2 velocity = ((screenPos - prevPos)).xy;
+  IN.uv0.xy -= velocity;
+
+  float4 temporal = TORQUE_TEX2D(inputTex, float2(IN.uv0.x, IN.uv0.y));
+
+  return temporal;
 }
