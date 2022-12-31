@@ -82,7 +82,7 @@ float3 Tonemap(float3 x)
    //Linear Tonemap  
    else if (g_fTonemapMode == 5.0)
    {  
-      x = TO_Linear(x); 
+      x = toLinear(x);
    }
         
    return x;
@@ -95,7 +95,7 @@ float4 main( PFXVertToPix IN ) : TORQUE_TARGET0
    float4 bloom = TORQUE_TEX2D( bloomTex, IN.uv2 ); 
         	    
    // Add the bloom effect.     
-   sample += bloom;         
+   sample.rgb = lerp(sample.rgb, bloom.rgb, float3(0.04, 0.04, 0.04));        
    		 	
 	//Apply Exposure     
    sample.rgb *= TO_Exposure(sample.rgb, exposureValue, colorFilter); 

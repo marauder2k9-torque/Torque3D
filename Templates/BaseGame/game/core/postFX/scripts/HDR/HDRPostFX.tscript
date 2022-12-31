@@ -283,11 +283,6 @@ function HDRPostFX::setShaderConsts( %this )
       %tonemapMode = 4;	  
  else if($PostFX::HDRPostFX::tonemapMode $= "Linear")
       %tonemapMode = 5;
- 
-   %strength = $PostFX::HDRPostFX::intensity;
-    if (!$PostFX::HDRPostFX::enableBloom || !$pref::PostFX::EnableHDRBloom)
-      %strength = 0.0;
-
    
    %combinePass.setShaderConst( "$g_fTonemapMode", %tonemapMode );
    

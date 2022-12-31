@@ -32,7 +32,6 @@ float3 TO_Exposure (float3 x, float exposureValue, float3 colorFilter)
 float3 TO_Saturation (float3 x, float saturation)
 {   
     float L = rgbToHSL(x).z;
-	float3 hsl = rgbToHSL(x);
 	x = lerp(L, x, saturation);	
     return x; 
 }   
@@ -43,22 +42,8 @@ float TO_LogContrast (float x, float contrast)
     return clamp(exp2(a)-0.0001f,0.0 , 2.5);  
 }  
 
-float3 PowFloat3(float3 v, float p)
-{
-	return float3(pow(abs(v.x) ,p), pow(abs(v.y), p), pow(abs(v.z), p));
-}
-
-float invGamma = 1.0 / 2.2;
-
-float3 ToSRGB(float3 v) {return PowFloat3(v, invGamma); }
-
-float RGBToLum(float3 col)
-{
-	return dot(col, float3(0.2126f, 0.7152f, 0.0722f));
-}
-
 float KarisAverage(float3 col)
 {
-	float luma = RGBToLum(ToSRGB(col)) * 0.25f;
+	float luma = rgbToHSL(col).z;
 	return 1.0 / (1.0f + luma);
 }

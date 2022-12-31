@@ -63,7 +63,7 @@ vec3 Tonemap(vec3 x)
     //ACES      
     if(g_fTonemapMode == 1.0f)    
    {
-	  x = ACESFitted(x, whitePoint) * 1.4f;  //ACES is crushing our blacks, need to pre-expose!    	  
+	  x = ACESFitted(toLinear(x), whitePoint) * 1.4f;  //ACES is crushing our blacks, need to pre-expose!    	  
    }             
    //Filmic Helji	       
    if(g_fTonemapMode == 2.0f) 
@@ -79,15 +79,15 @@ vec3 Tonemap(vec3 x)
    //Reinhard       
    if (g_fTonemapMode == 4.0)
    {   
-	  float L = hdrLuminance(x);   
+	  float L = rgbToHSL(x).z;  
       vec3 nL = TO_Reinhard(vec3(L), whitePoint);
       x *= (nL / L);                  	    	                           
    }  
-        
+         
    //Linear Tonemap  
    else if (g_fTonemapMode == 5.0)
    {  
-      x = toLinear(TO_Linear(toGamma(x)));    	   
+      x = toLinear(x);    	   
    }
         
    return x;

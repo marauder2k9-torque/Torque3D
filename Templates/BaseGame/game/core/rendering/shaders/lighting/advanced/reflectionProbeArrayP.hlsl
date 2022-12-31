@@ -191,33 +191,32 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    {
       irradiance = lerp(irradiance,TORQUE_TEXCUBEARRAYLOD(irradianceCubemapAR, surface.R, skylightCubemapIdx, 0).xyz,alpha);
       specular = lerp(specular,TORQUE_TEXCUBEARRAYLOD(specularCubemapAR, surface.R, skylightCubemapIdx, lod).xyz,alpha);
-   }  
-   //irradiance = lerp(irradiance,indirect.rgb,indirect.a); 
-    
+   }   
 #if DEBUGVIZ_SPECCUBEMAP == 1 && DEBUGVIZ_DIFFCUBEMAP == 0
    return float4(specular, 1);
 #elif DEBUGVIZ_DIFFCUBEMAP == 1
    return float4(irradiance, 1);
-#endif
+#endif  
 
+   irradiance.rgb = lerp(irradiance.rgb,indirect.rgb,indirect.a);
    //energy conservation
    // irradiance term first.
-   float3 F = FresnelSchlickRoughness(max(surface.NdotV, 0.0), surface.f0, surface.roughness);
-   float3 kS = F;
+   float3 F = FresnelSchlickRoughness(surface.NdotV, surface.f0, surface.roughness);
    float3 kD = 1.0f - F;
    kD *= 1.0f - surface.metalness;
-   float3 diffuse = irradiance * surface.albedo;
-
-   float2 envBRDF = TORQUE_TEX2DLOD(BRDFTexture, float4(surface.roughness, max(surface.NdotV, 0.0),0,0)).rg;
-   specular *= (F * envBRDF.x + surface.f90 * envBRDF.y);
-
-   float3 ambient = (kD * diffuse + specular) * surface.ao;
-	 
-	float4 sampleCol = float4(ambient,0); 
-#if CAPTURING == 1
-    return float4(lerp((irradiance + specular), surface.baseColor.rgb,surface.metalness),0); 
-#else 
-    //sampleCol.rgb = ambient / (ambient + float3(1,1,1)); //alpha writes disabled
+   float2 envBRDF = TORQUE_TEX2DLOD(BRDFTexture, float4(surface.roughness,surface.NdotV, 0,0)).rg;
+   irradiance *= kD * surface.baseColor.rgb;
+   
+   float horizon = saturate(1.0 + 1.3 * dot(surface.R, surface.N));
+   horizon *= horizon;
+   float specularOcc = computeSpecOcclusion(surface.NdotV, surface.ao, surface.roughness);
+   specular = specular * min(specularOcc, horizon);
+   specular *= F * envBRDF.x + surface.f90 * envBRDF.y;  
+  
+#if CAPTURING == 1 
+    return float4(lerp(irradiance + specular, surface.baseColor.rgb,surface.metalness),0);
+#else  
+    float4 sampleCol = float4(irradiance + specular, 0); //alpha writes disabled
     sampleCol.rgb *= ambientColor;
 #endif 
 	return sampleCol; 
