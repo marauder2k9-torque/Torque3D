@@ -31,8 +31,8 @@ uniform float2 oneOverTargetSize;
 float4 main(PFXVertToPix IN) : TORQUE_TARGET0
 {
   float4 upSample = float4(0, 0, 0, 0);
-  float x = filterRadius;
-  float y = filterRadius;
+  float x = filterRadius*oneOverTargetSize.x;
+  float y = filterRadius*oneOverTargetSize.y;
   
   float3 a = TORQUE_TEX2D(mipTex, float2(IN.uv1.x - x, IN.uv1.y + y)).rgb;
   float3 b = TORQUE_TEX2D(mipTex, float2(IN.uv1.x,     IN.uv1.y + y)).rgb;

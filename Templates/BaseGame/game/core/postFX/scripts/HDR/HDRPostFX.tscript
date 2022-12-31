@@ -447,7 +447,7 @@ function HDRPostFX::populatePostFXSettings(%this)
    PostEffectEditorInspector.addField("$PostFX::HDRPostFX::enableBloom", "Enable Bloom", "bool", "", $PostFX::HDRPostFX::enableBloom, "");
    PostEffectEditorInspector.addField("$PostFX::HDRPostFX::threshold", "Threshold", "range", "", $PostFX::HDRPostFX::threshold, "0 2 10");
    PostEffectEditorInspector.addField("$PostFX::HDRPostFX::intensity", "Intensity", "range", "", $PostFX::HDRPostFX::intensity, "0 10 10");
-   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::radius", "Radius", "float", "", $PostFX::HDRPostFX::radius, "");
+   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::radius", "Radius", "range", "", $PostFX::HDRPostFX::radius, "0 25 50");
    PostEffectEditorInspector.endGroup();
    
    PostEffectEditorInspector.startGroup("HDR - Lens Dirt");
