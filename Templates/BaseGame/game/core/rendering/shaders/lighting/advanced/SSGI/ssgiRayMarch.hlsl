@@ -36,7 +36,9 @@ float4 RayMarch(float3 dir, float3 screenPos, float stepSize, int stepCount)
     [unroll]
 	for(int i = 0; i < stepCount; i++)
 	{
-		Depth = TORQUE_DEFERRED_UNCONDITION( deferredBuffer, samplePos.xy).w;
+		float4 normDepth = TORQUE_DEFERRED_UNCONDITION( deferredBuffer, samplePos.xy);
+        float3 norm = normalize(mul(float4(normDepth.xyz,1),invCameraMat).xyz);
+        Depth = normDepth.a;
 		DepthDiff = Depth-prevDepth;
 		if (samplePos.z <= 0.0001 || screenEdgeFade(screenPos.xy)<=0.0)
         {
@@ -54,7 +56,7 @@ float4 RayMarch(float3 dir, float3 screenPos, float stepSize, int stepCount)
             else
             {
                 //bounce
-                curDir = reflect(-curDir,TORQUE_DEFERRED_UNCONDITION( deferredBuffer, samplePos.xy).xyz);
+                curDir = reflect(-curDir,norm.xyz);
             }
         }
 		prevDepth = Depth;
@@ -89,7 +91,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    // SSGI raymarch - need this to feed into the uv coord for cubemaps
    float3 screenPos = float3(IN.uv0.xy * 2 - 1, normDepth.a);
       
-   float stepSize = 512.0*length(oneOverTargetSize);
+   float stepSize = 1024.0*length(oneOverTargetSize);
    float jit = stepSize*(random(IN.uv0.xy)*2-1);
    stepSize = stepSize * jit;
    float3 dir = normalize(mul(float4(reflect(IN.wsEyeRay, viewDir),1), cameraToWorld)).xyz;
