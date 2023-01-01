@@ -27,7 +27,7 @@ TORQUE_UNIFORM_SAMPLER2D(inputTex, 0);
 uniform float2 oneOverTargetSize;
  
 float4 main(PFXVertToPix IN) : SV_TARGET
-{
+{ 
   float4 downSample = float4(0, 0, 0, 0);
   float x = oneOverTargetSize.x;
   float y = oneOverTargetSize.y;

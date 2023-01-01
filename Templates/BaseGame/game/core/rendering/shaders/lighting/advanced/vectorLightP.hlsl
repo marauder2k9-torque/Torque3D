@@ -22,12 +22,12 @@
 
 #include "../../shaderModel.hlsl"
 #include "../../shaderModelAutoGen.hlsl"
-
+ 
 #include "farFrustumQuad.hlsl"
 #include "../../torque.hlsl"
 #include "../../lighting.hlsl"
 #include "../shadowMap/shadowMapIO_HLSL.h"
-
+  
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
 TORQUE_UNIFORM_SAMPLER2D(shadowMap, 1);
 
