@@ -205,21 +205,21 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float3 kD = 1.0f - F;
    kD *= 1.0f - surface.metalness;
    float2 envBRDF = TORQUE_TEX2DLOD(BRDFTexture, float4(surface.roughness,surface.NdotV, 0,0)).rg;
+   irradiance = lerp(irradiance, indirect.rgb,indirect.a);
    irradiance *= kD * surface.baseColor.rgb;
-
-   indirect.rgb *= surface.albedo;
 
    float horizon = saturate(1.0 + 1.3 * dot(surface.R, surface.N));
    horizon *= horizon;
    float specularOcc = computeSpecOcclusion(surface.NdotV, surface.ao, surface.roughness);
+   specular = lerp(specular, indirect.rgb,indirect.a);
    specular = specular * min(specularOcc, horizon);
    specular *= F * envBRDF.x + surface.f90 * envBRDF.y;  
   
 #if CAPTURING == 1 
     return float4(lerp(irradiance + specular, surface.baseColor.rgb,surface.metalness),0);
 #else  
-    float4 sampleCol = float4(irradiance + specular, 0) + indirect; //alpha writes disabled
+    float4 sampleCol = float4(irradiance + specular, 0) ; //alpha writes disabled
     sampleCol.rgb *= ambientColor;
 #endif
-	return sampleCol;
+	return sampleCol; 
 }
