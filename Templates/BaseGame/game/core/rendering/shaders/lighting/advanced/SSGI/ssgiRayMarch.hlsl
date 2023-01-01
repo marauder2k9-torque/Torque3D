@@ -13,43 +13,64 @@ uniform float4 rtParams0;
 uniform float4 vsFarPlane;
 uniform float4x4 cameraToWorld;
 uniform float4x4 invCameraMat;
+uniform float2 oneOverTargetSize;
+
+float screenEdgeFade(float2 screenPos)
+{
+  return 1.0-length(screenPos.xy); // eventually we'll wanna do a box fade
+}
 
 float4 RayMarch(float3 dir, float3 screenPos, float stepSize, int stepCount)
 {
 	float mask = 0.0; 
 	float3 samplePos = float3(screenPos.xy * 0.5 + 0.5, screenPos.z);
-	float Depth;
+	float Depth = samplePos.z;
     float DepthDiff = 0;
-	
+	float curStep = stepSize;
 	float prevDepth = samplePos.z;
 	float prevDepthDiff = 0.0;
 	float3 prevSamplePos = samplePos;
+    float3 curDir = dir;
+    float3 curColor = float3(0,0,0);
+    float hitCount = 0;
+    [unroll]
 	for(int i = 0; i < stepCount; i++)
 	{
-		Depth = TORQUE_DEFERRED_UNCONDITION( deferredBuffer, samplePos.xy).w;
-		DepthDiff = samplePos.z - Depth;
-		if(0.0 > DepthDiff)
-		{
-				float blend = (prevDepthDiff - DepthDiff) / max(prevDepth, Depth) * 0.5 + 0.5;
-				samplePos = lerp(prevSamplePos, samplePos, blend);
-				mask = blend;
-				break;
-		}
-		else
-		{
-			prevDepthDiff = -Depth;
-			prevSamplePos = samplePos;
-		}
+		float4 normDepth = TORQUE_DEFERRED_UNCONDITION( deferredBuffer, samplePos.xy);
+        float3 norm = normalize(mul(float4(normDepth.xyz,1),invCameraMat).xyz);
+        Depth = normDepth.a;
+		DepthDiff = Depth-prevDepth;
+		if (samplePos.z <= 0.0001 || screenEdgeFade(screenPos.xy)<=0.0)
+        {
+            break;
+        }
+        else
+        {
+            if (DepthDiff>0.0) //we only care if we're going further into th screen
+            {
+                mask += 1.0-(DepthDiff*samplePos.z); 
+                curColor += TORQUE_TEX2D(colorBuffer, samplePos.xy).rgb;
+                curStep *= samplePos.z;
+                hitCount++;
+            }
+            else
+            {
+                //bounce
+                curDir = reflect(-curDir,norm.xyz);
+            }
+        }
 		prevDepth = Depth;
-		samplePos += dir * stepSize;
+		samplePos += curDir * curStep;
 	}
-	
-	return float4(samplePos, mask);
+    hitCount = max(hitCount,1.0);
+	curColor /= hitCount;
+    mask/=hitCount;
+	return float4(curColor, mask)*screenEdgeFade(screenPos.xy);
 }
 
 float3 getView(float3 screenPos)
 {
-	float4 viewPos = mul(cameraToWorld, float4(screenPos, 0));
+	float4 viewPos = mul(cameraToWorld, float4(screenPos, 1));
 	return viewPos.xyz / viewPos.w;
 }
 
@@ -69,19 +90,12 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    
    // SSGI raymarch - need this to feed into the uv coord for cubemaps
    float3 screenPos = float3(IN.uv0.xy * 2 - 1, normDepth.a);
-   
-   float3 viewPos = getView(screenPos);
-   
-   float jit = random(IN.uv0.xy);
-   float stepSize = (1.0 / 64.0);
-   stepSize = stepSize * jit + stepSize;
-   float3 dir = normalize(mul(float4(viewDir,0), cameraToWorld)).xyz;
-   float rayMask = 0.0;
-   float4 rayTrace = RayMarch(dir, screenPos, stepSize, 16); 
-   float3 hitUV = rayTrace.xyz;
-   rayMask = rayTrace.w; 
-   rayMask = dot(viewDir,mul( float4(surface.N, 0),invCameraMat).xyz);
+      
+   float stepSize = 1024.0*length(oneOverTargetSize);
+   float jit = stepSize*(random(IN.uv0.xy)*2-1);
+   stepSize = stepSize * jit;
+   float3 dir = normalize(mul(float4(reflect(IN.wsEyeRay, viewDir),1), cameraToWorld)).xyz;
 
-	float3 sampleColor = TORQUE_TEX2D(colorBuffer, hitUV.xy).rgb * 5.0;
-	return float4(sampleColor,rayMask);
+   float4 rayTrace = RayMarch(dir, screenPos, stepSize, 16);
+   return float4(rayTrace.rgb,rayTrace.a);
 }

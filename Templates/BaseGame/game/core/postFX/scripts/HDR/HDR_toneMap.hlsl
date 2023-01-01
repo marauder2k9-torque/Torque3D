@@ -59,7 +59,7 @@ float3 ACESFitted(float3 x, float w, float gamma)
 	 // clamp
 	 x = saturate(x);
 	 // this should be gamma value
-	 x = pow(x, float3(gamma, gamma, gamma));
+	 //x = pow(x, float3(gamma, gamma, gamma));
      
     return x;
      
