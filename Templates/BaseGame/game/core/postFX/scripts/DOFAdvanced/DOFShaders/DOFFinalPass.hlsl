@@ -32,7 +32,6 @@ uniform float apertureWidth;
 uniform float focalLength;
 uniform float focusDist;
 uniform float filmSize;
-uniform float maxCocSize;
 
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
 TORQUE_UNIFORM_SAMPLER2D(backBuffer, 1);
@@ -44,7 +43,7 @@ float COC(float z)
     float coc = -apertureWidth * (focalLength * (focusDist - z)) / ( z * (focusDist - focalLength));
 
     coc = (coc / filmSize) * targetSize.x;
-    coc = clamp(coc / 21.0f, -1.0f, 1.0f);
+    coc = clamp(coc / 42.0f, -1.0f, 1.0f);
 
     return coc;
 }
@@ -56,9 +55,11 @@ float4 main(PFXVertToPix IN) : SV_TARGET
     float coc = COC(depth);
 
     float4 farSample = TORQUE_TEX2D(farTex, IN.uv0.xy); 
-    float3 far = farSample.rgb;
+    float3 far = col;
+    if(farSample.a > 0.0)
+        far = farSample.rgb;
 
-    float farBlend = saturate(saturate(coc) * 21.0f - 0.5);
+    float farBlend = saturate(saturate(coc) * (21.0f * 0.05));
     float3 result = lerp(col, far.xyz, smoothstep(0.0f,1.0f,farBlend));
 
     float4 nearSample = TORQUE_TEX2D(nearTex, IN.uv0.xy);

@@ -33,7 +33,6 @@ uniform float apertureWidth;
 uniform float focalLength;
 uniform float focusDist;
 uniform float filmSize;
-uniform float maxCocSize;
 
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
 TORQUE_UNIFORM_SAMPLER2D(backBuffer, 1);
@@ -50,7 +49,7 @@ float4 CalculateCoC(float3 col, float z)
         output =  float4(col, 1.0) * max(-coc,0.0f);
         output.rgb = col; 
     #else
-        output = float4(col, 1.0f) * max(coc, 0.0f);
+        output = float4(col, 1.0f) * max(coc, 0.0f); 
         output.rgb = col; 
     #endif
 
@@ -64,7 +63,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
     float4 tapOut = 0.0f;
     float4 output = 0.0;
 
-    [unroll]
+    [unroll] 
     for(int y = 0; y < 2; ++y)
     {
         [unroll]
@@ -72,8 +71,8 @@ float4 main(PFXVertToPix IN) : SV_TARGET
         { 
             float2 pos = pixPos + float2(x,y) * oneOverTargetsize;
             float3 col = TORQUE_TEX2D(backBuffer,pos).rgb;
-            float depth = TORQUE_DEFERRED_UNCONDITION(deferredBuffer, pos).a;
-            output += CalculateCoC(col, depth);
+            float depth = TORQUE_DEFERRED_UNCONDITION(deferredBuffer, pos).a; 
+            output += CalculateCoC(col, depth);  
         }
     }
 

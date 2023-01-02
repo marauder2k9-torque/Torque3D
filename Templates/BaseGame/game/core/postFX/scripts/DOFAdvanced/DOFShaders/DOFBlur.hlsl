@@ -23,7 +23,6 @@
 #include "../../../../rendering/shaders/postFX/postFx.hlsl"
 
 uniform float2 oneOverTargetSize;
-uniform int kernalSize;
 
 #ifndef BLUR_DIR
 #define BLUR_DIR float2(0.0,0.0);
@@ -42,7 +41,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
     float4 col = 0; 
     float weightSum = 0.0f;
 
-    for(int i = -8; i < 8; i++) 
+    for(int i = -7; i < 7; i++) 
     { 
         float weight = calcGaussianWeight(i, 2.0f);
         weightSum += weight; 

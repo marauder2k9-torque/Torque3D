@@ -36,10 +36,10 @@ $PostFX::HDRPostFX::keyValue = 0.115;
 //Explicit HDR Params
 $PostFX::HDRPostFX::exposureValue = 1.0;
 
-$PostFX::HDRPostFX::apertureF = 5.4;
-$PostFX::HDRPostFX::ISO = 100;
+$PostFX::HDRPostFX::apertureF = "5.6";
+$PostFX::HDRPostFX::ISO = "400";
 // shutter speed 1/200
-$PostFX::HDRPostFX::shutterSpeed = 0.005;
+$PostFX::HDRPostFX::shutterSpeed = "1/250";
 
 $PostFX::HDRPostFX::whitePoint = 1.0;
 
@@ -273,8 +273,52 @@ function HDRPostFX::setShaderConsts( %this )
    //%combinePass.setShaderConst( "$exposureValue", $PostFX::HDRPostFX::exposureValue );
 
    %combinePass.setShaderConst( "$apertureF", $PostFX::HDRPostFX::apertureF );
-   %combinePass.setShaderConst( "$isoValue", $PostFX::HDRPostFX::ISO );
-   %combinePass.setShaderConst( "$shutterSpeed", $PostFX::HDRPostFX::shutterSpeed );
+
+   %isoSpeed = 400.0;
+   if($PostFX::HDRPostFX::ISO $= "100")
+      %isoSpeed = 100.0;
+   else if($PostFX::HDRPostFX::ISO $= "200")
+      %isoSpeed = 200.0;
+   else if($PostFX::HDRPostFX::ISO $= "400")
+      %isoSpeed = 400.0;
+   else if($PostFX::HDRPostFX::ISO $= "600")
+      %isoSpeed = 600.0;
+   else if($PostFX::HDRPostFX::ISO $= "800")
+      %isoSpeed = 800.0;
+   else if($PostFX::HDRPostFX::ISO $= "1600")
+      %isoSpeed = 1600.0;
+   else if($PostFX::HDRPostFX::ISO $= "3200")
+      %isoSpeed = 3200.0;
+
+   %combinePass.setShaderConst( "$isoValue", %isoSpeed );
+
+   %shutterSpeed = 0.4;
+   if($PostFX::HDRPostFX::shutterSpeed $= "1/1")
+      %shutterSpeed = 1.0;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/2")
+      %shutterSpeed = 0.5;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/4")
+      %shutterSpeed = 0.25;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/8")
+      %shutterSpeed = 0.125;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/15")
+      %shutterSpeed = 0.066;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/30")
+      %shutterSpeed = 0.033;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/60")
+      %shutterSpeed = 0.0166;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/125")
+      %shutterSpeed = 0.008;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/250")
+      %shutterSpeed = 0.004;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/500")
+      %shutterSpeed = 0.002;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/640")
+      %shutterSpeed = 0.0015625;
+   else if($PostFX::HDRPostFX::shutterSpeed $= "1/800")
+      %shutterSpeed = 0.00125;
+
+   %combinePass.setShaderConst( "$shutterSpeed", %shutterSpeed );
 
    %combinePass.setShaderConst( "$colorFilter", $PostFX::HDRPostFX::colorFilter );  
    %combinePass.setShaderConst( "$saturationValue", $PostFX::HDRPostFX::saturationValue );
@@ -439,9 +483,9 @@ function HDRPostFX::populatePostFXSettings(%this)
    PostEffectEditorInspector.startGroup("HDR - Camera");
    PostEffectEditorInspector.addCallbackField("$PostFX::HDRPostFX::Enabled", "Enabled", "bool", "", $PostFX::HDRPostFX::Enabled, "", "toggleHDRPostFX");
    //PostEffectEditorInspector.addField("$PostFX::HDRPostFX::exposureValue", "Exposure", "range", "", $PostFX::HDRPostFX::exposureValue, "0 5 50");
-   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::apertureF", "Aperture F", "range", "", $PostFX::HDRPostFX::apertureF, "0 50 150");
-   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::ISO", "ISO", "range", "", $PostFX::HDRPostFX::ISO, "0 500 1000");
-   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::shutterSpeed", "Shutter Speed", "range", "", $PostFX::HDRPostFX::shutterSpeed, "0 30 600");
+   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::apertureF", "F-Stop", "list", "", $PostFX::HDRPostFX::apertureF, "1.4,2.0,2.8,4.0,5.6,8.0,11,16");
+   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::ISO", "ISO", "list", "", $PostFX::HDRPostFX::ISO, "100,200,400,600,800,1600,3200");
+   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::shutterSpeed", "Shutter Speed", "list", "", $PostFX::HDRPostFX::shutterSpeed, "1/1,1/2,1/4,1/8,1/15,1/30,1/60,1/125,1/250,1/500,1/640,1/800");
    PostEffectEditorInspector.endGroup();
    
    PostEffectEditorInspector.startGroup("HDR - Tonemapping");

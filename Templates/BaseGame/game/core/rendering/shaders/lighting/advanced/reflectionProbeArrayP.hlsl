@@ -213,7 +213,7 @@ float4 main(PFXVertToPix IN) : SV_TARGET
    float specularOcc = computeSpecOcclusion(surface.NdotV, surface.ao, surface.roughness);
    specular = lerp(specular, indirect.rgb,indirect.a);
    specular = specular * min(specularOcc, horizon);
-   specular *= F * envBRDF.x + surface.f90 * envBRDF.y;  
+   specular *= F * envBRDF.x + surface.f90 * envBRDF.y;    
   
 #if CAPTURING == 1 
     return float4(lerp(irradiance + specular, surface.baseColor.rgb,surface.metalness),0);
@@ -221,5 +221,5 @@ float4 main(PFXVertToPix IN) : SV_TARGET
     float4 sampleCol = float4(irradiance + specular, 0) ; //alpha writes disabled
     sampleCol.rgb *= ambientColor;
 #endif
-	return sampleCol; 
+	return sampleCol;  
 }

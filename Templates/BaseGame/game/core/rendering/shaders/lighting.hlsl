@@ -387,8 +387,8 @@ void dampen(inout Surface surface, TORQUE_SAMPLER2D(WetnessTexture), float accum
    wetness = lerp(wetness,TORQUE_TEX2D(WetnessTexture,float2(surface.P.zy*0.2+wetoffset)).b,n.x);
    wetness = pow(wetness,3)*degree;
    
-   surface.roughness = clamp(lerp(surface.roughness,(1.0-pow(wetness,2))*surface.roughness,degree),0.04f,0.92f);
-   surface.baseColor.rgb = lerp(surface.baseColor.rgb,surface.baseColor.rgb*(2.0-wetness),degree);
+   surface.roughness = lerp(surface.roughness,(1.0-pow(wetness,2))*surface.roughness*0.92f+0.04f,degree);
+   surface.baseColor.rgb = lerp(surface.baseColor.rgb,surface.baseColor.rgb*(2.0-wetness)/2,degree);
    surface.Update(); 
 }
 
