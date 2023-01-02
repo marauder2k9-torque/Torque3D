@@ -26,6 +26,7 @@
 
 // uniforms from postEffect.cpp 
 uniform float2 targetSize;
+uniform float2 oneOverTargetsize;
 
 // user defined
 uniform float apertureWidth;
@@ -35,21 +36,22 @@ uniform float filmSize;
 uniform float maxCocSize;
 
 TORQUE_UNIFORM_SAMPLER2D(deferredBuffer, 0);
-TORQUE_UNIFORM_SAMPLER2D(colorBuffer, 1);
+TORQUE_UNIFORM_SAMPLER2D(backBuffer, 1);
 
 float4 CalculateCoC(float3 col, float z)
 {
     float4 output;
-    float coc = -(apertureWidth) * (focalLength *(focusDist - z)) / ( z * (focusDist - focalLength));
+    float coc = -apertureWidth * (focalLength * (focusDist - z)) / ( z * (focusDist - focalLength));
 
     coc = (coc / filmSize) * targetSize.x;
-    coc = clamp(coc / maxCocSize, -1.0f, 1.0f);
+    coc = clamp(coc / 21.0f, -1.0f, 1.0f);
 
     #ifdef NEAR
         output =  float4(col, 1.0) * max(-coc,0.0f);
-        output.xyz = col;
+        output.rgb = col; 
     #else
         output = float4(col, 1.0f) * max(coc, 0.0f);
+        output.rgb = col; 
     #endif
 
     return output;
@@ -60,21 +62,21 @@ float4 main(PFXVertToPix IN) : SV_TARGET
     float2 pixPos = IN.uv0.xy;
 
     float4 tapOut = 0.0f;
+    float4 output = 0.0;
 
     [unroll]
-    for(int y = 0; y < 2; y++)
+    for(int y = 0; y < 2; ++y)
     {
         [unroll]
-        for(int x = 0; x < 2; x++)
+        for(int x = 0; x < 2; ++x)
         { 
-            float2 pos = pixPos + float2(x,y);
-            float3 col = TORQUE_TEX2D(colorBuffer,pos).rgb;
+            float2 pos = pixPos + float2(x,y) * oneOverTargetsize;
+            float3 col = TORQUE_TEX2D(backBuffer,pos).rgb;
             float depth = TORQUE_DEFERRED_UNCONDITION(deferredBuffer, pos).a;
-            tapOut += CalculateCoC(col, depth);
+            output += CalculateCoC(col, depth);
         }
     }
 
-    float4 output = (tapOut / 4.0f);
-
+    output /= 4.0f;
     return output;
 }

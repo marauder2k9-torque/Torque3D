@@ -77,7 +77,7 @@ singleton ShaderData(PFX_DOFADownSampleCOC)
     DXPixelShaderFile = "./DOFShaders/DOFDownsampleCOC.hlsl";
 
     samplerNames[0] = "$deferredBuffer";
-    samplerNames[1] = "$colorBuffer";
+    samplerNames[1] = "$backBuffer";
 
     pixVersion = 2.0;
 };
@@ -114,8 +114,8 @@ singleton ShaderData(PFX_DOFAFinal)
 singleton GFXStateBlockData( PFX_DOFADownSampleCOCStateData )
 {  
    samplersDefined = true;
-   samplerStates[0] = SamplerClampPoint;
-   samplerStates[1] = SamplerClampPoint;
+   samplerStates[0] = SamplerClampLinear;
+   samplerStates[1] = SamplerClampLinear;
 };
 
 singleton GFXStateBlockData( PFX_DOFABlurStateBlock )
@@ -130,11 +130,21 @@ singleton GFXStateBlockData( PFX_DOFABlurStateBlock )
 
 singleton GFXStateBlockData( PFX_DOFAFinalStateBlock )
 {  
-   samplersDefined = true;
-   samplerStates[0] = SamplerClampPoint;
-   samplerStates[1] = SamplerClampPoint;
-   samplerStates[2] = SamplerClampPoint;
-   samplerStates[3] = SamplerClampPoint;
+    zDefined = true;
+    zEnable = false;
+    zWriteEnable = false;
+    
+    samplersDefined = true;
+    samplerStates[0] = SamplerClampLinear;
+    samplerStates[1] = SamplerClampLinear;
+    samplerStates[2] = SamplerClampLinear;
+    samplerStates[3] = SamplerClampLinear;
+
+    blendDefined = true;
+    blendEnable = true;
+    blendDest = GFXBlendInvSrcAlpha;
+    blendSrc = GFXBlendOne;
+    
 };
 
 //-----------------------------------------------------------------------------
@@ -160,7 +170,6 @@ function DOFAPostFX::onDisabled(%this)
 
 function DOFAPostFX::onAdd(%this)
 {
-    %this.setupPasess();
     PostFXManager.registerPostEffect(%this);
 }
 
@@ -211,126 +220,130 @@ function DOFAPostFX::preProcess(%this)
 
 }
 
-function DOFAPostFX::setupPasess(%this)
-{
-    %dofNear = new PostEffect()
-    {
-        internalName = "nearDownsample";
-        shader = PFX_DOFADownSampleCOC;
-        stateBlock = PFX_DOFADownSampleCOCStateData;
-        texture[0] = "#deferred";
-        texture[1] = "#color";
-        target = "#nearTex";
-        targetScale = "0.5 0.5";
-    };
-
-    %dofNearBlurX = new PostEffect()
-    {
-        shader = PFX_DOFABlurXShader;
-        stateBlock = PFX_DOFABlurStateBlock;
-        texture[0] = "#nearTex";
-        target = "$outTex";
-    };
-    %dofNear.add(%dofNearBlurX);
-
-    %dofNearBlurY = new PostEffect()
-    {
-        internalName = "nearCOC";
-        shader = PFX_DOFABlurYShader;
-        stateBlock = PFX_DOFABlurStateBlock;
-        texture[0] = "$inTex";
-        target = "#nearCOC";
-    };
-    %dofNear.add(%dofNearBlurY);
-    %this.add(%dofNear);
-
-    %dofFar = new PostEffect()
-    {
-        internalName = "farDownsample";
-        shader = PFX_DOFADownSampleCOC;
-        stateBlock = PFX_DOFADownSampleCOCStateData;
-        texture[0] = "#deferred";
-        texture[1] = "#color";
-        target = "#farTex";
-        targetScale = "0.5 0.5";
-    };
-
-    %dofFarBlurX = new PostEffect()
-    {
-        shader = PFX_DOFABlurXShader;
-        stateBlock = PFX_DOFABlurStateBlock;
-        texture[0] = "#farTex";
-        target = "$outTex";
-    };
-    %dofFar.add(%dofFarBlurX);
-
-    %dofFarBlurY = new PostEffect()
-    {
-        internalName = "farCOC";
-        shader = PFX_DOFABlurYShader;
-        stateBlock = PFX_DOFABlurStateBlock;
-        texture[0] = "$inTex";
-        target = "#farCOC";
-    };
-    %dofFar.add(%dofFarBlurY);
-    %this.add(%dofFar);
-}
-
 function DOFAPostFX::setShaderConsts(%this)
 {
-    %nearDown = %this->nearDownsample;
-    %nearDown.setShaderMacro("NEAR");
+    DOFAPostFX.setShaderMacro("NEAR");
 
-    %farDown = %this->farDownsample;
-    %farDown.removeShaderMacro("NEAR");
+    DOFFarDownsample.removeShaderMacro("NEAR");
 
     %apertureWidth = $PostFX::DOFAdvanced::FocalLength / $PostFX::HDRPostFX::apertureF;
     %fd = $PostFX::DOFAdvanced::FocusDistance / $Param::FarDist;
 
-    %nearDown.setShaderConst("$apertureWidth", %apertureWidth);
-    %nearDown.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
-    %nearDown.setShaderConst("$focusDist",  %fd);
-    %nearDown.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
-    %nearDown.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
-    %nearDown.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
+    DOFAPostFX.setShaderConst("$apertureWidth", %apertureWidth);
+    DOFAPostFX.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
+    DOFAPostFX.setShaderConst("$focusDist",  %fd);
+    DOFAPostFX.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
+    DOFAPostFX.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
+    DOFAPostFX.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
 
-    %farDown.setShaderConst("$apertureWidth", %apertureWidth);
-    %farDown.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
-    %farDown.setShaderConst("$focusDist",  %fd);
-    %farDown.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
-    %farDown.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
-    %farDown.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
+    DOFFarDownsample.setShaderConst("$apertureWidth", %apertureWidth);
+    DOFFarDownsample.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
+    DOFFarDownsample.setShaderConst("$focusDist",  %fd);
+    DOFFarDownsample.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
+    DOFFarDownsample.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
+    DOFFarDownsample.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
 
-    %this.setShaderConst("$apertureWidth", %apertureWidth);
-    %this.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
-    %this.setShaderConst("$focusDist",  %fd);
-    %this.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
-    %this.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
-    %this.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
+    DOFFinal.setShaderConst("$apertureWidth", %apertureWidth);
+    DOFFinal.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
+    DOFFinal.setShaderConst("$focusDist",  %fd);
+    DOFFinal.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
+    DOFFinal.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
+    DOFFinal.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
 
+}
+
+function DOFAPostFX::applyFromPreset(%this)
+{
+   if($PostFX::HDRPostFX::Enabled)
+      DOFAPostFX.enable();
+   else
+      DOFAPostFX.disable();
 }
 
 function DOFAPostFX::preProcess(%this)
 {
-    %nearDown = %this->nearDownsample;
-    %nearDown.setShaderMacro("NEAR");
+    DOFAPostFX.setShaderMacro("NEAR");
 
-    %farDown = %this->farDownsample;
-    %farDown.removeShaderMacro("NEAR");
+    DOFFarDownsample.removeShaderMacro("NEAR");
 }
 
 singleton PostEffect( DOFAPostFX )
 {
     enabled = false;
     renderTime = "PFXAfterBin";
-    renderBin = "GlowBin";      
+    renderBin = "GlowBin";
     renderPriority = 0.1;
 
-    shader = PFX_DOFAFinal;
-    stateBlock = PFX_DOFAFinalStateBlock;
+    shader = PFX_DOFADownSampleCOC;
+    stateBlock = PFX_DOFADownSampleCOCStateData;
     texture[0] = "#deferred";
     texture[1] = "$backBuffer";
-    texture[2] = "#nearCOC";
-    texture[3] = "#farCOC";
+    target = "#nearTex";
+    targetScale = "0.5 0.5";
+    targetClear = PFXTargetClear_OnDraw;
+    targetClearColor = "0 0 0 1";
 
+    singleton PostEffect(DOFNearBlurX)
+    {
+        shader = PFX_DOFABlurXShader;
+        stateBlock = PFX_DOFABlurStateBlock;
+        texture[0] = "#nearTex";
+        target = "$outTex";
+        targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 1";
+    };
+
+    singleton PostEffect(DOFNearBlurY)
+    {
+        internalName = "nearCOC";
+        shader = PFX_DOFABlurYShader;
+        stateBlock = PFX_DOFABlurStateBlock;
+        texture[0] = "$inTex";
+        target = "#nearCOC";
+        targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 1";
+    };
+
+    singleton PostEffect(DOFFarDownsample)
+    {
+        shader = PFX_DOFADownSampleCOC;
+        stateBlock = PFX_DOFADownSampleCOCStateData;
+        texture[0] = "#deferred";
+        texture[1] = "$backBuffer";
+        target = "#farTex";
+        targetScale = "0.5 0.5";
+        targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 1";
+    };
+
+    singleton PostEffect(DOFFarBlurX)
+    {
+        shader = PFX_DOFABlurXShader;
+        stateBlock = PFX_DOFABlurStateBlock;
+        texture[0] = "#farTex";
+        target = "$outTex";
+        targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 1";
+    };
+
+    singleton PostEffect(DOFFarBlurY)
+    {
+        internalName = "farCOC";
+        shader = PFX_DOFABlurYShader;
+        stateBlock = PFX_DOFABlurStateBlock;
+        texture[0] = "$inTex";
+        target = "#farCOC";
+        targetClear = PFXTargetClear_OnDraw;
+		targetClearColor = "0 0 0 1";
+    };
+
+    singleton PostEffect( DOFFinal )
+    {
+        shader = PFX_DOFAFinal;
+        stateBlock = PFX_DOFAFinalStateBlock;
+        texture[0] = "#deferred";
+        texture[1] = "$backBuffer";
+        texture[2] = "#nearCOC";
+        texture[3] = "#farCOC";
+    };
 };

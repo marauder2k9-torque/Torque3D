@@ -22,7 +22,7 @@
 
 #include "../../../../rendering/shaders/postFX/postFx.hlsl"
 
-uniform float2 targetSize;
+uniform float2 oneOverTargetSize;
 uniform int kernalSize;
 
 #ifndef BLUR_DIR
@@ -42,18 +42,18 @@ float4 main(PFXVertToPix IN) : SV_TARGET
     float4 col = 0; 
     float weightSum = 0.0f;
 
-    for(int i = -6; i < 6; i++) 
+    for(int i = -8; i < 8; i++) 
     { 
         float weight = calcGaussianWeight(i, 2.0f);
-        weightSum += weight;
+        weightSum += weight; 
         float2 uv = IN.uv0.xy;
-        uv += (i / targetSize) * BLUR_DIR;
+        uv += (i * oneOverTargetSize) * BLUR_DIR;
 
         float4 sample = TORQUE_TEX2D(inputTex, uv);
         col += sample * weight;
     }
 
-    col /= weightSum; 
+    col /= max(weightSum,1.0); 
 
     return col;
 }
