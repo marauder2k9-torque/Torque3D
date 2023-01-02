@@ -36,6 +36,11 @@ $PostFX::HDRPostFX::keyValue = 0.115;
 //Explicit HDR Params
 $PostFX::HDRPostFX::exposureValue = 1.0;
 
+$PostFX::HDRPostFX::apertureF = 5.4;
+$PostFX::HDRPostFX::ISO = 100;
+// shutter speed 1/200
+$PostFX::HDRPostFX::shutterSpeed = 0.005;
+
 $PostFX::HDRPostFX::whitePoint = 1.0;
 
 //HDR Color Corrections Vars
@@ -265,7 +270,12 @@ function HDRPostFX::setShaderConsts( %this )
    %combinePass.setShaderConst( "$g_fMiddleGray", $PostFX::HDRPostFX::keyValue );
    
    %combinePass.setShaderConst( "$whitePoint", $PostFX::HDRPostFX::whitePoint );
-   %combinePass.setShaderConst( "$exposureValue", $PostFX::HDRPostFX::exposureValue );
+   //%combinePass.setShaderConst( "$exposureValue", $PostFX::HDRPostFX::exposureValue );
+
+   %combinePass.setShaderConst( "$apertureF", $PostFX::HDRPostFX::apertureF );
+   %combinePass.setShaderConst( "$isoValue", $PostFX::HDRPostFX::ISO );
+   %combinePass.setShaderConst( "$shutterSpeed", $PostFX::HDRPostFX::shutterSpeed );
+
    %combinePass.setShaderConst( "$colorFilter", $PostFX::HDRPostFX::colorFilter );  
    %combinePass.setShaderConst( "$saturationValue", $PostFX::HDRPostFX::saturationValue );
    %combinePass.setShaderConst( "$logContrast", $PostFX::HDRPostFX::logContrast );
@@ -426,9 +436,12 @@ function HDRPostFX::onAdd( %this )
 //are thus exposed for editing
 function HDRPostFX::populatePostFXSettings(%this)
 {
-   PostEffectEditorInspector.startGroup("HDR - General");
+   PostEffectEditorInspector.startGroup("HDR - Camera");
    PostEffectEditorInspector.addCallbackField("$PostFX::HDRPostFX::Enabled", "Enabled", "bool", "", $PostFX::HDRPostFX::Enabled, "", "toggleHDRPostFX");
-   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::exposureValue", "Exposure", "range", "", $PostFX::HDRPostFX::exposureValue, "0 5 50");
+   //PostEffectEditorInspector.addField("$PostFX::HDRPostFX::exposureValue", "Exposure", "range", "", $PostFX::HDRPostFX::exposureValue, "0 5 50");
+   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::apertureF", "Aperture F", "range", "", $PostFX::HDRPostFX::apertureF, "0 50 150");
+   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::ISO", "ISO", "range", "", $PostFX::HDRPostFX::ISO, "0 500 1000");
+   PostEffectEditorInspector.addField("$PostFX::HDRPostFX::shutterSpeed", "Shutter Speed", "range", "", $PostFX::HDRPostFX::shutterSpeed, "0 30 600");
    PostEffectEditorInspector.endGroup();
    
    PostEffectEditorInspector.startGroup("HDR - Tonemapping");
@@ -491,6 +504,9 @@ function HDRPostFX::savePresetSettings(%this)
 {
    PostFXManager::savePresetSetting("$PostFX::HDRPostFX::Enabled");
    PostFXManager::savePresetSetting("$PostFX::HDRPostFX::exposureValue");
+   PostFXManager::savePresetSetting("$PostFX::HDRPostFX::apertureF");
+   PostFXManager::savePresetSetting("$PostFX::HDRPostFX::ISO");
+   PostFXManager::savePresetSetting("$PostFX::HDRPostFX::shutterSpeed");
    PostFXManager::savePresetSetting("$PostFX::HDRPostFX::whitePoint");
    PostFXManager::savePresetSetting("$PostFX::HDRPostFX::logContrast");
    PostFXManager::savePresetSetting("$PostFX::HDRPostFX::saturationValue");

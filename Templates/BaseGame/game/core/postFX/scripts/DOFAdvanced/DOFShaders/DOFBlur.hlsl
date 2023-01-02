@@ -20,49 +20,40 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "core/rendering/shaders/torque.hlsl"
+#include "../../../../rendering/shaders/postFX/postFx.hlsl"
 
+uniform float2 targetSize;
+uniform int kernalSize;
 
-float3 TO_Exposure (float3 x, float exposureValue, float3 colorFilter)
+#ifndef BLUR_DIR
+#define BLUR_DIR float2(0.0,0.0);
+#endif
+
+TORQUE_UNIFORM_SAMPLER2D(inputTex, 0);
+
+float calcGaussianWeight(int sampleDist, float sigma)
 {
-   x = exp2(exposureValue)/2 * colorFilter;
-   return x;     
-} 
-
-float3 TO_Saturation (float3 x, float saturation)
-{   
-    float L = rgbToHSL(x).z;
-	x = lerp(L, x, saturation);	
-    return x; 
-}   
-     
-float TO_LogContrast (float x, float contrast)
-{       
-    float a =  0.15 + (log2(x + 0.0001f ) - 0.15)* contrast ;
-    return clamp(exp2(a)-0.0001f,0.0 , 2.5);  
-}  
-
-float KarisAverage(float3 col)
-{
-	float luma = rgbToHSL(col).z;
-	return 1.0 / (1.0f + luma);
+    float g = 1.0f / sqrt(2.0f * 3.14159 * sigma * sigma);
+    return (g * exp(-(sampleDist * sampleDist) / (2 * sigma * sigma)));
 }
 
-float3 calcExposedColor(float3 col, float key, float autoExposure, float avgLum, float apertureF, float iso, float shutterSpeed, out float exposure)
+float4 main(PFXVertToPix IN) : SV_TARGET
 {
-    if(autoExposure > 0.0)
-    {
-        avgLum = max(avgLum, 0.00001f);
-        float linearExposure = (key / avgLum);
-        exposure = log2(max(linearExposure, 0.00001f));
-    }
-    else
-    {
-        float maxLum = (7800.0f / 65.0f) * (apertureF * apertureF) / (iso * shutterSpeed);
-        exposure = log2(1.0f / maxLum);
-        // fp16 scale for converting to physical light units.
-        exposure -= log2(0.0009765625f);
+    float4 col = 0; 
+    float weightSum = 0.0f;
+
+    for(int i = -6; i < 6; i++) 
+    { 
+        float weight = calcGaussianWeight(i, 2.0f);
+        weightSum += weight;
+        float2 uv = IN.uv0.xy;
+        uv += (i / targetSize) * BLUR_DIR;
+
+        float4 sample = TORQUE_TEX2D(inputTex, uv);
+        col += sample * weight;
     }
 
-    return exp2(exposure) * col;
+    col /= weightSum; 
+
+    return col;
 }

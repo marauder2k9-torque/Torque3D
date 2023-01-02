@@ -45,7 +45,11 @@ uniform float Brightness;
 uniform float Contrast; 
     
 //Explicit HDR Params 
-uniform float exposureValue;
+//uniform float exposureValue;
+uniform float apertureF;
+uniform float isoValue;
+uniform float shutterSpeed;
+
 uniform float whitePoint;
 uniform float logContrast;
 uniform float brightnessValue;
@@ -54,12 +58,12 @@ uniform float3 colorFilter;
             	 
 			
 float3 Tonemap(float3 x)
-{     
+{      
     //ACES           
     if(g_fTonemapMode == 1.0f)    
    {              
-      x = ACESFitted(x, whitePoint, g_fOneOverGamma); //ACES is crushing our blacks, need to pre-expose!  
-   }                             
+      x = ACESFitted(x, whitePoint, g_fOneOverGamma); //ACES is crushing our blacks, need to pre-expose! 
+   } 
    //Filmic Helji
    if(g_fTonemapMode == 2.0f)
    { 
@@ -71,19 +75,19 @@ float3 Tonemap(float3 x)
       x = TO_HableU2(x, whitePoint);         
    }      
                            
-   //Reinhard      
+   //Reinhard       
    if (g_fTonemapMode == 4.0)
    {   
 	  float L = hdrLuminance(x);   
       float3 nL = TO_Reinhard(L, whitePoint);
       x *= (nL / L);                  	    	                           
    }  
-        
+          
    //Linear Tonemap  
    else if (g_fTonemapMode == 5.0)
    {  
-      x = toLinear(x);
-   }
+      x = toLinear(x);   
+   } 
         
    return x;
 }  
@@ -96,9 +100,17 @@ float4 main( PFXVertToPix IN ) : TORQUE_TARGET0
         	    
    // Add the bloom effect.     
    sample.rgb = lerp(sample.rgb, bloom.rgb, float3(0.04, 0.04, 0.04));        
-   		 	
-	//Apply Exposure     
-   sample.rgb *= TO_Exposure(sample.rgb, exposureValue, colorFilter); 
+   
+   float exposureValue; 
+   adaptedLum = saturate(adaptedLum);
+   sample.rgb = calcExposedColor(sample.rgb, 
+                                 g_fMiddleGray, 
+                                 g_fEnableAutoExposure, 
+                                 adaptedLum, 
+                                 apertureF, 
+                                 isoValue, 
+                                 shutterSpeed, 
+                                 exposureValue); 
                                         
    	//Apply Saturation
    sample.rgb = TO_Saturation(sample.rgb, saturationValue);	      	    
@@ -117,22 +129,7 @@ float4 main( PFXVertToPix IN ) : TORQUE_TARGET0
    //tonemapping - TODO fix up eye adaptation
    if ( g_fEnableToneMapping > 0.0f )  
    {    
-      float adapation = 1.0;  
-	   
-      if( g_fEnableAutoExposure > 0.0f )  
-	   {  	     		 
-         adaptedLum = saturate(adaptedLum); 
-         float linearExposure = (g_fMiddleGray * rcp(adaptedLum));
-         adapation = log2(max(linearExposure, 0.0001f));     
-		          
-         sample.rgb = Tonemap(exposureValue * sample.rgb *exp2(adapation)); 
-	   }   
-         
-        else {
-		
-		  sample.rgb = Tonemap(sample.rgb);
-	    }		
-      	           
+		sample.rgb = Tonemap(sample.rgb);
    }      
       
    return sample;

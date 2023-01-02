@@ -1,0 +1,4 @@
+<PostEffectAsset
+    AssetName="DOFAdvancedPostFX"
+    scriptFile="@assetFile=DOFAdvancedPostFX.cs"
+    VersionId="1"/>

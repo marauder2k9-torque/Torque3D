@@ -1,0 +1,336 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2012 GarageGames, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+//-----------------------------------------------------------------------------
+/*
+================================================================================
+ The DOFAdvanced - Physically based
+================================================================================
+
+This Depth of Field ties in with the hdr postfx settings for the aperture F stop
+to create a more physically based depth of field.
+
+For the moment all we are using is the aperture width, focal length and focus distance
+to calculate a coc.
+Aperture width = focalLength / fStop.
+
+A more accurate example is presented below:
+H = hyperfocal distance
+L = focal length in mm
+S = focus distance
+N = the near distance
+F = far distance
+aV = f Stop
+c = the coc mm (range of 0.04 to 0.0011)
+
+first we work out the hyperfocal distance calculation in mm:
+H = (L*L)/aV*c;
+
+at this point we can change this value to meters.
+
+Then with this we can work out the near distance plane:
+N = H*S/H+S;
+
+And then the Far distance plane
+F = Hs/H-S
+
+Depth Of Field = F-N.
+
+The only values needed to calculate the blurring is the N plane and the Far plane.
+
+for a visual representation of this https://capturetheatlas.com/depth-of-field-photography/
+
+*/
+
+$PostFX::DOFAdvanced::Enabled = false;
+$PostFX::DOFAdvanced::FilmSize = 35.0;
+$PostFX::DOFAdvanced::FocalLength = 35.0;
+$PostFX::DOFAdvanced::MaxCOCSize = 21.0;
+$PostFX::DOFAdvanced::FocusDistance = 20.0;
+$PostFX::DOFAdvanced::AutoFocus = false;
+$PostFX::DOFAdvanced::KernalSize = 14;
+
+//-----------------------------------------------------------------------------
+// GFXStateBlockData / ShaderData
+//-----------------------------------------------------------------------------
+
+singleton ShaderData(PFX_DOFADownSampleCOC)
+{
+    DXVertexShaderFile   = $Core::CommonShaderPath @ "/postFX/postFxV.hlsl";
+    DXPixelShaderFile = "./DOFShaders/DOFDownsampleCOC.hlsl";
+
+    samplerNames[0] = "$deferredBuffer";
+    samplerNames[1] = "$colorBuffer";
+
+    pixVersion = 2.0;
+};
+
+singleton ShaderData( PFX_DOFABlurYShader )
+{
+   DXVertexShaderFile   = $Core::CommonShaderPath @ "/postFX/postFxV.hlsl";
+   DXPixelShaderFile = "./DOFShaders/DOFBlur.hlsl";
+   
+   samplerNames[0] = "$inputTex";
+   
+   pixVersion = 2.0;      
+   defines = "BLUR_DIR=float2(0.0,1.0)";         
+};
+
+singleton ShaderData( PFX_DOFABlurXShader : PFX_DOFABlurYShader )
+{
+   defines = "BLUR_DIR=float2(1.0,0.0)";
+};
+
+singleton ShaderData(PFX_DOFAFinal)
+{
+    DXVertexShaderFile   = $Core::CommonShaderPath @ "/postFX/postFxV.hlsl";
+    DXPixelShaderFile = "./DOFShaders/DOFFinalPass.hlsl";
+
+    samplerNames[0] = "$deferredBuffer";
+    samplerNames[1] = "$backBuffer";
+    samplerNames[2] = "$nearTex";
+    samplerNames[3] = "$farTex";
+
+    pixVersion = 2.0;
+};
+
+singleton GFXStateBlockData( PFX_DOFADownSampleCOCStateData )
+{  
+   samplersDefined = true;
+   samplerStates[0] = SamplerClampPoint;
+   samplerStates[1] = SamplerClampPoint;
+};
+
+singleton GFXStateBlockData( PFX_DOFABlurStateBlock )
+{
+   zDefined = true;
+   zEnable = false;
+   zWriteEnable = false;
+      
+   samplersDefined = true;
+   samplerStates[0] = SamplerClampLinear;   
+};
+
+singleton GFXStateBlockData( PFX_DOFAFinalStateBlock )
+{  
+   samplersDefined = true;
+   samplerStates[0] = SamplerClampPoint;
+   samplerStates[1] = SamplerClampPoint;
+   samplerStates[2] = SamplerClampPoint;
+   samplerStates[3] = SamplerClampPoint;
+};
+
+//-----------------------------------------------------------------------------
+// Script
+//-----------------------------------------------------------------------------
+function DOFAPostFX::onEnabled(%this)
+{
+    if(!$PostFX::HDRPostFX::Enabled)
+    {
+        echo("HDR Required for this DoF Effect!");
+        return false;
+    }
+
+    $PostFX::DOFAdvanced::Enabled = true;
+
+    return true;
+}
+
+function DOFAPostFX::onDisabled(%this)
+{
+    $PostFX::DOFAdvanced::Enabled = false;
+}
+
+function DOFAPostFX::onAdd(%this)
+{
+    %this.setupPasess();
+    PostFXManager.registerPostEffect(%this);
+}
+
+function DOFAPostFX::populatePostFXSettings(%this)
+{
+    PostEffectEditorInspector.startGroup("Depth of Field Advanced");
+    PostEffectEditorInspector.addCallbackField("$PostFX::DOFAdvanced::Enabled", "Enabled", "bool", "", $PostFX::DOFAdvanced::Enabled, "", "toggleDOF");
+    PostEffectEditorInspector.addField("$PostFX::DOFAdvanced::FilmSize", "Film Size", "range", "", $PostFX::DOFAdvanced::FilmSize, "0 70 70 1");
+    // this one should probably be in hdr
+    PostEffectEditorInspector.addField("$PostFX::DOFAdvanced::FocalLength", "Focal Length", "range", "", $PostFX::DOFAdvanced::FocalLength, "0 500 500 1");
+    PostEffectEditorInspector.addField("$PostFX::DOFAdvanced::MaxCOCSize", "Max COC Size", "range", "", $PostFX::DOFAdvanced::MaxCOCSize, "0 100 300");
+    PostEffectEditorInspector.addField("$PostFX::DOFAdvanced::FocusDistance", "Focus Distance", "range", "", $PostFX::DOFAdvanced::FocusDistance, "0 100 500");
+    PostEffectEditorInspector.addField("$PostFX::DOFAdvanced::KernalSize", "Kernal Size", "range", "", $PostFX::DOFAdvanced::KernalSize, "2 32 14 1");
+    PostEffectEditorInspector.addField("$PostFX::DOFAdvanced::AutoFocus", "Auto Focus", "bool", "", $PostFX::DOFAdvanced::AutoFocus, "");
+    PostEffectEditorInspector.endGroup();
+}
+
+function DOFAPostFX::savePresetSettings(%this)
+{
+    PostFXManager::savePresetSetting("$PostFX::DOFAdvanced::Enabled");
+    PostFXManager::savePresetSetting("$PostFX::DOFAdvanced::FilmSize");
+    PostFXManager::savePresetSetting("$PostFX::DOFAdvanced::FocalLength");
+    PostFXManager::savePresetSetting("$PostFX::DOFAdvanced::MaxCOCSize");
+    PostFXManager::savePresetSetting("$PostFX::DOFAdvanced::FocusDistance");
+    PostFXManager::savePresetSetting("$PostFX::DOFAdvanced::KernalSize");
+    PostFXManager::savePresetSetting("$PostFX::DOFAdvanced::AutoFocus");
+}
+
+function DOFAPostFX::toggleDOF(%this)
+{
+    if(!$PostFX::HDRPostFX::Enabled)
+    {
+        echo("HDR Required for this DoF Effect!");
+        // disable just in case.
+        DOFAPostFX.disable();
+    }
+    else
+    {
+        if($PostFX::DOFAdvanced::Enabled)
+            DOFAPostFX.enable();
+        else
+            DOFAPostFX.disable();
+    }
+}
+
+function DOFAPostFX::preProcess(%this)
+{
+
+}
+
+function DOFAPostFX::setupPasess(%this)
+{
+    %dofNear = new PostEffect()
+    {
+        internalName = "nearDownsample";
+        shader = PFX_DOFADownSampleCOC;
+        stateBlock = PFX_DOFADownSampleCOCStateData;
+        texture[0] = "#deferred";
+        texture[1] = "#color";
+        target = "#nearTex";
+        targetScale = "0.5 0.5";
+    };
+
+    %dofNearBlurX = new PostEffect()
+    {
+        shader = PFX_DOFABlurXShader;
+        stateBlock = PFX_DOFABlurStateBlock;
+        texture[0] = "#nearTex";
+        target = "$outTex";
+    };
+    %dofNear.add(%dofNearBlurX);
+
+    %dofNearBlurY = new PostEffect()
+    {
+        internalName = "nearCOC";
+        shader = PFX_DOFABlurYShader;
+        stateBlock = PFX_DOFABlurStateBlock;
+        texture[0] = "$inTex";
+        target = "#nearCOC";
+    };
+    %dofNear.add(%dofNearBlurY);
+    %this.add(%dofNear);
+
+    %dofFar = new PostEffect()
+    {
+        internalName = "farDownsample";
+        shader = PFX_DOFADownSampleCOC;
+        stateBlock = PFX_DOFADownSampleCOCStateData;
+        texture[0] = "#deferred";
+        texture[1] = "#color";
+        target = "#farTex";
+        targetScale = "0.5 0.5";
+    };
+
+    %dofFarBlurX = new PostEffect()
+    {
+        shader = PFX_DOFABlurXShader;
+        stateBlock = PFX_DOFABlurStateBlock;
+        texture[0] = "#farTex";
+        target = "$outTex";
+    };
+    %dofFar.add(%dofFarBlurX);
+
+    %dofFarBlurY = new PostEffect()
+    {
+        internalName = "farCOC";
+        shader = PFX_DOFABlurYShader;
+        stateBlock = PFX_DOFABlurStateBlock;
+        texture[0] = "$inTex";
+        target = "#farCOC";
+    };
+    %dofFar.add(%dofFarBlurY);
+    %this.add(%dofFar);
+}
+
+function DOFAPostFX::setShaderConsts(%this)
+{
+    %nearDown = %this->nearDownsample;
+    %nearDown.setShaderMacro("NEAR");
+
+    %farDown = %this->farDownsample;
+    %farDown.removeShaderMacro("NEAR");
+
+    %apertureWidth = $PostFX::DOFAdvanced::FocalLength / $PostFX::HDRPostFX::apertureF;
+    %fd = $PostFX::DOFAdvanced::FocusDistance / $Param::FarDist;
+
+    %nearDown.setShaderConst("$apertureWidth", %apertureWidth);
+    %nearDown.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
+    %nearDown.setShaderConst("$focusDist",  %fd);
+    %nearDown.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
+    %nearDown.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
+    %nearDown.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
+
+    %farDown.setShaderConst("$apertureWidth", %apertureWidth);
+    %farDown.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
+    %farDown.setShaderConst("$focusDist",  %fd);
+    %farDown.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
+    %farDown.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
+    %farDown.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
+
+    %this.setShaderConst("$apertureWidth", %apertureWidth);
+    %this.setShaderConst("$focalLength", $PostFX::DOFAdvanced::FocalLength);
+    %this.setShaderConst("$focusDist",  %fd);
+    %this.setShaderConst("$filmSize",   $PostFX::DOFAdvanced::FilmSize);
+    %this.setShaderConst("$maxCocSize", $PostFX::DOFAdvanced::MaxCOCSize);
+    %this.setShaderConst("$kernalSize", $PostFX::DOFAdvanced::KernalSize);
+
+}
+
+function DOFAPostFX::preProcess(%this)
+{
+    %nearDown = %this->nearDownsample;
+    %nearDown.setShaderMacro("NEAR");
+
+    %farDown = %this->farDownsample;
+    %farDown.removeShaderMacro("NEAR");
+}
+
+singleton PostEffect( DOFAPostFX )
+{
+    enabled = false;
+    renderTime = "PFXAfterBin";
+    renderBin = "GlowBin";      
+    renderPriority = 0.1;
+
+    shader = PFX_DOFAFinal;
+    stateBlock = PFX_DOFAFinalStateBlock;
+    texture[0] = "#deferred";
+    texture[1] = "$backBuffer";
+    texture[2] = "#nearCOC";
+    texture[3] = "#farCOC";
+
+};
