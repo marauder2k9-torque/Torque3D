@@ -125,6 +125,8 @@ public:
 
    void clearVectors();
 
+   void onImageChanged() {}
+
 protected:
 
    void _render( ObjectRenderInst *ri, SceneRenderState *state, BaseMatInstance *overrideMat );
@@ -269,6 +271,17 @@ protected:
    F32 mColorizeAmt;
    LinearColorF mColorize;
    GFXShaderConstHandle *mColorizeSC;
+
+   //ScatterSky clouds update.
+   DECLARE_IMAGEASSET(ScatterSky, CloudTexture, onImageChanged, GFXStaticTextureSRGBProfile);
+   DECLARE_ASSET_NET_SETGET(ScatterSky, CloudTexture, UpdateMask);
+   bool mRenderClouds;
+   F32 mCoverage;
+   F32 mWindSpeed;
+   F32 mHeight;
+   F32 mTexScale;
+   Point2F mTexDirection;
+   F32 mTexSpeed;
 
 };
 

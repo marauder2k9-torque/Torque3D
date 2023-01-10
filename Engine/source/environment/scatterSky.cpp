@@ -41,7 +41,7 @@
 #include "materials/baseMatInstance.h"
 #include "materials/sceneData.h"
 #include "environment/timeOfDay.h"
-
+#include "math/mathIO.h"
 
 ConsoleDocClass( ScatterSky,
    "@brief Represents both the sun and sky for scenes with a dynamic time of day.\n\n"
@@ -182,6 +182,16 @@ ScatterSky::ScatterSky()
 
    mColorizeAmt = 0;
    mColorize.set(0,0,0);
+
+   // ScatterSKy Clouds update.
+   INIT_ASSET(CloudTexture);
+   mRenderClouds = false;
+   mCoverage = 0.5f;
+   mWindSpeed = 1.0f;
+   mHeight = 4.0f;
+   mTexScale = 1.0;
+   mTexDirection.set(1.0, 1.0);
+   mTexSpeed = 0.005f;
 }
 
 ScatterSky::~ScatterSky()
@@ -372,7 +382,19 @@ void ScatterSky::initPersistFields()
 
    endGroup( "Orbit" );
 
-   // We only add the basic lighting options that all lighting
+   // ScatterSky cloud update.
+   addGroup("Clouds");
+      addField("cloudsEnabled", TypeBool, Offset(mRenderClouds, ScatterSky),"Enable or disable rendering clouds.");
+      INITPERSISTFIELD_IMAGEASSET(CloudTexture, ScatterSky, "An RGBA textire which should containe a red green and blue channel that mixes to calculate cloud density.");
+      addField("coverage", TypeF32, Offset(mCoverage, ScatterSky),"Fraction of sky covered by clouds 0-1.");
+      addField("texSpeed", TypeF32, Offset(mTexSpeed, ScatterSky),"Controls the speed this slot scrolls.");
+      addField("windSpeed", TypeF32, Offset(mWindSpeed, ScatterSky),"Overall scalar to texture scroll speed.");
+      addField("texScale", TypeF32, Offset(mTexScale, ScatterSky), "Texture scale for the cloud texture.");
+      addField("texDirection", TypePoint2F, Offset(mTexDirection, ScatterSky), "Controls the direction this slot scrolls.");
+      addField("height", TypeF32, Offset(mHeight, ScatterSky),"Abstract number which controls the curvature and height of the dome mesh.");
+   endGroup("Clouds");
+
+   // We only add the basic lighting options that all lightings
    // systems would use... the specific lighting system options
    // are injected at runtime by the lighting system itself.
 
@@ -513,6 +535,19 @@ U32 ScatterSky::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
       stream->write( mMoonAzimuth );
       stream->write( mMoonElevation );
 
+      // ScatterSky clouds update.
+      stream->writeFlag(mRenderClouds);
+      if (mRenderClouds)
+      {
+         PACK_ASSET(con, CloudTexture);
+         stream->write(mCoverage);
+         stream->write(mWindSpeed);
+         stream->write(mHeight);
+         stream->write(mTexScale);
+         mathWrite(*stream, mTexDirection);
+         stream->write(mTexSpeed);
+      }
+
       mLight->packExtended( stream );
    }
 
@@ -626,6 +661,19 @@ void ScatterSky::unpackUpdate(NetConnection *con, BitStream *stream)
 
       stream->read( &mMoonAzimuth );
       stream->read( &mMoonElevation );
+
+      // ScatterSky clouds update.
+      mRenderClouds = stream->readFlag();
+      if (mRenderClouds)
+      {
+         UNPACK_ASSET(con, CloudTexture);
+         stream->read(&mCoverage);
+         stream->read(&mWindSpeed);
+         stream->read(&mHeight);
+         stream->read(&mTexScale);
+         mathRead(*stream, &mTexDirection);
+         stream->read(&mTexSpeed);
+      }
 
       mLight->unpackExtended( stream );
 

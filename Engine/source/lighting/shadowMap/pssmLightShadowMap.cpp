@@ -253,8 +253,8 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
    TSShapeInstance::smDetailAdjust *= smDetailAdjustScale;
    TSShapeInstance::smSmallestVisiblePixelSize = smSmallestVisiblePixelSize;
 
-   Vector< Vector<PlaneF> > _extraCull;
-   _calcPlanesCullForShadowCasters( _extraCull, fullFrustum, mLight->getDirection() );
+   //Vector< Vector<PlaneF> > _extraCull;
+   //_calcPlanesCullForShadowCasters( _extraCull, fullFrustum, mLight->getDirection() );
 
    for (U32 i = 0; i < mNumSplits; i++)
    {
@@ -272,28 +272,26 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
          2.0f / (clipAABB.maxExtents.y - clipAABB.minExtents.y),
          1.0f);
 
-      // TODO: This seems to produce less "pops" of the
-      // shadow resolution as the camera spins around and
-      // it should produce pixels that are closer to being
-      // square.
-      //
-      // Still is it the right thing to do?
-      //
-      scale.y = scale.x = ( getMin( scale.x, scale.y ) ); 
-      //scale.x = mFloor(scale.x); 
-      //scale.y = mFloor(scale.y); 
+      F32 scaleQuantizer = 64.0f;
+      scale.x = 1.0f / mCeil(1.0f / scale.x * scaleQuantizer) * scaleQuantizer;
+      scale.y = 1.0f / mCeil(1.0f / scale.y * scaleQuantizer) * scaleQuantizer;
 
       Point3F offset(   -0.5f * (clipAABB.maxExtents.x + clipAABB.minExtents.x) * scale.x,
                         -0.5f * (clipAABB.maxExtents.y + clipAABB.minExtents.y) * scale.y,
                         0.0f );
 
+      // quantize the offset
+      F32 halfTex = 0.5 * mTexSize;
+      offset.x = mCeil(offset.x * halfTex) / halfTex;
+      offset.y = mCeil(offset.y * halfTex) / halfTex;
+
       MatrixF cropMatrix(true);
       cropMatrix.scale(scale);
       cropMatrix.setPosition(offset);
 
-      _roundProjection(lightMatrix, cropMatrix, offset, i);
+      //_roundProjection(lightMatrix, cropMatrix, offset, i);
 
-      cropMatrix.setPosition(offset);      
+      //cropMatrix.setPosition(offset);      
 
       // Save scale/offset for shader computations
       mScaleProj[i].set(scale);
@@ -373,8 +371,8 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
       shadowRenderState.setDiffuseCameraTransform( diffuseState->getCameraTransform() );
       shadowRenderState.setWorldToScreenScale( diffuseState->getWorldToScreenScale() );
 
-      PlaneSetF planeSet( _extraCull[i].address(), _extraCull[i].size() );
-      shadowRenderState.getCullingState().setExtraPlanesCull( planeSet );
+      //PlaneSetF planeSet( _extraCull[i].address(), _extraCull[i].size() );
+      //shadowRenderState.getCullingState().setExtraPlanesCull( planeSet );
 
       U32 objectMask = SHADOW_TYPEMASK;
       if ( i == mNumSplits-1 && params->lastSplitTerrainOnly )
@@ -382,7 +380,7 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
 
       sceneManager->renderSceneNoLights( &shadowRenderState, objectMask );
 
-      shadowRenderState.getCullingState().clearExtraPlanesCull();
+      //shadowRenderState.getCullingState().clearExtraPlanesCull();
 
       _debugRender( &shadowRenderState );
    }
