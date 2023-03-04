@@ -204,21 +204,23 @@ float smoothDistanceAtt ( float squaredDistance , float invSqrAttRadius )
 {
    float factor = squaredDistance * invSqrAttRadius ;
    float smoothFactor = saturate (1.0f - factor * factor );
-   return smoothFactor * smoothFactor;
+   return sqr(smoothFactor);
 }
 
 float getDistanceAtt( float3 unormalizedLightVector , float invSqrAttRadius )
 {
-   float sqrDist = dot( unormalizedLightVector, unormalizedLightVector );
-   float attenuation = 1.0  / sqrDist * smoothDistanceAtt ( sqrDist , invSqrAttRadius );
+   float sqrDist = dot ( unormalizedLightVector , unormalizedLightVector );
+   float attenuation = 1.0 / (max ( sqrDist , 0.01*0.01) );
+   attenuation *= smoothDistanceAtt ( sqrDist , invSqrAttRadius );
    return attenuation;
 }
 
- float getSpotAngleAtt( float3 normalizedLightVector , float3 lightDir , float2 lightSpotParams, float exponent )
+ float getSpotAngleAtt( float3 normalizedLightVector , float3 lightDir , float2 lightSpotParams )
  {
-   float attenuation = clamp(dot(lightDir, normalizedLightVector) * lightSpotParams.x + lightSpotParams.y, 0.0, 1.0);
+   float cd = dot ( lightDir , normalizedLightVector );
+   float attenuation = saturate ( ( cd - lightSpotParams.x ) / lightSpotParams.y );
    // smooth the transition
-   return attenuation * attenuation;
+   return sqr(attenuation);
 }
 
 float3 evaluateStandardBRDF(Surface surface, SurfaceToLight surfaceToLight)
@@ -248,11 +250,8 @@ float3 getDirectionalLight(Surface surface, SurfaceToLight surfaceToLight, float
 
 float3 getPunctualLight(Surface surface, SurfaceToLight surfaceToLight, float3 lightColor, float lightIntensity, float radius, float shadow)
 {
-   float attenuation = 1;
-   attenuation *= getDistanceAtt(surfaceToLight.Lu, radius);
-   float3 lCol = lightColor.rgb *(lightIntensity / (4.0 * 3.14159265359));
-   float3 radince = lCol * attenuation;
-   float3 factor = saturate(surfaceToLight.NdotL) * shadow * radince;
+   float attenuation = getDistanceAtt(surfaceToLight.Lu, radius);
+   float3 factor = lightColor * max(surfaceToLight.NdotL* shadow * lightIntensity * attenuation, 0.0f) ;
    return evaluateStandardBRDF(surface,surfaceToLight) * factor;
 }
 
@@ -314,7 +313,7 @@ float4 compute4Lights( Surface surface,
             //get Punctual light contribution   
             lighting = getPunctualLight(surface, surfaceToLight, lightCol, lightBrightness, lightInvSqrRange, shadowed);
             //get spot angle attenuation
-            lighting *= getSpotAngleAtt(-surfaceToLight.L, inLightSpotDir[i].xyz, lightSpotParams[i].xy, lightRange );
+            lighting *= getSpotAngleAtt(-surfaceToLight.L, inLightSpotDir[i].xyz, lightSpotParams[i].xy );
          }
       }
       finalLighting += lighting;

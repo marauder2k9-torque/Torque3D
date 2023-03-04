@@ -171,7 +171,11 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
 
    #else
       float2 shadowCoord = decodeShadowCoord( mul( worldToLightProj, -surfaceToLight.L ) ).xy;
+<<<<<<< HEAD
       shadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), ssPos.xy, shadowCoord, shadowSoftness, distToLight, surfaceToLight.NdotL, lightParams.y);
+=======
+      float shadowed = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), ssPos.xy, shadowCoord, shadowSoftness, distToLight, surfaceToLight.NdotL, lightParams.y);
+>>>>>>> parent of 239c7e58d (Shadow tests)
    #endif
    }
    #endif // !NO_SHADOW
