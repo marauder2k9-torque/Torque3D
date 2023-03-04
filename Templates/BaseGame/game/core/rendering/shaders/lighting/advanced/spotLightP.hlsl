@@ -152,11 +152,7 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
    #endif
 
       //get Punctual light contribution   
-<<<<<<< HEAD
       lighting = getPunctualLight(surface, surfaceToLight, lightCol, lightBrightness, lightInvSqrRange, shadow);
-=======
-      lighting = getPunctualLight(surface, surfaceToLight, lightCol, lightBrightness, lightInvSqrRange, shadowed);
->>>>>>> parent of 239c7e58d (Shadow tests)
       //get spot angle attenuation
       lighting *= getSpotAngleAtt(-surfaceToLight.L, lightDirection, lightSpotParams );
    }
