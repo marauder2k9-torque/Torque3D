@@ -282,7 +282,6 @@ IMPLEMENT_CALLBACK( PlayerData, onLeaveMissionArea, void, ( Player* obj ), ( obj
 
 PlayerData::PlayerData()
 {
-   shadowEnable = true;
    shadowSize = 256;
    shadowProjectionDistance = 14.0f;
 
@@ -472,11 +471,9 @@ bool PlayerData::preload(bool server, String &errorStr)
    if (!server) {
       for (U32 i = 0; i < MaxSounds; ++i)
       {
-         _setPlayerSound(getPlayerSound(i), i);
-         if (getPlayerSound(i) != StringTable->EmptyString())
+         if (!isPlayerSoundValid(i))
          {
-            if (!getPlayerSoundProfile(i))
-               Con::errorf("PlayerData::Preload() - unable to find sfxProfile for asset %d %s", i, mPlayerSoundAssetId[i]);
+            //return false; -TODO: trigger asset download
          }
       }
    }
@@ -705,6 +702,9 @@ bool PlayerData::isJumpAction(U32 action)
 
 void PlayerData::initPersistFields()
 {
+   docsURL;
+   Parent::initPersistFields();
+
    addField( "pickupRadius", TypeF32, Offset(pickupRadius, PlayerData),
       "@brief Radius around the player to collide with Items in the scene (on server).\n\n"
       "Internally the pickupRadius is added to the larger side of the initial bounding box "
@@ -1163,8 +1163,6 @@ void PlayerData::initPersistFields()
          "need to.\n");
 
    endGroup( "Third Person" );
-
-   Parent::initPersistFields();
 }
 
 void PlayerData::packData(BitStream* stream)

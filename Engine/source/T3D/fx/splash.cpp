@@ -114,8 +114,9 @@ SplashData::SplashData()
 //--------------------------------------------------------------------------
 // Init fields
 //--------------------------------------------------------------------------
-   void SplashData::initPersistFields()
+void SplashData::initPersistFields()
 {
+      docsURL;
    INITPERSISTFIELD_SOUNDASSET(Sound, SplashData, "Sound to play when splash, splashes.");
 
    addField("scale",             TypePoint3F,                  Offset(scale,              SplashData), "The scale of this splashing effect, defined as the F32 points X, Y, Z.\n");
@@ -278,13 +279,10 @@ bool SplashData::preload(bool server, String &errorStr)
 
    if (!server)
    {
-
-      if (getSound() != StringTable->EmptyString())
+      if (!isSoundValid())
       {
-         _setSound(getSound());
-
-         if(!getSoundProfile())
-            Con::errorf(ConsoleLogEntry::General, "SplashData::preload: Cant get an sfxProfile for splash.");
+         Con::errorf(ConsoleLogEntry::General, "SplashData::preload: Invalid Sound asset.");
+         //return false;
       }
 
       S32 i;
