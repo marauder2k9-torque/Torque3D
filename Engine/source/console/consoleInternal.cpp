@@ -462,9 +462,6 @@ const char *Dictionary::tabComplete(const char *prevText, S32 baseLen, bool fFor
    return bestMatch;
 }
 
-
-char *typeValueEmpty = "";
-
 Dictionary::Entry::Entry(StringTableEntry in_name)
 {
    name = in_name;
@@ -477,7 +474,7 @@ Dictionary::Entry::Entry(StringTableEntry in_name)
 
    ival = 0;
    fval = 0;
-   sval = typeValueEmpty;
+   sval = NULL;
    bufferLen = 0;
 }
 
@@ -489,7 +486,7 @@ Dictionary::Entry::~Entry()
 void Dictionary::Entry::reset()
 {
    name = NULL;
-   if (type <= TypeInternalString && sval != typeValueEmpty)
+   if (type <= TypeInternalString && sval != NULL)
       dFree(sval);
    if (notify)
       delete notify;
@@ -540,7 +537,7 @@ void Dictionary::Entry::setStringValue(const char* value)
       // may as well pad to the next cache line
       U32 newLen = ((stringLen + 1) + 15) & ~15;
 
-      if (sval == typeValueEmpty)
+      if (sval == NULL)
          sval = (char*)dMalloc(newLen);
       else if (newLen > bufferLen)
          sval = (char*)dRealloc(sval, newLen);
@@ -631,7 +628,7 @@ Dictionary::Entry* Dictionary::addVariable(const char *name,
 
    Entry *ent = add(StringTable->insert(name));
 
-   if (ent->type <= Entry::TypeInternalString && ent->sval != typeValueEmpty)
+   if (ent->type <= Entry::TypeInternalString && ent->sval != NULL)
       dFree(ent->sval);
 
    ent->mUsage = usage;
@@ -1779,6 +1776,45 @@ String Namespace::Entry::getPrototypeString() const
    return str.end();
 }
 
+String Namespace::Entry::getPrototypeSig() const
+{
+   StringBuilder str;
+
+   // Add function name and arguments.
+
+   if (mType == ScriptCallbackType)
+      str.append(cb.mCallbackName);
+   else
+      str.append(mFunctionName);
+   if (mHeader)
+   {
+      Vector< String > argList;
+      sParseList(mHeader->mArgString, argList);
+
+      const U32 numArgs = argList.size();
+
+      str.append("(%this");
+
+      if (numArgs > 0)
+         str.append(',');
+      for (U32 i = 0; i < numArgs; ++i)
+      {
+         // Add separator if not first arg.
+
+         String name;
+         String type;
+
+         if (i > 0)
+            str.append(',');
+         str.append('%');
+         sGetArgNameAndType(argList[i], type, name);
+         str.append(name);
+      }
+      str.append(')');
+   }
+
+   return str.end();
+}
 //-----------------------------------------------------------------------------
 
 StringTableEntry Namespace::mActivePackages[Namespace::MaxActivePackages];

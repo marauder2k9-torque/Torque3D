@@ -80,14 +80,11 @@ void main()
    //create surface
    Surface surface = createSurface( normDepth, colorBuffer,matInfoBuffer,
                                     uvScene, eyePosWorld, wsEyeRay, cameraToWorld);
-
-   //early out if emissive
-   if (getFlag(surface.matFlag, 0))
-   {
-      OUT_col = vec4(0, 0, 0, 0);
+   if (getFlag(surface.matFlag, 2))
+   { 
+      OUT_col = surface.baseColor;
       return;
-   }
-   
+   } 
    vec3 L = lightPosition - surface.P;
    float dist = length(L);
    vec3 lighting = vec3(0.0);
@@ -96,9 +93,10 @@ void main()
       SurfaceToLight surfaceToLight = createSurfaceToLight(surface, L);
       vec3 lightCol = lightColor.rgb;
       
-      #ifdef NO_SHADOW   
-         float shadowed = 1.0;      	
-      #else
+      float shadow = 1.0;
+      #ifndef NO_SHADOW
+      if (getFlag(surface.matFlag, 0)) //also skip if we don't recieve shadows
+      {
          // Get the shadow texture coordinate
          vec4 pxlPosLightProj = tMul( worldToLightProj, vec4( surface.P, 1 ) );
          vec2 shadowCoord = ( ( pxlPosLightProj.xy / pxlPosLightProj.w ) * 0.5 ) + vec2( 0.5, 0.5 );
@@ -106,7 +104,7 @@ void main()
 
          //distance to light in shadow map space
          float distToLight = pxlPosLightProj.z / lightRange;
-         float shadowed = softShadow_filter(shadowMap, ssPos.xy/ssPos.w, shadowCoord, shadowSoftness, distToLight, surfaceToLight.NdotL, lightParams.y);
+         shadow = softShadow_filter(shadowMap, ssPos.xy/ssPos.w, shadowCoord, shadowSoftness, distToLight, surfaceToLight.NdotL, lightParams.y);
          #ifdef USE_COOKIE_TEX
             // Lookup the cookie sample.
             vec4 cookie = texture(cookieMap, shadowCoord);
@@ -117,6 +115,7 @@ void main()
             // regions of the cookie texture.
             lightCol *= max(cookie.r, max(cookie.g, cookie.b));
          #endif
+      }
       #endif      
    
 
@@ -156,7 +155,7 @@ void main()
    #endif
 
       //get Punctual light contribution   
-      lighting = getPunctualLight(surface, surfaceToLight, lightCol, lightBrightness, lightInvSqrRange, shadowed);
+      lighting = getPunctualLight(surface, surfaceToLight, lightCol, lightBrightness, lightInvSqrRange, shadow);
       //get spot angle attenuation
       lighting *= getSpotAngleAtt(-surfaceToLight.L, lightDirection, lightSpotParams );
    }

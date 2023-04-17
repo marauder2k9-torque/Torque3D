@@ -94,6 +94,7 @@ void ShaderConstHandles::init( GFXShader *shader, CustomMaterial* mat /*=NULL*/)
    mEyeMatSC = shader->getShaderConstHandle(ShaderGenVars::eyeMat);
    mOneOverFarplane = shader->getShaderConstHandle(ShaderGenVars::oneOverFarplane);
    mAccumTimeSC = shader->getShaderConstHandle(ShaderGenVars::accumTime);
+   mDampnessSC = shader->getShaderConstHandle(ShaderGenVars::dampness);
    mMinnaertConstantSC = shader->getShaderConstHandle(ShaderGenVars::minnaertConstant);
    mSubSurfaceParamsSC = shader->getShaderConstHandle(ShaderGenVars::subSurfaceParams);
    mDiffuseAtlasParamsSC = shader->getShaderConstHandle(ShaderGenVars::diffuseAtlasParams);
@@ -352,15 +353,10 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    if ( mMaterial->mAlphaTest )
       fd.features.addFeature( MFT_AlphaTest );
 
-   if (mMaterial->mEmissive[stageNum])
-   {
-      fd.features.addFeature(MFT_IsEmissive);
-   }
-   else
+   if (mMaterial->isTranslucent())
    {
       fd.features.addFeature(MFT_RTLighting);
-	  if (mMaterial->isTranslucent())
-		  fd.features.addFeature(MFT_ReflectionProbes);
+      fd.features.addFeature(MFT_ReflectionProbes);
    }
 
    if ( mMaterial->mAnimFlags[stageNum] )
@@ -1097,6 +1093,7 @@ void ProcessedShaderMaterial::_setShaderConstants(SceneRenderState * state, cons
 
    shaderConsts->setSafe( handles->mAccumTimeSC, MATMGR->getTotalTime() );
 
+   shaderConsts->setSafe(handles->mDampnessSC, MATMGR->getDampnessClamped());
    // If the shader constants have not been lost then
    // they contain the content from a previous render pass.
    //
@@ -1202,8 +1199,10 @@ void ProcessedShaderMaterial::_setShaderConstants(SceneRenderState * state, cons
 
    // Deferred Shading: Determine Material Info Flags
    S32 matInfoFlags = 
-            (mMaterial->mEmissive[stageNum] ? 1 : 0) | //emissive
-            (mMaterial->mSubSurface[stageNum] ? 2 : 0); //subsurface
+            (mMaterial->mReceiveShadows[stageNum] ? 1 : 0) | //ReceiveShadows 
+            (mMaterial->mSubSurface[stageNum] ? 1 << 2 : 0)| //subsurface
+            (mMaterial->mIgnoreLighting[stageNum] ? 1 << 3 : 0);  //IgnoreLighting 
+   
    mMaterial->mMatInfoFlags[stageNum] = matInfoFlags / 255.0f;
    shaderConsts->setSafe(handles->mMatInfoFlagsSC, mMaterial->mMatInfoFlags[stageNum]);   
    if( handles->mAccuScaleSC->isValid() )

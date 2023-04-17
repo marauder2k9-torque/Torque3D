@@ -78,6 +78,7 @@ bool GuiBitmapCtrl::setBitmapName( void *object, const char *index, const char *
 
 void GuiBitmapCtrl::initPersistFields()
 {
+   docsURL;
    addGroup( "Bitmap" );
 
    INITPERSISTFIELD_IMAGEASSET(Bitmap, GuiBitmapCtrl, The bitmap file to display in the control);
@@ -126,9 +127,6 @@ void GuiBitmapCtrl::inspectPostApply()
 
 void GuiBitmapCtrl::setBitmap( const char *name, bool resize )
 {
-   if ( !isAwake() )
-      return;
-
    _setBitmap(StringTable->insert(name));
 
    if (mBitmap && resize)

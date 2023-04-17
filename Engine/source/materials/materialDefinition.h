@@ -230,15 +230,15 @@ public:
    DECLARE_IMAGEASSET_ARRAY_SETGET(Material, ORMConfigMap);
 
    bool     mIsSRGb[MAX_STAGES];
-   DECLARE_IMAGEASSET_ARRAY(Material, RoughMap, MAX_STAGES);
-   DECLARE_IMAGEASSET_ARRAY_SETGET(Material, RoughMap);
-
-   bool     mInvertRoughness[MAX_STAGES];
-   F32      mRoughnessChan[MAX_STAGES];
    DECLARE_IMAGEASSET_ARRAY(Material, AOMap, MAX_STAGES);
    DECLARE_IMAGEASSET_ARRAY_SETGET(Material, AOMap);
-
    F32      mAOChan[MAX_STAGES];
+
+   DECLARE_IMAGEASSET_ARRAY(Material, RoughMap, MAX_STAGES);
+   DECLARE_IMAGEASSET_ARRAY_SETGET(Material, RoughMap);
+   bool     mInvertRoughness[MAX_STAGES];
+   F32      mRoughnessChan[MAX_STAGES];
+
    DECLARE_IMAGEASSET_ARRAY(Material, MetalMap, MAX_STAGES);
    DECLARE_IMAGEASSET_ARRAY_SETGET(Material, MetalMap);
 
@@ -305,7 +305,8 @@ public:
    F32 mSeqSegSize[MAX_STAGES];
 
    bool mGlow[MAX_STAGES];          // entire stage glows
-   bool mEmissive[MAX_STAGES];
+   bool mReceiveShadows[MAX_STAGES];
+   bool mIgnoreLighting[MAX_STAGES];
 
    Point2I mCellIndex[MAX_STAGES];
    Point2I mCellLayout[MAX_STAGES];

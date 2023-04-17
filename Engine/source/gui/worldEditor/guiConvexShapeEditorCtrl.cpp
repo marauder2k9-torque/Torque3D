@@ -113,7 +113,8 @@ void GuiConvexEditorCtrl::onRemove()
 }
 
 void GuiConvexEditorCtrl::initPersistFields()
-{   
+{
+   docsURL;
    addField( "isDirty", TypeBool, Offset( mIsDirty, GuiConvexEditorCtrl ) );
 	addField( "materialName", TypeMaterialAssetId, Offset(mMaterialName, GuiConvexEditorCtrl) );
 
@@ -2703,7 +2704,7 @@ SceneObject* GuiConvexEditorCtrl::createPolyhedralObject(const char* className, 
    // Create the object.
 
    SceneObject* object = dynamic_cast< SceneObject* >(classRep->create());
-   if (!Object)
+   if (!object)
    {
       Con::errorf("WorldEditor::createPolyhedralObject - Could not create SceneObject with class '%s'", className);
       return NULL;

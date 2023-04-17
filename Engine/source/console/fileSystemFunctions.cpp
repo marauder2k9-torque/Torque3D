@@ -387,7 +387,10 @@ DefineEngineFunction(isFile, bool, ( const char* fileName ),,
    
    "@ingroup FileSystem")
 {
-   Torque::Path givenPath(fileName);
+   String cleanfilename(Torque::Path::CleanSeparators(fileName));
+   Con::expandScriptFilename(sgScriptFilenameBuffer, sizeof(sgScriptFilenameBuffer), cleanfilename.c_str());
+
+   Torque::Path givenPath(Torque::Path::CompressPath(sgScriptFilenameBuffer));
 
    if (givenPath.getFileName().isEmpty() && givenPath.getExtension().isNotEmpty())
    {
@@ -396,7 +399,16 @@ DefineEngineFunction(isFile, bool, ( const char* fileName ),,
       givenPath.setFileName(String(".") + givenPath.getExtension());
       givenPath.setExtension("");
    }
+   if (Torque::FS::IsFile(givenPath)) return true;
 
+   //try with script file extension
+   if (!Torque::FS::IsFile(givenPath) && givenPath.getExtension().isEmpty())
+      givenPath.setExtension(TORQUE_SCRIPT_EXTENSION);
+   if (Torque::FS::IsFile(givenPath)) return true;
+
+   //finally, try with compiled script file extension
+   if (!Torque::FS::IsFile(givenPath))
+      givenPath.setExtension(String(TORQUE_SCRIPT_EXTENSION)+String(".dso"));
    return Torque::FS::IsFile(givenPath);
 }
 
@@ -477,9 +489,7 @@ DefineEngineFunction(getDirectoryList, String, ( const char* path, S32 depth ), 
    // Append a trailing backslash if it's not present already.
    if (fullpath[dStrlen(fullpath) - 1] != '/')
    {
-      S32 pos = dStrlen(fullpath);
-      fullpath[pos] = '/';
-      fullpath[pos + 1] = '\0';
+      dStrcat(fullpath, "/\0", 1024);
    }
 
    // Dump the directories.

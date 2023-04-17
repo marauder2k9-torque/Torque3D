@@ -859,6 +859,7 @@ GuiTreeViewCtrl::~GuiTreeViewCtrl()
 
 void GuiTreeViewCtrl::initPersistFields()
 {
+   docsURL;
    addGroup( "TreeView" );
 
       addField( "tabSize",              TypeS32,    Offset(mTabSize,              GuiTreeViewCtrl));
@@ -3802,7 +3803,7 @@ void GuiTreeViewCtrl::onRenderCell(Point2I offset, Point2I cell, bool, bool )
          {
             //Check if we're a SceneObject, and pick the default icon as appropriate
             
-            if (pObject->getClassName() != String("SimGroup"))
+            if (pObject->getClassName() != StringTable->insert("SimGroup"))
             {
                item->mIcon = Icon31;
             }

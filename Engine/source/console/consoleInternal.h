@@ -164,6 +164,10 @@ public:
       /// Return a full prototype string for the function including return type, function name,
       /// and arguments.
       String getPrototypeString() const;
+
+      /// Return a minimalized prototype string for the function including return type, function name,
+      /// and arguments.
+      String getPrototypeSig() const;
    };
 
    Entry* mEntryList;
@@ -353,7 +357,7 @@ public:
 
          ival = 0;
          fval = 0;
-         sval = typeValueEmpty;
+         sval = NULL;
          bufferLen = 0;
       }
 
@@ -404,10 +408,10 @@ public:
          {
             fval = (F32)val;
             ival = val;
-            if (sval != typeValueEmpty)
+            if (sval != NULL)
             {
                dFree(sval);
-               sval = typeValueEmpty;
+               sval = NULL;
             }
             type = TypeInternalInt;
          }
@@ -434,10 +438,10 @@ public:
          {
             fval = val;
             ival = static_cast<U32>(val);
-            if (sval != typeValueEmpty)
+            if (sval != NULL)
             {
                dFree(sval);
-               sval = typeValueEmpty;
+               sval = NULL;
             }
             type = TypeInternalFloat;
          }

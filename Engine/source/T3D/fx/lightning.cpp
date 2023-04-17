@@ -242,7 +242,7 @@ LightningData::LightningData()
 
    for (S32 i = 0; i < MaxThunders; i++)
    {
-      INIT_ASSET_ARRAY(ThunderSound, i);
+      INIT_SOUNDASSET_ARRAY(ThunderSound, i);
    }
 
    for (S32 i = 0; i < MaxTextures; i++)
@@ -262,6 +262,7 @@ LightningData::~LightningData()
 //--------------------------------------------------------------------------
 void LightningData::initPersistFields()
 {
+   docsURL;
 
    INITPERSISTFIELD_SOUNDASSET(StrikeSound, LightningData, "Sound to play when lightning STRIKES!");
 
@@ -296,19 +297,15 @@ bool LightningData::preload(bool server, String &errorStr)
    {
       for (S32 i = 0; i < MaxThunders; i++)
       {
-         _setThunderSound(getThunderSound(i), i);
-         if (isThunderSoundValid(i) && !getThunderSoundProfile(i))
+         if (!isThunderSoundValid(i))
          {
-               Con::errorf(ConsoleLogEntry::General, "LightningData::preload: Cant get an sfxProfile for thunder.");
-
+            //return false; -TODO: trigger asset download
          }
 
       }
-
-      _setStrikeSound(getStrikeSound());
-      if (isStrikeSoundValid() && !getStrikeSoundProfile())
+      if (!isStrikeSoundValid())
       {
-            Con::errorf(ConsoleLogEntry::General, "LightningData::preload: can't get sfxProfile from strike sound.");
+         //return false; -TODO: trigger asset download
       }
 
       mNumStrikeTextures = 0;
@@ -335,7 +332,7 @@ void LightningData::packData(BitStream* stream)
    U32 i;
    for (i = 0; i < MaxThunders; i++)
    {
-      PACKDATA_ASSET_ARRAY(ThunderSound, i);
+      PACKDATA_SOUNDASSET_ARRAY(ThunderSound, i);
    }
 
    stream->writeInt(mNumStrikeTextures, 4);
@@ -353,7 +350,7 @@ void LightningData::unpackData(BitStream* stream)
    U32 i;
    for (i = 0; i < MaxThunders; i++)
    {
-      UNPACKDATA_ASSET_ARRAY(ThunderSound, i);
+      UNPACKDATA_SOUNDASSET_ARRAY(ThunderSound, i);
    }
 
    mNumStrikeTextures = stream->readInt(4);
@@ -411,6 +408,7 @@ Lightning::~Lightning()
 //--------------------------------------------------------------------------
 void Lightning::initPersistFields()
 {
+   docsURL;
    addGroup( "Strikes" );
    addField( "strikesPerMinute", TypeS32, Offset(strikesPerMinute, Lightning),
       "@brief Number of lightning strikes to perform per minute.\n\n"

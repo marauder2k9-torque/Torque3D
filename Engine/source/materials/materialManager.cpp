@@ -58,7 +58,8 @@ MaterialManager::MaterialManager()
 
    mDt = 0.0f; 
    mAccumTime = 0.0f; 
-   mLastTime = 0; 
+   mLastTime = 0;
+   mDampness = 0.0f;
    mWarningInst = NULL;
    
    GFXDevice::getDeviceEventSignal().notify( this, &MaterialManager::_handleGFXEvent );
@@ -253,7 +254,7 @@ BaseMatInstance * MaterialManager::createMeshDebugMatInstance(const LinearColorF
       debugMat = allocateAndRegister( meshDebugStr );
 
       debugMat->mDiffuse[0] = meshColor;
-      debugMat->mEmissive[0] = true;
+      debugMat->mReceiveShadows[0] = false;
    }
 
    BaseMatInstance   *debugMatInstance = NULL;

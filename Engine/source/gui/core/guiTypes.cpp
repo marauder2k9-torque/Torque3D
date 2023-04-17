@@ -88,6 +88,7 @@ GuiCursor::~GuiCursor()
 
 void GuiCursor::initPersistFields()
 {
+   docsURL;
    addField("hotSpot",     TypePoint2I,   Offset(mHotSpot, GuiCursor), "The location of the cursor's hot spot (which pixel carries the click).");
    addField("renderOffset",TypePoint2F,   Offset(mRenderOffset, GuiCursor), "Offset of the bitmap, where 0 signifies left edge of the bitmap, 1, the right. Similarly for the Y-component.");
 
@@ -234,6 +235,7 @@ GuiControlProfile::GuiControlProfile(void) :
    mFontColor(mFontColors[BaseColor]),
    mFontColorHL(mFontColors[ColorHL]),
    mFontColorNA(mFontColors[ColorNA]),
+   mFontColorERR(mFontColors[ColorERR]),
    mFontColorSEL(mFontColors[ColorSEL]),
    mCursorColor(255,0,255,255),
    mTextOffset(0,0),
@@ -258,7 +260,7 @@ GuiControlProfile::GuiControlProfile(void) :
    mFontType = "Arial";
    mFontSize = 10;
 
-   for(U32 i = 0; i < 10; i++)
+   for(U32 i = 0; i < ColorMax; i++)
       mFontColors[i].set(255,0,255,255);
 
    mFontCharset = TGE_ANSI_CHARSET;
@@ -306,7 +308,7 @@ GuiControlProfile::GuiControlProfile(void) :
       mFontSize      = def->mFontSize;
       mFontCharset   = def->mFontCharset;
 
-      for(U32 i = 0; i < 10; i++)
+      for(U32 i = 0; i < ColorMax; i++)
          mFontColors[i] = def->mFontColors[i];
 		
       // default bitmap
@@ -349,6 +351,7 @@ GuiControlProfile::~GuiControlProfile()
 
 void GuiControlProfile::initPersistFields()
 {
+   docsURL;
    addGroup( "Behavior" );
    
       addField( "tab",           TypeBool,       Offset(mTabable, GuiControlProfile));
@@ -373,8 +376,14 @@ void GuiControlProfile::initPersistFields()
          "Thickness of border in pixels." );
       addField("borderColor",   TypeColorI,     Offset(mBorderColor, GuiControlProfile),
          "Color to draw border with." );
-      addField("borderColorHL", TypeColorI,     Offset(mBorderColorHL, GuiControlProfile));
-      addField("borderColorNA", TypeColorI,     Offset(mBorderColorNA, GuiControlProfile));
+      addField("borderColorHL", TypeColorI,     Offset(mBorderColorHL, GuiControlProfile),
+         "Color to draw border with if highlighted.");
+      addField("borderColorNA", TypeColorI,     Offset(mBorderColorNA, GuiControlProfile),
+         "Color to draw border if disabled.");
+      addField("borderColorSEL", TypeColorI, Offset(mBorderColorSEL, GuiControlProfile),
+         "Color to draw border with if selected.");
+      addField("borderColorERR", TypeColorI, Offset(mBorderColorERR, GuiControlProfile),
+         "Color to draw border with if erroring.");
 
       addField("bevelColorHL", TypeColorI,     Offset(mBevelColorHL, GuiControlProfile));
       addField("bevelColorLL", TypeColorI,     Offset(mBevelColorLL, GuiControlProfile));
@@ -388,7 +397,7 @@ void GuiControlProfile::initPersistFields()
       addField("fontSize",             TypeS32,        Offset(mFontSize, GuiControlProfile),
          "Font size in points." );
       addField("fontCharset",          TYPEID< FontCharset >(),       Offset(mFontCharset, GuiControlProfile) );
-      addField("fontColors",           TypeColorI,     Offset(mFontColors, GuiControlProfile), 10,
+      addField("fontColors",           TypeColorI,     Offset(mFontColors, GuiControlProfile), ColorMax,
          "Font colors to use for different text types/states." );
       addField("fontColor",            TypeColorI,     Offset(mFontColors[BaseColor], GuiControlProfile),
          "Font color for normal text (same as fontColors[0])." );
@@ -402,6 +411,8 @@ void GuiControlProfile::initPersistFields()
          "Font color for links in text (same as fontColors[4])." );
       addField("fontColorLinkHL",      TypeColorI,     Offset(mFontColors[ColorUser1], GuiControlProfile),
          "Font color for highlighted links in text (same as fontColors[5])." );
+      addField("fontColorERR", TypeColorI, Offset(mFontColors[ColorERR], GuiControlProfile),
+         "Font color for links in text (same as fontColors[10]).");
             
       addField( "justify",       TYPEID< GuiControlProfile::AlignmentType >(),       Offset(mAlignment, GuiControlProfile),
          "Horizontal alignment for text." );
@@ -522,7 +533,7 @@ void GuiControlProfile::setChildrenProfile(GuiControlProfile *prof)
 
 RectI GuiControlProfile::getBitmapArrayRect(U32 i)
 {
-   if(!mBitmapArrayRects.size())
+   if(mBitmapArrayRects.empty())
       constructBitmapArray();
    
    if( i >= mBitmapArrayRects.size())
@@ -533,7 +544,7 @@ RectI GuiControlProfile::getBitmapArrayRect(U32 i)
 
 S32 GuiControlProfile::constructBitmapArray()
 {
-   if(mBitmapArrayRects.size())
+   if(!mBitmapArrayRects.empty())
       return mBitmapArrayRects.size();
 
    if( mBitmap.isNull() )

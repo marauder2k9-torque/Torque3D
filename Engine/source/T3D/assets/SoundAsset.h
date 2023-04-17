@@ -159,7 +159,7 @@ DefineConsoleType(TypeSoundAssetId, String)
    AssetPtr<SoundAsset> m##name##Asset = NULL;\
    SFXProfile* m##name##Profile = NULL;\
    SFXDescription* m##name##Desc = NULL;\
-   SimObjectId m##name##SFXId = NULL;\
+   SimObjectId m##name##SFXId = 0;\
 public: \
    const StringTableEntry get##name##File() const { return m##name##Name; }\
    void set##name##File(const FileName &_in) { m##name##Name = StringTable->insert(_in.c_str());}\
@@ -264,7 +264,7 @@ public: \
          return m##name##Desc;}\
       return NULL;\
    }\
-   bool is##name##Valid() { return (get##name() != StringTable->EmptyString() && m##name##Asset->getStatus() == AssetBase::Ok); }
+   bool is##name##Valid() { return (get##name() != StringTable->EmptyString() && m##name##Asset && m##name##Asset->getStatus() == AssetBase::Ok); }
 
 #ifdef TORQUE_SHOW_LEGACY_FILE_FIELDS
 
@@ -449,7 +449,7 @@ public: \
          return m##name##Asset[id]->getSfxProfile();\
       return NULL;\
    }\
-   bool is##name##Valid(const U32& id) {return (get##name(id) != StringTable->EmptyString() && m##name##Asset[id]->getStatus() == AssetBase::Ok); }
+   bool is##name##Valid(const U32& id) {return (get##name(id) != StringTable->EmptyString() && m##name##Asset[id] && m##name##Asset[id]->getStatus() == AssetBase::Ok); }
 
 
 #ifdef TORQUE_SHOW_LEGACY_FILE_FIELDS
@@ -492,9 +492,9 @@ if (m##name##AssetId[index] != StringTable->EmptyString())\
    }
 
 #define PACKDATA_SOUNDASSET_ARRAY(name, index)\
-   if (stream->writeFlag(m##name##Asset[index].notNull()))\
+   if (stream->writeFlag(AssetDatabase.isDeclaredAsset(m##name##AssetId[index])))\
    {\
-      stream->writeString(m##name##Asset[index].getAssetId());\
+      stream->writeString(m##name##AssetId[index]);\
    }\
    else\
    {\

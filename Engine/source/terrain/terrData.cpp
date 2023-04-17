@@ -346,7 +346,7 @@ bool TerrainBlock::_setLightMapSize( void *obj, const char *index, const char *d
 
 bool TerrainBlock::setFile( const FileName &terrFileName )
 {
-   if ( mTerrainAsset && mTerrainAsset->getTerrainFilePath() == terrFileName )
+   if ( mTerrainAsset && mTerrainAsset->getTerrainFilePath() == StringTable->insert(terrFileName) )
       return mFile != NULL;
 
    Resource<TerrainFile> file = ResourceManager::get().load( terrFileName );
@@ -1272,6 +1272,7 @@ void TerrainBlock::setScale( const VectorF &scale )
 
 void TerrainBlock::initPersistFields()
 {
+   docsURL;
    addGroup( "Media" );
 
       addProtectedField("terrainAsset", TypeTerrainAssetId, Offset(mTerrainAssetId, TerrainBlock),

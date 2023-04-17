@@ -121,6 +121,7 @@ EndImplementEnumType;
 
 void GuiIconButtonCtrl::initPersistFields()
 {
+   docsURL;
    addField( "buttonMargin",     TypePoint2I,   Offset( mButtonMargin, GuiIconButtonCtrl ),"Margin area around the button.\n");
 
    addProtectedField( "iconBitmap", TypeImageFilename,  Offset( mBitmapName, GuiIconButtonCtrl ), &_setBitmapData, &defaultProtectedGetFn, "Bitmap file for the icon to display on the button.\n", AbstractClassRep::FIELD_HideInInspectors);
@@ -222,7 +223,16 @@ void GuiIconButtonCtrl::renderButton( Point2I &offset, const RectI& updateRect )
    bool depressed = mDepressed;
    
    ColorI fontColor   = mActive ? (highlight ? mProfile->mFontColorHL : mProfile->mFontColor) : mProfile->mFontColorNA;
-   
+   ColorI borderColor = mActive ? (highlight ? mProfile->mBorderColorHL : mProfile->mBorderColor) : mProfile->mBorderColorNA;
+   ColorI fillColor = mActive ? (highlight ? mProfile->mFillColorHL : mProfile->mFillColor) : mProfile->mFillColorNA;
+
+   if (mActive && (depressed || mStateOn))
+   {
+      fontColor = mProfile->mFontColorSEL;
+      fillColor = mProfile->mFillColorSEL;
+      borderColor = mProfile->mBorderColorSEL;
+   }
+
    RectI boundsRect(offset, getExtent());
 
    GFXDrawUtil *drawer = GFX->getDrawUtil();
@@ -231,30 +241,37 @@ void GuiIconButtonCtrl::renderButton( Point2I &offset, const RectI& updateRect )
    {
       // If there is a bitmap array then render using it.  
       // Otherwise use a standard fill.
-      if(mProfile->mUseBitmapArray && mProfile->mBitmapArrayRects.size())
+      if(mProfile->mUseBitmapArray && !mProfile->mBitmapArrayRects.empty())
          renderBitmapArray(boundsRect, statePressed);
       else
-         renderSlightlyLoweredBox(boundsRect, mProfile);
+      {
+         if (mProfile->mBorder != 0)
+            renderFilledBorder(boundsRect, borderColor, fillColor, mProfile->mBorderThickness);
+         else
+            GFX->getDrawUtil()->drawRectFill(boundsRect, mProfile->mFillColor);
+      }
    }
    else if(mHighlighted && mActive)
    {
       // If there is a bitmap array then render using it.  
       // Otherwise use a standard fill.
-      if (mProfile->mUseBitmapArray && mProfile->mBitmapArrayRects.size())
+      if (mProfile->mUseBitmapArray && !mProfile->mBitmapArrayRects.empty())
       {
          renderBitmapArray(boundsRect, stateMouseOver);
       }
       else
       {
-         drawer->drawRectFill(boundsRect, mProfile->mFillColorHL);
-         drawer->drawRect(boundsRect, mProfile->mBorderColorHL);
+         if (mProfile->mBorder != 0)
+            renderFilledBorder(boundsRect, borderColor, fillColor, mProfile->mBorderThickness);
+         else
+            GFX->getDrawUtil()->drawRectFill(boundsRect, mProfile->mFillColor);
       }
    }
    else
    {
       // If there is a bitmap array then render using it.  
       // Otherwise use a standard fill.
-      if(mProfile->mUseBitmapArray && mProfile->mBitmapArrayRects.size())
+      if(mProfile->mUseBitmapArray && !mProfile->mBitmapArrayRects.empty())
       {
          if(mActive)
             renderBitmapArray(boundsRect, stateNormal);
@@ -263,16 +280,10 @@ void GuiIconButtonCtrl::renderButton( Point2I &offset, const RectI& updateRect )
       }
       else
       {
-         if (mActive)
-         {
-            drawer->drawRectFill(boundsRect, mProfile->mFillColor);
-            drawer->drawRect(boundsRect, mProfile->mBorderColor);
-         }
+         if (mProfile->mBorder != 0)
+            renderFilledBorder(boundsRect, borderColor, fillColor, mProfile->mBorderThickness);
          else
-         {
-            drawer->drawRectFill(boundsRect, mProfile->mFillColorNA);
-            drawer->drawRect(boundsRect, mProfile->mBorderColorNA);
-         }
+            GFX->getDrawUtil()->drawRectFill(boundsRect, mProfile->mFillColor);
       }
    }
 

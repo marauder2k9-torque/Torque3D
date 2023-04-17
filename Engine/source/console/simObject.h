@@ -653,7 +653,7 @@ class SimObject: public ConsoleObject, public TamlCallbacks
       virtual void onEditorDisable(){};
 
       /// Called when the object is inspected via a GuiInspector control
-      virtual void onInspect(GuiInspector*) {};
+      virtual void onInspect(GuiInspector*);
 
       /// @}
 
@@ -729,6 +729,12 @@ class SimObject: public ConsoleObject, public TamlCallbacks
       /// @see registerObject()
       /// @param   name  Name to assign to the object.
       bool registerObject(const char *name);
+
+      /// Register the object, assigning the name.
+      ///
+      /// @see registerObject()
+      /// @param   name  Name to assign to the object.
+      bool registerObject(const String& name);
 
       /// Register the object, assigning a name and ID.
       ///

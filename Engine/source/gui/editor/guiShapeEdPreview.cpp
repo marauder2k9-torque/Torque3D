@@ -119,6 +119,7 @@ GuiShapeEdPreview::~GuiShapeEdPreview()
 
 void GuiShapeEdPreview::initPersistFields()
 {
+   docsURL;
    addGroup( "Rendering" );
    addField( "editSun",        TypeBool,         Offset( mEditingSun, GuiShapeEdPreview ),
       "If true, dragging the gizmo will rotate the sun direction" );
@@ -530,7 +531,7 @@ void GuiShapeEdPreview::setThreadSequence(GuiShapeEdPreview::Thread& thread, TSS
 
 const char* GuiShapeEdPreview::getThreadSequence() const
 {
-   return ( mActiveThread >= 0 ) ? mThreads[mActiveThread].seqName : "";
+   return ( mActiveThread >= 0 ) ? mThreads[mActiveThread].seqName.c_str() : "";
 }
 
 void GuiShapeEdPreview::refreshThreadSequences()

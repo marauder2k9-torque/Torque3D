@@ -112,6 +112,7 @@ bool WheeledVehicleTire::preload(bool server, String &errorStr)
 
 void WheeledVehicleTire::initPersistFields()
 {
+   docsURL;
    INITPERSISTFIELD_SHAPEASSET(Shape, WheeledVehicleTire, "The shape to use for the wheel.");
 
    addField( "mass", TypeF32, Offset(mass, WheeledVehicleTire),
@@ -233,6 +234,7 @@ WheeledVehicleSpring::WheeledVehicleSpring()
 
 void WheeledVehicleSpring::initPersistFields()
 {
+   docsURL;
    addField( "length", TypeF32, Offset(length, WheeledVehicleSpring),
       "@brief Maximum spring length. ie. how far the wheel can extend from the "
       "root hub position.\n\n"
@@ -289,15 +291,15 @@ ConsoleDocClass( WheeledVehicleData,
    "@ingroup Vehicles\n"
 );
 
-typedef WheeledVehicleData::Sounds wheelSoundsEnum;
-DefineEnumType(wheelSoundsEnum);
+typedef WheeledVehicleData::Sounds WheeledVehicleSoundsEnum;
+DefineEnumType(WheeledVehicleSoundsEnum);
 
-ImplementEnumType(wheelSoundsEnum, "enum types.\n"
+ImplementEnumType(WheeledVehicleSoundsEnum, "enum types.\n"
    "@ingroup WheeledVehicleData\n\n")
-   {WheeledVehicleData::JetSound,          "JetSound", "..." },
-   {WheeledVehicleData::EngineSound,       "EngineSound", "..." },
-   {WheeledVehicleData::SquealSound,       "SquealSound", "..." },
-   {WheeledVehicleData::WheelImpactSound,  "WheelImpactSound", "..." },
+   { WheeledVehicleSoundsEnum::JetSound,          "JetSound", "..." },
+   { WheeledVehicleSoundsEnum::EngineSound,       "EngineSound", "..." },
+   { WheeledVehicleSoundsEnum::SquealSound,       "SquealSound", "..." },
+   { WheeledVehicleSoundsEnum::WheelImpactSound,  "WheelImpactSound", "..." },
 EndImplementEnumType;
 
 WheeledVehicleData::WheeledVehicleData()
@@ -312,7 +314,7 @@ WheeledVehicleData::WheeledVehicleData()
    wheelCount = 0;
    dMemset(&wheel, 0, sizeof(wheel));
    for (S32 i = 0; i < MaxSounds; i++)
-      INIT_ASSET_ARRAY(WheeledVehicleSounds, i);
+      INIT_SOUNDASSET_ARRAY(WheeledVehicleSounds, i);
 }
 
 
@@ -346,9 +348,9 @@ bool WheeledVehicleData::preload(bool server, String &errorStr)
    if (!server) {
       for (S32 i = 0; i < MaxSounds; i++)
       {
-         if (getWheeledVehicleSounds(i) != StringTable->EmptyString())
+         if (!isWheeledVehicleSoundsValid(i))
          {
-            _setWheeledVehicleSounds(getWheeledVehicleSounds(i), i);
+            //return false; -TODO: trigger asset download
          }
       }
 
@@ -448,11 +450,20 @@ bool WheeledVehicleData::mirrorWheel(Wheel* we)
 
 void WheeledVehicleData::initPersistFields()
 {
-   INITPERSISTFIELD_SOUNDASSET_ENUMED(WheeledVehicleSounds, wheelSoundsEnum, MaxSounds, WheeledVehicleData, "Sounds related to wheeled vehicle.");
+   docsURL;
+   Parent::initPersistFields();
 
-   addField("tireEmitter",TYPEID< ParticleEmitterData >(), Offset(tireEmitter, WheeledVehicleData),
+   addGroup("Particle Effects");
+   addField("tireEmitter", TYPEID< ParticleEmitterData >(), Offset(tireEmitter, WheeledVehicleData),
       "ParticleEmitterData datablock used to generate particles from each wheel "
       "when the vehicle is moving and the wheel is in contact with the ground.");
+   endGroup("Particle Effects");
+
+   addGroup("Sounds");
+   INITPERSISTFIELD_SOUNDASSET_ENUMED(WheeledVehicleSounds, WheeledVehicleSoundsEnum, MaxSounds, WheeledVehicleData, "Sounds related to wheeled vehicle.");
+   endGroup("Sounds");
+
+   addGroup("Steering");
    addField("maxWheelSpeed", TypeF32, Offset(maxWheelSpeed, WheeledVehicleData),
       "@brief Maximum linear velocity of each wheel.\n\n"
       "This caps the maximum speed of the vehicle." );
@@ -466,8 +477,7 @@ void WheeledVehicleData::initPersistFields()
    addField("brakeTorque", TypeF32, Offset(brakeTorque, WheeledVehicleData),
       "@brief Torque applied when braking.\n\n"
       "This controls how fast the vehicle will stop when the brakes are applied." );
-   
-   Parent::initPersistFields();
+   endGroup("Steering");
 }
 
 
@@ -483,7 +493,7 @@ void WheeledVehicleData::packData(BitStream* stream)
 
    for (S32 i = 0; i < MaxSounds; i++)
    {
-      PACKDATA_ASSET_ARRAY(WheeledVehicleSounds, i);
+      PACKDATA_SOUNDASSET_ARRAY(WheeledVehicleSounds, i);
    }
 
    stream->write(maxWheelSpeed);
@@ -502,7 +512,7 @@ void WheeledVehicleData::unpackData(BitStream* stream)
 
    for (S32 i = 0; i < MaxSounds; i++)
    {
-      UNPACKDATA_ASSET_ARRAY(WheeledVehicleSounds, i);
+      UNPACKDATA_SOUNDASSET_ARRAY(WheeledVehicleSounds, i);
    }
 
    stream->read(&maxWheelSpeed);
@@ -553,6 +563,7 @@ WheeledVehicle::~WheeledVehicle()
 
 void WheeledVehicle::initPersistFields()
 {
+   docsURL;
    Parent::initPersistFields();
 }
 
@@ -799,7 +810,7 @@ void WheeledVehicle::advanceTime(F32 dt)
 
    // Stick the wheels to the ground.  This is purely so they look
    // good while the vehicle is being interpolated.
-   extendWheels();
+   //extendWheels();
 
    // Update wheel angular position and slip, this is a client visual
    // feature only, it has no affect on the physics.
@@ -1613,7 +1624,7 @@ DefineEngineMethod( WheeledVehicle, setWheelPowered, bool, ( S32 wheel, bool pow
    return false;
 }
 
-DefineEngineMethod( WheeledVehicle, setWheelTire, bool, ( S32 wheel, WheeledVehicleTire* tire ),,
+DefineEngineMethod( WheeledVehicle, setWheelTire, bool, ( S32 wheel, const char* tire ),,
    "@brief Set the WheeledVehicleTire datablock for this wheel.\n"
    "@param wheel index of the wheel to set (hub node #)\n"
    "@param tire WheeledVehicleTire datablock\n"
@@ -1622,18 +1633,22 @@ DefineEngineMethod( WheeledVehicle, setWheelTire, bool, ( S32 wheel, WheeledVehi
    "%obj.setWheelTire( 0, FrontTire );\n"
    "@endtsexample\n" )
 {
-   if (wheel >= 0 && wheel < object->getWheelCount()) {
-      object->setWheelTire(wheel,tire);
-      return true;
-   }
-   else {
-      Con::warnf("setWheelTire: invalid tire datablock or wheel index, vehicle has %d hubs",
-         object->getWheelCount());
+   WheeledVehicleTire* tireObj = NULL;
+   if (wheel < 0 || wheel > object->getWheelCount())
+   {
+      Con::warnf("setWheelTire: invalid wheel index %d, vehicle has %d hubs", wheel, object->getWheelCount());
       return false;
    }
+   else if (!Sim::findObject(tire, tireObj))
+   {
+      Con::warnf("setWheelSpring: invalid spring %s", tire);
+      return false;
+   }
+   object->setWheelTire(wheel, tireObj);
+   return true;
 }
 
-DefineEngineMethod( WheeledVehicle, setWheelSpring, bool, ( S32 wheel, WheeledVehicleSpring* spring ),,
+DefineEngineMethod( WheeledVehicle, setWheelSpring, bool, ( S32 wheel, const char* spring ),,
    "@brief Set the WheeledVehicleSpring datablock for this wheel.\n"
    "@param wheel index of the wheel to set (hub node #)\n"
    "@param spring WheeledVehicleSpring datablock\n"
@@ -1642,15 +1657,19 @@ DefineEngineMethod( WheeledVehicle, setWheelSpring, bool, ( S32 wheel, WheeledVe
    "%obj.setWheelSpring( 0, FrontSpring );\n"
    "@endtsexample\n" )
 {
-   if (spring && wheel >= 0 && wheel < object->getWheelCount()) {
-      object->setWheelSpring(wheel,spring);
-      return true;
-   }
-   else {
-      Con::warnf("setWheelSpring: invalid spring datablock or wheel index, vehicle has %d hubs",
-         object->getWheelCount());
+   WheeledVehicleSpring* springObj = NULL;
+   if (wheel < 0 || wheel > object->getWheelCount())
+   {
+      Con::warnf("setWheelSpring: invalid wheel index %d, vehicle has %d hubs", wheel, object->getWheelCount());
       return false;
    }
+   else if (!Sim::findObject(spring, springObj))
+   {
+      Con::warnf("setWheelSpring: invalid spring %s", spring);
+      return false;
+   }
+   object->setWheelSpring(wheel, springObj);
+   return true;
 }
 
 DefineEngineMethod( WheeledVehicle, getWheelCount, S32, (),,

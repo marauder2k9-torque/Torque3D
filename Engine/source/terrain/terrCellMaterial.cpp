@@ -374,43 +374,36 @@ bool TerrainCellMaterial::_initShader(bool deferredMat,
 
          // We only include materials that 
          // have more than a base texture.
-         if (mat->getDetailSize() <= 0 ||
-            mat->getDetailDistance() <= 0 ||
-            mat->getDetailMap() == StringTable->EmptyString())
+         if (!(mat->DetailMapValid() && mat->getDetailSize() > 0 && mat->getDetailDistance()>0))
             continue;
-
-         // check for macro detail texture
-         if (!(mat->getMacroSize() <= 0 || mat->getMacroDistance() <= 0 || mat->getMacroMap() == StringTable->EmptyString()))
-         {
-            if (deferredMat)
-               features.addFeature(MFT_isDeferred, featureIndex);
-            features.addFeature(MFT_TerrainMacroMap, featureIndex);
-         }
 
          if (deferredMat)
             features.addFeature(MFT_isDeferred, featureIndex);
          features.addFeature(MFT_TerrainDetailMap, featureIndex);
 
-         if (deferredMat)
+         // check for macro detail texture
+         if (mat->MacroMapValid() && mat->getMacroSize() > 0 && mat->getMacroDistance() > 0)
          {
-            if (!(mat->getORMConfigMap() == StringTable->EmptyString()))
-            {
-               features.addFeature(MFT_TerrainORMMap, featureIndex);
-            }
-            else
-            {
-               features.addFeature(MFT_DeferredTerrainBlankInfoMap, featureIndex);
-            }
+            features.addFeature(MFT_TerrainMacroMap, featureIndex);
+         }
+
+         if (mat->ORMConfigMapValid())
+         {
+            features.addFeature(MFT_TerrainORMMap, featureIndex);
+         }
+         else
+         {
+            features.addFeature(MFT_DeferredTerrainBlankInfoMap, featureIndex);
          }
          
          if (mat->getInvertRoughness())
             features.addFeature(MFT_InvertRoughness, featureIndex);
 
-         normalMaps.increment();
 
          // Skip normal maps if we need to.
-         if (!disableNormalMaps && mat->getNormalMap() != StringTable->EmptyString())
+         if (!disableNormalMaps && mat->NormalMapValid())
          {
+            normalMaps.increment();
             features.addFeature(MFT_TerrainNormalMap, featureIndex);
 
             normalMaps.last() = mat->getNormalMapResource();
@@ -555,7 +548,7 @@ bool TerrainCellMaterial::_initShader(bool deferredMat,
 
    mDetailInfoVArrayConst = mShader->getShaderConstHandle("$detailScaleAndFade");
    mDetailInfoPArrayConst = mShader->getShaderConstHandle("$detailIdStrengthParallax");
-   mMacroInfoVArrayConst = mShader->getShaderConstHandle("$macroIdStrengthParallax");
+   mMacroInfoVArrayConst = mShader->getShaderConstHandle("$macroScaleAndFade");
    mMacroInfoPArrayConst = mShader->getShaderConstHandle("$macroIdStrengthParallax");
 
    mDetailTexArrayConst = mShader->getShaderConstHandle("$detailMapSampler");
@@ -639,13 +632,12 @@ bool TerrainCellMaterial::_initShader(bool deferredMat,
 
       // We only include materials that 
       // have more than a base texture.
-      if (mat->getDetailSize() <= 0 ||
-         mat->getDetailDistance() <= 0 ||
-         mat->getDetailMap() == StringTable->EmptyString())
+      if (!(mat->DetailMapValid() && mat->getDetailSize() > 0 && mat->getDetailDistance() > 0))
          continue;
 
       mMaterialInfos[i]->mBlendDepthConst = mShader->getShaderConstHandle(avar("$blendDepth%d", i));
       mMaterialInfos[i]->mBlendContrastConst = mShader->getShaderConstHandle(avar("$blendContrast%d", i));
+      mMaterialInfos[i]->mBlendHardnessConst = mShader->getShaderConstHandle(avar("$blendHardness%d", i));
    }
 
    // If we're doing deferred it requires some 
@@ -684,11 +676,7 @@ void TerrainCellMaterial::_updateMaterialConsts( )
       if (mat == NULL)
          continue;
 
-      // We only include materials that 
-      // have more than a base texture.
-      if (mat->getDetailSize() <= 0 ||
-         mat->getDetailDistance() <= 0 ||
-         mat->getDetailMap() == StringTable->EmptyString())
+      if (!(mat->DetailMapValid() && mat->getDetailSize() > 0 && mat->getDetailDistance() > 0))
          continue;
 
       detailMatCount++;
@@ -702,6 +690,9 @@ void TerrainCellMaterial::_updateMaterialConsts( )
    AlignedArray<Point4F> detailInfoArray(detailMatCount, sizeof(Point4F));
    AlignedArray<Point4F> detailScaleAndFadeArray(detailMatCount, sizeof(Point4F));
 
+   AlignedArray<Point4F> macroInfoArray(detailMatCount, sizeof(Point4F));
+   AlignedArray<Point4F> macroScaleAndFadeArray(detailMatCount, sizeof(Point4F));
+
    int detailIndex = 0;
    for (MaterialInfo* matInfo : mMaterialInfos)
    {
@@ -713,11 +704,7 @@ void TerrainCellMaterial::_updateMaterialConsts( )
       if (mat == NULL)
          continue;
 
-      // We only include materials that 
-      // have more than a base texture.
-      if (mat->getDetailSize() <= 0 ||
-         mat->getDetailDistance() <= 0 ||
-         mat->getDetailMap() == StringTable->EmptyString())
+      if (!(mat->DetailMapValid() && mat->getDetailSize() > 0 && mat->getDetailDistance() > 0))
          continue;
 
       F32 detailSize = matInfo->mat->getDetailSize();
@@ -762,12 +749,45 @@ void TerrainCellMaterial::_updateMaterialConsts( )
       {
          mConsts->setSafe(matInfo->mBlendContrastConst, matInfo->mat->getBlendContrast());
       }
+
+      if (matInfo->mBlendHardnessConst != NULL)
+      {
+         mConsts->setSafe(matInfo->mBlendHardnessConst, matInfo->mat->getBlendHardness());
+      }
+
+      // macro texture info
+
+      F32 macroSize = matInfo->mat->getMacroSize();
+      F32 macroScale = 1.0f;
+      if (!mIsZero(macroSize))
+         macroScale = mTerrain->getWorldBlockSize() / macroSize;
+
+      // Scale the distance by the global scalar.
+      const F32 macroDistance = mTerrain->smDetailScale * matInfo->mat->getMacroDistance();
+
+      Point4F macroScaleAndFade(macroScale,
+         -macroScale,
+         macroDistance,
+         0);
+
+      if (!mIsZero(macroDistance))
+         macroScaleAndFade.w = 1.0f / macroDistance;
+
+      Point4F macroIdStrengthParallax(matInfo->layerId,
+         matInfo->mat->getMacroStrength(),
+         0, 0);
+
+      macroScaleAndFadeArray[detailIndex] = macroScaleAndFade;
+      macroInfoArray[detailIndex] = macroIdStrengthParallax;
+
       detailIndex++;
    }
 
    mConsts->setSafe(mDetailInfoVArrayConst, detailScaleAndFadeArray);
    mConsts->setSafe(mDetailInfoPArrayConst, detailInfoArray);
 
+   mConsts->setSafe(mMacroInfoVArrayConst, macroScaleAndFadeArray);
+   mConsts->setSafe(mMacroInfoPArrayConst, macroInfoArray);
 }
 
 bool TerrainCellMaterial::setupPass(   const SceneRenderState *state, 

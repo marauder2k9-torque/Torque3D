@@ -143,6 +143,7 @@ PrecipitationData::PrecipitationData()
 
 void PrecipitationData::initPersistFields()
 {
+   docsURL;
    INITPERSISTFIELD_SOUNDASSET(Sound, PrecipitationData, "Looping SFXProfile effect to play while Precipitation is active.");
 
    addProtectedField( "dropTexture", TypeFilename, Offset(mDropName, PrecipitationData), &_setDropData, &defaultProtectedGetFn,
@@ -190,12 +191,9 @@ bool PrecipitationData::preload( bool server, String &errorStr )
       return false;
    if (!server)
    {
-      if (getSound() != StringTable->EmptyString())
+      if (!isSoundValid())
       {
-         _setSound(getSound());
-
-         if (!getSoundProfile())
-            Con::errorf(ConsoleLogEntry::General, "SplashData::preload: Cant get an sfxProfile for splash.");
+         //return false; -TODO: trigger asset download
       }
    }
 
@@ -367,6 +365,7 @@ IRangeValidator ValidNumDropsRange(1, 100000);
 
 void Precipitation::initPersistFields()
 {
+   docsURL;
    addGroup("Precipitation");
 
       addFieldV( "numDrops", TypeS32, Offset(mNumDrops, Precipitation), &ValidNumDropsRange,
@@ -786,7 +785,6 @@ void Precipitation::unpackUpdate(NetConnection* con, BitStream* stream)
       mUseWind = stream->readFlag();
       mFollowCam = stream->readFlag();
       mAnimateSplashes = stream->readFlag();
-
       mDropHitMask = dropHitMask | 
          ( mDropHitPlayers ? PlayerObjectType : 0 ) | 
          ( mDropHitVehicles ? VehicleObjectType : 0 );

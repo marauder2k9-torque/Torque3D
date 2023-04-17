@@ -83,6 +83,7 @@ afxSpellButton::~afxSpellButton()
 
 void afxSpellButton::initPersistFields()
 {
+   docsURL;
   addField("bitmap",      TypeFilename,   Offset(mBitmapName, afxSpellButton),
     "...");
   addField("book_slot",   TypePoint2I,    Offset(book_slot, afxSpellButton),
@@ -328,9 +329,9 @@ void afxSpellButton::setPage(U8 page)
   update_bitmap();
 }
 
-char* afxSpellButton::formatDesc(char* buffer, int len) const
+const char* afxSpellButton::formatDesc(char* buffer, int len) const
 {
-  return (spellbook) ? spellbook->formatDesc(buffer, len, book_slot.x, book_slot.y) : (char*)"";
+  return (spellbook) ? spellbook->formatDesc(buffer, len, book_slot.x, book_slot.y) : "";
 }
 
 afxMagicSpellData* afxSpellButton::getSpellDataBlock() const
