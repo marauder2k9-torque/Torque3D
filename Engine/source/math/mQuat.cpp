@@ -171,6 +171,43 @@ QuatF & QuatF::set( const MatrixF & mat )
    F32 const *m = mat;
 
    F32 trace = m[idx(0, 0)] + m[idx(1, 1)] + m[idx(2, 2)];
+
+   if (trace > 0.0f)
+   {
+      F32 s = mSqrt(trace + 1.0f) * 2.0f;
+      w = 0.25f * s;
+      x = (m[idx(1, 2)] - m[idx(2, 1)]) * s;
+      y = (m[idx(2, 0)] - m[idx(0, 2)]) * s;
+      z = (m[idx(0, 1)] - m[idx(1, 0)]) * s;
+   }
+   else if ((m[idx(0, 0)] > m[idx(1, 1)]) && (m[idx(0, 0)] > m[idx(2, 2)]))
+   {
+      F32 s = mSqrt(1.0f + m[idx(0, 0)] - m[idx(1, 1)] - m[idx(2, 2)]) * 2.0f;
+      w = (m[idx(1, 2)] - m[idx(2, 1)]) / s;
+      x = 0.25f * s;
+      y = (m[idx(1, 0)] + m[idx(0, 1)]) / s;
+      z = (m[idx(2, 0)] + m[idx(0, 2)]) / s;
+   }
+   else if (m[idx(1, 1)] > m[idx(2, 2)])
+   {
+      F32 s = mSqrt(1.0f + m[idx(1, 1)] - m[idx(0, 0)] - m[idx(2, 2)]) * 2.0f;
+      w = (m[idx(2, 0)] - m[idx(0, 2)]) / s;
+      x = (m[idx(1, 0)] + m[idx(0, 1)]) / s;
+      y = 0.25f * s;
+      z = (m[idx(2, 1)] + m[idx(1, 2)]) / s;
+   }
+   else
+   {
+      F32 s = mSqrt(1.0f + m[idx(2, 2)] - m[idx(0, 0)] - m[idx(1, 1)]) * 2.0f;
+      w = (m[idx(0, 1)] - m[idx(1, 0)]) / s;
+      x = (m[idx(2, 0)] + m[idx(0, 2)]) / s;
+      y = (m[idx(2, 1)] + m[idx(1, 2)]) / s;
+      z = 0.25f * s;
+   }
+
+
+   /// old method.
+   /*F32 trace = m[idx(0, 0)] + m[idx(1, 1)] + m[idx(2, 2)];
    if (trace > 0.0f) 
    {
       F32 s = mSqrt(trace + F32(1));
@@ -195,7 +232,7 @@ QuatF & QuatF::set( const MatrixF & mat )
       q[j] = (m[idx(i,j)] + m[idx(j,i)]) * s;
       q[k] = (m[idx(i,k)] + m[idx(k, i)]) * s;
       w = (m[idx(j,k)] - m[idx(k, j)]) * s;
-   }
+   }*/
 
    // Added to resolve issue #2230
    normalize();
@@ -208,7 +245,45 @@ MatrixF * QuatF::setMatrix( MatrixF * mat ) const
    if( x*x + y*y + z*z < 10E-20f) // isIdentity() -- substituted code a little more stringent but a lot faster
       mat->identity();
    else
-      m_quatF_set_matF( x, y, z, w, *mat );
+   {
+      //m_quatF_set_matF(x, y, z, w, *mat);
+
+      F32* m = *mat;
+
+      F32 xx = x * x;
+      F32 xy = x * y;
+      F32 xz = x * z;
+      F32 xw = x * w;
+
+      F32 yy = y * y;
+      F32 yz = y * z;
+      F32 yw = y * w;
+
+      F32 zz = z * z;
+      F32 zw = z * w;
+
+      m[idx(0, 0)] = 1.0f - 2.0f * (yy + zz);
+      m[idx(1, 0)] = 2.0f * (xy - zw);
+      m[idx(2, 0)] = 2.0f * (xz + yw);
+      m[idx(3, 0)] = 0.0f;
+
+      m[idx(0, 1)] = 2.0f * (xy + zw);
+      m[idx(1, 1)] = 1.0f - 2.0f * (xx + zz);
+      m[idx(2, 1)] = 2.0f * (yz - xw);
+      m[idx(3, 1)] = 0.0f;
+
+      m[idx(0, 2)] = 2.0f * (xz - yw);
+      m[idx(1, 2)] = 2.0f * (yz + xw);
+      m[idx(2, 2)] = 1.0f - 2.0f * (xx + yy);
+      m[idx(3, 2)] = 0.0f;
+
+      m[idx(0, 3)] = 0.0f;
+      m[idx(1, 3)] = 0.0f;
+      m[idx(2, 3)] = 0.0f;
+      m[idx(3, 3)] = 1.0f;
+   }
+
+
    return mat;
 }
 

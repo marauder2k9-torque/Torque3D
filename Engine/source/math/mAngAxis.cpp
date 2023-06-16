@@ -152,8 +152,8 @@ MatrixF * AngAxisF::setMatrix( MatrixF * mat ) const
    m[qidx(1, 1)] = c + axis.y * axis.y * t;
    m[qidx(2, 2)] = c + axis.z * axis.z * t;
 
-   m[qidx(1, 0)] = tmp1 + tmp2;
-   m[qidx(0, 1)] = tmp1 - tmp2;
+   m[qidx(0, 1)] = tmp1 + tmp2;
+   m[qidx(1, 0)] = tmp1 - tmp2;
 
    tmp1 = axis.x * axis.z * t;
    tmp2 = axis.z * s;
