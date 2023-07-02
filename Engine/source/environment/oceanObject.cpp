@@ -148,9 +148,9 @@ OceanObject::OceanObject()
    mNormalIntensity(0.52f)
 {
    mTypeMask = OceanObjectType;
-   mWaveData[0].set(0.1f, 0.2f, 0.3f, 60.0f);
-   mWaveData[1].set(0.1f, -0.2f, 0.3f, 20.0f);
-   mWaveData[2].set(0.2f, 0.2f, 0.3f, 10.0f);
+   mWaveData[0].set(1.0f, 1.0f, 0.25f, 60.0f);
+   mWaveData[1].set(1.0f, 0.6f, 0.25f, 31.0f);
+   mWaveData[2].set(1.0f, 1.3f, 0.25f, 18.0f);
 
    mSpecParams.set(30.0f, 768.0f, 0.25f, 0.8f);
 

@@ -117,7 +117,7 @@ ConnectData main( VertData IN )
     OUT.uv = wldPos.xy * 0.05 * textureTile;
     OUT.normal = normal;
     OUT.worldPos = wldPos;
-    OUT.hpos = mul(modelview, float4(modelPos.xyz, 1.0));
+    OUT.hpos = mul(modelview, float4(modelPos));
     OUT.projPos = mul(texGen, OUT.hpos);
     
     return OUT;
