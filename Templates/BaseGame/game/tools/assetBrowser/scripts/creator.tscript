@@ -33,6 +33,7 @@ function AssetBrowser::loadCreatorClasses(%this)
       %this.addCreatorClass( "TimeOfDay",          "Time of Day" );
       %this.addCreatorClass( "WaterBlock",         "Water Block" );
       %this.addCreatorClass( "WaterPlane",         "Water Plane" );
+      %this.addCreatorClass( "OceanObject",        "Ocean");
        %this.addCreatorClass( "ForestWindEmitter",  "Wind Emitter" );
    %this.endCreatorGroup();
    

@@ -1297,6 +1297,14 @@ function ObjectBuilderGui::buildWaterPlane(%this)
    %this.addWaterObjectFields();   
 }
 
+function ObjectBuilderGui::buildOceanObject(%this)
+{
+   %this.objectClassName = "OceanObject";
+   %this.process();
+   %this.addField("rippleTex", "TypeImageAsset", "Ripple Texture", "Core_Rendering:ripple_image" );
+   %this.addField("foamTex", "TypeImageAsset", "Foam Texture", "Core_Rendering:oceanFoam" );
+}
+
 function ObjectBuilderGui::buildTerrainBlock(%this)
 {
    /*%this.objectClassName = "TerrainBlock";

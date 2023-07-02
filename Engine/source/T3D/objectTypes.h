@@ -171,6 +171,8 @@ enum SceneObjectTypes
    /// @see TurretShape
    TurretObjectType = BIT(29),
 
+   OceanObjectType = BIT(30),
+
    /// @}
 };
 

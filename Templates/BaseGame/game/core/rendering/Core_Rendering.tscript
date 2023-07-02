@@ -48,6 +48,7 @@ function Core_Rendering::initClient(%this)
    exec("./scripts/gfxData/shaders." @ $TorqueScriptFileExtension);
    exec("./scripts/gfxData/terrainBlock." @ $TorqueScriptFileExtension);
    exec("./scripts/gfxData/water." @ $TorqueScriptFileExtension);
+   exec("./scripts/gfxData/ocean." @ $TorqueScriptFileExtension);
    exec("./scripts/gfxData/warningTerrainMat." @ $TorqueScriptFileExtension);
 
    //load prefs

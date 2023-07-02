@@ -1,0 +1,82 @@
+//-----------------------------------------------------------------------------
+// Copyright (c) 2012 GarageGames, LLC
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to
+// deal in the Software without restriction, including without limitation the
+// rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+// sell copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+// IN THE SOFTWARE.
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Ocean shaderData
+//-----------------------------------------------------------------------------
+
+// this shader is extremely similar to the waterP only it creates a proper 
+// shore, crest foam and uses gerstner waves.
+
+singleton ShaderData(OceanShader)
+{
+    DXVertexShaderFile 	= $Core::CommonShaderPath @ "/water/oceanV.hlsl";
+    DXPixelShaderFile 	= $Core::CommonShaderPath @ "/water/oceanP.hlsl";
+    
+    samplerNames[0] = "$deferredTex";   // #deferred
+    samplerNames[1] = "$reflectMap";    // $reflectbuff
+    samplerNames[2] = "$refractBuff";   // $backbuff
+    samplerNames[3] = "$skyMap";        // skyCubeMap
+    samplerNames[4] = "$bumpMap";       // noise
+    samplerNames[5] = "$foamMap";       // foam
+
+    pixVersion = 3.0;
+};
+
+singleton GFXSamplerStateData( OceanSampler )
+{
+   textureColorOp = GFXTOPModulate;
+   addressModeU = GFXAddressWrap;
+   addressModeV = GFXAddressWrap;
+   addressModeW = GFXAddressWrap;
+   magFilter = GFXTextureFilterLinear;
+   minFilter = GFXTextureFilterAnisotropic;
+   mipFilter = GFXTextureFilterLinear;
+   maxAnisotropy = 4;
+};
+
+singleton GFXStateBlockData( OceanStateBlock )
+{
+    samplersDefined = true;
+    
+    samplerStates[0] = SamplerClampPoint;   // #deferred
+    samplerStates[1] = SamplerClampLinear;  // $reflectbuff
+    samplerStates[2] = SamplerClampPoint;   // $backbuff
+    samplerStates[3] = SamplerWrapLinear;   // cubeMap
+    samplerStates[4] = SamplerWrapLinear;   // foam
+    samplerStates[5] = WaterSampler;        // noise
+    cullDefined = true;
+    cullMode = "GFXCullCCW";
+};
+
+singleton CustomMaterial( OceanMat )
+{   
+   sampler["deferredTex"] = "#deferred";
+   sampler["reflectMap"] = "$reflectbuff";
+   sampler["refractBuff"] = "$backbuff";
+   
+   shader = OceanShader;
+   stateBlock = OceanStateBlock;
+   version = 3.0;
+   
+   useAnisotropic[0] = true;
+};

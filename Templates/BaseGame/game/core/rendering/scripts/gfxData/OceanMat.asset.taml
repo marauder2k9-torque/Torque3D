@@ -1,0 +1,7 @@
+<MaterialAsset
+    canSave="true"
+    canSaveDynamicFields="true"
+    AssetName="OceanMat"
+    scriptFile="@assetFile=ocean.tscript"
+    materialDefinitionName="OceanMat"
+    VersionId="1" />
