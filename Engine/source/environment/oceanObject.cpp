@@ -78,6 +78,9 @@ void OceanMatParams::clear()
    mAmbientDensitySC = NULL;
    mDiffuseDensitySC = NULL;
    mRadianceFacSC = NULL;
+   mFarPlaneDistSC = NULL;
+   mTetureTileSC = NULL;
+   mNormalIntensitySC = NULL;
 }
 
 void OceanMatParams::init(BaseMatInstance* matInst)
@@ -88,6 +91,7 @@ void OceanMatParams::init(BaseMatInstance* matInst)
    mModelMatInvSC = matInst->getMaterialParameterHandle("$modelMatInverse");
    mMVPInvSC = matInst->getMaterialParameterHandle("$mvpInverse");
    mWaveDataSC = matInst->getMaterialParameterHandle("$waveData");
+   mTetureTileSC = matInst->getMaterialParameterHandle("$textureTile");
    mElapsedTimeSC = matInst->getMaterialParameterHandle("$elapsedTime");
    mCubemapSamplerSC = matInst->getMaterialParameterHandle("$skyMap");
    mRippleSamplerSC = matInst->getMaterialParameterHandle("$bumpMap");
@@ -108,6 +112,8 @@ void OceanMatParams::init(BaseMatInstance* matInst)
    mAmbientDensitySC = matInst->getMaterialParameterHandle("$ambDensity");
    mDiffuseDensitySC = matInst->getMaterialParameterHandle("$diffuseDensity");
    mRadianceFacSC = matInst->getMaterialParameterHandle("$radianceFactor");
+   mFarPlaneDistSC = matInst->getMaterialParameterHandle("$farPlaneDist");
+   mNormalIntensitySC = matInst->getMaterialParameterHandle("$normalIntensity");
 }
 
 //-------------------------------------------------------------------------
@@ -137,7 +143,9 @@ OceanObject::OceanObject()
    mCrestThreshold(10.4f),
    mShoreFadeRange(0.2f),
    mRadianceFactor(0.2f),
-   mDistortionAmt(0.0345f)
+   mDistortionAmt(0.0345f),
+   mTextureTile(3.5f),
+   mNormalIntensity(0.52f)
 {
    mTypeMask = OceanObjectType;
    mWaveData[0].set(0.1f, 0.2f, 0.3f, 60.0f);
@@ -177,6 +185,8 @@ void OceanObject::initPersistFields()
    docsURL;
 
    addGroup("Ocean");
+      addField("Normal Intensity", TypeF32, Offset(mNormalIntensity, OceanObject), "Normal Map Intensity.");
+      addField("Teture Tiling", TypeF32, Offset(mTextureTile, OceanObject), "Texture Tiling.");
       addField("Ambient Density", TypeF32, Offset(mAmbDen, OceanObject), "Ambient color density.");
       addField("Diffuse Density", TypeF32, Offset(mDiffDen, OceanObject), "Ambient color density.");
       addField("Surface Color", TypeColorF, Offset(mSurfaceColor, OceanObject), "Color used for the water surface.");
@@ -272,6 +282,8 @@ U32 OceanObject::packUpdate(NetConnection* conn, U32 mask, BitStream* stream)
       stream->write(mDiffDen);
       stream->write(mClarity);
       stream->write(mTransparency);
+      stream->write(mTextureTile);
+      stream->write(mNormalIntensity);
 
       // foam
       stream->write(mShoreRange);
@@ -331,6 +343,8 @@ void OceanObject::unpackUpdate(NetConnection* conn, BitStream* stream)
       stream->read(&mDiffDen);
       stream->read(&mClarity);
       stream->read(&mTransparency);
+      stream->read(&mTextureTile);
+      stream->read(&mNormalIntensity);
 
       // foam
       stream->read(&mShoreRange);
@@ -574,6 +588,8 @@ void OceanObject::setShaderParams(SceneRenderState* state, const OceanMatParams 
 
    matParams->setSafe(paramHandles.mAmbientDensitySC, mAmbDen);
    matParams->setSafe(paramHandles.mDiffuseDensitySC, mDiffDen);
+   matParams->setSafe(paramHandles.mTetureTileSC, mTextureTile);
+   matParams->setSafe(paramHandles.mNormalIntensitySC, mNormalIntensity);
 
    Point3F foamParams(mShoreRange, mNearShoreRange, mCrestThreshold);
    matParams->setSafe(paramHandles.mFoamParametersSC, foamParams);
@@ -583,6 +599,8 @@ void OceanObject::setShaderParams(SceneRenderState* state, const OceanMatParams 
    matParams->setSafe(paramHandles.mSpecParamsSC, mSpecParams);
    matParams->setSafe(paramHandles.mDistortionSC, mDistortionAmt);
    matParams->setSafe(paramHandles.mRadianceFacSC, mRadianceFactor);
+
+   matParams->setSafe(paramHandles.mFarPlaneDistSC, (F32)state->getFarPlane());
 
    static AlignedArray<Point4F> mConstArray4F(3, sizeof(Point4F));
    for (U32 i = 0; i < 3; i++)
@@ -606,7 +624,7 @@ void OceanObject::setShaderParams(SceneRenderState* state, const OceanMatParams 
 void OceanObject::setCustomTexture(U32 pass, const OceanMatParams& paramHandles)
 {
    GFX->setTexture(paramHandles.mRippleSamplerSC->getSamplerRegister(pass), mRippleTex);
-   //GFX->setTexture(paramHandles.mFoamSamplerSC->getSamplerRegister(pass), mFoamTex);
+   GFX->setTexture(paramHandles.mFoamSamplerSC->getSamplerRegister(pass), mFoamTex);
 
    if(mCubemap)
       GFX->setCubeTexture(paramHandles.mCubemapSamplerSC->getSamplerRegister(pass), mCubemap->mCubemap);

@@ -82,6 +82,9 @@ struct OceanMatParams
    MaterialParameterHandle* mAmbientDensitySC;
    MaterialParameterHandle* mDiffuseDensitySC;
    MaterialParameterHandle* mRadianceFacSC;
+   MaterialParameterHandle* mFarPlaneDistSC;
+   MaterialParameterHandle* mTetureTileSC;
+   MaterialParameterHandle* mNormalIntensitySC;
 
    void clear();
    void init(BaseMatInstance* matInst);
@@ -170,6 +173,8 @@ protected:
    F32 mDiffDen;
    F32 mClarity;
    F32 mTransparency;
+   F32 mTextureTile;
+   F32 mNormalIntensity;
 
    //Foam
    F32 mShoreRange;

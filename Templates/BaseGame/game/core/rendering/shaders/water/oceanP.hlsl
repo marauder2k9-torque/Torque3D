@@ -66,11 +66,12 @@ uniform float4	    sunColor;
 uniform float       ambDensity;
 uniform float       diffuseDensity;
 uniform float       radianceFactor;
+uniform float       farPlaneDist;
+uniform float       normalIntensity;
 
 //-----------------------------------------------------------------------------
 // Functions                                                                  
 //-----------------------------------------------------------------------------
-
 float Fresnel(float2 refractionParams, float3 normal, float3 eyeVec)
 {
     float IOR = refractionParams.x;
@@ -108,12 +109,19 @@ float3 RefractionColor(float2 transparencyParams, float2 depthParams, float shor
 float3 NdcToWorld(float4x4 mvpInverse, float3 ndc)
 {
     float4 clipPos = float4(ndc.xy * 2.0f - 1.0f, ndc.z, 1.0f);
-    clipPos.z = 1.0f - clipPos.z;
 
     float4 pos = mul(mvpInverse, clipPos);
 
     pos.xyz /= pos.w;
     return pos.xyz;
+}
+
+float FoamAmount(TORQUE_SAMPLER2D(FoamTex), float2 texCoord, float2 texCoord2, float2 ranges, float2 factors, float depth, float baseColor)
+{
+    float f1 = TORQUE_TEX2D( FoamTex, texCoord ).r;
+    float f2 = TORQUE_TEX2D( FoamTex, texCoord2 ).r;
+
+    return lerp(f1 * factors.x + f2 * factors.y, baseColor, smoothstep(ranges.x, ranges.y, depth));
 }
 
 //-----------------------------------------------------------------------------
@@ -127,27 +135,29 @@ float4 main( ConnectData IN ) : TORQUE_TARGET0
 
     // calculate normal.
     float3 bumpNorm = ( TORQUE_TEX2D( bumpMap, IN.uv ).rgb * 2.0 - 1.0 );
-    bumpNorm = normalize( bumpNorm );
     bumpNorm = mul( bumpNorm, IN.tangentMat );
     
-    float2 deferredCoord = viewportCoordToRenderTarget( IN.projPos, rtParams1 );
+    float pixelDepth = IN.hpos.w / farPlaneDist;
+    float2 deferredCoord = viewportCoordToRenderTarget( IN.hpos, rtParams1 );
     float depth = TORQUE_DEFERRED_UNCONDITION( deferredTex, deferredCoord ).w;
 
-    float3 depthPosition = eyePosWorld + eyeVec * depth;
     float waterDepth = worldPos.z - depth;
-    float viewDepth = length(worldPos - depthPosition);
+    waterDepth = max(waterDepth, 0.0);
+    //waterDepth *= farPlaneDist;
+    float viewDepth = length(worldPos - depth);
     float fresnelTerm = Fresnel(refractionParams.xy, bumpNorm, eyeVec);
     
+    bumpNorm = normalize(lerp(IN.normal, normalize(bumpNorm), normalIntensity));
+
     //-----------------------------------------------------------------------------
     // REFRACTION                                       
     //-----------------------------------------------------------------------------
     // refraction distort position.
     float2 distortPos = ndcPos;
     float refractionScale = refractionParams.z * min(waterDepth, 1.0);
-    float2 delta = float2(  sin(elapsedTime + 1.0f * abs(depthPosition.z)),
-                            sin(elapsedTime + 5.0f * abs(depthPosition.z)));
-    distortPos.xy += delta * refractionScale;
-    
+    float2 delta = float2(  sin(elapsedTime + 1.0f * abs(depth)),
+                            sin(elapsedTime + 5.0f * abs(depth)));
+    distortPos.xy += bumpNorm.xy * delta * refractionScale;
 
     // Get refract color
     float3 trueRefractColor = hdrDecode( TORQUE_TEX2D( refractBuff, distortPos ) ).rgb;
@@ -184,6 +194,11 @@ float4 main( ConnectData IN ) : TORQUE_TARGET0
     //-----------------------------------------------------------------------------
     // FOAM                                       
     //-----------------------------------------------------------------------------
+    float2 texCoord = IN.uv + elapsedTime * 0.01;
+    float2 texCoord2 = (IN.uv + elapsedTime * 0.01) * -0.5;
+    float foamEdge = max(foamParameters.x, foamParameters.y);
+    float deepFoam = FoamAmount(TORQUE_SAMPLER2D_MAKEARG(foamMap), texCoord, texCoord2, float2(foamParameters.x, foamEdge),float2(1.0, 0.5), waterDepth, 0.0);
+    float foam = FoamAmount(TORQUE_SAMPLER2D_MAKEARG(foamMap), texCoord, texCoord2, float2(0.0f, foamParameters.x),float2(0.75, 1.5), waterDepth, deepFoam);
 
     //-----------------------------------------------------------------------------
     // Output color calcs.                                                                        
@@ -193,7 +208,7 @@ float4 main( ConnectData IN ) : TORQUE_TARGET0
     trueRefractColor = lerp(trueRefractColor, reflectColor, fresnelTerm * (saturate(waterDepth / (foamParameters.x * 0.4))));
     trueRefractColor = lerp(trueRefractColor, shoreColor, 0.3 * shoreFade);
     float3 col = lerp(refractionColor, reflectColor, fresnelTerm);
-    col = saturate(ambDifCol + col + max(specColor, /*foamAmt * */ sunColor.rgb));
+    col = saturate(ambDifCol + col + max(specColor, foam * sunColor.rgb));
     col = lerp(trueRefractColor + specColor * shoreFade, col, shoreFade);
 
     //col.rgb = 0.5 + 2 * ambientColor + specColor + clamp(dot(bumpNorm, inLightVec), 0, 1) * 0.5;

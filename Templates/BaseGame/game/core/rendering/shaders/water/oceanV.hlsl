@@ -49,6 +49,7 @@ uniform float4x4 modelview;
 uniform float4   waveData[3]; // xy - direction, z = steepness, w = wavelength;
 uniform float    elapsedTime;
 uniform float3   eyePosWorld;
+uniform float    textureTile;
 
 //-----------------------------------------------------------------------------
 // Functions                                                                  
@@ -113,7 +114,7 @@ ConnectData main( VertData IN )
     worldToTangent[2] = normal;
 
     OUT.tangentMat = worldToTangent;
-    OUT.uv = wldPos.xy * 0.05;
+    OUT.uv = wldPos.xy * 0.05 * textureTile;
     OUT.normal = normal;
     OUT.worldPos = wldPos;
     OUT.hpos = mul(modelview, float4(modelPos.xyz, 1.0));
