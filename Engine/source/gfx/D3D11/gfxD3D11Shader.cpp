@@ -1046,9 +1046,6 @@ bool GFXD3D11Shader::_init()
    else
       mPixelConstBufferLayout->clear(); 
 
-
-
-   
    mSamplerDescriptions.clear();
    mShaderConsts.clear();
 
@@ -1127,9 +1124,33 @@ bool GFXD3D11Shader::_init()
          if (!_loadCompiledOutput(mGeometryFile, geomTarget, mGeometryConstBufferLayout, mSamplerDescriptions))
          {
             if (smLogErrors)
-               Con::errorf("GFXD3D11Shader::init - Unable to load precompiled pixel shader for '%s'.", mPixelFile.getFullPath().c_str());
+               Con::errorf("GFXD3D11Shader::init - Unable to load precompiled geometry shader for '%s'.", mGeometryFile.getFullPath().c_str());
 
             return false;
+         }
+      }
+
+      // do we have tessellation shaders?
+      if (!mHullFile.isEmpty() && !mDomainFile.isEmpty())
+      {
+         //do we support tessallation shaders
+         if (hullTarget != String::EmptyString && domTarget != String::EmptyString)
+         {
+            if (!_loadCompiledOutput(mHullFile, geomTarget, mHullConstBufferLayout, mSamplerDescriptions))
+            {
+               if (smLogErrors)
+                  Con::errorf("GFXD3D11Shader::init - Unable to load precompiled hull shader for '%s'.", mHullFile.getFullPath().c_str());
+
+               return false;
+            }
+
+            if (!_loadCompiledOutput(mDomainFile, geomTarget, mDomainConstBufferLayout, mSamplerDescriptions))
+            {
+               if (smLogErrors)
+                  Con::errorf("GFXD3D11Shader::init - Unable to load precompiled domain shader for '%s'.", mDomainFile.getFullPath().c_str());
+
+               return false;
+            }
          }
       }
    }
