@@ -56,12 +56,16 @@ protected:
    F32 mPixVersion;
 
    StringTableEntry mDXVertexShaderName;
-
    StringTableEntry mDXPixelShaderName;
+   StringTableEntry mDXGeometryShaderName;
+   StringTableEntry mDXHullShaderName;
+   StringTableEntry mDXDomainShaderName;
 
    StringTableEntry mOGLVertexShaderName;
-
    StringTableEntry mOGLPixelShaderName;
+   StringTableEntry mOGLGeometryShaderName;
+   StringTableEntry mOGLHullShaderName;
+   StringTableEntry mOGLDomainShaderName;
 
    /// A semicolon, tab, or newline delimited string of case
    /// sensitive defines that are passed to the shader compiler.

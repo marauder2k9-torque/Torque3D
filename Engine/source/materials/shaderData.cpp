@@ -67,6 +67,14 @@ ShaderData::ShaderData()
 
    for( int i = 0; i < NumTextures; ++i)
       mRTParams[i] = false;
+
+   mDXGeometryShaderName   = StringTable->EmptyString();
+   mDXHullShaderName       = StringTable->EmptyString();
+   mDXDomainShaderName     = StringTable->EmptyString();
+
+   mOGLGeometryShaderName  = StringTable->EmptyString();
+   mOGLHullShaderName      = StringTable->EmptyString();
+   mOGLDomainShaderName    = StringTable->EmptyString();
 }
 
 void ShaderData::initPersistFields()
@@ -84,6 +92,21 @@ void ShaderData::initPersistFields()
 	   "shader. It can be either an HLSL or assembly level shader. HLSL's "
 	   "must have a filename extension of .hlsl, otherwise its assumed to be an assembly file.");
 
+   addField("DXGeometryShaderFile", TypeStringFilename, Offset(mDXGeometryShaderName, ShaderData),
+      "@brief %Path to the DirectX geometry shader file to use for this ShaderData.\n\n"
+      "It can be either an HLSL or assembly level shader. HLSL's must have a "
+      "filename extension of .hlsl, otherwise its assumed to be an assembly file.");
+
+   addField("DXHullShaderFile", TypeStringFilename, Offset(mDXHullShaderName, ShaderData),
+      "@brief %Path to the DirectX hull shader file to use for this ShaderData.\n\n"
+      "It can be either an HLSL or assembly level shader. HLSL's must have a "
+      "filename extension of .hlsl, otherwise its assumed to be an assembly file.");
+
+   addField("DXDomainShaderFile", TypeStringFilename, Offset(mDXDomainShaderName, ShaderData),
+      "@brief %Path to the DirectX domain shader file to use for this ShaderData.\n\n"
+      "It can be either an HLSL or assembly level shader. HLSL's must have a "
+      "filename extension of .hlsl, otherwise its assumed to be an assembly file.");
+
    addField("OGLVertexShaderFile",  TypeStringFilename,  Offset(mOGLVertexShaderName,   ShaderData),
 	   "@brief %Path to an OpenGL vertex shader file to use for this ShaderData.\n\n"
 	   "It must contain only one program and no pixel shader, just the vertex shader.");
@@ -92,6 +115,15 @@ void ShaderData::initPersistFields()
 	   "@brief %Path to an OpenGL pixel shader file to use for this ShaderData.\n\n"
 	   "It must contain only one program and no vertex shader, just the pixel "
 	   "shader.");
+
+   addField("OGLGeometryShaderFile", TypeStringFilename, Offset(mOGLGeometryShaderName, ShaderData),
+      "@brief %Path to the OpenGL Geometry shader file to use for this ShaderData.\n\n");
+
+   addField("OGLHullShaderFile", TypeStringFilename, Offset(mOGLHullShaderName, ShaderData),
+      "@brief %Path to the OpenGL Tessellation Control file to use for this ShaderData.\n\n");
+
+   addField("OGLDomainShaderFile", TypeStringFilename, Offset(mOGLDomainShaderName, ShaderData),
+      "@brief %Path to the OpenGL Tessellation Evaluation shader file to use for this ShaderData.\n\n");
 
    addField("useDevicePixVersion",  TypeBool,            Offset(mUseDevicePixVersion,   ShaderData),
 	   "@brief If true, the maximum pixel shader version offered by the graphics card will be used.\n\n"
@@ -233,6 +265,7 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
       samplers[i] = mSamplerNames[i][0] == '$' ? mSamplerNames[i] : "$"+mSamplerNames[i];
 
    // Initialize the right shader type.
+   // we check in the init function for whether or not the files exist.
    switch( GFX->getAdapterType() )
    {
       case Direct3D11:
@@ -241,7 +274,12 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
                                  mDXPixelShaderName, 
                                  pixver,
                                  macros,
-                                 samplers);
+                                 samplers,
+                                 mDXGeometryShaderName,
+                                 mDXHullShaderName,
+                                 mDXDomainShaderName);
+
+
          break;
       }
 
@@ -251,7 +289,11 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
                                  mOGLPixelShaderName,
                                  pixver,
                                  macros,
-                                 samplers);
+                                 samplers,
+                                 mOGLGeometryShaderName,
+                                 mOGLHullShaderName,
+                                 mOGLDomainShaderName);
+
          break;
       }
          

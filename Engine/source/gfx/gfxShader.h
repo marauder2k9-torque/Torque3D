@@ -232,7 +232,16 @@ protected:
    Torque::Path mVertexFile;  
 
    /// The pixel shader file.
-   Torque::Path mPixelFile;  
+   Torque::Path mPixelFile;
+
+   /// The pixel shader file.
+   Torque::Path mGeometryFile;
+
+   /// The pixel shader file.
+   Torque::Path mHullFile;
+
+   /// The pixel shader file.
+   Torque::Path mDomainFile;
 
    /// The macros to be passed to the shader.      
    Vector<GFXShaderMacro> mMacros;
@@ -312,7 +321,10 @@ public:
                F32 pixVersion, 
                const Vector<GFXShaderMacro> &macros,
                const Vector<String> &samplerNames,
-               GFXVertexFormat *instanceFormat = NULL );
+               const Torque::Path& geomFile = NULL,
+               const Torque::Path& hullFile = NULL,
+               const Torque::Path& domainFile = NULL,
+               GFXVertexFormat* instanceFormat = NULL);
 
    /// Reloads the shader from disk.
    bool reload();

@@ -100,26 +100,44 @@ GFXD3D11ShaderConstHandle::GFXD3D11ShaderConstHandle()
 
 const String& GFXD3D11ShaderConstHandle::getName() const
 {
-   if ( mVertexConstant )
+   if (mVertexConstant)
       return mVertexHandle.name;
-   else
+   else if (mPixelConstant)
       return mPixelHandle.name;
+   else if (mGeometryConstant)
+      return mGeometryHandle.name;
+   else if (mHullConstant)
+      return mHullHandle.name;
+   else
+      return mDomainHandle.name;
 }
 
 GFXShaderConstType GFXD3D11ShaderConstHandle::getType() const
 {
    if ( mVertexConstant )
       return mVertexHandle.constType;
-   else
+   else if (mPixelConstant)
       return mPixelHandle.constType;
+   else if (mGeometryConstant)
+      return mGeometryHandle.constType;
+   else if (mHullConstant)
+      return mHullHandle.constType;
+   else
+      return mDomainHandle.constType;
 }
 
 U32 GFXD3D11ShaderConstHandle::getArraySize() const
 {
    if ( mVertexConstant )
       return mVertexHandle.arraySize;
-   else
+   else if (mPixelConstant)
       return mPixelHandle.arraySize;
+   else if (mGeometryConstant)
+      return mGeometryHandle.arraySize;
+   else if (mHullConstant)
+      return mHullHandle.arraySize;
+   else
+      return mDomainHandle.arraySize;
 }
 
 S32 GFXD3D11ShaderConstHandle::getSamplerRegister() const
@@ -255,7 +273,12 @@ bool GFXD3D11ConstBufferLayout::setMatrix(const ParamDesc& pd, const GFXShaderCo
 //------------------------------------------------------------------------------
 GFXD3D11ShaderConstBuffer::GFXD3D11ShaderConstBuffer( GFXD3D11Shader* shader, 
                                                       GFXD3D11ConstBufferLayout* vertexLayout,
-                                                      GFXD3D11ConstBufferLayout* pixelLayout)
+                                                      GFXD3D11ConstBufferLayout* pixelLayout,
+                                                      GFXD3D11ConstBufferLayout* geometryLayout,
+                                                      GFXD3D11ConstBufferLayout* hullLayout,
+                                                      GFXD3D11ConstBufferLayout* domainLayout)
+   :mContainGeometry(false),
+   mContainTess(false)
 {
     AssertFatal( shader, "GFXD3D11ShaderConstBuffer() - Got a null shader!" );
 
@@ -263,10 +286,25 @@ GFXD3D11ShaderConstBuffer::GFXD3D11ShaderConstBuffer( GFXD3D11Shader* shader,
     // this virtual method during activation.
     mShader = shader;
 
+    if (geometryLayout != NULL)
+       mContainGeometry = true;
+
+    if (hullLayout != NULL && domainLayout != NULL)
+       mContainTess = true;
+
     for (U32 i = 0; i < CBUFFER_MAX; ++i)
     {
        mConstantBuffersV[i] = NULL;
        mConstantBuffersP[i] = NULL;
+
+       if(mContainGeometry)
+         mConstantBuffersG[i] = NULL;
+
+       if (mContainTess)
+       {
+          mConstantBuffersH[i] = NULL;
+          mConstantBuffersD[i] = NULL;
+       }
     }
 
     // TODO: Remove buffers and layouts that don't exist for performance?
@@ -276,6 +314,21 @@ GFXD3D11ShaderConstBuffer::GFXD3D11ShaderConstBuffer( GFXD3D11Shader* shader,
     
     mPixelConstBufferLayout = pixelLayout;
     mPixelConstBuffer = new GenericConstBuffer(pixelLayout);
+
+    if (mContainGeometry)
+    {
+       mGeometryConstBufferLayout = geometryLayout;
+       mGeometryConstBuffer = new GenericConstBuffer(geometryLayout);
+    }
+
+    if (mContainTess)
+    {
+       mHullConstBufferLayout = hullLayout;
+       mHullConstBuffer = new GenericConstBuffer(hullLayout);
+
+       mDomainConstBufferLayout = domainLayout;
+       mDomainConstBuffer = new GenericConstBuffer(domainLayout);
+    }
 
     mDeviceContext = D3D11DEVICECONTEXT;
 
@@ -290,10 +343,27 @@ GFXD3D11ShaderConstBuffer::~GFXD3D11ShaderConstBuffer()
    {
       SAFE_RELEASE(mConstantBuffersP[i]);
       SAFE_RELEASE(mConstantBuffersV[i]);
+
+      if(mContainGeometry)
+         SAFE_RELEASE(mConstantBuffersG[i]);
+
+      if (mContainTess)
+      {
+         SAFE_RELEASE(mConstantBuffersH[i]);
+         SAFE_RELEASE(mConstantBuffersD[i]);
+      }
    }
 
    SAFE_DELETE(mVertexConstBuffer);
    SAFE_DELETE(mPixelConstBuffer);
+
+   if (mContainGeometry)
+      SAFE_DELETE(mGeometryConstBuffer);
+   if (mContainTess)
+   {
+      SAFE_DELETE(mHullConstBuffer);
+      SAFE_DELETE(mDomainConstBuffer);
+   }
 
 
    if ( mShader )
@@ -349,6 +419,84 @@ void GFXD3D11ShaderConstBuffer::_createBuffers()
          }
       }
    }
+
+   // Create a geometry constant buffer
+   if (mContainGeometry)
+   {
+      if (mGeometryConstBufferLayout->getBufferSize())
+      {
+         const Vector<ConstSubBufferDesc>& subBuffers = mGeometryConstBufferLayout->getSubBufferDesc();
+         for (U32 i = 0; i < subBuffers.size(); ++i)
+         {
+            // Create a geometry float constant buffer
+            D3D11_BUFFER_DESC cbDesc;
+            cbDesc.ByteWidth = subBuffers[i].size;
+            cbDesc.Usage = D3D11_USAGE_DEFAULT;
+            cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+            cbDesc.CPUAccessFlags = 0;
+            cbDesc.MiscFlags = 0;
+            cbDesc.StructureByteStride = 0;
+
+            hr = D3D11DEVICE->CreateBuffer(&cbDesc, NULL, &mConstantBuffersG[i]);
+
+            if (FAILED(hr))
+            {
+               AssertFatal(false, "can't create constant mConstantBuffersP!");
+            }
+         }
+      }
+   }
+
+   // Create a hull constant buffer
+   if (mContainTess)
+   {
+
+      if (mHullConstBufferLayout->getBufferSize())
+      {
+         const Vector<ConstSubBufferDesc>& subBuffers = mHullConstBufferLayout->getSubBufferDesc();
+         for (U32 i = 0; i < subBuffers.size(); ++i)
+         {
+            // Create a pixel float constant buffer
+            D3D11_BUFFER_DESC cbDesc;
+            cbDesc.ByteWidth = subBuffers[i].size;
+            cbDesc.Usage = D3D11_USAGE_DEFAULT;
+            cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+            cbDesc.CPUAccessFlags = 0;
+            cbDesc.MiscFlags = 0;
+            cbDesc.StructureByteStride = 0;
+
+            hr = D3D11DEVICE->CreateBuffer(&cbDesc, NULL, &mConstantBuffersH[i]);
+
+            if (FAILED(hr))
+            {
+               AssertFatal(false, "can't create constant mConstantBuffersP!");
+            }
+         }
+      }
+
+      if (mDomainConstBufferLayout->getBufferSize())
+      {
+         const Vector<ConstSubBufferDesc>& subBuffers = mDomainConstBufferLayout->getSubBufferDesc();
+         for (U32 i = 0; i < subBuffers.size(); ++i)
+         {
+            // Create a pixel float constant buffer
+            D3D11_BUFFER_DESC cbDesc;
+            cbDesc.ByteWidth = subBuffers[i].size;
+            cbDesc.Usage = D3D11_USAGE_DEFAULT;
+            cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+            cbDesc.CPUAccessFlags = 0;
+            cbDesc.MiscFlags = 0;
+            cbDesc.StructureByteStride = 0;
+
+            hr = D3D11DEVICE->CreateBuffer(&cbDesc, NULL, &mConstantBuffersD[i]);
+
+            if (FAILED(hr))
+            {
+               AssertFatal(false, "can't create constant mConstantBuffersP!");
+            }
+         }
+      }
+   }
 }
 
 GFXShader* GFXD3D11ShaderConstBuffer::getShader()
@@ -380,6 +528,12 @@ inline void GFXD3D11ShaderConstBuffer::SET_CONSTANT(  GFXShaderConstHandle* hand
       vBuffer->set(h->mVertexHandle, fv);
    if (h->mPixelConstant)
       pBuffer->set(h->mPixelHandle, fv);
+   if (h->mGeometryConstant)
+      pBuffer->set(h->mGeometryHandle, fv);
+   if (h->mHullConstant)
+      pBuffer->set(h->mHullHandle, fv);
+   if (h->mDomainConstant)
+      pBuffer->set(h->mDomainHandle, fv);
 }
 
 void GFXD3D11ShaderConstBuffer::set(GFXShaderConstHandle* handle, const F32 fv) 
@@ -515,6 +669,12 @@ void GFXD3D11ShaderConstBuffer::set(GFXShaderConstHandle* handle, const MatrixF&
       mVertexConstBuffer->set(h->mVertexHandle, transposed, matrixType); 
    if (h->mPixelConstant) 
       mPixelConstBuffer->set(h->mPixelHandle, transposed, matrixType);
+   if (h->mGeometryConstant)
+      mGeometryConstBuffer->set(h->mGeometryHandle, transposed, matrixType);
+   if (h->mHullConstant)
+      mHullConstBuffer->set(h->mHullHandle, transposed, matrixType);
+   if (h->mDomainConstant)
+      mDomainConstBuffer->set(h->mDomainHandle, transposed, matrixType);
 }
 
 void GFXD3D11ShaderConstBuffer::set(GFXShaderConstHandle* handle, const MatrixF* mat, const U32 arraySize, const GFXShaderConstType matrixType)
@@ -549,6 +709,12 @@ void GFXD3D11ShaderConstBuffer::set(GFXShaderConstHandle* handle, const MatrixF*
       mVertexConstBuffer->set(h->mVertexHandle, transposed.begin(), arraySize, matrixType);
    if (h->mPixelConstant) 
       mPixelConstBuffer->set(h->mPixelHandle, transposed.begin(), arraySize, matrixType);
+   if (h->mGeometryConstant)
+      mGeometryConstBuffer->set(h->mGeometryHandle, transposed.begin(), arraySize, matrixType);
+   if (h->mHullConstant)
+      mHullConstBuffer->set(h->mHullHandle, transposed.begin(), arraySize, matrixType);
+   if (h->mDomainConstant)
+      mDomainConstBuffer->set(h->mDomainHandle, transposed.begin(), arraySize, matrixType);
 }
 
 const String GFXD3D11ShaderConstBuffer::describeSelf() const
@@ -669,12 +835,60 @@ void GFXD3D11ShaderConstBuffer::activate( GFXD3D11ShaderConstBuffer *prevShaderB
       mDeviceContext->PSSetConstantBuffers(0, nbBuffers, mConstantBuffersP);
    }
 
+   if (mContainGeometry && mGeometryConstBuffer->isDirty())
+   {
+      const Vector<ConstSubBufferDesc>& subBuffers = mGeometryConstBufferLayout->getSubBufferDesc();
+      // TODO: This is not very effecient updating the whole lot, re-implement the dirty system to work with multiple constant buffers.
+      // TODO: Implement DX 11.1 UpdateSubresource1 which supports updating ranges with constant buffers
+      buf = mGeometryConstBuffer->getEntireBuffer();
+      for (U32 i = 0; i < subBuffers.size(); ++i)
+      {
+         const ConstSubBufferDesc& desc = subBuffers[i];
+         mDeviceContext->UpdateSubresource(mConstantBuffersG[i], 0, NULL, buf + desc.start, desc.size, 0);
+         nbBuffers++;
+      }
+
+      mDeviceContext->GSSetConstantBuffers(0, nbBuffers, mConstantBuffersG);
+   }
+
+   if (mContainTess && mHullConstBuffer->isDirty())
+   {
+      const Vector<ConstSubBufferDesc>& subBuffers = mHullConstBufferLayout->getSubBufferDesc();
+      // TODO: This is not very effecient updating the whole lot, re-implement the dirty system to work with multiple constant buffers.
+      // TODO: Implement DX 11.1 UpdateSubresource1 which supports updating ranges with constant buffers
+      buf = mHullConstBuffer->getEntireBuffer();
+      for (U32 i = 0; i < subBuffers.size(); ++i)
+      {
+         const ConstSubBufferDesc& desc = subBuffers[i];
+         mDeviceContext->UpdateSubresource(mConstantBuffersH[i], 0, NULL, buf + desc.start, desc.size, 0);
+         nbBuffers++;
+      }
+
+      mDeviceContext->HSSetConstantBuffers(0, nbBuffers, mConstantBuffersH);
+   }
+
+   if (mContainTess && mDomainConstBuffer->isDirty())
+   {
+      const Vector<ConstSubBufferDesc>& subBuffers = mDomainConstBufferLayout->getSubBufferDesc();
+      // TODO: This is not very effecient updating the whole lot, re-implement the dirty system to work with multiple constant buffers.
+      // TODO: Implement DX 11.1 UpdateSubresource1 which supports updating ranges with constant buffers
+      buf = mDomainConstBuffer->getEntireBuffer();
+      for (U32 i = 0; i < subBuffers.size(); ++i)
+      {
+         const ConstSubBufferDesc& desc = subBuffers[i];
+         mDeviceContext->UpdateSubresource(mConstantBuffersD[i], 0, NULL, buf + desc.start, desc.size, 0);
+         nbBuffers++;
+      }
+
+      mDeviceContext->DSSetConstantBuffers(0, nbBuffers, mConstantBuffersD);
+   }
+
    #ifdef TORQUE_DEBUG
       // Make sure all the constants for this buffer were assigned.
       if(mWasLost)
       {
          mVertexConstBuffer->assertUnassignedConstants( mShader->getVertexShaderFile().c_str() );
-         mPixelConstBuffer->assertUnassignedConstants( mShader->getPixelShaderFile().c_str() );        
+         mPixelConstBuffer->assertUnassignedConstants( mShader->getPixelShaderFile().c_str() );  
       }
    #endif
 
@@ -691,16 +905,49 @@ void GFXD3D11ShaderConstBuffer::onShaderReload( GFXD3D11Shader *shader )
    {
       SAFE_RELEASE(mConstantBuffersP[i]);
       SAFE_RELEASE(mConstantBuffersV[i]);
+
+      if(mContainGeometry)
+         SAFE_RELEASE(mConstantBuffersG[i]);
+
+      if (mContainTess)
+      {
+         SAFE_RELEASE(mConstantBuffersH[i]);
+         SAFE_RELEASE(mConstantBuffersD[i]);
+      }
    }
 
    SAFE_DELETE( mVertexConstBuffer );
    SAFE_DELETE( mPixelConstBuffer );
+
+   if(mContainGeometry)
+      SAFE_DELETE(mGeometryConstBuffer);
+
+   if (mContainTess)
+   {
+      SAFE_DELETE(mHullConstBuffer);
+      SAFE_DELETE(mDomainConstBuffer);
+   }
         
    AssertFatal( mVertexConstBufferLayout == shader->mVertexConstBufferLayout, "GFXD3D11ShaderConstBuffer::onShaderReload is hosed!" );
    AssertFatal( mPixelConstBufferLayout == shader->mPixelConstBufferLayout, "GFXD3D11ShaderConstBuffer::onShaderReload is hosed!" );
 
+   /* These are optional
+   AssertFatal(mGeometryConstBufferLayout == shader->mPixelConstBufferLayout, "GFXD3D11ShaderConstBuffer::onShaderReload is hosed!" );
+   AssertFatal(mHullConstBufferLayout == shader->mPixelConstBufferLayout, "GFXD3D11ShaderConstBuffer::onShaderReload is hosed!" );
+   AssertFatal(mDomainConstBufferLayout == shader->mPixelConstBufferLayout, "GFXD3D11ShaderConstBuffer::onShaderReload is hosed!" );
+   */
+
    mVertexConstBuffer = new GenericConstBuffer( mVertexConstBufferLayout );      
-   mPixelConstBuffer = new GenericConstBuffer( mPixelConstBufferLayout ); 
+   mPixelConstBuffer = new GenericConstBuffer( mPixelConstBufferLayout );
+
+   if(mContainGeometry)
+      mGeometryConstBuffer = new GenericConstBuffer( mGeometryConstBufferLayout );
+
+   if (mContainTess)
+   {
+      mHullConstBuffer = new GenericConstBuffer(mHullConstBufferLayout);
+      mDomainConstBuffer = new GenericConstBuffer(mDomainConstBufferLayout);
+   }
   
    _createBuffers();
 	
@@ -717,8 +964,16 @@ GFXD3D11Shader::GFXD3D11Shader()
    AssertFatal(D3D11DEVICE, "Invalid device for shader.");
    mVertShader = NULL;
    mPixShader = NULL;
+   mGeometryShader = NULL;
+   mHullShader = NULL;
+   mDomainShader = NULL;
+
    mVertexConstBufferLayout = NULL;
    mPixelConstBufferLayout = NULL;
+
+   mGeometryConstBufferLayout = NULL;
+   mHullConstBufferLayout = NULL;
+   mDomainConstBufferLayout = NULL;
 
    if( smD3DInclude == NULL )
       smD3DInclude = new gfxD3D11Include;
@@ -735,9 +990,17 @@ GFXD3D11Shader::~GFXD3D11Shader()
    SAFE_DELETE(mVertexConstBufferLayout);
    SAFE_DELETE(mPixelConstBufferLayout);
 
+   SAFE_DELETE(mGeometryConstBufferLayout);
+   SAFE_DELETE(mDomainConstBufferLayout);
+   SAFE_DELETE(mHullConstBufferLayout);
+
    // release shaders
    SAFE_RELEASE(mVertShader);
    SAFE_RELEASE(mPixShader);
+
+   SAFE_RELEASE(mGeometryShader);
+   SAFE_RELEASE(mHullShader);
+   SAFE_RELEASE(mDomainShader);
    //maybe add SAFE_RELEASE(mVertexCode) ?
 }
 
@@ -747,6 +1010,10 @@ bool GFXD3D11Shader::_init()
 
    SAFE_RELEASE(mVertShader);
    SAFE_RELEASE(mPixShader);
+
+   SAFE_RELEASE(mGeometryShader);
+   SAFE_RELEASE(mHullShader);
+   SAFE_RELEASE(mDomainShader);
 
    // Create the macro array including the system wide macros.
    const U32 macroCount = smGlobalMacros.size() + mMacros.size() + 2;
@@ -779,12 +1046,18 @@ bool GFXD3D11Shader::_init()
    else
       mPixelConstBufferLayout->clear(); 
 
+
+
    
    mSamplerDescriptions.clear();
    mShaderConsts.clear();
 
    String vertTarget = D3D11->getVertexShaderTarget();
    String pixTarget = D3D11->getPixelShaderTarget();
+
+   String geomTarget = D3D11->getGeometryShaderTarget();
+   String hullTarget = D3D11->getHullShaderTarget();
+   String domTarget = D3D11->getDomainShaderTarget();
 
    if ( !Con::getBoolVariable( "$shaders::forceLoadCSF", false ) )
    {
@@ -793,6 +1066,42 @@ bool GFXD3D11Shader::_init()
 
       if (!mPixelFile.isEmpty() && !_compileShader( mPixelFile, pixTarget, d3dMacros, mPixelConstBufferLayout, mSamplerDescriptions ) )
          return false;
+
+      // only if these next files arent empty do the check.
+      if (!mGeometryFile.isEmpty())
+      {
+         if (!mGeometryConstBufferLayout)
+            mGeometryConstBufferLayout = new GFXD3D11ConstBufferLayout();
+         else
+            mGeometryConstBufferLayout->clear();
+
+         if (!_compileShader(mGeometryFile, geomTarget, d3dMacros, mGeometryConstBufferLayout, mSamplerDescriptions))
+            return false;
+      }
+
+      // do we have tessellation shaders?
+      if (!mHullFile.isEmpty() && !mDomainFile.isEmpty())
+      {
+         if (!mHullConstBufferLayout)
+            mHullConstBufferLayout = new GFXD3D11ConstBufferLayout();
+         else
+            mHullConstBufferLayout->clear();
+
+         if (!mDomainConstBufferLayout)
+            mDomainConstBufferLayout = new GFXD3D11ConstBufferLayout();
+         else
+            mDomainConstBufferLayout->clear();
+
+         //do we support tessallation shaders
+         if (hullTarget != String::EmptyString && domTarget != String::EmptyString)
+         {
+            if (!_compileShader(mHullFile, hullTarget, d3dMacros, mHullConstBufferLayout, mSamplerDescriptions))
+               return false;
+
+            if (!_compileShader(mDomainFile, domTarget, d3dMacros, mDomainConstBufferLayout, mSamplerDescriptions))
+               return false;
+         }
+      }
 
    } 
    else 
@@ -812,6 +1121,17 @@ bool GFXD3D11Shader::_init()
 
          return false;
       }
+
+      if (!mGeometryFile.isEmpty())
+      {
+         if (!_loadCompiledOutput(mGeometryFile, geomTarget, mGeometryConstBufferLayout, mSamplerDescriptions))
+         {
+            if (smLogErrors)
+               Con::errorf("GFXD3D11Shader::init - Unable to load precompiled pixel shader for '%s'.", mPixelFile.getFullPath().c_str());
+
+            return false;
+         }
+      }
    }
 
    // Existing handles are resored to an uninitialized state.
@@ -823,6 +1143,23 @@ bool GFXD3D11Shader::_init()
 
    _buildShaderConstantHandles(mVertexConstBufferLayout, true);
    _buildShaderConstantHandles(mPixelConstBufferLayout, false);
+
+   if (!mGeometryFile.isEmpty())
+   {
+      buildGeometryShaderConstantHandles(mGeometryConstBufferLayout);
+   }
+
+   // should probably just have a global bool for whether tess is supported.
+   // do we have tessellation shaders?
+   if (!mHullFile.isEmpty() && !mDomainFile.isEmpty())
+   {
+      //do we support tessallation shaders
+      if (hullTarget != String::EmptyString && domTarget != String::EmptyString)
+      {
+         buildHullShaderConstantHandles(mHullConstBufferLayout);
+         buildDomainShaderConstantHandles(mDomainConstBufferLayout);
+      }
+   }
 
    _buildSamplerShaderConstantHandles( mSamplerDescriptions );
    _buildInstancingShaderConstantHandles();
@@ -979,6 +1316,12 @@ bool GFXD3D11Shader::_compileShader( const Torque::Path &filePath,
             res = D3D11DEVICE->CreatePixelShader(code->GetBufferPointer(), code->GetBufferSize(), NULL,  &mPixShader);
          else if (target.compare("vs_", 3) == 0)
             res = D3D11DEVICE->CreateVertexShader(code->GetBufferPointer(), code->GetBufferSize(), NULL, &mVertShader);
+         else if (target.compare("gs_", 3) == 0)
+            res = D3D11DEVICE->CreateGeometryShader(code->GetBufferPointer(), code->GetBufferSize(), NULL, &mGeometryShader);
+         else if (target.compare("hs_", 3) == 0)
+            res = D3D11DEVICE->CreateHullShader(code->GetBufferPointer(), code->GetBufferSize(), NULL, &mHullShader);
+         else if (target.compare("ds_", 3) == 0)
+            res = D3D11DEVICE->CreateDomainShader(code->GetBufferPointer(), code->GetBufferSize(), NULL, &mDomainShader);
          
          if (FAILED(res))
          {
@@ -1019,6 +1362,21 @@ bool GFXD3D11Shader::_compileShader( const Torque::Path &filePath,
    {
       String pixelShader = mPixelFile.getFileName();
       mPixShader->SetPrivateData(WKPDID_D3DDebugObjectName, pixelShader.size(), pixelShader.c_str());
+   }
+   else if (target.compare("gs_", 3) == 0)
+   {
+      String geometryShader = mGeometryFile.getFileName();
+      mGeometryShader->SetPrivateData(WKPDID_D3DDebugObjectName, geometryShader.size(), geometryShader.c_str());
+   }
+   else if (target.compare("hs_", 3) == 0)
+   {
+      String hullShader = mHullFile.getFileName();
+      mHullShader->SetPrivateData(WKPDID_D3DDebugObjectName, hullShader.size(), hullShader.c_str());
+   }
+   else if (target.compare("ds_", 3) == 0)
+   {
+      String domainShader = mDomainFile.getFileName();
+      mDomainShader->SetPrivateData(WKPDID_D3DDebugObjectName, domainShader.size(), domainShader.c_str());
    }
 #endif
   
@@ -1329,10 +1687,17 @@ bool GFXD3D11Shader::_loadCompiledOutput( const Torque::Path &filePath,
    f.close();
 
    HRESULT res;
-   if (target.compare("ps_", 3) == 0)      
+   if (target.compare("ps_", 3) == 0)
       res = D3D11DEVICE->CreatePixelShader(buffer, bufferSize, NULL, &mPixShader);
-   else
+   else if (target.compare("vs_", 3) == 0)
       res = D3D11DEVICE->CreateVertexShader(buffer, bufferSize, NULL, &mVertShader);
+   else if (target.compare("gs_", 3) == 0)
+      res = D3D11DEVICE->CreateGeometryShader(buffer, bufferSize, NULL, &mGeometryShader);
+   else if (target.compare("hs_", 3) == 0)
+      res = D3D11DEVICE->CreateHullShader(buffer, bufferSize, NULL, &mHullShader);
+   else if (target.compare("ds_", 3) == 0)
+      res = D3D11DEVICE->CreateDomainShader(buffer, bufferSize, NULL, &mDomainShader);
+
    AssertFatal(SUCCEEDED(res), "Unable to load shader!");
 
    FrameAllocator::setWaterMark(waterMark);
@@ -1373,6 +1738,90 @@ void GFXD3D11Shader::_buildShaderConstantHandles(GenericConstBufferLayout* layou
          handle->mPixelConstant = true;
          handle->mPixelHandle = pd;
       }
+   }
+}
+
+void GFXD3D11Shader::buildGeometryShaderConstantHandles(GenericConstBufferLayout* layout)
+{
+   for (U32 i = 0; i < layout->getParameterCount(); i++)
+   {
+      GenericConstBufferLayout::ParamDesc pd;
+      layout->getDesc(i, pd);
+
+      GFXD3D11ShaderConstHandle* handle;
+      HandleMap::Iterator j = mHandles.find(pd.name);
+
+      if (j != mHandles.end())
+      {
+         handle = j->value;
+         handle->mShader = this;
+         handle->setValid(true);
+      }
+      else
+      {
+         handle = new GFXD3D11ShaderConstHandle();
+         handle->mShader = this;
+         mHandles[pd.name] = handle;
+         handle->setValid(true);
+      }
+      handle->mGeometryConstant = true;
+      handle->mGeometryHandle = pd;
+   }
+}
+
+void GFXD3D11Shader::buildHullShaderConstantHandles(GenericConstBufferLayout* layout)
+{
+   for (U32 i = 0; i < layout->getParameterCount(); i++)
+   {
+      GenericConstBufferLayout::ParamDesc pd;
+      layout->getDesc(i, pd);
+
+      GFXD3D11ShaderConstHandle* handle;
+      HandleMap::Iterator j = mHandles.find(pd.name);
+
+      if (j != mHandles.end())
+      {
+         handle = j->value;
+         handle->mShader = this;
+         handle->setValid(true);
+      }
+      else
+      {
+         handle = new GFXD3D11ShaderConstHandle();
+         handle->mShader = this;
+         mHandles[pd.name] = handle;
+         handle->setValid(true);
+      }
+      handle->mHullConstant = true;
+      handle->mHullHandle = pd;
+   }
+}
+
+void GFXD3D11Shader::buildDomainShaderConstantHandles(GenericConstBufferLayout* layout)
+{
+   for (U32 i = 0; i < layout->getParameterCount(); i++)
+   {
+      GenericConstBufferLayout::ParamDesc pd;
+      layout->getDesc(i, pd);
+
+      GFXD3D11ShaderConstHandle* handle;
+      HandleMap::Iterator j = mHandles.find(pd.name);
+
+      if (j != mHandles.end())
+      {
+         handle = j->value;
+         handle->mShader = this;
+         handle->setValid(true);
+      }
+      else
+      {
+         handle = new GFXD3D11ShaderConstHandle();
+         handle->mShader = this;
+         mHandles[pd.name] = handle;
+         handle->setValid(true);
+      }
+      handle->mDomainConstant = true;
+      handle->mDomainHandle = pd;
    }
 }
 

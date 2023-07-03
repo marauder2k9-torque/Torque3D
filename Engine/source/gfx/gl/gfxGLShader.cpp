@@ -385,6 +385,9 @@ void GFXGLShaderConstBuffer::onShaderReload( GFXGLShader *shader )
 GFXGLShader::GFXGLShader(GFXGLDevice* device) :
    mVertexShader(0),
    mPixelShader(0),
+   mGeometryShader(0),
+   mHullShader(0),
+   mDomainShader(0),
    mProgram(0),
    mDevice(device),
    mConstBufferSize(0),
@@ -406,6 +409,20 @@ void GFXGLShader::clearShaders()
    glDeleteProgram(mProgram);
    glDeleteShader(mVertexShader);
    glDeleteShader(mPixelShader);
+   if (mGeometryShader != 0)
+   {
+      glDeleteShader(mGeometryShader);
+      mGeometryShader = 0;
+
+   }
+   if (mHullShader != 0 && mDomainShader != 0)
+   {
+      glDeleteShader(mHullShader);
+      glDeleteShader(mDomainShader);
+
+      mHullShader = 0;
+      mDomainShader = 0;
+   }
    
    mProgram = 0;
    mVertexShader = 0;
@@ -450,7 +467,26 @@ bool GFXGLShader::_init()
    // If either shader was present and failed to compile, bail.
    if(!compiledVertexShader || !compiledPixelShader)
       return false;
-  
+
+   // all of these shaders require a vertex shader at least so compile after check for pixel and vert shaders.
+   if (!mGeometryFile.isEmpty())
+   {
+      if (!initGeometryShader(mGeometryFile, macros))
+         return false;
+   }
+
+   if (!mHullFile.isEmpty() && !mDomainFile.isEmpty())
+   {
+      bool compiledHull = true;
+      bool compiledDom = true;
+
+      compiledHull = initTessShaders(mHullFile, true, macros);
+      compiledDom = initTessShaders(mDomainFile, false, macros);
+
+      if (!compiledHull || !compiledDom)
+         return false;
+   }
+
    // Link it!
    glLinkProgram( mProgram );
    
@@ -1139,6 +1175,125 @@ bool GFXGLShader::initShader( const Torque::Path &file,
       }
       else if ( smLogWarnings )
          Con::warnf( "Program %s: %s", file.getFullPath().c_str(), log );
+   }
+
+   return compileStatus != GL_FALSE;
+}
+
+bool GFXGLShader::initGeometryShader(  const Torque::Path& file,
+                                       const Vector<GFXShaderMacro>& macros)
+{
+   PROFILE_SCOPE(GFXGLShader_CompileGeometryShader);
+   GLuint activeShader = glCreateShader( GL_GEOMETRY_SHADER);
+   mGeometryShader = activeShader;
+   glAttachShader(mProgram, activeShader);
+
+
+   // Ok it's not in the shader gen manager, so ask Torque for it
+   FileStream stream;
+   if (!stream.open(file, Torque::FS::File::Read))
+   {
+      AssertISV(false, avar("GFXGLShader::initGeometryShader - failed to open shader '%s'.", file.getFullPath().c_str()));
+
+      if (smLogErrors)
+         Con::errorf("GFXGLShader::initGeometryShader - Failed to open shader file '%s'.",
+            file.getFullPath().c_str());
+
+      return false;
+   }
+
+   if (!_loadShaderFromStream(activeShader, file, &stream, macros))
+      return false;
+
+   GLint compile;
+   glGetShaderiv(activeShader, GL_COMPILE_STATUS, &compile);
+
+   // Dump the info log to the console
+   U32 logLength = 0;
+   glGetShaderiv(activeShader, GL_INFO_LOG_LENGTH, (GLint*)&logLength);
+
+   GLint compileStatus = GL_TRUE;
+   if (logLength)
+   {
+      FrameAllocatorMarker fam;
+      char* log = (char*)fam.alloc(logLength);
+      glGetShaderInfoLog(activeShader, logLength, NULL, log);
+
+      // Always print errors
+      glGetShaderiv(activeShader, GL_COMPILE_STATUS, &compileStatus);
+
+      if (compileStatus == GL_FALSE)
+      {
+         if (smLogErrors)
+         {
+            Con::errorf("GFXGLShader::initGeometryShader - Error compiling shader!");
+            Con::errorf("Program %s: %s", file.getFullPath().c_str(), log);
+         }
+      }
+      else if (smLogWarnings)
+         Con::warnf("Program %s: %s", file.getFullPath().c_str(), log);
+   }
+
+   return compileStatus != GL_FALSE;
+}
+
+bool GFXGLShader::initTessShaders(  const Torque::Path& file,
+                                    bool isHull,
+                                    const Vector<GFXShaderMacro>& macros)
+{
+   PROFILE_SCOPE(GFXGLShader_CompileShader);
+   GLuint activeShader = glCreateShader(isHull ? GL_TESS_CONTROL_SHADER : GL_TESS_EVALUATION_SHADER);
+   if (isHull)
+      mHullShader = activeShader;
+   else
+      mDomainShader = activeShader;
+
+   glAttachShader(mProgram, activeShader);
+
+
+   // Ok it's not in the shader gen manager, so ask Torque for it
+   FileStream stream;
+   if (!stream.open(file, Torque::FS::File::Read))
+   {
+      AssertISV(false, avar("GFXGLShader::initShader - failed to open shader '%s'.", file.getFullPath().c_str()));
+
+      if (smLogErrors)
+         Con::errorf("GFXGLShader::initShader - Failed to open shader file '%s'.",
+            file.getFullPath().c_str());
+
+      return false;
+   }
+
+   if (!_loadShaderFromStream(activeShader, file, &stream, macros))
+      return false;
+
+   GLint compile;
+   glGetShaderiv(activeShader, GL_COMPILE_STATUS, &compile);
+
+   // Dump the info log to the console
+   U32 logLength = 0;
+   glGetShaderiv(activeShader, GL_INFO_LOG_LENGTH, (GLint*)&logLength);
+
+   GLint compileStatus = GL_TRUE;
+   if (logLength)
+   {
+      FrameAllocatorMarker fam;
+      char* log = (char*)fam.alloc(logLength);
+      glGetShaderInfoLog(activeShader, logLength, NULL, log);
+
+      // Always print errors
+      glGetShaderiv(activeShader, GL_COMPILE_STATUS, &compileStatus);
+
+      if (compileStatus == GL_FALSE)
+      {
+         if (smLogErrors)
+         {
+            Con::errorf("GFXGLShader::initShader - Error compiling shader!");
+            Con::errorf("Program %s: %s", file.getFullPath().c_str(), log);
+         }
+      }
+      else if (smLogWarnings)
+         Con::warnf("Program %s: %s", file.getFullPath().c_str(), log);
    }
 
    return compileStatus != GL_FALSE;

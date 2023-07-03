@@ -73,9 +73,9 @@ protected:
    
    virtual bool _init();   
 
-   bool initShader(  const Torque::Path &file, 
-                     bool isVertex, 
-                     const Vector<GFXShaderMacro> &macros );
+   bool initShader(const Torque::Path &file, bool isVertex, const Vector<GFXShaderMacro> &macros );
+   bool initGeometryShader(const Torque::Path& file, const Vector<GFXShaderMacro>& macros);
+   bool initTessShaders(const Torque::Path& file, bool isHull, const Vector<GFXShaderMacro>& macros);
 
    void clearShaders();
    void initConstantDescs();
@@ -93,6 +93,9 @@ protected:
    /// @{
    GLuint mVertexShader;
    GLuint mPixelShader;
+   GLuint mGeometryShader;
+   GLuint mHullShader;
+   GLuint mDomainShader;
    GLuint mProgram;
    /// @}
     

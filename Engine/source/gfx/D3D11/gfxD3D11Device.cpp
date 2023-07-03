@@ -517,12 +517,19 @@ void GFXD3D11Device::init(const GFXVideoMode &mode, PlatformWindow *window)
    case D3D_FEATURE_LEVEL_11_0:
       mVertexShaderTarget = "vs_5_0";
       mPixelShaderTarget = "ps_5_0";
+      mGeometryShaderTarget = "gs_5_0";
+      // hulll and domain shaders only in shadermodel 5.
+      mHullShaderTarget = "hs_5_0";
+      mDomainShaderTarget = "ds_5_0";
       mPixVersion = 5.0f;
       mShaderModel = "50";
       break;
    case D3D_FEATURE_LEVEL_10_1:
       mVertexShaderTarget = "vs_4_1";
       mPixelShaderTarget = "ps_4_1";
+      mGeometryShaderTarget = "gs_4_1";
+      mHullShaderTarget = String::EmptyString;
+      mDomainShaderTarget = String::EmptyString;
       mPixVersion = 4.1f;
       mShaderModel = "41";
       break;

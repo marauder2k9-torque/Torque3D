@@ -262,11 +262,18 @@ public:
    GenericConstBufferLayout::ParamDesc mVertexHandle;
    bool mPixelConstant;
    GenericConstBufferLayout::ParamDesc mPixelHandle;
+
+   bool mGeometryConstant;
+   GenericConstBufferLayout::ParamDesc mGeometryHandle;
+   bool mHullConstant;
+   GenericConstBufferLayout::ParamDesc mHullHandle;
+   bool mDomainConstant;
+   GenericConstBufferLayout::ParamDesc mDomainHandle;
    
    /// Is true if this constant is for hardware mesh instancing.
    ///
    /// Note: We currently store its settings in mPixelHandle.
-   ///
+   /// not sure if the other handles need this.
    bool mInstancingConstant;
 
    void setValid( bool valid ) { mValid = valid; }
@@ -275,7 +282,11 @@ public:
    // Returns true if this is a handle to a sampler register.
    bool isSampler() const 
    {
-      return ( mPixelConstant && mPixelHandle.constType >= GFXSCT_Sampler ) || ( mVertexConstant && mVertexHandle.constType >= GFXSCT_Sampler );
+      return ( mPixelConstant && mPixelHandle.constType >= GFXSCT_Sampler ) ||
+         ( mVertexConstant && mVertexHandle.constType >= GFXSCT_Sampler ) ||
+         (mGeometryConstant && mGeometryHandle.constType >= GFXSCT_Sampler) ||
+         (mHullConstant && mHullHandle.constType >= GFXSCT_Sampler) ||
+         (mDomainConstant && mDomainHandle.constType >= GFXSCT_Sampler) ;
    }
 
    /// Restore to uninitialized state.
@@ -284,9 +295,19 @@ public:
       mShader = NULL;
       mVertexConstant = false;
       mPixelConstant = false;
+
+      mGeometryConstant = false;
+      mHullConstant = false;
+      mDomainConstant = false;
+
       mInstancingConstant = false;
       mVertexHandle.clear();
       mPixelHandle.clear();
+
+      mGeometryHandle.clear();
+      mHullHandle.clear();
+      mDomainHandle.clear();
+
       mValid = false;
    }
 
@@ -304,7 +325,10 @@ public:
 
    GFXD3D11ShaderConstBuffer(GFXD3D11Shader* shader,
       GFXD3D11ConstBufferLayout* vertexLayout,
-      GFXD3D11ConstBufferLayout* pixelLayout);
+      GFXD3D11ConstBufferLayout* pixelLayout,
+      GFXD3D11ConstBufferLayout* geometryLayout = NULL,
+      GFXD3D11ConstBufferLayout* hullLayout = NULL,
+      GFXD3D11ConstBufferLayout* domainLayout = NULL);
 
    virtual ~GFXD3D11ShaderConstBuffer();
 
@@ -361,6 +385,10 @@ protected:
    ID3D11Buffer* mConstantBuffersV[CBUFFER_MAX];
    ID3D11Buffer* mConstantBuffersP[CBUFFER_MAX];
 
+   ID3D11Buffer* mConstantBuffersG[CBUFFER_MAX];
+   ID3D11Buffer* mConstantBuffersH[CBUFFER_MAX];
+   ID3D11Buffer* mConstantBuffersD[CBUFFER_MAX];
+
    /// We keep a weak reference to the shader 
    /// because it will often be deleted.
    WeakRefPtr<GFXD3D11Shader> mShader;
@@ -371,6 +399,17 @@ protected:
    //pixel
    GFXD3D11ConstBufferLayout* mPixelConstBufferLayout;
    GenericConstBuffer* mPixelConstBuffer;
+   //geometry
+   bool mContainGeometry;
+   GFXD3D11ConstBufferLayout* mGeometryConstBufferLayout;
+   GenericConstBuffer* mGeometryConstBuffer;
+   //hull
+   bool mContainTess;
+   GFXD3D11ConstBufferLayout* mHullConstBufferLayout;
+   GenericConstBuffer* mHullConstBuffer;
+   //domain
+   GFXD3D11ConstBufferLayout* mDomainConstBufferLayout;
+   GenericConstBuffer* mDomainConstBuffer;
 };
 
 class gfxD3D11Include;
@@ -409,11 +448,18 @@ protected:
 
    ConstantTable table;
 
-   ID3D11VertexShader *mVertShader;
-   ID3D11PixelShader *mPixShader;
+   ID3D11VertexShader      *mVertShader;
+   ID3D11PixelShader       *mPixShader;
+   ID3D11GeometryShader    *mGeometryShader;
+   ID3D11HullShader        *mHullShader;
+   ID3D11DomainShader      *mDomainShader;
 
    GFXD3D11ConstBufferLayout* mVertexConstBufferLayout;
-   GFXD3D11ConstBufferLayout* mPixelConstBufferLayout;   
+   GFXD3D11ConstBufferLayout* mPixelConstBufferLayout;
+
+   GFXD3D11ConstBufferLayout* mGeometryConstBufferLayout;
+   GFXD3D11ConstBufferLayout* mHullConstBufferLayout;
+   GFXD3D11ConstBufferLayout* mDomainConstBufferLayout;
 
    static gfxD3DIncludeRef smD3DInclude;
 
@@ -456,6 +502,10 @@ protected:
   
    // This is used in both cases
    virtual void _buildShaderConstantHandles(GenericConstBufferLayout *layout, bool vertexConst);
+
+   void buildGeometryShaderConstantHandles(GenericConstBufferLayout* layout);
+   void buildHullShaderConstantHandles(GenericConstBufferLayout* layout);
+   void buildDomainShaderConstantHandles(GenericConstBufferLayout* layout);
    
    virtual void _buildSamplerShaderConstantHandles( Vector<GFXShaderConstDesc> &samplerDescriptions );
 

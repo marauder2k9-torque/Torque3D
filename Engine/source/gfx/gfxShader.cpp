@@ -59,12 +59,15 @@ bool GFXShader::init(   const Torque::Path &vertFile,
 }
 #endif
 
-bool GFXShader::init(   const Torque::Path &vertFile, 
-                        const Torque::Path &pixFile, 
-                        F32 pixVersion, 
-                        const Vector<GFXShaderMacro> &macros,
-                        const Vector<String> &samplerNames,
-                        GFXVertexFormat *instanceFormat)
+bool GFXShader::init(const Torque::Path& vertFile,
+                     const Torque::Path& pixFile,
+                     F32 pixVersion,
+                     const Vector<GFXShaderMacro>& macros,
+                     const Vector<String>& samplerNames,
+                     const Torque::Path& geomFile,
+                     const Torque::Path& hullFile,
+                     const Torque::Path& domainFile,
+                     GFXVertexFormat* instanceFormat)
 {
    // Take care of instancing
    if (instanceFormat)
@@ -76,6 +79,20 @@ bool GFXShader::init(   const Torque::Path &vertFile,
    // Store the inputs for use in reloading.
    mVertexFile = vertFile;
    mPixelFile = pixFile;
+
+   // geometry shaders are a choice shaders can still be compiled if they do not exist.
+   if (geomFile != NULL)
+   {
+      mGeometryFile = geomFile;
+   }
+
+   // for tess shaders to work they require both steps.
+   if (hullFile != NULL && domainFile != NULL)
+   {
+      mHullFile = hullFile;
+      mDomainFile = domainFile;
+   }
+
    mPixVersion = pixVersion;
    mMacros = macros;
    mSamplerNamesOrdered = samplerNames;
@@ -93,6 +110,17 @@ bool GFXShader::init(   const Torque::Path &vertFile,
    // Add file change notifications for reloads.
    Torque::FS::AddChangeNotification( mVertexFile, this, &GFXShader::_onFileChanged );
    Torque::FS::AddChangeNotification( mPixelFile, this, &GFXShader::_onFileChanged );
+
+   if (mGeometryFile != NULL)
+   {
+      Torque::FS::AddChangeNotification(mGeometryFile, this, &GFXShader::_onFileChanged);
+   }
+
+   if (mHullFile != NULL && mDomainFile != NULL)
+   {
+      Torque::FS::AddChangeNotification(mHullFile, this, &GFXShader::_onFileChanged);
+      Torque::FS::AddChangeNotification(mDomainFile, this, &GFXShader::_onFileChanged);
+   }
 
    return true;
 }
