@@ -106,6 +106,10 @@ GFXD3D11Device::GFXD3D11Device(U32 index)
    mLastVertShader = NULL;
    mLastPixShader = NULL;
 
+   mLastGeomShader = NULL;
+   mLastHullShader = NULL;
+   mLastDomainShader = NULL;
+
    mCanCurrentlyRender = false;
    mTextureManager = NULL;
    mCurrentStateBlock = NULL;
@@ -1248,7 +1252,26 @@ void GFXD3D11Device::setShader(GFXShader *shader, bool force)
       {
         mD3DDeviceContext->VSSetShader( d3dShader->mVertShader, NULL, 0);
         mLastVertShader = d3dShader->mVertShader;
-      }     
+      }
+
+      if (d3dShader->mGeometryShader != mLastGeomShader || force)
+      {
+         mD3DDeviceContext->GSSetShader(d3dShader->mGeometryShader, NULL, 0);
+         mLastGeomShader = d3dShader->mGeometryShader;
+      }
+
+      if (d3dShader->mHullShader != mLastHullShader || force)
+      {
+         mD3DDeviceContext->HSSetShader(d3dShader->mHullShader, NULL, 0);
+         mLastHullShader = d3dShader->mHullShader;
+      }
+
+      if (d3dShader->mDomainShader != mLastDomainShader || force)
+      {
+         mD3DDeviceContext->DSSetShader(d3dShader->mDomainShader, NULL, 0);
+         mLastDomainShader = d3dShader->mDomainShader;
+      }
+
    }
    else
    {

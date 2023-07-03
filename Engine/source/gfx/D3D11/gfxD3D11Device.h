@@ -122,6 +122,10 @@ protected:
    ID3D11VertexShader *mLastVertShader;
    ID3D11PixelShader *mLastPixShader;
 
+   ID3D11GeometryShader* mLastGeomShader;
+   ID3D11HullShader* mLastHullShader;
+   ID3D11DomainShader* mLastDomainShader;
+
    S32 mCreateFenceType;
 
    IDXGISwapChain *mSwapChain;
