@@ -367,6 +367,9 @@ public:
    /// Returns the pixel shader file path.
    const String& getPixelShaderFile() const { return mPixelFile.getFullPath(); }
 
+   /// returns the geometry shader file pit.
+   const String& getGeometryShaderFile() const { return mGeometryFile.getFullPath(); }
+
    // GFXResource
    const String describeSelf() const { return mDescription; }
 

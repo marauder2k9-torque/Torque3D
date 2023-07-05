@@ -33,27 +33,28 @@ function AssetBrowser::loadCreatorClasses(%this)
       %this.addCreatorClass( "TimeOfDay",          "Time of Day" );
       %this.addCreatorClass( "WaterBlock",         "Water Block" );
       %this.addCreatorClass( "WaterPlane",         "Water Plane" );
-       %this.addCreatorClass( "ForestWindEmitter",  "Wind Emitter" );
+      %this.addCreatorClass( "ForestWindEmitter",  "Wind Emitter" );
    %this.endCreatorGroup();
    
    %this.beginCreatorGroup( "ExampleObjects" );
       %this.addCreatorClass( "RenderMeshExample" );
       %this.addCreatorClass( "RenderObjectExample" );
       %this.addCreatorClass( "RenderShapeExample" );
+      %this.addCreatorClass( "RenderGSExample" );
    %this.endCreatorGroup(); 
    
    %this.beginCreatorGroup( "Level" );
-      %this.addCreatorClass("Camera" );
-      %this.addCreatorClass("GroundPlane",  "Ground Plane" );
-      %this.addCreatorClass("LevelInfo",    "Level Info" );
-      %this.addCreatorClass("Marker",       "Path Node" );
-      %this.addCreatorClass("MissionArea",  "Mission Area" );
-      %this.addCreatorClass("NotesObject",         "Note" );
-      %this.addCreatorClass("Path" );
-      %this.addCreatorClass("SpawnSphere",  "General Spawn Sphere", "GeneralDropPoint"  );
-      %this.addCreatorClass("SpawnSphere",  "Player Spawn Sphere", "PlayerDropPoint" );
-      %this.addCreatorClass("SpawnSphere",  "Observer Spawn Sphere", "ObserverDropPoint" );
-      %this.addCreatorClass("VPath",        "Verve Path" );
+      %this.addCreatorClass( "Camera" );
+      %this.addCreatorClass( "GroundPlane",  "Ground Plane" );
+      %this.addCreatorClass( "LevelInfo",    "Level Info" );
+      %this.addCreatorClass( "Marker",       "Path Node" );
+      %this.addCreatorClass( "MissionArea",  "Mission Area" );
+      %this.addCreatorClass( "NotesObject",  "Note" );
+      %this.addCreatorClass( "Path" );
+      %this.addCreatorClass( "SpawnSphere",  "General Spawn Sphere", "GeneralDropPoint"  );
+      %this.addCreatorClass( "SpawnSphere",  "Player Spawn Sphere", "PlayerDropPoint" );
+      %this.addCreatorClass( "SpawnSphere",  "Observer Spawn Sphere", "ObserverDropPoint" );
+      %this.addCreatorClass( "VPath",        "Verve Path" );
    %this.endCreatorGroup();
    
    %this.beginCreatorGroup( "Lighting" );
@@ -77,13 +78,13 @@ function AssetBrowser::loadCreatorClasses(%this)
    %this.endCreatorGroup();  
    
    %this.beginCreatorGroup( "Volumes" );
-      %this.addCreatorClass("AccumulationVolume",  "Accumulation Volume" );
-      %this.addCreatorClass("OcclusionVolume",     "Occlusion Volume" );
-      %this.addCreatorClass("PhysicalZone",        "Physical Zone" );
-      %this.addCreatorClass("Portal",              "Zone Portal" );
-      %this.addCreatorClass("SFXSpace",            "Sound Space" );
-      %this.addCreatorClass("Trigger" );
-      %this.addCreatorClass("Zone",                "Zone" );
+      %this.addCreatorClass( "AccumulationVolume",  "Accumulation Volume" );
+      %this.addCreatorClass( "OcclusionVolume",     "Occlusion Volume" );
+      %this.addCreatorClass( "PhysicalZone",        "Physical Zone" );
+      %this.addCreatorClass( "Portal",              "Zone Portal" );
+      %this.addCreatorClass( "SFXSpace",            "Sound Space" );
+      %this.addCreatorClass( "Trigger" );
+      %this.addCreatorClass( "Zone",                "Zone" );
    %this.endCreatorGroup();  
    
    

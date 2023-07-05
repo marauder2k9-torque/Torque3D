@@ -379,7 +379,8 @@ protected:
    inline void SET_CONSTANT(GFXShaderConstHandle* handle,
       const T& fv,
       GenericConstBuffer *vBuffer,
-      GenericConstBuffer *pBuffer);
+      GenericConstBuffer *pBuffer,
+      GenericConstBuffer *gBuffer = NULL);
 
    // Constant buffers, VSSetConstantBuffers1 has issues on win 7. So unfortunately for now we have multiple constant buffers
    ID3D11Buffer* mConstantBuffersV[CBUFFER_MAX];
