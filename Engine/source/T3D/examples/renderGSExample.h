@@ -138,8 +138,7 @@ protected:
    GFXShaderConstHandle* mObjColorSC;
    GFXShaderConstHandle* mObjExplosionSC;
    GFXShaderConstHandle* mModelMatSC;
-   GFXShaderConstHandle* mProjSC;
-   GFXShaderConstHandle* mViewSC;
+   GFXShaderConstHandle* mProjViewSC;
 };
 
 #endif // _RENDEROBJECTEXAMPLE_H_

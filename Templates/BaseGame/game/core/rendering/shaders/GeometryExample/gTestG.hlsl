@@ -10,8 +10,7 @@ struct PSConn
     float4 HPOS : TORQUE_POSITION;
 };
 
-uniform float4x4 projMat;
-uniform float4x4 viewMat;
+uniform float4x4 projViewMat;
 
 uniform float explosionAmt;
 
@@ -28,8 +27,7 @@ void main(triangle GSConn input[3], inout TriangleStream<PSConn> outstream)
     for(uint i =0; i < 3; i++)
     {
         output.HPOS = input[i].HPOS + float4(dir, 0.0);
-        output.HPOS = mul(viewMat, output.HPOS);
-        output.HPOS = mul(projMat, output.HPOS);
+        output.HPOS = mul(projViewMat, output.HPOS);
         outstream.Append(output);
     }
     

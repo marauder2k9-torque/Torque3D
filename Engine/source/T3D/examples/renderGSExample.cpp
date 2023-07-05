@@ -115,8 +115,7 @@ bool RenderGSExample::onAdd()
       mObjColorSC = mShader->getShaderConstHandle("$col");
       mObjExplosionSC = mShader->getShaderConstHandle("$explosionAmt");
       mModelMatSC = mShader->getShaderConstHandle("$modelMat");
-      mProjSC = mShader->getShaderConstHandle("$projMat");
-      mViewSC = mShader->getShaderConstHandle("$viewMat");
+      mProjViewSC = mShader->getShaderConstHandle("$projViewMat");
 
    }
 
@@ -301,8 +300,7 @@ void RenderGSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
    mShaderConsts->setSafe(mObjExplosionSC, mObjExplosion);
 
    mShaderConsts->set(mModelMatSC, GFX->getWorldMatrix(), GFXSCT_Float4x4);
-   mShaderConsts->set(mProjSC, GFX->getProjectionMatrix(), GFXSCT_Float4x4);
-   mShaderConsts->set(mViewSC, GFX->getViewMatrix(), GFXSCT_Float4x4);
+   mShaderConsts->set(mProjViewSC, GFX->getProjectionMatrix() * GFX->getViewMatrix(), GFXSCT_Float4x4);
 
    // Set the vertex buffer
    GFX->setVertexBuffer(mVertexBuffer);
