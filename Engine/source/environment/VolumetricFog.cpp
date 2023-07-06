@@ -250,6 +250,7 @@ bool VolumetricFog::onAdd()
    setRenderTransform(mObjToWorld);
 
    addToScene();
+
    ColBox.set(getTransform(), (mObjBox.getExtents() * getScale() * COLBOX_SCALE));
    mObjSize = mWorldBox.getGreatestDiagonalLength();
    mObjScale = getScale();
@@ -414,6 +415,7 @@ bool VolumetricFog::LoadShape()
             TSShapeInstance::MeshObjectInstance *meshObj = &mShapeInstance->mMeshObjects[j];
             if (!meshObj)
                continue;
+            // if the mesh is null let it continue until it finds one.
             TSMesh *mesh = meshObj->getMesh(det_size[i].obj_det);
             if (mesh != NULL)
             {
@@ -422,15 +424,15 @@ bool VolumetricFog::LoadShape()
                tmpVerts = new GFXVertexPNTT[numNrms];
                mIsVBDirty = true;
                for (U32 k = 0; k < numNrms; k++)
-                  {
-                     const TSMesh::__TSMeshVertexBase &vd = mesh->mVertexData.getBase(k);
-                     Point3F norm = vd.normal();
-                     Point3F vert = vd.vert();
-                     Point2F uv = vd.tvert();
-                     tmpVerts[k].point = vert;
-                     tmpVerts[k].texCoord = uv;
-                     tmpVerts[k].normal = norm;
-                  }
+               {
+                  const TSMesh::__TSMeshVertexBase &vd = mesh->mVertexData.getBase(k);
+                  Point3F norm = vd.normal();
+                  Point3F vert = vd.vert();
+                  Point2F uv = vd.tvert();
+                  tmpVerts[k].point = vert;
+                  tmpVerts[k].texCoord = uv;
+                  tmpVerts[k].normal = norm;
+               }
                det_size[i].verts = tmpVerts;
                det_size[i].num_verts = numNrms;
 
@@ -476,14 +478,16 @@ bool VolumetricFog::LoadShape()
                j = end;
             }
          }
-         else
-         {
-            Con::errorf("VolumetricFog::LoadShape Error loading mesh from shape!");
-            delete mShapeInstance;
-            return false;
-         }
-         mIsVBDirty = true;
-         mIsPBDirty = true;
+            // did we find info
+            if (det_size[0].num_verts > 0)
+            {
+               mIsVBDirty = true;
+               mIsPBDirty = true;
+            }
+            else
+            {
+               return false;
+            }
          }
       }
    }
@@ -811,12 +815,12 @@ bool VolumetricFog::setupRenderer()
       return false;
    }
 
-   mFrontBufferTarget = NamedTexTarget::find("volfogfront");
+   /*mFrontBufferTarget = NamedTexTarget::find("volfogfront");
    if (!mFrontBufferTarget.isValid())
    {
       Con::errorf("VolumetricFog::setupRenderer - could not find frontbuffer");
       return false;
-   }
+   }*/
 
    // Find and setup the deferred Shader
 
@@ -899,19 +903,15 @@ bool VolumetricFog::setupRenderer()
 
    // Create the deferred StateBlock
 
-   desc_preD.setCullMode(GFXCullCW);
+   desc_preD.setCullMode(GFXCullNone);
    desc_preD.setBlend(true);
    desc_preD.setZReadWrite(false, false);
    desc_preD.stencilEnable = false;
-   desc_preF.setCullMode(GFXCullCCW);
-   desc_preF.setBlend(true);
-   desc_preF.setZReadWrite(true, false);
-   desc_preF.stencilEnable = false;
    
    // Create the VolumetricFog StateBlock
 
    descD.setCullMode(GFXCullCW);
-   descD.setBlend(true);
+   descD.setBlend(true, GFXBlendInvDestColor, GFXBlendOne);
    descD.setZReadWrite(false, false);// desc.setZReadWrite(true, false);
 
    // deferredBuffer sampler
@@ -931,25 +931,17 @@ bool VolumetricFog::setupRenderer()
    descD.samplers[1].minFilter = GFXTextureFilterLinear;
    descD.samplers[1].mipFilter = GFXTextureFilterLinear;
 
-   // FrontBuffer sampler
-   descD.samplers[2].addressModeU = GFXAddressClamp;
-   descD.samplers[2].addressModeV = GFXAddressClamp;
-   descD.samplers[2].addressModeW = GFXAddressClamp;
+   // animated density modifier map sampler
+   descD.samplers[2].addressModeU = GFXAddressWrap;
+   descD.samplers[2].addressModeV = GFXAddressWrap;
+   descD.samplers[2].addressModeW = GFXAddressWrap;
    descD.samplers[2].magFilter = GFXTextureFilterLinear;
    descD.samplers[2].minFilter = GFXTextureFilterLinear;
    descD.samplers[2].mipFilter = GFXTextureFilterLinear;
 
-   // animated density modifier map sampler
-   descD.samplers[3].addressModeU = GFXAddressWrap;
-   descD.samplers[3].addressModeV = GFXAddressWrap;
-   descD.samplers[3].addressModeW = GFXAddressWrap;
-   descD.samplers[3].magFilter = GFXTextureFilterLinear;
-   descD.samplers[3].minFilter = GFXTextureFilterLinear;
-   descD.samplers[3].mipFilter = GFXTextureFilterLinear;
-
    dMemcpy(&descF, &descD, sizeof(GFXStateBlockDesc));
    descF.setCullMode(GFXCullCCW);
-   descF.setBlend(true);
+   descF.setBlend(true, GFXBlendInvDestColor, GFXBlendOne);
    descF.setZReadWrite(true, false);
 
    desc_refl.setCullMode(GFXCullCCW);
@@ -957,7 +949,6 @@ bool VolumetricFog::setupRenderer()
    desc_refl.setZReadWrite(true, false);
 
    mStateblock_preD = GFX->createStateBlock(desc_preD);
-   mStateblock_preF = GFX->createStateBlock(desc_preF);
    mStateblockD = GFX->createStateBlock(descD);
    mStateblockF = GFX->createStateBlock(descF);
    mStateblock_refl = GFX->createStateBlock(desc_refl);
@@ -1095,7 +1086,6 @@ void VolumetricFog::render(ObjectRenderInst *ri, SceneRenderState *state, BaseMa
    mShaderConsts->setSafe(mAmbientColorSC, ambientColor);
 
    GFXTextureObject *mDepthBuffer = mDepthBufferTarget ? mDepthBufferTarget->getTexture(0) : NULL;
-   GFXTextureObject *mFrontBuffer = mFrontBufferTarget ? mFrontBufferTarget->getTexture(0) : NULL;
 
    GFX->pushActiveRenderTarget();
 
@@ -1105,16 +1095,6 @@ void VolumetricFog::render(ObjectRenderInst *ri, SceneRenderState *state, BaseMa
 
    GFX->setActiveRenderTarget(z_buf);
    GFX->clear(GFXClearStencil | GFXClearTarget , ColorI(0,0,0,0), 0.0f, 0);
-
-   GFX->drawPrimitive(0);
-   z_buf->resolve();
-
-   //render frontside to target mFrontBuffer
-   z_buf->attachTexture(GFXTextureTarget::DepthStencil, GFXTextureTarget::sDefaultDepthStencil);
-   z_buf->attachTexture(GFXTextureTarget::Color0, mFrontBuffer);
-   GFX->clear(GFXClearStencil | GFXClearTarget, ColorI(0, 0, 0, 0), 0.0f, 0);
-
-   GFX->setStateBlock(mStateblock_preF);
 
    GFX->drawPrimitive(0);
    z_buf->resolve();
@@ -1145,11 +1125,10 @@ void VolumetricFog::render(ObjectRenderInst *ri, SceneRenderState *state, BaseMa
 
    GFX->setTexture(0, deferredtex);
    GFX->setTexture(1, mDepthBuffer);
-   GFX->setTexture(2, mFrontBuffer);
 
    if (mIsTextured && mStrength > 0.0f)
    {
-      GFX->setTexture(3, mTexture);
+      GFX->setTexture(2, mTexture);
       mShaderConsts->setSafe(mIsTexturedSC, 1.0f);
    }
    else
@@ -1176,7 +1155,6 @@ void VolumetricFog::render(ObjectRenderInst *ri, SceneRenderState *state, BaseMa
 
    // Ensure these two textures are NOT bound to the pixel shader input on the second run as they are used as pixel shader outputs (render targets).
    GFX->clearTextureStateImmediate(1); //mDepthBuffer
-   GFX->clearTextureStateImmediate(2); //mFrontBuffer
 }
 
 void VolumetricFog::reflect_render(ObjectRenderInst *ri, SceneRenderState *state, BaseMatInstance *overrideMat)
