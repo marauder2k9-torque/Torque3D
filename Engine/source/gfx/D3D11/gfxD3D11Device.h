@@ -125,6 +125,7 @@ protected:
    ID3D11GeometryShader* mLastGeomShader;
    ID3D11HullShader* mLastHullShader;
    ID3D11DomainShader* mLastDomainShader;
+   ID3D11ComputeShader* mLastComputeShader;
 
    S32 mCreateFenceType;
 
@@ -147,6 +148,7 @@ protected:
    String mGeometryShaderTarget;
    String mHullShaderTarget;
    String mDomainShaderTarget;
+   String mComputeShaderTarget;
 
    // String for use with shader macros in the form of shader model version * 10
    String mShaderModel;
@@ -329,6 +331,8 @@ public:
    const String &getGeometryShaderTarget() const { return mGeometryShaderTarget; }
    const String &getHullShaderTarget() const { return mHullShaderTarget; }
    const String &getDomainShaderTarget() const { return mDomainShaderTarget; }
+
+   const String& getComputeShaderTarget() const { return mComputeShaderTarget; }
 
    const String &getShaderModel() const { return mShaderModel; }
 

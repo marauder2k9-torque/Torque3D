@@ -109,6 +109,7 @@ GFXD3D11Device::GFXD3D11Device(U32 index)
    mLastGeomShader = NULL;
    mLastHullShader = NULL;
    mLastDomainShader = NULL;
+   mLastComputeShader = NULL;
 
    mCanCurrentlyRender = false;
    mTextureManager = NULL;
@@ -121,6 +122,12 @@ GFXD3D11Device::GFXD3D11Device(U32 index)
 
    mVertexShaderTarget = String::EmptyString;
    mPixelShaderTarget = String::EmptyString;
+
+   mGeometryShaderTarget = String::EmptyString;
+   mHullShaderTarget = String::EmptyString;
+   mDomainShaderTarget = String::EmptyString;
+   mComputeShaderTarget = String::EmptyString;
+
    mShaderModel = String::EmptyString;
 
    mDrawInstancesCount = 0;
@@ -525,6 +532,7 @@ void GFXD3D11Device::init(const GFXVideoMode &mode, PlatformWindow *window)
       // hulll and domain shaders only in shadermodel 5.
       mHullShaderTarget = "hs_5_0";
       mDomainShaderTarget = "ds_5_0";
+      mComputeShaderTarget = "cs_5_0";
       mPixVersion = 5.0f;
       mShaderModel = "50";
       break;
@@ -532,6 +540,7 @@ void GFXD3D11Device::init(const GFXVideoMode &mode, PlatformWindow *window)
       mVertexShaderTarget = "vs_4_1";
       mPixelShaderTarget = "ps_4_1";
       mGeometryShaderTarget = "gs_4_1";
+      mComputeShaderTarget = "cs_4_1";
       mHullShaderTarget = String::EmptyString;
       mDomainShaderTarget = String::EmptyString;
       mPixVersion = 4.1f;

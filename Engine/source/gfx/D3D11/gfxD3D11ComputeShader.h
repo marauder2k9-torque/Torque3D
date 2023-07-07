@@ -104,7 +104,7 @@ public:
 /// The D3D11 implementation of a shader constant buffer.
 class GFXD3D11ComputeShaderConstBuffer : public GFXShaderConstBuffer
 {
-   friend class GFXD3D11Shader;
+   friend class GFXD3D11ComputeShader;
    // Cache device context
    ID3D11DeviceContext* mDeviceContext;
 
@@ -163,8 +163,10 @@ protected:
       const T& fv,
       GenericConstBuffer* cBuffer);
 
-   // Constant buffers, VSSetConstantBuffers1 has issues on win 7. So unfortunately for now we have multiple constant buffers
+   // Constant buffers
    ID3D11Buffer* mConstantBuffersC[CBUFFER_MAX];
+   ID3D11Buffer* mSRVBuffersC[CBUFFER_MAX];
+   ID3D11Buffer* mUAVBuffersC[CBUFFER_MAX];
 
    /// We keep a weak reference to the shader 
    /// because it will often be deleted.
@@ -183,10 +185,10 @@ typedef StrongRefPtr<gfxD3D11ComputeInclude> gfxD3DComputeIncludeRef;
 class GFXD3D11ComputeShader : public GFXShader
 {
    friend class GFXD3D11Device;
-   friend class GFXD3D11ShaderConstBuffer;
+   friend class GFXD3D11ComputeShaderConstBuffer;
 
 public:
-   typedef Map<String, GFXD3D11ShaderConstHandle*> HandleMap;
+   typedef Map<String, GFXD3D11ComputeShaderConstHandle*> HandleMap;
 
    GFXD3D11ComputeShader();
    virtual ~GFXD3D11ComputeShader();
@@ -204,18 +206,17 @@ public:
    virtual void resurrect();
 
 protected:
+   // This is not the other type of shader, shouldn't be here.
+   virtual bool _init() { return false; }
 
-   virtual bool _init() = 0;
-
-   /// Internal initialization function overloaded for
-   /// each GFX device type.
+   /// This is a compute shader
    virtual bool _initCompute();
 
    static const U32 smCompiledShaderTag;
 
    ID3D11ComputeShader* mCompShader;
 
-   GFXD3D11ComputeConstBufferLayout* mVertexConstBufferLayout;
+   GFXD3D11ComputeConstBufferLayout* mComputeConstBufferLayout;
 
    static gfxD3DComputeIncludeRef smD3DInclude;
 
@@ -256,8 +257,18 @@ protected:
       GenericConstBufferLayout* bufferLayoutF,
       Vector<GFXShaderConstDesc>& samplerDescriptions);
 
+
    // This is used in both cases
    virtual void _buildShaderConstantHandles(GenericConstBufferLayout* layout);
+
+   virtual void _buildSamplerShaderConstantHandles(Vector<GFXShaderConstDesc>& samplerDescriptions);
 };
+
+inline bool GFXD3D11ComputeShader::getDisassembly(String& outStr) const
+{
+   outStr = mDissasembly;
+   return (outStr.isNotEmpty());
+}
+
 
 #endif // !_GFXD3D11COMPUTESHADER_H_

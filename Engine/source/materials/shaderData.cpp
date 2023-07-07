@@ -73,6 +73,7 @@ ShaderData::ShaderData()
    mDXGeometryShaderName   = StringTable->EmptyString();
    mDXHullShaderName       = StringTable->EmptyString();
    mDXDomainShaderName     = StringTable->EmptyString();
+
    mDXComputeShaderName    = StringTable->EmptyString();
 
    mOGLVertexShaderName    = StringTable->EmptyString();
@@ -80,6 +81,7 @@ ShaderData::ShaderData()
    mOGLGeometryShaderName  = StringTable->EmptyString();
    mOGLHullShaderName      = StringTable->EmptyString();
    mOGLDomainShaderName    = StringTable->EmptyString();
+
    mOGLComputeShaderName   = StringTable->EmptyString();
 
    mComputeShader = false;
