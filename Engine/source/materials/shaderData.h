@@ -53,6 +53,8 @@ protected:
 
    bool mUseDevicePixVersion;
 
+   bool mComputeShader;
+
    F32 mPixVersion;
 
    StringTableEntry mDXVertexShaderName;
@@ -60,12 +62,14 @@ protected:
    StringTableEntry mDXGeometryShaderName;
    StringTableEntry mDXHullShaderName;
    StringTableEntry mDXDomainShaderName;
+   StringTableEntry mDXComputeShaderName;
 
    StringTableEntry mOGLVertexShaderName;
    StringTableEntry mOGLPixelShaderName;
    StringTableEntry mOGLGeometryShaderName;
    StringTableEntry mOGLHullShaderName;
    StringTableEntry mOGLDomainShaderName;
+   StringTableEntry mOGLComputeShaderName;
 
    /// A semicolon, tab, or newline delimited string of case
    /// sensitive defines that are passed to the shader compiler.

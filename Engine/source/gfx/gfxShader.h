@@ -234,14 +234,17 @@ protected:
    /// The pixel shader file.
    Torque::Path mPixelFile;
 
-   /// The pixel shader file.
+   /// The geometry shader file.
    Torque::Path mGeometryFile;
 
-   /// The pixel shader file.
+   /// The hull shader file.
    Torque::Path mHullFile;
 
-   /// The pixel shader file.
+   /// The domain shader file.
    Torque::Path mDomainFile;
+
+   // The compute shader file.
+   Torque::Path mComputeFile;
 
    /// The macros to be passed to the shader.      
    Vector<GFXShaderMacro> mMacros;
@@ -326,6 +329,11 @@ public:
                const Torque::Path& domainFile = NULL,
                GFXVertexFormat* instanceFormat = NULL);
 
+   bool initCompute( const Torque::Path& computeFile,
+                     F32 pixVersion,
+                     const Vector<GFXShaderMacro>& macros,
+                     const Vector<String>& samplerNames);
+
    /// Reloads the shader from disk.
    bool reload();
 
@@ -367,8 +375,11 @@ public:
    /// Returns the pixel shader file path.
    const String& getPixelShaderFile() const { return mPixelFile.getFullPath(); }
 
-   /// returns the geometry shader file pit.
+   /// returns the geometry shader file path.
    const String& getGeometryShaderFile() const { return mGeometryFile.getFullPath(); }
+
+   /// returns the compute shader file path.
+   const String& getComputeShaderFile() const { return mComputeFile.getFullPath(); }
 
    // GFXResource
    const String describeSelf() const { return mDescription; }
@@ -384,6 +395,10 @@ protected:
    /// Internal initialization function overloaded for
    /// each GFX device type.
    virtual bool _init() = 0;
+
+   /// Internal initialization function overloaded for
+   /// each GFX device type.
+   virtual bool _initCompute() = 0;
 
    /// Buffers call this from their destructor (so we don't have to ref count them).
    void _unlinkBuffer( GFXShaderConstBuffer *buf );

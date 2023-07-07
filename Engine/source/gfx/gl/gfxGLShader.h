@@ -71,7 +71,10 @@ protected:
    friend class GFXGLShaderConstBuffer;
    friend class GFXGLShaderConstHandle;
    
-   virtual bool _init();   
+   virtual bool _init();
+
+   /// Should not initialize compute shaders here.
+   virtual bool _initCompute() { return false; };
 
    bool initShader(const Torque::Path &file, bool isVertex, const Vector<GFXShaderMacro> &macros );
    bool initGeometryShader(const Torque::Path& file, const Vector<GFXShaderMacro>& macros);

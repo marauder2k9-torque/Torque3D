@@ -125,6 +125,11 @@ bool GFXShader::init(const Torque::Path& vertFile,
    return true;
 }
 
+bool GFXShader::initCompute(const Torque::Path& computeFile, F32 pixVersion, const Vector<GFXShaderMacro>& macros, const Vector<String>& samplerNames)
+{
+   return false;
+}
+
 bool GFXShader::reload()
 {
    // Before we compile the shader make sure the

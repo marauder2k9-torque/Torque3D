@@ -68,13 +68,21 @@ ShaderData::ShaderData()
    for( int i = 0; i < NumTextures; ++i)
       mRTParams[i] = false;
 
+   mDXVertexShaderName     = StringTable->EmptyString();
+   mDXPixelShaderName      = StringTable->EmptyString();
    mDXGeometryShaderName   = StringTable->EmptyString();
    mDXHullShaderName       = StringTable->EmptyString();
    mDXDomainShaderName     = StringTable->EmptyString();
+   mDXComputeShaderName    = StringTable->EmptyString();
 
+   mOGLVertexShaderName    = StringTable->EmptyString();
+   mOGLPixelShaderName     = StringTable->EmptyString();
    mOGLGeometryShaderName  = StringTable->EmptyString();
    mOGLHullShaderName      = StringTable->EmptyString();
    mOGLDomainShaderName    = StringTable->EmptyString();
+   mOGLComputeShaderName   = StringTable->EmptyString();
+
+   mComputeShader = false;
 }
 
 void ShaderData::initPersistFields()
@@ -107,6 +115,11 @@ void ShaderData::initPersistFields()
       "It can be either an HLSL or assembly level shader. HLSL's must have a "
       "filename extension of .hlsl, otherwise its assumed to be an assembly file.");
 
+   addField("DXComputeShaderFile", TypeStringFilename, Offset(mDXComputeShaderName, ShaderData),
+      "@brief %Path to the DirectX compute shader file to use for this ShaderData.\n\n"
+      "It can be either an HLSL or assembly level shader. HLSL's must have a "
+      "filename extension of .hlsl, otherwise its assumed to be an assembly file.");
+
    addField("OGLVertexShaderFile",  TypeStringFilename,  Offset(mOGLVertexShaderName,   ShaderData),
 	   "@brief %Path to an OpenGL vertex shader file to use for this ShaderData.\n\n"
 	   "It must contain only one program and no pixel shader, just the vertex shader.");
@@ -123,6 +136,9 @@ void ShaderData::initPersistFields()
       "@brief %Path to the OpenGL Tessellation Control file to use for this ShaderData.\n\n");
 
    addField("OGLDomainShaderFile", TypeStringFilename, Offset(mOGLDomainShaderName, ShaderData),
+      "@brief %Path to the OpenGL Tessellation Evaluation shader file to use for this ShaderData.\n\n");
+
+   addField("OGLComputeShaderFile", TypeStringFilename, Offset(mOGLComputeShaderName, ShaderData),
       "@brief %Path to the OpenGL Tessellation Evaluation shader file to use for this ShaderData.\n\n");
 
    addField("useDevicePixVersion",  TypeBool,            Offset(mUseDevicePixVersion,   ShaderData),
@@ -259,6 +275,11 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
    GFXShader *shader = GFX->createShader();
    bool success = false;
 
+   if (mDXComputeShaderName != StringTable->EmptyString() || mOGLComputeShaderName != StringTable->EmptyString())
+   {
+      mComputeShader = true;
+   }
+
    Vector<String> samplers;
    samplers.setSize(ShaderData::NumTextures);
    for(int i = 0; i < ShaderData::NumTextures; ++i)
@@ -266,19 +287,31 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
 
    // Initialize the right shader type.
    // we check in the init function for whether or not the files exist.
+
+   // for now compute shaders are compiled by default. Compute shaders
+   // run on their own pipeline so sampler registers need to be set
+   // accordingly. For now build compute shader and break out.
    switch( GFX->getAdapterType() )
    {
       case Direct3D11:
       {
-         success = shader->init( mDXVertexShaderName, 
-                                 mDXPixelShaderName, 
-                                 pixver,
-                                 macros,
-                                 samplers,
-                                 mDXGeometryShaderName,
-                                 mDXHullShaderName,
-                                 mDXDomainShaderName);
-
+         if (mComputeShader) {
+            success = shader->initCompute(mDXComputeShaderName,
+                                          pixver,
+                                          macros,
+                                          samplers);
+         }
+         else
+         {
+            success = shader->init( mDXVertexShaderName,
+                                    mDXPixelShaderName,
+                                    pixver,
+                                    macros,
+                                    samplers,
+                                    mDXGeometryShaderName,
+                                    mDXHullShaderName,
+                                    mDXDomainShaderName);
+         }
 
          break;
       }

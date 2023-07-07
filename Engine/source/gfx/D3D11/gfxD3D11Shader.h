@@ -443,7 +443,10 @@ public:
 
 protected:
 
-   virtual bool _init();   
+   virtual bool _init();
+
+   /// Should not initialize compute shaders here.
+   virtual bool _initCompute() { return false; };
 
    static const U32 smCompiledShaderTag;
 
