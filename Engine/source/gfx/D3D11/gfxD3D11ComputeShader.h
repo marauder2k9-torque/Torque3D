@@ -204,6 +204,8 @@ public:
    virtual void resurrect();
 
    void setComputeInput(U32 slot, GFXTextureObject* texture);
+   void setComputeTarget(U32 slot, GFXTextureObject* texture);
+   void resolve();
 
 protected:
    // This is not the other type of shader, shouldn't be here.
@@ -215,6 +217,11 @@ protected:
    static const U32 smCompiledShaderTag;
 
    ID3D11ComputeShader* mCompShader;
+
+   // in compute shaders we want the option of 3d texture targets as well as 2d.
+   ID3D11Texture2D* mTargets2D[7];
+   ID3D11Texture3D* mTargets3D[7];
+   GFXD3D11TextureObject* mResolveTargets[7];
 
    GFXD3D11ComputeConstBufferLayout* mComputeConstBufferLayout;
 
