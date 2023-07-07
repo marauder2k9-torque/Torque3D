@@ -1337,8 +1337,9 @@ void GFXD3D11ComputeShader::setComputeInput(U32 slot, GFXTextureObject* texture)
 {
    GFXD3D11TextureObject* tex = static_cast<GFXD3D11TextureObject*>(texture);
 
+   HRESULT hr;
    // create a byte pointer..
-   byte* texData;
+   byte* texData{};
    U32 textureDataSize;
 
    U32 bytesPerPixel = tex->getFormatByteSize();
@@ -1353,18 +1354,21 @@ void GFXD3D11ComputeShader::setComputeInput(U32 slot, GFXTextureObject* texture)
    if (Tex3d)
    {
       D3D11_TEXTURE3D_DESC desc;
-      static_cast<ID3D11Texture3D*>(tex->getResource())->GetDesc(&desc);
+      ID3D11Texture3D* d3dTexture = static_cast<ID3D11Texture3D*>(tex->getResource());
+      d3dTexture->GetDesc(&desc);
       desc.Usage = D3D11_USAGE_STAGING;
       desc.BindFlags = 0;
       desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 
       ID3D11Texture3D* tempTex = NULL;
-      HRESULT hr = D3D11DEVICE->CreateTexture3D(&desc, NULL, &tempTex);
+      hr = D3D11DEVICE->CreateTexture3D(&desc, NULL, &tempTex);
       if (FAILED(hr))
       {
          Con::errorf("GFXD3D11ComputeShader::setComputeInput::3D - Failed to create staging texture!");
          return;
       }
+
+      D3D11DEVICECONTEXT->CopyResource(tempTex, d3dTexture);
 
       D3D11_MAPPED_SUBRESOURCE mappedResource;
       hr = D3D11DEVICECONTEXT->Map(tempTex, 0, D3D11_MAP_READ, 0, &mappedResource);
@@ -1385,18 +1389,21 @@ void GFXD3D11ComputeShader::setComputeInput(U32 slot, GFXTextureObject* texture)
    else // must be 2d
    {
       D3D11_TEXTURE2D_DESC desc;
-      static_cast<ID3D11Texture2D*>(tex->getResource())->GetDesc(&desc);
+      ID3D11Texture2D* d3dTexture = static_cast<ID3D11Texture2D*>(tex->getResource());
+      d3dTexture->GetDesc(&desc);
       desc.Usage = D3D11_USAGE_STAGING;
       desc.BindFlags = 0;
       desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
 
       ID3D11Texture2D* tempTex = NULL;
-      HRESULT hr = D3D11DEVICE->CreateTexture2D(&desc, NULL, &tempTex);
+      hr = D3D11DEVICE->CreateTexture2D(&desc, NULL, &tempTex);
       if (FAILED(hr))
       {
          Con::errorf("GFXD3D11ComputeShader::setComputeInput::2D - Failed to create staging texture!");
          return;
       }
+
+      D3D11DEVICECONTEXT->CopyResource(tempTex, d3dTexture);
 
       D3D11_MAPPED_SUBRESOURCE mappedResource;
       hr = D3D11DEVICECONTEXT->Map(tempTex, 0, D3D11_MAP_READ, 0, &mappedResource);
@@ -1428,7 +1435,7 @@ void GFXD3D11ComputeShader::setComputeInput(U32 slot, GFXTextureObject* texture)
       D3D11_SUBRESOURCE_DATA initData;
       initData.pSysMem = texData;
 
-      HRESULT hr = D3D11DEVICE->CreateBuffer(&descCShader, &initData, &csDataBuffer);
+      hr = D3D11DEVICE->CreateBuffer(&descCShader, &initData, &csDataBuffer);
       if (FAILED(hr))
       {
          Con::errorf("GFXD3D11ComputeShader::setComputeInput- Failed to create buffer!");
