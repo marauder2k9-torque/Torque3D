@@ -59,7 +59,7 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
    U32 miscFlags = 0;
    
    if(!retTex->mProfile->isZTarget() && !retTex->mProfile->isSystemMemory())
-      bindFlags =  D3D11_BIND_SHADER_RESOURCE;
+      bindFlags = D3D11_BIND_SHADER_RESOURCE;
    
    U32 cpuFlags = 0;
 

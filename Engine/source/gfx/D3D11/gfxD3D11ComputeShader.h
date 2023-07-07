@@ -165,8 +165,6 @@ protected:
 
    // Constant buffers
    ID3D11Buffer* mConstantBuffersC[CBUFFER_MAX];
-   ID3D11Buffer* mSRVBuffersC[CBUFFER_MAX];
-   ID3D11Buffer* mUAVBuffersC[CBUFFER_MAX];
 
    /// We keep a weak reference to the shader 
    /// because it will often be deleted.

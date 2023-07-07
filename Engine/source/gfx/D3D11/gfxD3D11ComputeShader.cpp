@@ -257,8 +257,6 @@ GFXD3D11ComputeShaderConstBuffer::GFXD3D11ComputeShaderConstBuffer(  GFXD3D11Com
    for (U32 i = 0; i < CBUFFER_MAX; ++i)
    {
       mConstantBuffersC[i] = NULL;
-      mSRVBuffersC[i] = NULL;
-      mUAVBuffersC[i] = NULL;
    }
 
    mComputeConstBufferLayout = computeLayout;
