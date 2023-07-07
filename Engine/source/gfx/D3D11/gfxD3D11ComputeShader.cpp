@@ -22,7 +22,7 @@
 
 #include "platform/platform.h"
 #include "gfx/D3D11/gfxD3D11ComputeShader.h"
-
+#include "gfx/D3D11/gfxD3D11EnumTranslate.h"
 #include "core/frameAllocator.h"
 #include "core/stream/fileStream.h"
 #include "core/util/safeDelete.h"
@@ -1331,4 +1331,132 @@ void GFXD3D11ComputeShader::zombify()
 void GFXD3D11ComputeShader::resurrect()
 {
    // Shaders are never zombies, and therefore don't have to be brought back.
+}
+
+void GFXD3D11ComputeShader::setComputeInput(U32 slot, GFXTextureObject* texture)
+{
+   GFXD3D11TextureObject* tex = static_cast<GFXD3D11TextureObject*>(texture);
+
+   // create a byte pointer..
+   byte* texData;
+   U32 textureDataSize;
+
+   U32 bytesPerPixel = tex->getFormatByteSize();
+   bool Tex3d = false;
+
+   if (tex->getDepth() > 0)
+      Tex3d = true;
+
+   DXGI_FORMAT d3dTextureFormat = GFXD3D11TextureFormat[tex->getFormat()];
+
+   // are we 3d?
+   if (Tex3d)
+   {
+      D3D11_TEXTURE3D_DESC desc;
+      static_cast<ID3D11Texture3D*>(tex->getResource())->GetDesc(&desc);
+      desc.Usage = D3D11_USAGE_STAGING;
+      desc.BindFlags = 0;
+      desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+
+      ID3D11Texture3D* tempTex = NULL;
+      HRESULT hr = D3D11DEVICE->CreateTexture3D(&desc, NULL, &tempTex);
+      if (FAILED(hr))
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeInput::3D - Failed to create staging texture!");
+         return;
+      }
+
+      D3D11_MAPPED_SUBRESOURCE mappedResource;
+      hr = D3D11DEVICECONTEXT->Map(tempTex, 0, D3D11_MAP_READ, 0, &mappedResource);
+      if (FAILED(hr))
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeInput::3D - Failed to create mapped resource!");
+         return;
+      }
+
+      textureDataSize = mappedResource.RowPitch * desc.Height;
+
+      dMemset(texData, 0, textureDataSize);
+
+      dMemcpy(texData, mappedResource.pData, textureDataSize);
+
+      D3D11DEVICECONTEXT->Unmap(tempTex, 0);
+   }
+   else // must be 2d
+   {
+      D3D11_TEXTURE2D_DESC desc;
+      static_cast<ID3D11Texture2D*>(tex->getResource())->GetDesc(&desc);
+      desc.Usage = D3D11_USAGE_STAGING;
+      desc.BindFlags = 0;
+      desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+
+      ID3D11Texture2D* tempTex = NULL;
+      HRESULT hr = D3D11DEVICE->CreateTexture2D(&desc, NULL, &tempTex);
+      if (FAILED(hr))
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeInput::2D - Failed to create staging texture!");
+         return;
+      }
+
+      D3D11_MAPPED_SUBRESOURCE mappedResource;
+      hr = D3D11DEVICECONTEXT->Map(tempTex, 0, D3D11_MAP_READ, 0, &mappedResource);
+      if (FAILED(hr))
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeInput::3D - Failed to create mapped resource!");
+         return;
+      }
+
+      textureDataSize = mappedResource.RowPitch * desc.Height;
+
+      dMemset(texData, 0, textureDataSize);
+
+      dMemcpy(texData, mappedResource.pData, textureDataSize);
+
+      D3D11DEVICECONTEXT->Unmap(tempTex, 0);
+   }
+
+   if (texData)
+   {
+      ID3D11Buffer* csDataBuffer;
+      D3D11_BUFFER_DESC descCShader;
+      ZeroMemory(&descCShader, sizeof(descCShader));
+      descCShader.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+      descCShader.ByteWidth = textureDataSize;
+      descCShader.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+      descCShader.StructureByteStride = bytesPerPixel;
+
+      D3D11_SUBRESOURCE_DATA initData;
+      initData.pSysMem = texData;
+
+      HRESULT hr = D3D11DEVICE->CreateBuffer(&descCShader, &initData, &csDataBuffer);
+      if (FAILED(hr))
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeInput- Failed to create buffer!");
+         return;
+      }
+
+      D3D11_BUFFER_DESC descBuf;
+      ZeroMemory(&descBuf, sizeof(descBuf));
+      csDataBuffer->GetDesc(&descBuf);
+
+      D3D11_SHADER_RESOURCE_VIEW_DESC descView;
+      ZeroMemory(&descView, sizeof(descView));
+      descView.ViewDimension = Tex3d ? D3D11_SRV_DIMENSION_TEXTURE3D : D3D11_SRV_DIMENSION_TEXTURE2D;
+      descView.BufferEx.FirstElement = 0;
+
+      descView.Format = d3dTextureFormat;
+      descView.BufferEx.NumElements = descBuf.ByteWidth / descBuf.StructureByteStride;
+
+      ID3D11ShaderResourceView* mCsResourecView;
+
+      hr = D3D11DEVICE->CreateShaderResourceView(csDataBuffer, &descView, &mCsResourecView);
+      if (FAILED(hr))
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeInput- Failed to create shader resource view!");
+         return;
+      }
+
+      D3D11DEVICECONTEXT->CSSetShaderResources(slot, 0, &mCsResourecView);
+   }
+
 }

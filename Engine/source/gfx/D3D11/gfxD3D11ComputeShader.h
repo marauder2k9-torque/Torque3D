@@ -203,6 +203,8 @@ public:
    virtual void zombify();
    virtual void resurrect();
 
+   void setComputeInput(U32 slot, GFXTextureObject* texture);
+
 protected:
    // This is not the other type of shader, shouldn't be here.
    virtual bool _init() { return false; }
