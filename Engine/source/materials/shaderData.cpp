@@ -320,14 +320,23 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
 
       case OpenGL:
       {
-         success = shader->init( mOGLVertexShaderName,
-                                 mOGLPixelShaderName,
-                                 pixver,
-                                 macros,
-                                 samplers,
-                                 mOGLGeometryShaderName,
-                                 mOGLHullShaderName,
-                                 mOGLDomainShaderName);
+         if (mComputeShader) {
+            success = shader->initCompute(mOGLComputeShaderName,
+                                          pixver,
+                                          macros,
+                                          samplers);
+         }
+         else
+         {
+            success = shader->init( mOGLVertexShaderName,
+                                    mOGLPixelShaderName,
+                                    pixver,
+                                    macros,
+                                    samplers,
+                                    mOGLGeometryShaderName,
+                                    mOGLHullShaderName,
+                                    mOGLDomainShaderName);
+      }
 
          break;
       }

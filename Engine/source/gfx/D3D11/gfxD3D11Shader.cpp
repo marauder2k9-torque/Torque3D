@@ -1441,12 +1441,15 @@ bool GFXD3D11Shader::_initCompute()
    if (!mComputeConstBufferLayout)
       mComputeConstBufferLayout = new GFXD3D11ConstBufferLayout();
 
+   mSamplerDescriptions.clear();
+   mShaderConsts.clear();
+
    String compTarget = D3D11->getComputeShaderTarget();
 
    if (!Con::getBoolVariable("$shaders::forceLoadCSF", false))
    {
-      if (!mComputeFile.isEmpty() && !_compileShader(mComputeFile, compTarget, d3dMacros, mComputeConstBufferLayout, mSamplerDescriptions));
-      return false;
+      if (!mComputeFile.isEmpty() && !_compileShader(mComputeFile, compTarget, d3dMacros, mComputeConstBufferLayout, mSamplerDescriptions))
+         return false;
 
    }
    else
@@ -1670,30 +1673,33 @@ bool GFXD3D11Shader::_compileShader( const Torque::Path &filePath,
       String compShader = mVertexFile.getFileName();
       mCompShader->SetPrivateData(WKPDID_D3DDebugObjectName, compShader.size(), compShader.c_str());
    }
-   if (target.compare("vs_", 3) == 0)
+   else
    {
-      String vertShader = mVertexFile.getFileName();
-      mVertShader->SetPrivateData(WKPDID_D3DDebugObjectName, vertShader.size(), vertShader.c_str());
-   }
-   else if (target.compare("ps_", 3) == 0)
-   {
-      String pixelShader = mPixelFile.getFileName();
-      mPixShader->SetPrivateData(WKPDID_D3DDebugObjectName, pixelShader.size(), pixelShader.c_str());
-   }
-   else if (target.compare("gs_", 3) == 0)
-   {
-      String geometryShader = mGeometryFile.getFileName();
-      mGeometryShader->SetPrivateData(WKPDID_D3DDebugObjectName, geometryShader.size(), geometryShader.c_str());
-   }
-   else if (target.compare("hs_", 3) == 0)
-   {
-      String hullShader = mHullFile.getFileName();
-      mHullShader->SetPrivateData(WKPDID_D3DDebugObjectName, hullShader.size(), hullShader.c_str());
-   }
-   else if (target.compare("ds_", 3) == 0)
-   {
-      String domainShader = mDomainFile.getFileName();
-      mDomainShader->SetPrivateData(WKPDID_D3DDebugObjectName, domainShader.size(), domainShader.c_str());
+      if (target.compare("vs_", 3) == 0)
+      {
+         String vertShader = mVertexFile.getFileName();
+         mVertShader->SetPrivateData(WKPDID_D3DDebugObjectName, vertShader.size(), vertShader.c_str());
+      }
+      else if (target.compare("ps_", 3) == 0)
+      {
+         String pixelShader = mPixelFile.getFileName();
+         mPixShader->SetPrivateData(WKPDID_D3DDebugObjectName, pixelShader.size(), pixelShader.c_str());
+      }
+      else if (target.compare("gs_", 3) == 0)
+      {
+         String geometryShader = mGeometryFile.getFileName();
+         mGeometryShader->SetPrivateData(WKPDID_D3DDebugObjectName, geometryShader.size(), geometryShader.c_str());
+      }
+      else if (target.compare("hs_", 3) == 0)
+      {
+         String hullShader = mHullFile.getFileName();
+         mHullShader->SetPrivateData(WKPDID_D3DDebugObjectName, hullShader.size(), hullShader.c_str());
+      }
+      else if (target.compare("ds_", 3) == 0)
+      {
+         String domainShader = mDomainFile.getFileName();
+         mDomainShader->SetPrivateData(WKPDID_D3DDebugObjectName, domainShader.size(), domainShader.c_str());
+      }
    }
 #endif
   
@@ -2003,7 +2009,7 @@ bool GFXD3D11Shader::_loadCompiledOutput( const Torque::Path &filePath,
 
    f.close();
 
-   HRESULT res;
+   HRESULT res = S_OK;
    if (target.compare("cs_", 3) == 0)
    {
       res = D3D11DEVICE->CreateComputeShader(buffer, bufferSize, NULL, &mCompShader);

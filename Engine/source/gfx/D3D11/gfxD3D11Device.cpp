@@ -1265,6 +1265,13 @@ void GFXD3D11Device::setShader(GFXShader *shader, bool force)
    {
       GFXD3D11Shader *d3dShader = static_cast<GFXD3D11Shader*>(shader);
 
+      if (d3dShader->mCompShader)
+      {
+         // we should probably return after a cs shader is set.
+         mD3DDeviceContext->CSSetShader(d3dShader->mCompShader, NULL, 0);
+         mLastComputeShader = d3dShader->mCompShader;
+      }
+
       if (d3dShader->mPixShader != mLastPixShader || force)
       {
         mD3DDeviceContext->PSSetShader( d3dShader->mPixShader, NULL, 0);
@@ -1343,8 +1350,6 @@ void GFXD3D11Device::_setComputeTextureInternal(U32 slot, GFXTextureObject* text
 
       if (tex->getDepth() > 0)
          Tex3d = true;
-
-      DXGI_FORMAT d3dTextureFormat = GFXD3D11TextureFormat[tex->getFormat()];
 
       // are we 3d?
       if (Tex3d)
@@ -1470,7 +1475,7 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
 
    if (mLastComputeShader)
    {
-      AssertFatal(slot < 7, "GFXD3D11ComputeShader::setComputeTarget - out of range slot.");
+      AssertFatal(slot < 7, "GFXD3D11Device::setComputeTarget - out of range slot.");
 
       mTargets2D[slot] = NULL;
       mTargets3D[slot] = NULL;
@@ -1478,7 +1483,7 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
 
       if (!texture)
       {
-         Con::errorf("GFXD3D11ComputeShader::setComputeTarget - No Texture to assign as the target for slot: %d", slot);
+         Con::errorf("GFXD3D11Device::setComputeTarget - No Texture to assign as the target for slot: %d", slot);
          return;
       }
 
@@ -1522,7 +1527,7 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
       hr = D3D11DEVICE->CreateBuffer(&descTargetBuffer, NULL, &targetDataBuffer);
       if (FAILED(hr))
       {
-         Con::errorf("GFXD3D11ComputeShader::setComputeTarget- Failed to create target buffer!");
+         Con::errorf("GFXD3D11Device::setComputeTarget - Failed to create target buffer!");
          return;
       }
 
@@ -1543,7 +1548,7 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
       hr = D3D11DEVICE->CreateUnorderedAccessView(targetDataBuffer, &descView, &targetBufferView);
       if (FAILED(hr))
       {
-         Con::errorf("GFXD3D11ComputeShader::setComputeTarget- Failed to create Unordered access view!");
+         Con::errorf("GFXD3D11Device::setComputeTarget - Failed to create Unordered access view!");
          return;
       }
 
