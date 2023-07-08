@@ -127,10 +127,9 @@ protected:
    ID3D11DomainShader* mLastDomainShader;
 
    ID3D11ComputeShader* mLastComputeShader;
-   // in compute shaders we want the option of 3d texture targets as well as 2d.
-   ID3D11Texture2D* mTargets2D[7];
-   ID3D11Texture3D* mTargets3D[7];
+
    GFXD3D11TextureObject* mResolveTargets[7];
+   ID3D11Buffer* mDescTargetBuffer;
 
    S32 mCreateFenceType;
 
@@ -257,6 +256,7 @@ public:
    virtual void _setComputeTextureInternal(U32 slot, GFXTextureObject* texture);
    virtual void setComputeTarget(U32 slot, GFXTextureObject* texture);
    virtual void resolveCompute();
+   byte* getGpuBuffer();
    virtual void dispatchCompute(U32 x, U32 y, U32 z);
    // }
 

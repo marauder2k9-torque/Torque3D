@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "T3D/examples/renderGSExample.h"
+#include "T3D/examples/renderCSExample.h"
 
 #include "math/mathIO.h"
 #include "scene/sceneRenderState.h"
@@ -32,9 +32,9 @@
 #include "renderInstance/renderPassManager.h"
 
 
-IMPLEMENT_CO_NETOBJECT_V1(RenderGSExample);
+IMPLEMENT_CO_NETOBJECT_V1(RenderCSExample);
 
-ConsoleDocClass(RenderGSExample,
+ConsoleDocClass(RenderCSExample,
    "@brief An example scene object which renders using a callback.\n\n"
    "This class implements a basic SceneObject that can exist in the world at a "
    "3D position and render itself. Note that RenderObjectExample handles its own "
@@ -47,10 +47,16 @@ ConsoleDocClass(RenderGSExample,
    "See the C++ code for implementation details.\n\n"
    "@ingroup Examples\n");
 
+GFX_ImplementTextureProfile(CSTestTextureProfile,
+                           GFXTextureProfile::DiffuseMap,
+                           GFXTextureProfile::UnorderedAccess |
+                           GFXTextureProfile::Pooled,
+                           GFXTextureProfile::NONE);
+
 //-----------------------------------------------------------------------------
 // Object setup and teardown
 //-----------------------------------------------------------------------------
-RenderGSExample::RenderGSExample()
+RenderCSExample::RenderCSExample()
 {
    // Flag this object so that it will always
    // be sent across the network to clients
@@ -58,33 +64,24 @@ RenderGSExample::RenderGSExample()
 
    // Set it as a "static" object
    mTypeMask |= StaticObjectType | StaticShapeObjectType;
-
-   mObjColor.set(200, 200, 200, 255);
-   mObjExplosion = 0.0f;
 }
 
-RenderGSExample::~RenderGSExample()
+RenderCSExample::~RenderCSExample()
 {
 }
 
 //-----------------------------------------------------------------------------
 // Object Editing
 //-----------------------------------------------------------------------------
-void RenderGSExample::initPersistFields()
+void RenderCSExample::initPersistFields()
 {
    docsURL;
    // SceneObject already handles exposing the transform
 
-   addField("Object Color:", TypeColorI, Offset(mObjColor, RenderGSExample),
-      "Color of the object RGBA (Alpha is ignored)");
-
-   addField("Explosion Amount", TypeF32, Offset(mObjExplosion, RenderGSExample),
-      "How far to explode the pieces.");
-
    Parent::initPersistFields();
 }
 
-bool RenderGSExample::onAdd()
+bool RenderCSExample::onAdd()
 {
    if (!Parent::onAdd())
       return false;
@@ -102,27 +99,26 @@ bool RenderGSExample::onAdd()
    {
       // Find ShaderData
       ShaderData* shaderData;
-      mShader = Sim::findObject("GeoemtryTestShader", shaderData) ?
-         shaderData->getShader() : NULL;
+      mShader = Sim::findObject("ComputeTextureShader", shaderData) ? shaderData->getShader() : NULL;
       if (!mShader)
       {
-         Con::errorf("RenderGSExample::onAdd - could not find GeoemtryTestShader");
+         Con::errorf("RenderCSExample::onAdd - could not find ComputeTextureShader");
          return false;
       }
 
-      // Create ShaderConstBuffer and Handles
-      mShaderConsts = mShader->allocConstBuffer();
-      mObjColorSC = mShader->getShaderConstHandle("$col");
-      mObjExplosionSC = mShader->getShaderConstHandle("$explosionAmt");
-      mModelMatSC = mShader->getShaderConstHandle("$modelMat");
-      mProjViewSC = mShader->getShaderConstHandle("$projViewMat");
+      mCompShader = Sim::findObject("ComputeTestShader", shaderData) ? shaderData->getShader() : NULL;
+      if (!mCompShader)
+      {
+         Con::errorf("RenderCSExample::onAdd - could not find ComputeTestShader");
+         return false;
+      }
 
    }
 
    return true;
 }
 
-void RenderGSExample::onRemove()
+void RenderCSExample::onRemove()
 {
    // Remove this object from the scene
    removeFromScene();
@@ -130,7 +126,7 @@ void RenderGSExample::onRemove()
    Parent::onRemove();
 }
 
-void RenderGSExample::setTransform(const MatrixF& mat)
+void RenderCSExample::setTransform(const MatrixF& mat)
 {
    // Let SceneObject handle all of the matrix manipulation
    Parent::setTransform(mat);
@@ -140,7 +136,7 @@ void RenderGSExample::setTransform(const MatrixF& mat)
    setMaskBits(TransformMask);
 }
 
-U32 RenderGSExample::packUpdate(NetConnection* conn, U32 mask, BitStream* stream)
+U32 RenderCSExample::packUpdate(NetConnection* conn, U32 mask, BitStream* stream)
 {
    // Allow the Parent to get a crack at writing its info
    U32 retMask = Parent::packUpdate(conn, mask, stream);
@@ -152,13 +148,10 @@ U32 RenderGSExample::packUpdate(NetConnection* conn, U32 mask, BitStream* stream
       mathWrite(*stream, getScale());
    }
 
-   stream->write(mObjExplosion);
-   stream->write(mObjColor);
-
    return retMask;
 }
 
-void RenderGSExample::unpackUpdate(NetConnection* conn, BitStream* stream)
+void RenderCSExample::unpackUpdate(NetConnection* conn, BitStream* stream)
 {
    // Let the Parent read any info it sent
    Parent::unpackUpdate(conn, stream);
@@ -170,15 +163,12 @@ void RenderGSExample::unpackUpdate(NetConnection* conn, BitStream* stream)
 
       setTransform(mObjToWorld);
    }
-
-   stream->read(&mObjExplosion);
-   stream->read(&mObjColor);
 }
 
 //-----------------------------------------------------------------------------
 // Object Rendering
 //-----------------------------------------------------------------------------
-void RenderGSExample::createGeometry()
+void RenderCSExample::createGeometry()
 {
    static const Point3F cubePoints[8] =
    {
@@ -186,6 +176,19 @@ void RenderGSExample::createGeometry()
       Point3F(1.0f,  1.0f, -1.0f), Point3F(1.0f,  1.0f,  1.0f),
       Point3F(-1.0f, -1.0f, -1.0f), Point3F(-1.0f,  1.0f, -1.0f),
       Point3F(-1.0f, -1.0f,  1.0f), Point3F(-1.0f,  1.0f,  1.0f)
+   };
+
+   static const Point2F cubeTexCoords[4] =
+   {
+      Point2F(0,  0), Point2F(0, -1),
+      Point2F(1,  0), Point2F(1, -1)
+   };
+
+   static const ColorI cubeColors[3] =
+   {
+      ColorI(255,   0,   0, 255),
+      ColorI(0, 255,   0, 255),
+      ColorI(0,   0, 255, 255)
    };
 
    static const U32 cubeFaces[36][3] =
@@ -215,10 +218,12 @@ void RenderGSExample::createGeometry()
    for (U32 i = 0; i < 36; i++)
    {
       const U32& vdx = cubeFaces[i][0];
-      const U32& ndx = cubeFaces[i][1];
+      const U32& tdx = cubeFaces[i][2];
       const U32& cdx = cubeFaces[i][2];
 
       pVert[i].point = cubePoints[vdx] * halfSize;
+      pVert[i].color = cubeColors[cdx];
+      pVert[i].texCoord = cubeTexCoords[tdx];
    }
 
    mVertexBuffer.unlock();
@@ -235,7 +240,7 @@ void RenderGSExample::createGeometry()
    mReflectSB = GFX->createStateBlock(desc);
 }
 
-void RenderGSExample::prepRenderImage(SceneRenderState* state)
+void RenderCSExample::prepRenderImage(SceneRenderState* state)
 {
    // Do a little prep work if needed
    if (mVertexBuffer.isNull())
@@ -245,7 +250,7 @@ void RenderGSExample::prepRenderImage(SceneRenderState* state)
    ObjectRenderInst* ri = state->getRenderPass()->allocInst<ObjectRenderInst>();
 
    // Now bind our rendering function so that it will get called
-   ri->renderDelegate.bind(this, &RenderGSExample::render);
+   ri->renderDelegate.bind(this, &RenderCSExample::render);
 
    // Set our RenderInst as a standard object render
    ri->type = RenderPassManager::RIT_Object;
@@ -258,7 +263,13 @@ void RenderGSExample::prepRenderImage(SceneRenderState* state)
    state->getRenderPass()->addInst(ri);
 }
 
-void RenderGSExample::render(ObjectRenderInst* ri, SceneRenderState* state, BaseMatInstance* overrideMat)
+GFXTextureObject* RenderCSExample::_getTestTexture(U32 width, U32 height)
+{
+   GFXTexHandle testTexture(width, height, GFXFormatR8G8B8A8, &CSTestTextureProfile, "RenderCSExample::_getTestTexture");
+   return testTexture;
+}
+
+void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, BaseMatInstance* overrideMat)
 {
    if (overrideMat)
       return;
@@ -276,12 +287,19 @@ void RenderGSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
    // it goes out of scope at the end of the function
    GFXTransformSaver saver;
 
+   GFXTextureObject* csTestTexture = _getTestTexture(256, 256);
+
    // Calculate our object to world transform matrix
    MatrixF objectToWorld = getRenderTransform();
    objectToWorld.scale(getScale());
 
    // Apply our object transform
    GFX->multWorld(objectToWorld);
+
+   GFX->setComputeShader(mCompShader);
+   GFX->setComputeTarget(0, csTestTexture);
+   GFX->dispatchCompute(256, 256, 1);
+   GFX->resolveCompute();
 
    // Deal with reflect pass otherwise
    // set the normal StateBlock
@@ -293,14 +311,9 @@ void RenderGSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
    // Set up the "generic" shaders
    // These handle rendering on GFX layers that don't support
    // fixed function. Otherwise they disable shaders.
-   GFX->setShader(mShader);
-   GFX->setShaderConstBuffer(mShaderConsts);
+   GFX->setupGenericShaders(GFXDevice::GSModColorTexture);
 
-   mShaderConsts->setSafe(mObjColorSC, mObjColor);
-   mShaderConsts->setSafe(mObjExplosionSC, mObjExplosion);
-
-   mShaderConsts->set(mModelMatSC, GFX->getWorldMatrix(), GFXSCT_Float4x4);
-   mShaderConsts->set(mProjViewSC, GFX->getProjectionMatrix() * GFX->getViewMatrix(), GFXSCT_Float4x4);
+   GFX->setTexture(0, csTestTexture);
 
    // Set the vertex buffer
    GFX->setVertexBuffer(mVertexBuffer);

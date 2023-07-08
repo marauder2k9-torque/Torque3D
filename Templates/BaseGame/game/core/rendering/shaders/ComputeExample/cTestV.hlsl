@@ -20,17 +20,26 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-singleton ShaderData( ComputeTestShader )
+#include "../shaderModel.hlsl"
+
+struct Appdata
 {
-   DXComputeShaderFile   = $Core::CommonShaderPath @ "/ComputeExample/cTestC.hlsl";
-   
-   pixVersion = 3.0;
+	float3 position   : POSITION;
+	float2 texCoord   : TEXCOORD0;
 };
 
-singleton ShaderData( ComputeTextureShader )
+struct Conn
 {
-   DXVertexShaderFile   = $Core::CommonShaderPath @ "/ComputeExample/cTestV.hlsl";
-   DXPixelShaderFile   = $Core::CommonShaderPath @ "/ComputeExample/cTestP.hlsl";
-
-   pixVersion = 3.0;
+	float4 hpos             : TORQUE_POSITION;
+	float2 texCoord         : TEXCOORD0;
 };
+
+uniform float4x4 modelview;
+
+Conn main( Appdata In )
+{
+	Conn Out;
+	Out.hpos = mul(modelview, float4(In.position, 1.0));
+	Out.texCoord = In.texCoord;
+	return Out;
+}

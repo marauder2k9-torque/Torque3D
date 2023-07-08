@@ -41,6 +41,7 @@ function AssetBrowser::loadCreatorClasses(%this)
       %this.addCreatorClass( "RenderObjectExample" );
       %this.addCreatorClass( "RenderShapeExample" );
       %this.addCreatorClass( "RenderGSExample" );
+      %this.addCreatorClass( "RenderCSExample" );
    %this.endCreatorGroup(); 
    
    %this.beginCreatorGroup( "Level" );

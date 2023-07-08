@@ -20,17 +20,17 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-singleton ShaderData( ComputeTestShader )
+#include "../shaderModel.hlsl"
+
+TORQUE_UNIFORM_SAMPLER2D(diffuseMap, 0);
+
+struct Conn
 {
-   DXComputeShaderFile   = $Core::CommonShaderPath @ "/ComputeExample/cTestC.hlsl";
-   
-   pixVersion = 3.0;
+   float4 hpos             : TORQUE_POSITION;
+   float2 texCoord         : TEXCOORD0;
 };
 
-singleton ShaderData( ComputeTextureShader )
+float4 main(Conn IN) : TORQUE_TARGET0
 {
-   DXVertexShaderFile   = $Core::CommonShaderPath @ "/ComputeExample/cTestV.hlsl";
-   DXPixelShaderFile   = $Core::CommonShaderPath @ "/ComputeExample/cTestP.hlsl";
-
-   pixVersion = 3.0;
-};
+   return TORQUE_TEX2D(diffuseMap, IN.texCoord);
+}

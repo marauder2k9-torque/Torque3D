@@ -156,8 +156,6 @@ GFXD3D11Device::GFXD3D11Device(U32 index)
 
    for (S32 i = 0; i < 7; i++)
    {
-      mTargets2D[i] = NULL;
-      mTargets3D[i] = NULL;
       mResolveTargets[i] = NULL;
    }
 }
@@ -212,8 +210,6 @@ GFXD3D11Device::~GFXD3D11Device()
 
    for (S32 i = 0; i < 7; i++)
    {
-      SAFE_RELEASE(mTargets2D[i]);
-      SAFE_RELEASE(mTargets3D[i]);
       mResolveTargets[i] = NULL;
    }
 }
@@ -1477,8 +1473,6 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
    {
       AssertFatal(slot < 7, "GFXD3D11Device::setComputeTarget - out of range slot.");
 
-      mTargets2D[slot] = NULL;
-      mTargets3D[slot] = NULL;
       mResolveTargets[slot] = NULL;
 
       if (!texture)
@@ -1496,25 +1490,10 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
       U32 textureDataSize;
       U32 bytesPerPixel = tex->getFormatByteSize();
 
-      if (tex->getDepth() > 0)
-         Tex3d = true;
-
-      if (Tex3d)
-      {
-         D3D11_TEXTURE3D_DESC desc;
-         ID3D11Texture3D* d3dTexture = static_cast<ID3D11Texture3D*>(tex->getResource());
-         d3dTexture->GetDesc(&desc);
-         textureDataSize = desc.Width * desc.Height * desc.Depth * bytesPerPixel;
-         mTargets3D[slot] = tex->get3DTex();
-      }
-      else
-      {
-         D3D11_TEXTURE2D_DESC desc;
-         ID3D11Texture2D* d3dTexture = static_cast<ID3D11Texture2D*>(tex->getResource());
-         d3dTexture->GetDesc(&desc);
-         textureDataSize = desc.Width * desc.Height * bytesPerPixel;
-         mTargets2D[slot] = tex->get2DTex();
-      }
+      D3D11_TEXTURE2D_DESC desc;
+      ID3D11Texture2D* d3dTexture = static_cast<ID3D11Texture2D*>(tex->getResource());
+      d3dTexture->GetDesc(&desc);
+      textureDataSize = desc.Width * desc.Height * bytesPerPixel;
 
       D3D11_BUFFER_DESC descTargetBuffer;
       ZeroMemory(&descTargetBuffer, sizeof(descTargetBuffer));
@@ -1523,8 +1502,7 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
       descTargetBuffer.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
       descTargetBuffer.StructureByteStride = bytesPerPixel;
 
-      ID3D11Buffer* targetDataBuffer;
-      hr = D3D11DEVICE->CreateBuffer(&descTargetBuffer, NULL, &targetDataBuffer);
+      hr = D3D11DEVICE->CreateBuffer(&descTargetBuffer, NULL, &mDescTargetBuffer);
       if (FAILED(hr))
       {
          Con::errorf("GFXD3D11Device::setComputeTarget - Failed to create target buffer!");
@@ -1533,7 +1511,7 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
 
       D3D11_BUFFER_DESC descViewBuffer;
       ZeroMemory(&descViewBuffer, sizeof(descViewBuffer));
-      targetDataBuffer->GetDesc(&descViewBuffer);
+      mDescTargetBuffer->GetDesc(&descViewBuffer);
 
       D3D11_UNORDERED_ACCESS_VIEW_DESC descView;
       ZeroMemory(&descView, sizeof(descView));
@@ -1545,14 +1523,14 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
       descView.Buffer.NumElements = descViewBuffer.ByteWidth / descViewBuffer.StructureByteStride;
 
       ID3D11UnorderedAccessView* targetBufferView;
-      hr = D3D11DEVICE->CreateUnorderedAccessView(targetDataBuffer, &descView, &targetBufferView);
+      hr = D3D11DEVICE->CreateUnorderedAccessView(mDescTargetBuffer, &descView, &targetBufferView);
       if (FAILED(hr))
       {
          Con::errorf("GFXD3D11Device::setComputeTarget - Failed to create Unordered access view!");
          return;
       }
 
-      D3D11DEVICECONTEXT->CSSetUnorderedAccessViews(slot, 0, &targetBufferView, NULL);
+      D3D11DEVICECONTEXT->CSSetUnorderedAccessViews(slot, 1, &targetBufferView, NULL);
    }
 }
 
@@ -1562,23 +1540,55 @@ void GFXD3D11Device::resolveCompute()
 
    for (U32 i = 0; i < 7; i++)
    {
+      // We use existance @ mResolveTargets as a flag that we need to copy
+      // data from the rendertarget into the texture.
       if (mResolveTargets[i])
       {
-         // is our target 3d? 
-         if (mResolveTargets[i]->getDepth() > 0)
-         {
-            D3D11_TEXTURE3D_DESC desc;
-            mTargets3D[i]->GetDesc(&desc);
-            D3D11DEVICECONTEXT->CopySubresourceRegion(mResolveTargets[i]->get3DTex(), 0, 0, 0, 0, mTargets3D[i], 0, NULL);
-         }
-         else // it must be 2d.
-         {
-            D3D11_TEXTURE2D_DESC desc;
-            mTargets2D[i]->GetDesc(&desc);
-            D3D11DEVICECONTEXT->CopySubresourceRegion(mResolveTargets[i]->get2DTex(), 0, 0, 0, 0, mTargets2D[i], 0, NULL);
-         }
+
+         U32 textureDataSize;
+         U32 bytesPerPixel = mResolveTargets[i]->getFormatByteSize();
+
+         D3D11_TEXTURE2D_DESC desc;
+         ID3D11Texture2D* d3dTexture = static_cast<ID3D11Texture2D*>(mResolveTargets[i]->getResource());
+         d3dTexture->GetDesc(&desc);
+         textureDataSize = desc.Width * desc.Height * bytesPerPixel;
+         byte* buf = getGpuBuffer();
+         D3D11DEVICECONTEXT->UpdateSubresource(mResolveTargets[i]->getResource(), 0, NULL, buf, desc.Width * bytesPerPixel, desc.Height * bytesPerPixel);
+         SAFE_DELETE_ARRAY(buf);
       }
    }
+}
+
+byte* GFXD3D11Device::getGpuBuffer()
+{
+   ID3D11Buffer* debugbuf = NULL;
+
+   D3D11_BUFFER_DESC desc;
+   ZeroMemory(&desc, sizeof(desc));
+   mDescTargetBuffer->GetDesc(&desc);
+
+   UINT byteSize = desc.ByteWidth;
+
+   desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+   desc.Usage = D3D11_USAGE_STAGING;
+   desc.BindFlags = 0;
+   desc.MiscFlags = 0;
+
+   D3D11DEVICE->CreateBuffer(&desc, NULL, &debugbuf);
+   D3D11DEVICECONTEXT->CopyResource(debugbuf, mDescTargetBuffer);
+
+   D3D11_MAPPED_SUBRESOURCE mappedResource;
+   if (D3D11DEVICECONTEXT->Map(debugbuf, 0, D3D11_MAP_READ, 0, &mappedResource) != S_OK)
+      return NULL;
+
+   byte* outBuff = new byte[byteSize];
+   memcpy(outBuff, mappedResource.pData, byteSize);
+
+   D3D11DEVICECONTEXT->Unmap(debugbuf, 0);
+
+   debugbuf->Release();
+
+   return outBuff;
 }
 
 void GFXD3D11Device::dispatchCompute(U32 x, U32 y, U32 z)

@@ -20,8 +20,8 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef _RENDERGSOBJECTEXAMPLE_H_
-#define _RENDERGSOBJECTEXAMPLE_H_
+#ifndef _RENDERCSOBJECTEXAMPLE_H_
+#define _RENDERCSOBJECTEXAMPLE_H_
 
 #ifndef _SCENEOBJECT_H_
 #include "scene/sceneObject.h"
@@ -47,7 +47,7 @@ class BaseMatInstance;
 // pipeline. This shader includes a geometry shader that just explodes the object.
 //-----------------------------------------------------------------------------
 
-class RenderGSExample : public SceneObject
+class RenderCSExample : public SceneObject
 {
    typedef SceneObject Parent;
 
@@ -67,7 +67,7 @@ class RenderGSExample : public SceneObject
    //--------------------------------------------------------------------------
    // Define our vertex format here so we don't have to
    // change it in multiple spots later
-   typedef GFXVertexP VertexType;
+   typedef GFXVertexPCT VertexType;
 
    // The handles for our StateBlocks
    GFXStateBlockRef mNormalSB;
@@ -77,12 +77,12 @@ class RenderGSExample : public SceneObject
    GFXVertexBufferHandle< VertexType > mVertexBuffer;
 
 public:
-   RenderGSExample();
-   virtual ~RenderGSExample();
+   RenderCSExample();
+   virtual ~RenderCSExample();
 
    // Declare this object as a ConsoleObject so that we can
    // instantiate it into the world and network it
-   DECLARE_CONOBJECT(RenderGSExample);
+   DECLARE_CONOBJECT(RenderCSExample);
 
    //--------------------------------------------------------------------------
    // Object Editing
@@ -123,22 +123,18 @@ public:
    // This is the function that allows this object to submit itself for rendering
    void prepRenderImage(SceneRenderState* state);
 
+   GFXTextureObject* _getTestTexture(U32 width, U32 height);
+
    // This is the function that actually gets called to do the rendering
    // Note that there is no longer a predefined name for this function.
    // Instead, when we submit our ObjectRenderInst in prepRenderImage(),
    // we bind this function as our rendering delegate function
    void render(ObjectRenderInst* ri, SceneRenderState* state, BaseMatInstance* overrideMat);
 protected:
-   ColorI mObjColor;
-   F32 mObjExplosion;
 
    // Shaders
+   GFXShaderRef mCompShader;
    GFXShaderRef mShader;
-   GFXShaderConstBufferRef mShaderConsts;
-   GFXShaderConstHandle* mObjColorSC;
-   GFXShaderConstHandle* mObjExplosionSC;
-   GFXShaderConstHandle* mModelMatSC;
-   GFXShaderConstHandle* mProjViewSC;
 };
 
 #endif // _RENDEROBJECTEXAMPLE_H_

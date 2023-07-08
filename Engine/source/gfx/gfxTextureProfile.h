@@ -105,7 +105,9 @@ public:
       NoDiscard = BIT(11),
 
       
-      NoModify = BIT(11)
+      NoModify = BIT(11),
+
+      UnorderedAccess = BIT(12)
 
    };
 
@@ -169,6 +171,7 @@ public:
    inline bool isRenderTarget() const { return testFlag(RenderTarget); }
    inline bool isZTarget() const { return testFlag(ZTarget); }
    inline bool isSystemMemory() const { return testFlag(SystemMemory); }
+   inline bool testUnordered() const { return testFlag(UnorderedAccess); }
    inline bool noMip() const { return testFlag(NoMipmap); }
    inline bool isPooled() const { return testFlag(Pooled); }
    inline bool canDiscard() const { return !testFlag(NoDiscard); }

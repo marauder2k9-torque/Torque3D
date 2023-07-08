@@ -1643,14 +1643,18 @@ bool GFXD3D11Shader::_compileShader( const Torque::Path &filePath,
             AssertFatal(false, "D3D11Shader::_compilershader- failed to create shader");
          }
 
-	      if(res == S_OK){
+	      if(res == S_OK)
+         {
 		      HRESULT reflectionResult = D3DReflect(code->GetBufferPointer(), code->GetBufferSize(), IID_ID3D11ShaderReflection, (void**)&reflectionTable);
-		   if(FAILED(reflectionResult))
-		      AssertFatal(false, "D3D11Shader::_compilershader - Failed to get shader reflection table interface");
-	  }
+		      if(FAILED(reflectionResult))
+		         AssertFatal(false, "D3D11Shader::_compilershader - Failed to get shader reflection table interface");
+	      }
 
-	  if(res == S_OK)
-		_getShaderConstants(reflectionTable, bufferLayout, samplerDescriptions);	  
+         if (mComputeFile.isEmpty())
+         {
+            if (res == S_OK)
+               _getShaderConstants(reflectionTable, bufferLayout, samplerDescriptions);
+         }
 
 #ifdef TORQUE_ENABLE_CSF_GENERATION
 
@@ -1739,10 +1743,11 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
       {
 
    #ifdef TORQUE_DEBUG
-         AssertFatal(constantBufferDesc.Type == D3D_CT_CBUFFER, "Only scalar cbuffers supported for now.");
+        /* AssertFatal(constantBufferDesc.Type == D3D_CT_CBUFFER, "Only scalar cbuffers supported for now.");
 
          if (String::compare(constantBufferDesc.Name, "$Globals") != 0 && String::compare(constantBufferDesc.Name, "$Params") != 0)
-            AssertFatal(false, "Only $Global and $Params cbuffer supported for now.");
+            AssertFatal(false, "Only $Global and $Params cbuffer supported for now.");*/
+
    #endif
    #ifdef D3D11_DEBUG_SPEW
          Con::printf("Constant Buffer Name: %s", constantBufferDesc.Name);
