@@ -763,7 +763,16 @@ public:
    virtual GFXShader* createShader() = 0;
    
    /// @}
- 
+   
+   /// @Compute Shader functions
+   /// @{
+   virtual void setComputeShader(GFXShader* shader, bool force = false) {}
+   // capture this at this level to sort out api.
+   void setComputeTexture(U32 slot, GFXTextureObject* texture);
+   virtual void _setComputeTextureInternal(U32 slot, GFXTextureObject* texture) {}
+   virtual void setComputeTarget(U32 slot, GFXTextureObject* texture) {}
+   virtual void resolveCompute() {}
+   /// @}
    //-----------------------------------------------------------------------------
 
    /// @name Copying methods

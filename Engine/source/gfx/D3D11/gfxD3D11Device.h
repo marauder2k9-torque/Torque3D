@@ -125,7 +125,12 @@ protected:
    ID3D11GeometryShader* mLastGeomShader;
    ID3D11HullShader* mLastHullShader;
    ID3D11DomainShader* mLastDomainShader;
+
    ID3D11ComputeShader* mLastComputeShader;
+   // in compute shaders we want the option of 3d texture targets as well as 2d.
+   ID3D11Texture2D* mTargets2D[7];
+   ID3D11Texture3D* mTargets3D[7];
+   GFXD3D11TextureObject* mResolveTargets[7];
 
    S32 mCreateFenceType;
 
@@ -241,9 +246,17 @@ public:
    virtual F32  getPixelShaderVersion() const { return mPixVersion; }
    virtual void setPixelShaderVersion( F32 version ){ mPixVersion = version;} 
 
-   virtual void setShader(GFXShader *shader, bool force = false);
+   virtual void setShader(GFXShader* shader, bool force = false);
    virtual U32  getNumSamplers() const { return 16; }
    virtual U32  getNumRenderTargets() const { return 8; }
+   // }
+
+   // Compute shader methods.
+   // {
+   virtual void setComputeShader(GFXShader *shader, bool force = false);
+   virtual void _setComputeTextureInternal(U32 slot, GFXTextureObject* texture);
+   virtual void setComputeTarget(U32 slot, GFXTextureObject* texture);
+   virtual void resolveCompute();
    // }
 
    // Copy methods

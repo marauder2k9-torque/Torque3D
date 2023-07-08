@@ -153,6 +153,13 @@ GFXD3D11Device::GFXD3D11Device(U32 index)
 
    // Set up the Enum translation tables
    GFXD3D11EnumTranslate::init();
+
+   for (S32 i = 0; i < 7; i++)
+   {
+      mTargets2D[i] = NULL;
+      mTargets3D[i] = NULL;
+      mResolveTargets[i] = NULL;
+   }
 }
 
 GFXD3D11Device::~GFXD3D11Device()
@@ -202,6 +209,13 @@ GFXD3D11Device::~GFXD3D11Device()
 
    SAFE_RELEASE(mSwapChain);
    SAFE_RELEASE(mD3DDevice);
+
+   for (S32 i = 0; i < 7; i++)
+   {
+      SAFE_RELEASE(mTargets2D[i]);
+      SAFE_RELEASE(mTargets3D[i]);
+      mResolveTargets[i] = NULL;
+   }
 }
 
 GFXFormat GFXD3D11Device::selectSupportedFormat(GFXTextureProfile *profile, const Vector<GFXFormat> &formats, bool texture, bool mustblend, bool mustfilter)
@@ -1285,6 +1299,280 @@ void GFXD3D11Device::setShader(GFXShader *shader, bool force)
    else
    {
       setupGenericShaders();
+   }
+}
+
+void GFXD3D11Device::setComputeShader(GFXShader* shader, bool force)
+{
+   if (shader)
+   {
+      GFXD3D11Shader* d3dShader = static_cast<GFXD3D11Shader*>(shader);
+      if (d3dShader->mCompShader != mLastComputeShader || force)
+      {
+         mD3DDeviceContext->CSSetShader(d3dShader->mCompShader, NULL, 0);
+         mLastComputeShader = d3dShader->mCompShader;
+      }
+   }
+}
+
+void GFXD3D11Device::_setComputeTextureInternal(U32 slot, GFXTextureObject* texture)
+{
+   // this should probably be moved to sub classes.
+   if (mLastComputeShader)
+   {
+      PROFILE_SCOPE(GFXD3D11Device_setComputeTextureInternal);
+
+      if (!texture)
+      {
+         // clear the slot being set.
+         Con::errorf("GFXD3D11Device::_setComputeTextureInternal - No Texture to assign as the input for slot: %d", slot);
+         ID3D11ShaderResourceView* pView = NULL;
+         D3D11DEVICECONTEXT->CSSetShaderResources(slot, 0, &pView);
+         return;
+      }
+
+      GFXD3D11TextureObject* tex = static_cast<GFXD3D11TextureObject*>(texture);
+
+      HRESULT hr;
+      // create a byte pointer..
+      byte* texData{};
+      U32 textureDataSize;
+
+      U32 bytesPerPixel = tex->getFormatByteSize();
+      bool Tex3d = false;
+
+      if (tex->getDepth() > 0)
+         Tex3d = true;
+
+      DXGI_FORMAT d3dTextureFormat = GFXD3D11TextureFormat[tex->getFormat()];
+
+      // are we 3d?
+      if (Tex3d)
+      {
+         D3D11_TEXTURE3D_DESC desc;
+         ID3D11Texture3D* d3dTexture = static_cast<ID3D11Texture3D*>(tex->getResource());
+         d3dTexture->GetDesc(&desc);
+         desc.Usage = D3D11_USAGE_STAGING;
+         desc.BindFlags = 0;
+         desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+
+         ID3D11Texture3D* tempTex = NULL;
+         hr = D3D11DEVICE->CreateTexture3D(&desc, NULL, &tempTex);
+         if (FAILED(hr))
+         {
+            Con::errorf("GFXD3D11Device::_setComputeTextureInternal::3D - Failed to create staging texture!");
+            return;
+         }
+
+         D3D11DEVICECONTEXT->CopyResource(tempTex, d3dTexture);
+
+         D3D11_MAPPED_SUBRESOURCE mappedResource;
+         hr = D3D11DEVICECONTEXT->Map(tempTex, 0, D3D11_MAP_READ, 0, &mappedResource);
+         if (FAILED(hr))
+         {
+            Con::errorf("GFXD3D11Device::_setComputeTextureInternal::3D - Failed to create mapped resource!");
+            return;
+         }
+
+         textureDataSize = desc.Width * desc.Height * desc.Depth * bytesPerPixel;
+
+         dMemset(texData, 0, textureDataSize);
+
+         dMemcpy(texData, mappedResource.pData, textureDataSize);
+
+         D3D11DEVICECONTEXT->Unmap(tempTex, 0);
+      }
+      else // must be 2d
+      {
+         D3D11_TEXTURE2D_DESC desc;
+         ID3D11Texture2D* d3dTexture = static_cast<ID3D11Texture2D*>(tex->getResource());
+         d3dTexture->GetDesc(&desc);
+         desc.Usage = D3D11_USAGE_STAGING;
+         desc.BindFlags = 0;
+         desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+
+         ID3D11Texture2D* tempTex = NULL;
+         hr = D3D11DEVICE->CreateTexture2D(&desc, NULL, &tempTex);
+         if (FAILED(hr))
+         {
+            Con::errorf("GFXD3D11Device::_setComputeTextureInternal::2D - Failed to create staging texture!");
+            return;
+         }
+
+         D3D11DEVICECONTEXT->CopyResource(tempTex, d3dTexture);
+
+         D3D11_MAPPED_SUBRESOURCE mappedResource;
+         hr = D3D11DEVICECONTEXT->Map(tempTex, 0, D3D11_MAP_READ, 0, &mappedResource);
+         if (FAILED(hr))
+         {
+            Con::errorf("GFXD3D11Device::_setComputeTextureInternal::3D - Failed to create mapped resource!");
+            return;
+         }
+
+         textureDataSize = desc.Width * desc.Height * bytesPerPixel;
+
+         dMemset(texData, 0, textureDataSize);
+
+         dMemcpy(texData, mappedResource.pData, textureDataSize);
+
+         D3D11DEVICECONTEXT->Unmap(tempTex, 0);
+      }
+
+      if (texData)
+      {
+         ID3D11Buffer* csDataBuffer;
+         D3D11_BUFFER_DESC descCShader;
+         ZeroMemory(&descCShader, sizeof(descCShader));
+         descCShader.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+         descCShader.ByteWidth = textureDataSize;
+         descCShader.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+         descCShader.StructureByteStride = bytesPerPixel;
+
+         D3D11_SUBRESOURCE_DATA initData;
+         initData.pSysMem = texData;
+
+         hr = D3D11DEVICE->CreateBuffer(&descCShader, &initData, &csDataBuffer);
+         if (FAILED(hr))
+         {
+            Con::errorf("GFXD3D11Device::_setComputeTextureInternal - Failed to create buffer!");
+            return;
+         }
+
+         D3D11_BUFFER_DESC descBuf;
+         ZeroMemory(&descBuf, sizeof(descBuf));
+         csDataBuffer->GetDesc(&descBuf);
+
+         D3D11_SHADER_RESOURCE_VIEW_DESC descView;
+         ZeroMemory(&descView, sizeof(descView));
+         descView.ViewDimension = D3D11_SRV_DIMENSION_BUFFEREX;
+         descView.BufferEx.FirstElement = 0;
+
+         descView.Format = DXGI_FORMAT_UNKNOWN;
+         descView.BufferEx.NumElements = descBuf.ByteWidth / descBuf.StructureByteStride;
+
+         ID3D11ShaderResourceView* mCsResourecView;
+
+         hr = D3D11DEVICE->CreateShaderResourceView(csDataBuffer, &descView, &mCsResourecView);
+         if (FAILED(hr))
+         {
+            Con::errorf("GFXD3D11Device::_setComputeTextureInternal - Failed to create shader resource view!");
+            return;
+         }
+
+         D3D11DEVICECONTEXT->CSSetShaderResources(slot, 0, &mCsResourecView);
+      }
+   }
+}
+
+void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
+{
+   PROFILE_SCOPE(GFXD3D11Device_setComputeTarget);
+
+   if (mLastComputeShader)
+   {
+      AssertFatal(slot < 7, "GFXD3D11ComputeShader::setComputeTarget - out of range slot.");
+
+      mTargets2D[slot] = NULL;
+      mTargets3D[slot] = NULL;
+      mResolveTargets[slot] = NULL;
+
+      if (!texture)
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeTarget - No Texture to assign as the target for slot: %d", slot);
+         return;
+      }
+
+      GFXD3D11TextureObject* tex = static_cast<GFXD3D11TextureObject*>(texture);
+      mResolveTargets[slot] = tex;
+
+      // inits.
+      HRESULT hr;
+      bool Tex3d = false;
+      U32 textureDataSize;
+      U32 bytesPerPixel = tex->getFormatByteSize();
+
+      if (tex->getDepth() > 0)
+         Tex3d = true;
+
+      if (Tex3d)
+      {
+         D3D11_TEXTURE3D_DESC desc;
+         ID3D11Texture3D* d3dTexture = static_cast<ID3D11Texture3D*>(tex->getResource());
+         d3dTexture->GetDesc(&desc);
+         textureDataSize = desc.Width * desc.Height * desc.Depth * bytesPerPixel;
+         mTargets3D[slot] = tex->get3DTex();
+      }
+      else
+      {
+         D3D11_TEXTURE2D_DESC desc;
+         ID3D11Texture2D* d3dTexture = static_cast<ID3D11Texture2D*>(tex->getResource());
+         d3dTexture->GetDesc(&desc);
+         textureDataSize = desc.Width * desc.Height * bytesPerPixel;
+         mTargets2D[slot] = tex->get2DTex();
+      }
+
+      D3D11_BUFFER_DESC descTargetBuffer;
+      ZeroMemory(&descTargetBuffer, sizeof(descTargetBuffer));
+      descTargetBuffer.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+      descTargetBuffer.ByteWidth = textureDataSize;
+      descTargetBuffer.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+      descTargetBuffer.StructureByteStride = bytesPerPixel;
+
+      ID3D11Buffer* targetDataBuffer;
+      hr = D3D11DEVICE->CreateBuffer(&descTargetBuffer, NULL, &targetDataBuffer);
+      if (FAILED(hr))
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeTarget- Failed to create target buffer!");
+         return;
+      }
+
+      D3D11_BUFFER_DESC descViewBuffer;
+      ZeroMemory(&descViewBuffer, sizeof(descViewBuffer));
+      targetDataBuffer->GetDesc(&descViewBuffer);
+
+      D3D11_UNORDERED_ACCESS_VIEW_DESC descView;
+      ZeroMemory(&descView, sizeof(descView));
+      descView.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+      descView.Buffer.FirstElement = 0;
+
+      //apparently format must be unknown for a view of a structured buffer
+      descView.Format = DXGI_FORMAT_UNKNOWN;
+      descView.Buffer.NumElements = descViewBuffer.ByteWidth / descViewBuffer.StructureByteStride;
+
+      ID3D11UnorderedAccessView* targetBufferView;
+      hr = D3D11DEVICE->CreateUnorderedAccessView(targetDataBuffer, &descView, &targetBufferView);
+      if (FAILED(hr))
+      {
+         Con::errorf("GFXD3D11ComputeShader::setComputeTarget- Failed to create Unordered access view!");
+         return;
+      }
+
+      D3D11DEVICECONTEXT->CSSetUnorderedAccessViews(slot, 0, &targetBufferView, NULL);
+   }
+}
+
+void GFXD3D11Device::resolveCompute()
+{
+   PROFILE_SCOPE(GFXD3D11Device_resolveCompute);
+
+   for (U32 i = 0; i < 7; i++)
+   {
+      if (mResolveTargets[i])
+      {
+         // is our target 3d? 
+         if (mResolveTargets[i]->getDepth() > 0)
+         {
+            D3D11_TEXTURE3D_DESC desc;
+            mTargets3D[i]->GetDesc(&desc);
+            D3D11DEVICECONTEXT->CopySubresourceRegion(mResolveTargets[i]->get3DTex(), 0, 0, 0, 0, mTargets3D[i], 0, NULL);
+         }
+         else // it must be 2d.
+         {
+            D3D11_TEXTURE2D_DESC desc;
+            mTargets2D[i]->GetDesc(&desc);
+            D3D11DEVICECONTEXT->CopySubresourceRegion(mResolveTargets[i]->get2DTex(), 0, 0, 0, 0, mTargets2D[i], 0, NULL);
+         }
+      }
    }
 }
 

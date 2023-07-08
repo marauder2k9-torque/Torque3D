@@ -127,7 +127,26 @@ bool GFXShader::init(const Torque::Path& vertFile,
 
 bool GFXShader::initCompute(const Torque::Path& computeFile, F32 pixVersion, const Vector<GFXShaderMacro>& macros, const Vector<String>& samplerNames)
 {
-   return false;
+   // Store the inputs for use in reloading.
+   mComputeFile = computeFile;
+
+   mPixVersion = pixVersion;
+   mMacros = macros;
+   mSamplerNamesOrdered = samplerNames;
+
+   // Before we compile the shader make sure the
+   // conditioner features have been updated.
+   ConditionerFeature::updateConditioners();
+
+   if (!_initCompute())
+      return false;
+
+   _updateDesc();
+
+   // Add file change notifications for reloads.
+   Torque::FS::AddChangeNotification(mComputeFile, this, &GFXShader::_onFileChanged);
+
+   return true;
 }
 
 bool GFXShader::reload()
@@ -152,9 +171,18 @@ bool GFXShader::reload()
 
 void GFXShader::_updateDesc()
 {
-   mDescription = String::ToString( "Files: %s, %s Pix Version: %0.2f\nMacros: ", 
-      mVertexFile.getFullPath().c_str(), mPixelFile.getFullPath().c_str(), mPixVersion );
+   if (!mComputeFile.isEmpty())
+   {
+      mDescription = String::ToString("Files: %s Pix Version: %0.2f\nMacros: ",
+         mComputeFile.getFullPath().c_str(), mPixVersion);
+   }
+   else
+   {
+      mDescription = String::ToString("Files: %s, %s Pix Version: %0.2f\nMacros: ",
+         mVertexFile.getFullPath().c_str(), mPixelFile.getFullPath().c_str(), mPixVersion);
 
+   }
+   
    GFXShaderMacro::stringize( smGlobalMacros, &mDescription );
    GFXShaderMacro::stringize( mMacros, &mDescription );   
 }

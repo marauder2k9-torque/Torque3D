@@ -107,6 +107,14 @@ public:
    virtual void  setPixelShaderVersion( F32 version ) { mPixelShaderVersion = version; }
    
    virtual void setShader(GFXShader *shader, bool force = false);
+
+   // Compute shader methods.
+   // {
+   virtual void setComputeShader(GFXShader* shader, bool force = false);
+   virtual void _setComputeTextureInternal(U32 slot, GFXTextureObject* texture) {}
+   virtual void  setComputeTarget(U32 slot, GFXTextureObject* texture);
+   virtual void resolveCompute() {}
+   // }
    
    /// @attention GL cannot check if the given format supports blending or filtering!
    virtual GFXFormat selectSupportedFormat(GFXTextureProfile *profile,
@@ -223,6 +231,8 @@ private:
    U32 mDrawInstancesCount;
    
    GFXShader* mCurrentShader;
+   GFXShader* mCurrentComputeShader;
+
    GFXShaderRef mGenericShader[GS_COUNT];
    GFXShaderConstBufferRef mGenericShaderBuffer[GS_COUNT];
    GFXShaderConstHandle *mModelViewProjSC[GS_COUNT];

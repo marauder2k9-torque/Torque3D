@@ -269,6 +269,9 @@ public:
    GenericConstBufferLayout::ParamDesc mHullHandle;
    bool mDomainConstant;
    GenericConstBufferLayout::ParamDesc mDomainHandle;
+
+   bool mComputeConstant;
+   GenericConstBufferLayout::ParamDesc mComputeHandle;
    
    /// Is true if this constant is for hardware mesh instancing.
    ///
@@ -285,6 +288,7 @@ public:
       return ( mPixelConstant && mPixelHandle.constType >= GFXSCT_Sampler ) ||
          ( mVertexConstant && mVertexHandle.constType >= GFXSCT_Sampler ) ||
          (mGeometryConstant && mGeometryHandle.constType >= GFXSCT_Sampler) ||
+         (mComputeConstant && mComputeHandle.constType >= GFXSCT_Sampler) ||
          (mHullConstant && mHullHandle.constType >= GFXSCT_Sampler) ||
          (mDomainConstant && mDomainHandle.constType >= GFXSCT_Sampler) ;
    }
@@ -329,6 +333,10 @@ public:
       GFXD3D11ConstBufferLayout* geometryLayout = NULL,
       GFXD3D11ConstBufferLayout* hullLayout = NULL,
       GFXD3D11ConstBufferLayout* domainLayout = NULL);
+
+   // Compute shader specific initializer.
+   GFXD3D11ShaderConstBuffer(GFXD3D11Shader* shader,
+      GFXD3D11ConstBufferLayout* computeLayout);
 
    virtual ~GFXD3D11ShaderConstBuffer();
 
@@ -390,6 +398,8 @@ protected:
    ID3D11Buffer* mConstantBuffersH[CBUFFER_MAX];
    ID3D11Buffer* mConstantBuffersD[CBUFFER_MAX];
 
+   ID3D11Buffer* mConstantBuffersC[CBUFFER_MAX];
+
    /// We keep a weak reference to the shader 
    /// because it will often be deleted.
    WeakRefPtr<GFXD3D11Shader> mShader;
@@ -411,6 +421,10 @@ protected:
    //domain
    GFXD3D11ConstBufferLayout* mDomainConstBufferLayout;
    GenericConstBuffer* mDomainConstBuffer;
+   //Compute
+   bool mIsComputeBuffer;
+   GFXD3D11ConstBufferLayout* mComputeConstBufferLayout;
+   GenericConstBuffer* mComputeConstBuffer;
 };
 
 class gfxD3D11Include;
@@ -446,7 +460,7 @@ protected:
    virtual bool _init();
 
    /// Should not initialize compute shaders here.
-   virtual bool _initCompute() { return false; };
+   virtual bool _initCompute();
 
    static const U32 smCompiledShaderTag;
 
@@ -457,6 +471,7 @@ protected:
    ID3D11GeometryShader    *mGeometryShader;
    ID3D11HullShader        *mHullShader;
    ID3D11DomainShader      *mDomainShader;
+   ID3D11ComputeShader     *mCompShader;
 
    GFXD3D11ConstBufferLayout* mVertexConstBufferLayout;
    GFXD3D11ConstBufferLayout* mPixelConstBufferLayout;
@@ -464,6 +479,8 @@ protected:
    GFXD3D11ConstBufferLayout* mGeometryConstBufferLayout;
    GFXD3D11ConstBufferLayout* mHullConstBufferLayout;
    GFXD3D11ConstBufferLayout* mDomainConstBufferLayout;
+
+   GFXD3D11ConstBufferLayout* mComputeConstBufferLayout;
 
    static gfxD3DIncludeRef smD3DInclude;
 
@@ -508,10 +525,12 @@ protected:
    virtual void _buildShaderConstantHandles(GenericConstBufferLayout *layout, bool vertexConst);
 
    void buildGeometryShaderConstantHandles(GenericConstBufferLayout* layout);
+   void buildComputeShaderConstantHandles(GenericConstBufferLayout* layout);
    void buildHullShaderConstantHandles(GenericConstBufferLayout* layout);
    void buildDomainShaderConstantHandles(GenericConstBufferLayout* layout);
    
    virtual void _buildSamplerShaderConstantHandles( Vector<GFXShaderConstDesc> &samplerDescriptions );
+   void _buildComputeSamplerShaderConstantHandles(Vector<GFXShaderConstDesc>& samplerDescriptions);
 
    /// Used to build the instancing shader constants from 
    /// the instancing vertex format.

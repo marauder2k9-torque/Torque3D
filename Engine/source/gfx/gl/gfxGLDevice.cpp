@@ -215,6 +215,7 @@ GFXGLDevice::GFXGLDevice(U32 adapterIndex) :
    mCurrentPB(NULL),
    mDrawInstancesCount(0),
    mCurrentShader( NULL ),
+   mCurrentComputeShader(NULL),
    m_mCurrentWorld(true),
    m_mCurrentView(true),
    mContext(NULL),
@@ -955,6 +956,14 @@ void GFXGLDevice::setShader(GFXShader *shader, bool force)
    {
       setupGenericShaders();
    }
+}
+
+void GFXGLDevice::setComputeShader(GFXShader* shader, bool force)
+{
+}
+
+void GFXGLDevice::setComputeTarget(U32 slot, GFXTextureObject* texture)
+{
 }
 
 void GFXGLDevice::setShaderConstBufferInternal(GFXShaderConstBuffer* buffer)

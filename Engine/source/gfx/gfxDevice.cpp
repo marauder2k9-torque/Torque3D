@@ -329,6 +329,27 @@ void GFXDevice::setShaderConstBuffer(GFXShaderConstBuffer* buffer)
    mCurrentShaderConstBuffer = buffer;
 }
 
+void GFXDevice::setComputeTexture(U32 slot, GFXTextureObject* texture)
+{
+   switch (getAdapterType())
+   {
+      case Direct3D11:
+      {
+         // DirectX so send it down the compute stack
+         _setComputeTextureInternal(slot, texture);
+         break;
+      }
+      case OpenGL:
+      {
+         // OpenGL we don't need to do anything specific do it normally.
+         setTexture(slot, texture);
+         break;
+      }
+   default:
+      break;
+   }
+}
+
 void GFXDevice::updateStates(bool forceSetAll /*=false*/)
 {
    PROFILE_SCOPE(GFXDevice_updateStates);
