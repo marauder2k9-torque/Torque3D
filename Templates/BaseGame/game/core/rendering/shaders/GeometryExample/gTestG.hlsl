@@ -11,7 +11,6 @@ struct PSConn
 };
 
 uniform float4x4 projViewMat;
-
 uniform float explosionAmt;
 
 [maxvertexcount(3)]
@@ -24,7 +23,7 @@ void main(triangle GSConn input[3], inout TriangleStream<PSConn> outstream)
     float3 dir = norm * explosionAmt;
 
     PSConn output;
-    for(uint i =0; i < 3; i++)
+    for(uint i = 0; i < 3; i++)
     {
         output.HPOS = input[i].HPOS + float4(dir, 0.0);
         output.HPOS = mul(projViewMat, output.HPOS);
