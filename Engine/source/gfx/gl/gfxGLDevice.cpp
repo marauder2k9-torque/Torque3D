@@ -960,10 +960,21 @@ void GFXGLDevice::setShader(GFXShader *shader, bool force)
 
 void GFXGLDevice::setComputeShader(GFXShader* shader, bool force)
 {
+   setShader(shader, force);
 }
 
 void GFXGLDevice::setComputeTarget(U32 slot, GFXTextureObject* texture)
 {
+   GFXGLTextureObject* tex = static_cast<GFXGLTextureObject*>(texture);
+
+   glBindImageTexture(slot, tex->getHandle(), 0, GL_FALSE, 0, GL_READ_WRITE, GFXGLTextureInternalFormat[tex->mFormat]);
+}
+
+void GFXGLDevice::dispatchCompute(U32 x, U32 y, U32 z)
+{
+   glDispatchCompute(x, y, z);
+   //automatically wait for writing to the image to finish?
+   glMemoryBarrier(GL_ALL_BARRIER_BITS);
 }
 
 void GFXGLDevice::setShaderConstBufferInternal(GFXShaderConstBuffer* buffer)

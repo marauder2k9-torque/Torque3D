@@ -73,11 +73,11 @@ protected:
    
    virtual bool _init();
 
-   /// Should not initialize compute shaders here.
-   virtual bool _initCompute() { return false; };
+   virtual bool _initCompute();
 
    bool initShader(const Torque::Path &file, bool isVertex, const Vector<GFXShaderMacro> &macros );
    bool initGeometryShader(const Torque::Path& file, const Vector<GFXShaderMacro>& macros);
+   bool initComputeShader(const Torque::Path& file, const Vector<GFXShaderMacro>& macros);
    bool initTessShaders(const Torque::Path& file, bool isHull, const Vector<GFXShaderMacro>& macros);
 
    void clearShaders();
@@ -90,7 +90,8 @@ protected:
    static bool _loadShaderFromStream(  GLuint shader, 
                                        const Torque::Path& path, 
                                        FileStream* s, 
-                                       const Vector<GFXShaderMacro>& macros );
+                                       const Vector<GFXShaderMacro>& macros,
+                                       bool isCompute = false);
 
    /// @name Internal GL handles
    /// @{
@@ -101,7 +102,6 @@ protected:
    GLuint mDomainShader;
    GLuint mProgram;
    /// @}
-    
    Vector<GFXShaderConstDesc> mConstants;
    U32 mConstBufferSize;
    U8* mConstBuffer;

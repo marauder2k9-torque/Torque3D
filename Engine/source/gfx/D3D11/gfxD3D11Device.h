@@ -257,6 +257,7 @@ public:
    virtual void _setComputeTextureInternal(U32 slot, GFXTextureObject* texture);
    virtual void setComputeTarget(U32 slot, GFXTextureObject* texture);
    virtual void resolveCompute();
+   virtual void dispatchCompute(U32 x, U32 y, U32 z);
    // }
 
    // Copy methods

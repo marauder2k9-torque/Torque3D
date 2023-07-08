@@ -1581,6 +1581,11 @@ void GFXD3D11Device::resolveCompute()
    }
 }
 
+void GFXD3D11Device::dispatchCompute(U32 x, U32 y, U32 z)
+{
+   D3D11DEVICECONTEXT->Dispatch(x, y, z);
+}
+
 GFXPrimitiveBuffer * GFXD3D11Device::allocPrimitiveBuffer(U32 numIndices, U32 numPrimitives, GFXBufferType bufferType, void *data )
 {
    // Allocate a buffer to return

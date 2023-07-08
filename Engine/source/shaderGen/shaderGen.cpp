@@ -493,6 +493,7 @@ GFXShader* ShaderGen::getShader( const MaterialFeatureData &featureData, const G
    generateShader( featureData, vertFile, pixFile, &pixVersion, vertexFormat, cacheKey, shaderMacros );
 
    GFXShader *shader = GFX->createShader();
+   // this is where we set generated shaders, we could add geometry shaders here, or compute shaders.
    if (!shader->init(vertFile, pixFile, pixVersion, shaderMacros, samplers, NULL, NULL, NULL, &mInstancingFormat))
    {
       delete shader;

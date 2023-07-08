@@ -588,6 +588,125 @@ bool GFXGLShader::_init()
    return true;
 }
 
+bool GFXGLShader::_initCompute()
+{
+   PROFILE_SCOPE(GFXGLShader__initCompute);
+   // Don't initialize empty shaders.
+   if (mComputeFile.isEmpty())
+      return false;
+
+   clearShaders();
+
+   mProgram = glCreateProgram();
+
+   // Set the macros and add the global ones.
+   Vector<GFXShaderMacro> macros;
+   macros.merge(mMacros);
+   macros.merge(smGlobalMacros);
+
+   macros.increment();
+   macros.last().name = "TORQUE_SM";
+   macros.last().value = 40;
+   macros.increment();
+   macros.last().name = "TORQUE_COMPUTE_SHADER";
+   macros.last().value = "";
+
+   // Default to true so we're "successful" if a vertex/pixel shader wasn't specified.
+   bool compiledComputeShader = true;
+   
+
+   // Compile the vertex and pixel shaders if specified.
+   if (!mComputeFile.isEmpty())
+      compiledComputeShader = initComputeShader(mComputeFile, macros);
+
+   // Link it!
+   glLinkProgram(mProgram);
+
+   GLint activeAttribs = 0;
+   glGetProgramiv(mProgram, GL_ACTIVE_ATTRIBUTES, &activeAttribs);
+
+   GLint maxLength;
+   glGetProgramiv(mProgram, GL_ACTIVE_ATTRIBUTE_MAX_LENGTH, &maxLength);
+
+   FrameTemp<GLchar> tempData(maxLength + 1);
+   *tempData.address() = '\0';
+   // Check atributes
+   for (U32 i = 0; i < activeAttribs; i++)
+   {
+      GLint size;
+      GLenum type;
+
+      glGetActiveAttrib(mProgram, i, maxLength + 1, NULL, &size, &type, tempData.address());
+
+      StringTableEntry argName = StringTable->insert(tempData.address());
+
+      CHECK_AARG(Torque::GL_VertexAttrib_Position, vPosition);
+      CHECK_AARG(Torque::GL_VertexAttrib_Normal, vNormal);
+      CHECK_AARG(Torque::GL_VertexAttrib_Color, vColor);
+      CHECK_AARG(Torque::GL_VertexAttrib_Tangent, vTangent);
+      CHECK_AARG(Torque::GL_VertexAttrib_TangentW, vTangentW);
+      CHECK_AARG(Torque::GL_VertexAttrib_Binormal, vBinormal);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord0, vTexCoord0);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord1, vTexCoord1);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord2, vTexCoord2);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord3, vTexCoord3);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord4, vTexCoord4);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord5, vTexCoord5);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord6, vTexCoord6);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord7, vTexCoord7);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord8, vTexCoord8);
+      CHECK_AARG(Torque::GL_VertexAttrib_TexCoord9, vTexCoord9);
+   }
+
+   // Link it again!
+   glLinkProgram(mProgram);
+
+   GLint linkStatus;
+   glGetProgramiv(mProgram, GL_LINK_STATUS, &linkStatus);
+
+   // Dump the info log to the console
+   U32 logLength = 0;
+   glGetProgramiv(mProgram, GL_INFO_LOG_LENGTH, (GLint*)&logLength);
+   if (logLength)
+   {
+      FrameAllocatorMarker fam;
+      char* log = (char*)fam.alloc(logLength);
+      glGetProgramInfoLog(mProgram, logLength, NULL, log);
+
+      if (linkStatus == GL_FALSE)
+      {
+         if (smLogErrors)
+         {
+            Con::errorf("GFXGLShader::initCompuite - Error linking shader!");
+            Con::errorf("Program %s : %s",
+               mComputeFile.getFullPath().c_str(), log);
+         }
+      }
+      else if (smLogWarnings)
+      {
+         Con::warnf("Program %s : %s",
+            mComputeFile.getFullPath().c_str(), log);
+      }
+   }
+
+
+   // If we failed to link, bail.
+   if (linkStatus == GL_FALSE)
+      return false;
+
+   initConstantDescs();
+   initHandles();
+
+   // Notify Buffers we might have changed in size. 
+   // If this was our first init then we won't have any activeBuffers 
+   // to worry about unnecessarily calling.
+   Vector<GFXShaderConstBuffer*>::iterator biter = mActiveBuffers.begin();
+   for (; biter != mActiveBuffers.end(); biter++)
+      ((GFXGLShaderConstBuffer*)(*biter))->onShaderReload(this);
+
+   return true;
+}
+
 void GFXGLShader::initConstantDescs()
 {
    mConstants.clear();
@@ -1054,15 +1173,23 @@ char* GFXGLShader::_handleIncludes( const Torque::Path& path, FileStream *s )
 bool GFXGLShader::_loadShaderFromStream(  GLuint shader, 
                                           const Torque::Path &path, 
                                           FileStream *s, 
-                                          const Vector<GFXShaderMacro> &macros )
+                                          const Vector<GFXShaderMacro> &macros,
+                                          bool isCompute)
 {
    Vector<char*> buffers;
    Vector<U32> lengths;
-   
-   // The GLSL version declaration must go first!
-   const char *versionDecl = "#version 330\n";
-   buffers.push_back( dStrdup( versionDecl ) );
-   lengths.push_back( dStrlen( versionDecl ) );
+
+   if (!isCompute)
+   {
+      buffers.push_back(dStrdup("#version 330\n"));
+      lengths.push_back(dStrlen("#version 330\n"));
+   }
+   else
+   {
+      // compute shaders require 430
+      buffers.push_back(dStrdup("#version 430\n"));
+      lengths.push_back(dStrlen("#version 430\n"));
+   }
 
    //Required extensions. These are already checked when creating the GFX adapter, if we make it this far it's supported
    const char* cubeArrayExt = "#extension GL_ARB_texture_cube_map_array : enable\n";
@@ -1203,6 +1330,62 @@ bool GFXGLShader::initGeometryShader(  const Torque::Path& file,
    }
 
    if (!_loadShaderFromStream(activeShader, file, &stream, macros))
+      return false;
+
+   GLint compile;
+   glGetShaderiv(activeShader, GL_COMPILE_STATUS, &compile);
+
+   // Dump the info log to the console
+   U32 logLength = 0;
+   glGetShaderiv(activeShader, GL_INFO_LOG_LENGTH, (GLint*)&logLength);
+
+   GLint compileStatus = GL_TRUE;
+   if (logLength)
+   {
+      FrameAllocatorMarker fam;
+      char* log = (char*)fam.alloc(logLength);
+      glGetShaderInfoLog(activeShader, logLength, NULL, log);
+
+      // Always print errors
+      glGetShaderiv(activeShader, GL_COMPILE_STATUS, &compileStatus);
+
+      if (compileStatus == GL_FALSE)
+      {
+         if (smLogErrors)
+         {
+            Con::errorf("GFXGLShader::initGeometryShader - Error compiling shader!");
+            Con::errorf("Program %s: %s", file.getFullPath().c_str(), log);
+         }
+      }
+      else if (smLogWarnings)
+         Con::warnf("Program %s: %s", file.getFullPath().c_str(), log);
+   }
+
+   return compileStatus != GL_FALSE;
+}
+
+bool GFXGLShader::initComputeShader(const Torque::Path& file, const Vector<GFXShaderMacro>& macros)
+{
+   PROFILE_SCOPE(GFXGLShader_CompileGeometryShader);
+   GLuint activeShader = glCreateShader(GL_COMPUTE_SHADER);
+   mGeometryShader = activeShader;
+   glAttachShader(mProgram, activeShader);
+
+
+   // Ok it's not in the shader gen manager, so ask Torque for it
+   FileStream stream;
+   if (!stream.open(file, Torque::FS::File::Read))
+   {
+      AssertISV(false, avar("GFXGLShader::initGeometryShader - failed to open shader '%s'.", file.getFullPath().c_str()));
+
+      if (smLogErrors)
+         Con::errorf("GFXGLShader::initGeometryShader - Failed to open shader file '%s'.",
+            file.getFullPath().c_str());
+
+      return false;
+   }
+
+   if (!_loadShaderFromStream(activeShader, file, &stream, macros, true))
       return false;
 
    GLint compile;
