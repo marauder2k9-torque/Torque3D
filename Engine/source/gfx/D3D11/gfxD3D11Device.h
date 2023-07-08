@@ -128,9 +128,6 @@ protected:
 
    ID3D11ComputeShader* mLastComputeShader;
 
-   GFXD3D11TextureObject* mResolveTargets[7];
-   ID3D11Buffer* mDescTargetBuffer;
-
    S32 mCreateFenceType;
 
    IDXGISwapChain *mSwapChain;
@@ -256,7 +253,6 @@ public:
    virtual void _setComputeTextureInternal(U32 slot, GFXTextureObject* texture);
    virtual void setComputeTarget(U32 slot, GFXTextureObject* texture);
    virtual void resolveCompute();
-   byte* getGpuBuffer();
    virtual void dispatchCompute(U32 x, U32 y, U32 z);
    // }
 

@@ -45,6 +45,7 @@ protected:
    ID3D11ShaderResourceView* mSRView; // for shader resource input
    ID3D11RenderTargetView* mRTView; // for render targets
    ID3D11DepthStencilView* mDSView; //render target view for depth stencil
+   ID3D11UnorderedAccessView* mUAView; //render target view for depth stencil
 
 public:
 
@@ -60,10 +61,12 @@ public:
    ID3D11ShaderResourceView* getSRView();
    ID3D11RenderTargetView* getRTView();
    ID3D11DepthStencilView* getDSView();
+   ID3D11UnorderedAccessView* getUAView();
 
    ID3D11ShaderResourceView** getSRViewPtr();
    ID3D11RenderTargetView** getRTViewPtr();
    ID3D11DepthStencilView** getDSViewPtr();
+   ID3D11UnorderedAccessView** getUAViewPtr();
   
 
    void release();

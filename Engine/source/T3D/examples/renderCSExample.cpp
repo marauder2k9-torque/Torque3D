@@ -64,6 +64,8 @@ RenderCSExample::RenderCSExample()
 
    // Set it as a "static" object
    mTypeMask |= StaticObjectType | StaticShapeObjectType;
+
+   mComputeTarget = NULL;
 }
 
 RenderCSExample::~RenderCSExample()
@@ -287,7 +289,8 @@ void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
    // it goes out of scope at the end of the function
    GFXTransformSaver saver;
 
-   GFXTextureObject* csTestTexture = _getTestTexture(256, 256);
+   if(mComputeTarget == NULL)
+      mComputeTarget = _getTestTexture(256, 256);
 
    // Calculate our object to world transform matrix
    MatrixF objectToWorld = getRenderTransform();
@@ -297,8 +300,8 @@ void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
    GFX->multWorld(objectToWorld);
 
    GFX->setComputeShader(mCompShader);
-   GFX->setComputeTarget(0, csTestTexture);
-   GFX->dispatchCompute(256, 256, 1);
+   GFX->setComputeTarget(0, mComputeTarget);
+   GFX->dispatchCompute(32, 16, 1);
    GFX->resolveCompute();
 
    // Deal with reflect pass otherwise
@@ -313,7 +316,7 @@ void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
    // fixed function. Otherwise they disable shaders.
    GFX->setupGenericShaders(GFXDevice::GSModColorTexture);
 
-   GFX->setTexture(0, csTestTexture);
+   GFX->setTexture(0, mComputeTarget);
 
    // Set the vertex buffer
    GFX->setVertexBuffer(mVertexBuffer);

@@ -131,7 +131,7 @@ public:
    // we bind this function as our rendering delegate function
    void render(ObjectRenderInst* ri, SceneRenderState* state, BaseMatInstance* overrideMat);
 protected:
-
+   GFXTextureObject* mComputeTarget;
    // Shaders
    GFXShaderRef mCompShader;
    GFXShaderRef mShader;

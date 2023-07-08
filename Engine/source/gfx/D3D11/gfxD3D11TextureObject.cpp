@@ -322,6 +322,11 @@ ID3D11DepthStencilView* GFXD3D11TextureObject::getDSView()
 	return mDSView;
 }
 
+ID3D11UnorderedAccessView* GFXD3D11TextureObject::getUAView()
+{
+   return mUAView;
+}
+
 ID3D11ShaderResourceView** GFXD3D11TextureObject::getSRViewPtr()
 {
 	return &mSRView;
@@ -334,4 +339,9 @@ ID3D11RenderTargetView** GFXD3D11TextureObject::getRTViewPtr()
 ID3D11DepthStencilView** GFXD3D11TextureObject::getDSViewPtr()
 {
 	return &mDSView;
+}
+
+ID3D11UnorderedAccessView** GFXD3D11TextureObject::getUAViewPtr()
+{
+   return &mUAView;
 }

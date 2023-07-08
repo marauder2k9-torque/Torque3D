@@ -112,6 +112,11 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
       bindFlags |= D3D11_BIND_RENDER_TARGET; // in order to automatically generate mips. Resource needs to be a rendertarget and shader resource
    }
 
+   if (retTex->mProfile->testUnordered())
+   {
+      bindFlags |= D3D11_BIND_UNORDERED_ACCESS;
+   }
+
    if( depth > 0 )
    {
       D3D11_TEXTURE3D_DESC desc;
@@ -577,6 +582,26 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
 		hr = D3D11DEVICE->CreateShaderResourceView(resource,&desc, tex->getSRViewPtr());
 		AssertFatal(SUCCEEDED(hr), "CreateShaderResourceView:: failed to create view!");
 	}
+
+   if (usageFlags & D3D11_BIND_UNORDERED_ACCESS)
+   {
+      D3D11_UNORDERED_ACCESS_VIEW_DESC descView;
+      ZeroMemory(&descView, sizeof(descView));
+      if (depth > 0)
+      {
+         descView.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE3D;
+      }
+      else
+      {
+         descView.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
+      }
+      descView.Buffer.FirstElement = 0;
+
+      //apparently format must be unknown for a view of a structured buffer
+      descView.Format = DXGI_FORMAT_UNKNOWN;
+      hr = D3D11DEVICE->CreateUnorderedAccessView(resource, &descView, tex->getUAViewPtr());
+      AssertFatal(SUCCEEDED(hr), "CreateShaderResourceView:: failed to create view!");
+   }
 
 	if(usageFlags & D3D11_BIND_RENDER_TARGET)
 	{

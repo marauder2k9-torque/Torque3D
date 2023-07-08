@@ -153,11 +153,6 @@ GFXD3D11Device::GFXD3D11Device(U32 index)
 
    // Set up the Enum translation tables
    GFXD3D11EnumTranslate::init();
-
-   for (S32 i = 0; i < 7; i++)
-   {
-      mResolveTargets[i] = NULL;
-   }
 }
 
 GFXD3D11Device::~GFXD3D11Device()
@@ -207,11 +202,6 @@ GFXD3D11Device::~GFXD3D11Device()
 
    SAFE_RELEASE(mSwapChain);
    SAFE_RELEASE(mD3DDevice);
-
-   for (S32 i = 0; i < 7; i++)
-   {
-      mResolveTargets[i] = NULL;
-   }
 }
 
 GFXFormat GFXD3D11Device::selectSupportedFormat(GFXTextureProfile *profile, const Vector<GFXFormat> &formats, bool texture, bool mustblend, bool mustfilter)
@@ -1471,10 +1461,6 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
 
    if (mLastComputeShader)
    {
-      AssertFatal(slot < 7, "GFXD3D11Device::setComputeTarget - out of range slot.");
-
-      mResolveTargets[slot] = NULL;
-
       if (!texture)
       {
          Con::errorf("GFXD3D11Device::setComputeTarget - No Texture to assign as the target for slot: %d", slot);
@@ -1482,55 +1468,8 @@ void GFXD3D11Device::setComputeTarget(U32 slot, GFXTextureObject* texture)
       }
 
       GFXD3D11TextureObject* tex = static_cast<GFXD3D11TextureObject*>(texture);
-      mResolveTargets[slot] = tex;
 
-      // inits.
-      HRESULT hr;
-      bool Tex3d = false;
-      U32 textureDataSize;
-      U32 bytesPerPixel = tex->getFormatByteSize();
-
-      D3D11_TEXTURE2D_DESC desc;
-      ID3D11Texture2D* d3dTexture = static_cast<ID3D11Texture2D*>(tex->getResource());
-      d3dTexture->GetDesc(&desc);
-      textureDataSize = desc.Width * desc.Height * bytesPerPixel;
-
-      D3D11_BUFFER_DESC descTargetBuffer;
-      ZeroMemory(&descTargetBuffer, sizeof(descTargetBuffer));
-      descTargetBuffer.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
-      descTargetBuffer.ByteWidth = textureDataSize;
-      descTargetBuffer.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-      descTargetBuffer.StructureByteStride = bytesPerPixel;
-
-      hr = D3D11DEVICE->CreateBuffer(&descTargetBuffer, NULL, &mDescTargetBuffer);
-      if (FAILED(hr))
-      {
-         Con::errorf("GFXD3D11Device::setComputeTarget - Failed to create target buffer!");
-         return;
-      }
-
-      D3D11_BUFFER_DESC descViewBuffer;
-      ZeroMemory(&descViewBuffer, sizeof(descViewBuffer));
-      mDescTargetBuffer->GetDesc(&descViewBuffer);
-
-      D3D11_UNORDERED_ACCESS_VIEW_DESC descView;
-      ZeroMemory(&descView, sizeof(descView));
-      descView.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
-      descView.Buffer.FirstElement = 0;
-
-      //apparently format must be unknown for a view of a structured buffer
-      descView.Format = DXGI_FORMAT_UNKNOWN;
-      descView.Buffer.NumElements = descViewBuffer.ByteWidth / descViewBuffer.StructureByteStride;
-
-      ID3D11UnorderedAccessView* targetBufferView;
-      hr = D3D11DEVICE->CreateUnorderedAccessView(mDescTargetBuffer, &descView, &targetBufferView);
-      if (FAILED(hr))
-      {
-         Con::errorf("GFXD3D11Device::setComputeTarget - Failed to create Unordered access view!");
-         return;
-      }
-
-      D3D11DEVICECONTEXT->CSSetUnorderedAccessViews(slot, 1, &targetBufferView, NULL);
+      D3D11DEVICECONTEXT->CSSetUnorderedAccessViews(slot, 1, tex->getUAViewPtr(), NULL);
    }
 }
 
@@ -1538,62 +1477,32 @@ void GFXD3D11Device::resolveCompute()
 {
    PROFILE_SCOPE(GFXD3D11Device_resolveCompute);
 
-   for (U32 i = 0; i < 7; i++)
-   {
-      // We use existance @ mResolveTargets as a flag that we need to copy
-      // data from the rendertarget into the texture.
-      if (mResolveTargets[i])
-      {
+   //for (U32 i = 0; i < 7; i++)
+   //{
+   //   // We use existance @ mResolveTargets as a flag that we need to copy
+   //   // data from the rendertarget into the texture.
+   //   if (mResolveTargets[i])
+   //   {
+   //      U32 textureDataSize;
+   //      U32 bytesPerPixel = mResolveTargets[i]->getFormatByteSize();
 
-         U32 textureDataSize;
-         U32 bytesPerPixel = mResolveTargets[i]->getFormatByteSize();
-
-         D3D11_TEXTURE2D_DESC desc;
-         ID3D11Texture2D* d3dTexture = static_cast<ID3D11Texture2D*>(mResolveTargets[i]->getResource());
-         d3dTexture->GetDesc(&desc);
-         textureDataSize = desc.Width * desc.Height * bytesPerPixel;
-         byte* buf = getGpuBuffer();
-         D3D11DEVICECONTEXT->UpdateSubresource(mResolveTargets[i]->getResource(), 0, NULL, buf, desc.Width * bytesPerPixel, desc.Height * bytesPerPixel);
-         SAFE_DELETE_ARRAY(buf);
-      }
-   }
-}
-
-byte* GFXD3D11Device::getGpuBuffer()
-{
-   ID3D11Buffer* debugbuf = NULL;
-
-   D3D11_BUFFER_DESC desc;
-   ZeroMemory(&desc, sizeof(desc));
-   mDescTargetBuffer->GetDesc(&desc);
-
-   UINT byteSize = desc.ByteWidth;
-
-   desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-   desc.Usage = D3D11_USAGE_STAGING;
-   desc.BindFlags = 0;
-   desc.MiscFlags = 0;
-
-   D3D11DEVICE->CreateBuffer(&desc, NULL, &debugbuf);
-   D3D11DEVICECONTEXT->CopyResource(debugbuf, mDescTargetBuffer);
-
-   D3D11_MAPPED_SUBRESOURCE mappedResource;
-   if (D3D11DEVICECONTEXT->Map(debugbuf, 0, D3D11_MAP_READ, 0, &mappedResource) != S_OK)
-      return NULL;
-
-   byte* outBuff = new byte[byteSize];
-   memcpy(outBuff, mappedResource.pData, byteSize);
-
-   D3D11DEVICECONTEXT->Unmap(debugbuf, 0);
-
-   debugbuf->Release();
-
-   return outBuff;
+   //      D3D11_TEXTURE2D_DESC desc;
+   //      mTargets2D[i]->get2DTex()->GetDesc(&desc);
+   //      D3D11DEVICECONTEXT->CopySubresourceRegion(mResolveTargets[i]->getResource(), 0, 0, 0, 0, mTargets2D[i]->getResource(), 0, NULL);
+   //   }
+   //}
 }
 
 void GFXD3D11Device::dispatchCompute(U32 x, U32 y, U32 z)
 {
+   ID3D11ShaderResourceView* ppSRVNULL[1] = { NULL };
+   ID3D11UnorderedAccessView* ppUAViewNULL[1] = { NULL };
+
    D3D11DEVICECONTEXT->Dispatch(x, y, z);
+
+   // clear
+   D3D11DEVICECONTEXT->CSSetUnorderedAccessViews(0, 1, ppUAViewNULL, NULL);
+   D3D11DEVICECONTEXT->CSSetShaderResources(0, 1, ppSRVNULL);
 }
 
 GFXPrimitiveBuffer * GFXD3D11Device::allocPrimitiveBuffer(U32 numIndices, U32 numPrimitives, GFXBufferType bufferType, void *data )
