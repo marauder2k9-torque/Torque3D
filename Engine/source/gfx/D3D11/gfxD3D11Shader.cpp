@@ -292,6 +292,10 @@ GFXD3D11ShaderConstBuffer::GFXD3D11ShaderConstBuffer( GFXD3D11Shader* shader,
 
     if (hullLayout != NULL && domainLayout != NULL)
        mContainTess = true;
+    for (U32 i = 0; i < ComputeCBUFFER_MAX; i++)
+    {
+       mConstantBuffersC[i] = NULL;
+    }
 
     for (U32 i = 0; i < CBUFFER_MAX; ++i)
     {
@@ -349,7 +353,7 @@ GFXD3D11ShaderConstBuffer::GFXD3D11ShaderConstBuffer(GFXD3D11Shader* shader,
    // this virtual method during activation.
    mShader = shader;
 
-   for (U32 i = 0; i < CBUFFER_MAX; ++i)
+   for (U32 i = 0; i < ComputeCBUFFER_MAX; ++i)
    {
       mConstantBuffersC[i] = NULL;
    }
@@ -1111,7 +1115,7 @@ void GFXD3D11ShaderConstBuffer::onShaderReload( GFXD3D11Shader *shader )
    if (mIsComputeBuffer)
    {
       // release constant buffers
-      for (U32 i = 0; i < CBUFFER_MAX; ++i)
+      for (U32 i = 0; i < ComputeCBUFFER_MAX; ++i)
       {
          SAFE_RELEASE(mConstantBuffersC[i]);
       }

@@ -218,6 +218,7 @@ inline const ConstantDesc* ConstantTable::GetConstantByName(const String& name) 
 
 // Maximum number of CBuffers ($Globals & $Params)
 const U32 CBUFFER_MAX = 2;
+const U32 ComputeCBUFFER_MAX = 16;
 
 struct ConstSubBufferDesc
 {
@@ -398,7 +399,7 @@ protected:
    ID3D11Buffer* mConstantBuffersH[CBUFFER_MAX];
    ID3D11Buffer* mConstantBuffersD[CBUFFER_MAX];
 
-   ID3D11Buffer* mConstantBuffersC[CBUFFER_MAX];
+   ID3D11Buffer* mConstantBuffersC[ComputeCBUFFER_MAX];
 
    /// We keep a weak reference to the shader 
    /// because it will often be deleted.
