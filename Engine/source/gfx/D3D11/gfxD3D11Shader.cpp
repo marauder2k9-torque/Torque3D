@@ -1874,6 +1874,15 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
          desc.arraySize = bindDesc.BindPoint;
          samplerDescriptions.push_back(desc);
          break;
+      case D3D_SIT_UAV_RWTYPED:
+         // Prepend a "$" if it doesn't exist.  Just to make things consistent.
+         desc.name = String(bindDesc.Name);
+         if (desc.name.find("$") != 0)
+            desc.name = String::ToString("$%s", desc.name.c_str());
+         desc.constType = GFXSCT_Sampler;
+         desc.arraySize = bindDesc.BindPoint;
+         samplerDescriptions.push_back(desc);
+         break;
       }
    }
 

@@ -67,7 +67,7 @@ class RenderCSExample : public SceneObject
    //--------------------------------------------------------------------------
    // Define our vertex format here so we don't have to
    // change it in multiple spots later
-   typedef GFXVertexPCT VertexType;
+   typedef GFXVertexPT VertexType;
 
    // The handles for our StateBlocks
    GFXStateBlockRef mNormalSB;
@@ -125,6 +125,8 @@ public:
 
    GFXTextureObject* _getTestTexture(U32 width, U32 height);
 
+   GFXTextureObject* _getTestCopyTexture(U32 width, U32 height);
+
    // This is the function that actually gets called to do the rendering
    // Note that there is no longer a predefined name for this function.
    // Instead, when we submit our ObjectRenderInst in prepRenderImage(),
@@ -138,6 +140,8 @@ protected:
    GFXShaderConstHandle* mConstShaderTest;
 
    GFXShaderRef mShader;
+   GFXShaderConstBufferRef mShaderConsts;
+   GFXShaderConstHandle* mModelViewSC;
 };
 
 #endif // _RENDEROBJECTEXAMPLE_H_

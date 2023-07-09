@@ -22,13 +22,13 @@
 
 #include "../shaderModel.hlsl"
 
-TORQUE_UNIFORM_SAMPLER2D(diffuseMap, 0);
-
 struct Conn
 {
-   float4 hpos             : TORQUE_POSITION;
-   float2 texCoord         : TEXCOORD0;
+	float4 hpos             : TORQUE_POSITION;
+	float2 texCoord         : TEXCOORD0;
 };
+
+TORQUE_UNIFORM_SAMPLER2D(diffuseMap, 0);
 
 float4 main(Conn IN) : TORQUE_TARGET0
 {

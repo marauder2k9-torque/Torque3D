@@ -47,7 +47,7 @@ ConsoleDocClass(RenderCSExample,
    "See the C++ code for implementation details.\n\n"
    "@ingroup Examples\n");
 
-GFX_ImplementTextureProfile(CSTestTextureProfile,
+GFX_ImplementTextureProfile(CSTargetTextureProfile,
                            GFXTextureProfile::DiffuseMap,
                            GFXTextureProfile::UnorderedAccess |
                            GFXTextureProfile::Pooled,
@@ -102,12 +102,15 @@ bool RenderCSExample::onAdd()
    {
       // Find ShaderData
       ShaderData* shaderData;
-      /*mShader = Sim::findObject("ComputeTextureShader", shaderData) ? shaderData->getShader() : NULL;
+      mShader = Sim::findObject("ComputeTextureShader", shaderData) ? shaderData->getShader() : NULL;
       if (!mShader)
       {
          Con::errorf("RenderCSExample::onAdd - could not find ComputeTextureShader");
          return false;
-      }*/
+      }
+
+      mShaderConsts = mShader->allocConstBuffer();
+      mModelViewSC = mShader->getShaderConstHandle("$modelview");
 
       mCompShader = Sim::findObject("ComputeTestShader", shaderData) ? shaderData->getShader() : NULL;
       if (!mCompShader)
@@ -228,7 +231,6 @@ void RenderCSExample::createGeometry()
       const U32& cdx = cubeFaces[i][2];
 
       pVert[i].point = cubePoints[vdx] * halfSize;
-      pVert[i].color = cubeColors[cdx];
       pVert[i].texCoord = cubeTexCoords[tdx];
    }
 
@@ -236,7 +238,14 @@ void RenderCSExample::createGeometry()
 
    // Set up our normal and reflection StateBlocks
    GFXStateBlockDesc desc;
-
+   // deferredBuffer sampler
+   desc.samplersDefined = true;
+   desc.samplers[0].addressModeU = GFXAddressWrap;
+   desc.samplers[0].addressModeV = GFXAddressWrap;
+   desc.samplers[0].addressModeW = GFXAddressWrap;
+   desc.samplers[0].magFilter = GFXTextureFilterLinear;
+   desc.samplers[0].minFilter = GFXTextureFilterLinear;
+   desc.samplers[0].mipFilter = GFXTextureFilterLinear;
    // The normal StateBlock only needs a default StateBlock
    mNormalSB = GFX->createStateBlock(desc);
 
@@ -271,7 +280,7 @@ void RenderCSExample::prepRenderImage(SceneRenderState* state)
 
 GFXTextureObject* RenderCSExample::_getTestTexture(U32 width, U32 height)
 {
-   GFXTexHandle testTexture(width, height, GFXFormatR8G8B8A8, &CSTestTextureProfile, "RenderCSExample::_getTestTexture");
+   GFXTexHandle testTexture(width, height, GFXFormatR8G8B8A8, &CSTargetTextureProfile, "RenderCSExample::_getTestTexture");
    return testTexture;
 }
 
@@ -303,10 +312,27 @@ void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
    // Apply our object transform
    GFX->multWorld(objectToWorld);
 
-   GFX->setComputeShader(mCompShader);
+   MatrixF xform = GFX->getProjectionMatrix();
+   xform *= GFX->getViewMatrix();
+   xform *= GFX->getWorldMatrix();
+
+   mShaderConsts->setSafe(mModelViewSC, xform);
+
+   GFX->setShader(mCompShader);
    GFX->setComputeTarget(0, mComputeTarget);
    GFX->dispatchCompute(256, 256, 1);
    GFX->resolveCompute();
+
+   // Set the vertex buffer
+   GFX->setVertexBuffer(mVertexBuffer);
+
+   // Set up the "generic" shaders
+   // These handle rendering on GFX layers that don't support
+   // fixed function. Otherwise they disable shaders.
+   GFX->setShader(mShader);
+   //GFX->setupGenericShaders(GFXDevice::GSTexture);
+   GFX->setShaderConstBuffer(mShaderConsts);
+   GFX->setTexture(0, mComputeTarget);
 
    // Deal with reflect pass otherwise
    // set the normal StateBlock
@@ -314,16 +340,6 @@ void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
       GFX->setStateBlock(mReflectSB);
    else
       GFX->setStateBlock(mNormalSB);
-
-   // Set up the "generic" shaders
-   // These handle rendering on GFX layers that don't support
-   // fixed function. Otherwise they disable shaders.
-   GFX->setupGenericShaders(GFXDevice::GSModColorTexture);
-
-   GFX->setTexture(0, mComputeTarget);
-
-   // Set the vertex buffer
-   GFX->setVertexBuffer(mVertexBuffer);
 
    // Draw our triangles
    GFX->drawPrimitive(GFXTriangleList, 0, 12);

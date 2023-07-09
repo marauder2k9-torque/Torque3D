@@ -158,7 +158,12 @@ bool GFXShader::reload()
    mReloadKey++;
 
    // Init does the work.
-   bool success = _init();
+   bool success = false;
+   if (!mComputeFile.isEmpty())
+      success = _initCompute();
+   else
+      success = _init();
+
    if ( success )
       _updateDesc();
 

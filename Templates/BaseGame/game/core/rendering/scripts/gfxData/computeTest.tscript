@@ -32,5 +32,7 @@ singleton ShaderData( ComputeTextureShader )
    DXVertexShaderFile   = $Core::CommonShaderPath @ "/ComputeExample/cTestV.hlsl";
    DXPixelShaderFile   = $Core::CommonShaderPath @ "/ComputeExample/cTestP.hlsl";
 
+   samplerNames[0] = "$diffuseMap";
+
    pixVersion = 3.0;
 };
