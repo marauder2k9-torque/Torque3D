@@ -335,7 +335,10 @@ enum GFXShaderConstType
    GFXSCT_Sampler,
    GFXSCT_SamplerCube,
    GFXSCT_SamplerCubeArray,
-   GFXSCT_SamplerTextureArray
+   GFXSCT_SamplerTextureArray,
+   // ReadWrite Buffers.
+   GFXSCT_RWStructured,
+   GFXSCT_RWTyped
 };
 
 /// Defines a vertex declaration type.

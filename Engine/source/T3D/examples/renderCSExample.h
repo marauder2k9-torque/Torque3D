@@ -134,6 +134,9 @@ protected:
    GFXTextureObject* mComputeTarget;
    // Shaders
    GFXShaderRef mCompShader;
+   GFXShaderConstBufferRef mCompShaderConsts;
+   GFXShaderConstHandle* mConstShaderTest;
+
    GFXShaderRef mShader;
 };
 

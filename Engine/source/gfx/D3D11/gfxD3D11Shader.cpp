@@ -408,14 +408,28 @@ void GFXD3D11ShaderConstBuffer::_createBuffers()
          const Vector<ConstSubBufferDesc>& subBuffers = mComputeConstBufferLayout->getSubBufferDesc();
          for (U32 i = 0; i < subBuffers.size(); ++i)
          {
-            // Create a pixel float constant buffer
+            // Create a compute float constant buffer
             D3D11_BUFFER_DESC cbDesc;
-            cbDesc.ByteWidth = subBuffers[i].size;
-            cbDesc.Usage = D3D11_USAGE_DEFAULT;
-            cbDesc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_CONSTANT_BUFFER;
-            cbDesc.CPUAccessFlags = 0;
-            cbDesc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
-            cbDesc.StructureByteStride = 0;
+
+            if (subBuffers[i].size < 16)
+            {
+               cbDesc.ByteWidth = subBuffers[i].size;
+               cbDesc.Usage = D3D11_USAGE_STAGING;
+               cbDesc.BindFlags = 0;
+               cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+               cbDesc.MiscFlags = 0;
+               cbDesc.StructureByteStride = 0;
+            }
+            else
+            {
+               cbDesc.ByteWidth = subBuffers[i].size;
+               cbDesc.Usage = D3D11_USAGE_DEFAULT;
+               cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+               cbDesc.CPUAccessFlags = 0;
+               cbDesc.MiscFlags = 0;
+               cbDesc.StructureByteStride = 0;
+            }
+            
 
             hr = D3D11DEVICE->CreateBuffer(&cbDesc, NULL, &mConstantBuffersC[i]);
 
@@ -1650,11 +1664,8 @@ bool GFXD3D11Shader::_compileShader( const Torque::Path &filePath,
 		         AssertFatal(false, "D3D11Shader::_compilershader - Failed to get shader reflection table interface");
 	      }
 
-         if (mComputeFile.isEmpty())
-         {
-            if (res == S_OK)
-               _getShaderConstants(reflectionTable, bufferLayout, samplerDescriptions);
-         }
+         if (res == S_OK)
+            _getShaderConstants(reflectionTable, bufferLayout, samplerDescriptions);
 
 #ifdef TORQUE_ENABLE_CSF_GENERATION
 
@@ -1741,7 +1752,6 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
 
       if (constantBuffer->GetDesc(&constantBufferDesc) == S_OK)
       {
-
    #ifdef TORQUE_DEBUG
         /* AssertFatal(constantBufferDesc.Type == D3D_CT_CBUFFER, "Only scalar cbuffers supported for now.");
 
@@ -1798,7 +1808,6 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
                } //unusedVar
             } //_convertShaderVariable
 		   } //constantBufferDesc.Variables
-
          // fill out our const sub buffer sizes etc
          ConstSubBufferDesc subBufferDesc;
          subBufferDesc.size = constantBufferDesc.Size;
@@ -1806,7 +1815,6 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
          subBuffers.push_back(subBufferDesc);
          // increase our bufferOffset by the constant buffer size
          bufferOffset += constantBufferDesc.Size;
-
       }
       else
          AssertFatal(false, "Unable to get shader constant description! (may need more elements of constantDesc");	
@@ -1835,7 +1843,6 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
          desc.arraySize = bindDesc.BindPoint;
          samplerDescriptions.push_back(desc);
          break;
-
       }
    }
 
@@ -1919,8 +1926,52 @@ bool GFXD3D11Shader::_convertShaderVariable(const D3D11_SHADER_TYPE_DESC &typeDe
          return false;
       }
    }
+   case D3D_SVT_VOID:
+   {
+      switch (typeDesc.Class)
+      {
+      case D3D_SVC_SCALAR:
+         desc.constType = GFXSCT_Float;
+         break;
+      case D3D_SVC_VECTOR:
+      {
+         switch (typeDesc.Columns)
+         {
+         case 1:
+            desc.constType = GFXSCT_Float;
+            break;
+         case 2:
+            desc.constType = GFXSCT_Float2;
+            break;
+         case 3:
+            desc.constType = GFXSCT_Float3;
+            break;
+         case 4:
+            desc.constType = GFXSCT_Float4;
+            break;
+         }
+      }
+      break;
+      case D3D_SVC_MATRIX_ROWS:
+      case D3D_SVC_MATRIX_COLUMNS:
+      {
+         switch (typeDesc.Rows)
+         {
+         case 3:
+            desc.constType = typeDesc.Columns == 4 ? GFXSCT_Float3x4 : GFXSCT_Float3x3;
+            break;
+         case 4:
+            desc.constType = typeDesc.Columns == 3 ? GFXSCT_Float4x3 : GFXSCT_Float4x4;
+            break;
+         }
+      }
+      break;
+      case D3D_SVC_OBJECT:
+      case D3D_SVC_STRUCT:
+         return false;
+      }
+   }
    break;
-
    default:
       AssertFatal(false, "Unknown shader constant class enum");
       break;
@@ -2232,7 +2283,9 @@ void GFXD3D11Shader::_buildComputeSamplerShaderConstantHandles(Vector<GFXShaderC
       AssertFatal(desc.constType == GFXSCT_Sampler ||
          desc.constType == GFXSCT_SamplerCube ||
          desc.constType == GFXSCT_SamplerCubeArray ||
-         desc.constType == GFXSCT_SamplerTextureArray,
+         desc.constType == GFXSCT_SamplerTextureArray||
+         desc.constType == GFXSCT_RWStructured||
+         desc.constType == GFXSCT_RWTyped,
          "GFXD3D11Shader::_buildComputeSamplerShaderConstantHandles - Invalid samplerDescription type!");
 
       GFXD3D11ShaderConstHandle* handle;

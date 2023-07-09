@@ -66,6 +66,7 @@ RenderCSExample::RenderCSExample()
    mTypeMask |= StaticObjectType | StaticShapeObjectType;
 
    mComputeTarget = NULL;
+   mConstShaderTest = NULL;
 }
 
 RenderCSExample::~RenderCSExample()
@@ -101,12 +102,12 @@ bool RenderCSExample::onAdd()
    {
       // Find ShaderData
       ShaderData* shaderData;
-      mShader = Sim::findObject("ComputeTextureShader", shaderData) ? shaderData->getShader() : NULL;
+      /*mShader = Sim::findObject("ComputeTextureShader", shaderData) ? shaderData->getShader() : NULL;
       if (!mShader)
       {
          Con::errorf("RenderCSExample::onAdd - could not find ComputeTextureShader");
          return false;
-      }
+      }*/
 
       mCompShader = Sim::findObject("ComputeTestShader", shaderData) ? shaderData->getShader() : NULL;
       if (!mCompShader)
@@ -114,6 +115,9 @@ bool RenderCSExample::onAdd()
          Con::errorf("RenderCSExample::onAdd - could not find ComputeTestShader");
          return false;
       }
+
+      mCompShaderConsts = mCompShader->allocConstBuffer();
+
 
    }
 
@@ -301,7 +305,7 @@ void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
 
    GFX->setComputeShader(mCompShader);
    GFX->setComputeTarget(0, mComputeTarget);
-   GFX->dispatchCompute(32, 16, 1);
+   GFX->dispatchCompute(256, 256, 1);
    GFX->resolveCompute();
 
    // Deal with reflect pass otherwise
