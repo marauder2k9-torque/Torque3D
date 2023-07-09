@@ -415,7 +415,7 @@ void GFXD3D11ShaderConstBuffer::_createBuffers()
             // Create a compute float constant buffer
             D3D11_BUFFER_DESC cbDesc;
 
-            if (subBuffers[i].size < 16)
+            if (subBuffers[i].type == D3D_CT_RESOURCE_BIND_INFO)
             {
                cbDesc.ByteWidth = subBuffers[i].size;
                cbDesc.Usage = D3D11_USAGE_STAGING;
@@ -1815,6 +1815,7 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
          // fill out our const sub buffer sizes etc
          ConstSubBufferDesc subBufferDesc;
          subBufferDesc.size = constantBufferDesc.Size;
+         subBufferDesc.type = constantBufferDesc.Type;
          subBufferDesc.start = bufferOffset;
          subBuffers.push_back(subBufferDesc);
          // increase our bufferOffset by the constant buffer size

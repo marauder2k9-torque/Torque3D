@@ -223,9 +223,10 @@ const U32 ComputeCBUFFER_MAX = 16;
 struct ConstSubBufferDesc
 {
    U32 start;
+   D3D_CBUFFER_TYPE type;
    U32 size;
 
-   ConstSubBufferDesc() : start(0), size(0){}
+   ConstSubBufferDesc() : start(0), size(0), type(D3D_CT_CBUFFER){}
 };
 
 class GFXD3D11ConstBufferLayout : public GenericConstBufferLayout
