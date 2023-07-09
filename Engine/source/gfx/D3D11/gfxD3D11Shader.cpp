@@ -1756,13 +1756,6 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
 
       if (constantBuffer->GetDesc(&constantBufferDesc) == S_OK)
       {
-   #ifdef TORQUE_DEBUG
-        /* AssertFatal(constantBufferDesc.Type == D3D_CT_CBUFFER, "Only scalar cbuffers supported for now.");
-
-         if (String::compare(constantBufferDesc.Name, "$Globals") != 0 && String::compare(constantBufferDesc.Name, "$Params") != 0)
-            AssertFatal(false, "Only $Global and $Params cbuffer supported for now.");*/
-
-   #endif
    #ifdef D3D11_DEBUG_SPEW
          Con::printf("Constant Buffer Name: %s", constantBufferDesc.Name);
    #endif 
@@ -1779,6 +1772,7 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
 			   ID3D11ShaderReflectionType* variableType =variable->GetType();
 
 			   variableType->GetDesc(&variableTypeDesc);
+
 			   desc.name = String(variableDesc.Name);
 			   // Prepend a "$" if it doesn't exist.  Just to make things consistent.
 			   if (desc.name.find("$") != 0)
@@ -1793,24 +1787,56 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection *refTable,
 
    #ifdef D3D11_DEBUG_SPEW
             Con::printf("Variable Name %s:, offset: %d, size: %d, constantDesc.Elements: %d", desc.name.c_str(), variableDesc.StartOffset, variableDesc.Size, desc.arraySize);
-   #endif           
-            if (_convertShaderVariable(variableTypeDesc, desc))
+   #endif
+            // if we are a struct we would have members.
+            if (variableTypeDesc.Members > 0)
             {
-               //The HLSL compiler for 4.0 and above doesn't strip out unused registered constants. We'll have to do it manually
-               if (!unusedVar)
-               {
-                  mShaderConsts.push_back(desc);
-                  U32 alignBytes = getAlignmentValue(desc.constType);
-                  U32 paramSize = variableDesc.Size;
-                  bufferLayout->addParameter(   desc.name,
-                                                desc.constType,
-                                                variableDesc.StartOffset + bufferOffset,
-                                                paramSize,
-                                                desc.arraySize,
-                                                alignBytes);
 
-               } //unusedVar
-            } //_convertShaderVariable
+               for (U32 k = 0; k < variableTypeDesc.Members; k++)
+               {
+                  ID3D11ShaderReflectionType* memType = variableType->GetMemberTypeByIndex(k);
+                  D3D11_SHADER_TYPE_DESC memTypeDesc;
+                  memType->GetDesc(&memTypeDesc);
+
+                  if (_convertShaderVariable(memTypeDesc, desc))
+                  {
+                     //The HLSL compiler for 4.0 and above doesn't strip out unused registered constants. We'll have to do it manually
+                     if (!unusedVar)
+                     {
+                        mShaderConsts.push_back(desc);
+                        U32 alignBytes = getAlignmentValue(desc.constType);
+                        U32 paramSize = variableDesc.Size;
+                        bufferLayout->addParameter(desc.name,
+                           desc.constType,
+                           variableDesc.StartOffset + bufferOffset,
+                           paramSize,
+                           desc.arraySize,
+                           alignBytes);
+
+                     } 
+                  } 
+               }
+            }
+            else
+            {
+               if (_convertShaderVariable(variableTypeDesc, desc))
+               {
+                  //The HLSL compiler for 4.0 and above doesn't strip out unused registered constants. We'll have to do it manually
+                  if (!unusedVar)
+                  {
+                     mShaderConsts.push_back(desc);
+                     U32 alignBytes = getAlignmentValue(desc.constType);
+                     U32 paramSize = variableDesc.Size;
+                     bufferLayout->addParameter(desc.name,
+                        desc.constType,
+                        variableDesc.StartOffset + bufferOffset,
+                        paramSize,
+                        desc.arraySize,
+                        alignBytes);
+
+                  } //unusedVar
+               } //_convertShaderVariable
+            }//Check for members
 		   } //constantBufferDesc.Variables
          // fill out our const sub buffer sizes etc
          ConstSubBufferDesc subBufferDesc;
