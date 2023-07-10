@@ -52,6 +52,7 @@ GFXD3D11TextureObject::GFXD3D11TextureObject( GFXDevice * d, GFXTextureProfile *
    mDSView = NULL;
    mRTView = NULL;
    mSRView = NULL;
+   mUAView = NULL;
    isManaged = false;
 }
 

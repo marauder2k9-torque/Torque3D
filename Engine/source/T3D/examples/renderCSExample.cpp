@@ -179,43 +179,6 @@ void RenderCSExample::unpackUpdate(NetConnection* conn, BitStream* stream)
 //-----------------------------------------------------------------------------
 void RenderCSExample::createGeometry()
 {
-   static const Point3F cubePoints[8] =
-   {
-      Point3F(1.0f, -1.0f, -1.0f), Point3F(1.0f, -1.0f,  1.0f),
-      Point3F(1.0f,  1.0f, -1.0f), Point3F(1.0f,  1.0f,  1.0f),
-      Point3F(-1.0f, -1.0f, -1.0f), Point3F(-1.0f,  1.0f, -1.0f),
-      Point3F(-1.0f, -1.0f,  1.0f), Point3F(-1.0f,  1.0f,  1.0f)
-   };
-
-   static const Point2F cubeTexCoords[4] =
-   {
-      Point2F(0,  0), Point2F(0, -1),
-      Point2F(1,  0), Point2F(1, -1)
-   };
-
-   static const ColorI cubeColors[3] =
-   {
-      ColorI(255,   0,   0, 255),
-      ColorI(0, 255,   0, 255),
-      ColorI(0,   0, 255, 255)
-   };
-
-   static const U32 cubeFaces[36][3] =
-   {
-      { 3, 0, 0 }, { 0, 0, 0 }, { 1, 0, 0 },
-      { 2, 0, 0 }, { 0, 0, 0 }, { 3, 0, 0 },
-      { 7, 1, 0 }, { 4, 1, 0 }, { 5, 1, 0 },
-      { 6, 1, 0 }, { 4, 1, 0 }, { 7, 1, 0 },
-      { 3, 2, 1 }, { 5, 2, 1 }, { 2, 2, 1 },
-      { 7, 2, 1 }, { 5, 2, 1 }, { 3, 2, 1 },
-      { 1, 3, 1 }, { 4, 3, 1 }, { 6, 3, 1 },
-      { 0, 3, 1 }, { 4, 3, 1 }, { 1, 3, 1 },
-      { 3, 4, 2 }, { 6, 4, 2 }, { 7, 4, 2 },
-      { 1, 4, 2 }, { 6, 4, 2 }, { 3, 4, 2 },
-      { 2, 5, 2 }, { 4, 5, 2 }, { 0, 5, 2 },
-      { 5, 5, 2 }, { 4, 5, 2 }, { 2, 5, 2 }
-   };
-
    // Fill the vertex buffer
    VertexType* pVert = NULL;
 
@@ -224,15 +187,104 @@ void RenderCSExample::createGeometry()
 
    Point3F halfSize = getObjBox().getExtents() * 0.5f;
 
-   for (U32 i = 0; i < 36; i++)
-   {
-      const U32& vdx = cubeFaces[i][0];
-      const U32& tdx = cubeFaces[i][2];
-      const U32& cdx = cubeFaces[i][2];
+   // We don't bother sharing
+   // vertices here, in order to
+   // avoid using a primitive buffer.
+   pVert[0].point.set(-1, -1, 1);
+   pVert[1].point.set(1, -1, 1);
+   pVert[2].point.set(1, -1, -1);
 
-      pVert[i].point = cubePoints[vdx] * halfSize;
-      pVert[i].texCoord = cubeTexCoords[tdx];
-   }
+   pVert[0].texCoord.set(0, 0);
+   pVert[1].texCoord.set(1.0f, 0);
+   pVert[2].texCoord.set(1.0f, 1.0f);
+
+   pVert[3].point.set(-1, -1, 1);
+   pVert[4].point.set(1, -1, -1);
+   pVert[5].point.set(-1, -1, -1);
+
+   pVert[3].texCoord.set(0, 0);
+   pVert[4].texCoord.set(1.0f, 1.0f);
+   pVert[5].texCoord.set(0, 1.0f);
+
+   pVert[6].point.set(1, -1, 1);
+   pVert[7].point.set(1, 1, 1);
+   pVert[8].point.set(1, 1, -1);
+
+   pVert[6].texCoord.set(0, 0);
+   pVert[7].texCoord.set(1.0f, 0);
+   pVert[8].texCoord.set(1.0f, 1.0f);
+
+   pVert[9].point.set(1, -1, 1);
+   pVert[10].point.set(1, 1, -1);
+   pVert[11].point.set(1, -1, -1);
+
+   pVert[9].texCoord.set(0, 0);
+   pVert[10].texCoord.set(1.0f, 1.0f);
+   pVert[11].texCoord.set(0, 1.0f);
+
+   pVert[12].point.set(-1, 1, 1);
+   pVert[13].point.set(-1, -1, 1);
+   pVert[14].point.set(-1, -1, -1);
+
+   pVert[12].texCoord.set(0, 0);
+   pVert[13].texCoord.set(1.0f, 0);
+   pVert[14].texCoord.set(1.0f, 1.0f);
+
+   pVert[15].point.set(-1, 1, 1);
+   pVert[16].point.set(-1, -1, -1);
+   pVert[17].point.set(-1, 1, -1);
+
+   pVert[15].texCoord.set(0, 0);
+   pVert[16].texCoord.set(1.0f, 1.0f);
+   pVert[17].texCoord.set(1.0f, 0);
+
+   pVert[18].point.set(1, 1, 1);
+   pVert[19].point.set(-1, 1, 1);
+   pVert[20].point.set(-1, 1, -1);
+
+   pVert[18].texCoord.set(0, 0);
+   pVert[19].texCoord.set(1.0f, 0);
+   pVert[20].texCoord.set(1.0f, 1.0f);
+
+   pVert[21].point.set(1, 1, 1);
+   pVert[22].point.set(-1, 1, -1);
+   pVert[23].point.set(1, 1, -1);
+
+   pVert[21].texCoord.set(0, 0);
+   pVert[22].texCoord.set(1.0f, 1.0f);
+   pVert[23].texCoord.set(0, 1.0f);
+
+   pVert[24].point.set(-1, -1, 1);
+   pVert[25].point.set(-1, 1, 1);
+   pVert[26].point.set(1, 1, 1);
+
+   pVert[24].texCoord.set(0, 0);
+   pVert[25].texCoord.set(1.0f, 0);
+   pVert[26].texCoord.set(1.0f, 1.0f);
+
+   pVert[27].point.set(-1, -1, 1);
+   pVert[28].point.set(1, 1, 1);
+   pVert[29].point.set(1, -1, 1);
+
+   pVert[27].texCoord.set(0, 0);
+   pVert[28].texCoord.set(1.0f, 1.0f);
+   pVert[29].texCoord.set(0, 1.0f);
+
+   pVert[30].point.set(1, 1, -1);
+   pVert[31].point.set(-1, 1, -1);
+   pVert[32].point.set(-1, -1, -1);
+
+   pVert[30].texCoord.set(1.0f, 1.0f);
+   pVert[31].texCoord.set(1.0f, 0);
+   pVert[32].texCoord.set(0, 0);
+
+   pVert[33].point.set(1, -1, -1);
+   pVert[34].point.set(1, 1, -1);
+   pVert[35].point.set(-1, -1, -1);
+
+   pVert[33].texCoord.set(0, 1.0f);
+   pVert[34].texCoord.set(1.0f, 1.0f);
+   pVert[35].texCoord.set(0, 0);
 
    mVertexBuffer.unlock();
 
@@ -280,7 +332,7 @@ void RenderCSExample::prepRenderImage(SceneRenderState* state)
 
 GFXTextureObject* RenderCSExample::_getTestTexture(U32 width, U32 height)
 {
-   GFXTexHandle testTexture(width, height, GFXFormatR8G8B8A8, &CSTargetTextureProfile, "RenderCSExample::_getTestTexture");
+   GFXTexHandle testTexture(width, height, GFXFormatB8G8R8A8, &CSTargetTextureProfile, "RenderCSExample::_getTestTexture");
    return testTexture;
 }
 
@@ -320,7 +372,7 @@ void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
 
    GFX->setShader(mCompShader);
    GFX->setComputeTarget(0, mComputeTarget);
-   GFX->dispatchCompute(256, 256, 1);
+   GFX->dispatchCompute(256/32, 256/32, 1);
    GFX->resolveCompute();
 
    // Set the vertex buffer
