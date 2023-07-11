@@ -6,6 +6,8 @@ void main(uint3 id : SV_DispatchThreadID)
 {
     float4 col = float4(1.0, 0.0, 0.0, 1.0);
 
+    col.r = float(id.x) / 256.0f;
+    col.g = float(id.y) / 256.0f;
     
-    BufferOut[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+    BufferOut[id.xy] = col;
 }

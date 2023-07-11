@@ -377,12 +377,7 @@ void RenderCSExample::render(ObjectRenderInst* ri, SceneRenderState* state, Base
 
    // Set the vertex buffer
    GFX->setVertexBuffer(mVertexBuffer);
-
-   // Set up the "generic" shaders
-   // These handle rendering on GFX layers that don't support
-   // fixed function. Otherwise they disable shaders.
    GFX->setShader(mShader);
-   //GFX->setupGenericShaders(GFXDevice::GSTexture);
    GFX->setShaderConstBuffer(mShaderConsts);
    GFX->setTexture(0, mComputeTarget);
 
