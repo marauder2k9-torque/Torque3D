@@ -8,6 +8,102 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
 project(${TORQUE_APP_NAME})
 
+if(APPLE)
+    set(TORQUE_APPLE_TARGET "macOS" CACHE STRING "The apple target")
+    set_property(CACHE TORQUE_APPLE_TARGET PROPERTY STRINGS macOS iphoneOS)
+
+    if(TORQUE_APPLE_TARGET MATCHES "iphoneOS")
+        set(IOS TRUE)
+    endif()
+
+    if(APPLE AND NOT IOS)
+        option(TORQUE_MACOS_UNIVERSAL_BINARY OFF)
+    
+        if(TORQUE_MACOS_UNIVERSAL_BINARY)
+            set(ARCHITECTURE_STRING_APPLE "x86_64;arm64")
+            set(DEPLOYMENT_TARGET_APPLE "10.14")
+        else()
+            if(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+                set(ARCHITECTURE_STRING_APPLE "arm64")
+                set(DEPLOYMENT_TARGET_APPLE "11.0")
+            else()
+                set(ARCHITECTURE_STRING_APPLE "x86_64")
+                set(DEPLOYMENT_TARGET_APPLE "10.14")
+            endif()
+        endif()
+    
+        set(CMAKE_OSX_ARCHITECTURES ${ARCHITECTURE_STRING_APPLE} CACHE STRING "OSX Architecture" FORCE)
+        set(CMAKE_OSX_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET_APPLE} CACHE STRING "OSX Deployment target" FORCE)
+  endif()
+
+endif(APPLE)
+
+if(IOS)
+    set(TORQUE_IOS_PLATFORM "OS" CACHE STRING "The ios platform")
+    set_property(CACHE TORQUE_IOS_PLATFORM PROPERTY STRINGS OS SIMULATOR)
+
+
+    if (${TORQUE_IOS_PLATFORM} STREQUAL "OS")
+        set (IOS_PLATFORM_LOCATION "iPhoneOS.platform")
+	    set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos")
+        set (IOS_ARCH armv7;armv7s;arm64)
+    elseif (${TORQUE_IOS_PLATFORM} STREQUAL "SIMULATOR")
+        set (IS_SIMULATOR true)
+        set (IOS_PLATFORM_LOCATION "iPhoneSimulator.platform")
+        set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphonesimulator")
+        set (IOS_ARCH i386;x86_64)
+    endif ()
+
+    exec_program(/usr/bin/xcode-select ARGS -print-path OUTPUT_VARIABLE CMAKE_XCODE_DEVELOPER_DIR)
+    set (XCODE_POST_43_ROOT "${CMAKE_XCODE_DEVELOPER_DIR}/Platforms/${IOS_PLATFORM_LOCATION}/Developer")
+    set (XCODE_PRE_43_ROOT "/Developer/Platforms/${IOS_PLATFORM_LOCATION}/Developer")
+    if (EXISTS ${XCODE_POST_43_ROOT})
+        set (CMAKE_IOS_DEVELOPER_ROOT ${XCODE_POST_43_ROOT})
+    elseif(EXISTS ${XCODE_PRE_43_ROOT})
+        set (CMAKE_IOS_DEVELOPER_ROOT ${XCODE_PRE_43_ROOT})
+    endif (EXISTS ${XCODE_POST_43_ROOT})
+
+    set (CMAKE_IOS_DEVELOPER_ROOT ${CMAKE_IOS_DEVELOPER_ROOT} CACHE PATH "Location of iOS Platform")
+
+    # Find and use the most recent iOS sdk unless specified manually with CMAKE_IOS_SDK_ROOT
+    if (NOT DEFINED CMAKE_IOS_SDK_ROOT)
+        file (GLOB _CMAKE_IOS_SDKS "${CMAKE_IOS_DEVELOPER_ROOT}/SDKs/*")
+        if (_CMAKE_IOS_SDKS) 
+            list (SORT _CMAKE_IOS_SDKS)
+            list (REVERSE _CMAKE_IOS_SDKS)
+            list (GET _CMAKE_IOS_SDKS 0 CMAKE_IOS_SDK_ROOT)
+        else (_CMAKE_IOS_SDKS)
+            message (FATAL_ERROR "No iOS SDK's found in default search path ${CMAKE_IOS_DEVELOPER_ROOT}. Manually set CMAKE_IOS_SDK_ROOT or install the iOS SDK.")
+        endif (_CMAKE_IOS_SDKS)
+        message (STATUS "Toolchain using default iOS SDK: ${CMAKE_IOS_SDK_ROOT}")
+    endif ()
+    set (CMAKE_IOS_SDK_ROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Location of the selected iOS SDK")
+
+    # Set the sysroot default to the most recent SDK
+    set (CMAKE_OSX_SYSROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Sysroot used for iOS support")
+
+    set(CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE STRING "IOS Architecture" FORCE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Set deployment target to empty for IOS" FORCE)
+
+    # Set the find root to the iOS developer roots and to user defined paths
+    set (CMAKE_FIND_ROOT_PATH ${CMAKE_IOS_DEVELOPER_ROOT} ${CMAKE_IOS_SDK_ROOT} ${CMAKE_PREFIX_PATH} CACHE STRING  "iOS find search path root")
+
+    # default to searching for frameworks first
+    set (CMAKE_FIND_FRAMEWORK FIRST)
+
+    # set up the default search directories for frameworks
+    set (CMAKE_SYSTEM_FRAMEWORK_PATH
+        ${CMAKE_IOS_SDK_ROOT}/System/Library/Frameworks
+        ${CMAKE_IOS_SDK_ROOT}/System/Library/PrivateFrameworks
+        ${CMAKE_IOS_SDK_ROOT}/Developer/Library/Frameworks
+    )
+
+    # only search the iOS sdks, not the remainder of the host filesystem
+    set (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY)
+    set (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+    set (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+endif()
+
 # An application name must be set first
 set(TORQUE_APP_NAME "" CACHE STRING "the app name")
 if("${TORQUE_APP_NAME}" STREQUAL "")

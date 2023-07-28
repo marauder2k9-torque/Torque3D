@@ -16,14 +16,6 @@ endif()
 
 set(TORQUE_COMPILE_DEFINITIONS ${TORQUE_COMPILE_DEFINITIONS} __MACOSX__)
 ################# Set Engine Linkages ###################
-
-# Linux requires X11 & freetype
-if (UNIX AND NOT APPLE)
-	set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_PLATFORM_X11_SOURCES})  
-	find_package(Freetype REQUIRED)
-	set(TORQUE_INCLUDE_DIRECTORIES ${TORQUE_INCLUDE_DIRECTORIES} ${FREETYPE_INCLUDE_DIRS})
-endif (UNIX AND NOT APPLE)
-
 ################# Collect Source Files ###################
 
 # Handle app
@@ -148,18 +140,14 @@ torqueAddSourceDirectories("i18n")
 
 # Begin handling platform specific stuff
 # Handle Platform POSIX
-if (UNIX)
-	torqueAddSourceDirectories("platformPOSIX")
+torqueAddSourceDirectories("platformPOSIX")
 
-	if (TORQUE_CPU_X32 OR TORQUE_CPU_X64)
-    torqueAddSourceDirectories("platformX86UNIX")
-	endif (TORQUE_CPU_X32 OR TORQUE_CPU_X64)
-endif (UNIX)
+if (TORQUE_CPU_X32 OR TORQUE_CPU_X64)
+torqueAddSourceDirectories("platformX86UNIX")
+endif (TORQUE_CPU_X32 OR TORQUE_CPU_X64)
 
 # Handle platformMac
-if (APPLE)
-  torqueAddSourceDirectories("platformMac")
-endif (APPLE)
+torqueAddSourceDirectories("platformMac")
 
 # Handle platformSDL
 torqueAddSourceDirectories("platformSDL" "platformSDL/threads")
@@ -238,13 +226,11 @@ endforeach()
 ################# Dynamic File Configuration ###################
 
 # Prepare OSX Plist
-if (APPLE)
-	set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_PLATFORM_MAC_SOURCES} "${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns")
-	set_source_files_properties("${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
-	
-	set(EXECUTABLE_NAME "${TORQUE_APP_NAME}")
-	configure_file("${CMAKE_SOURCE_DIR}/Tools/CMake/Info.plist.in" "${CMAKE_BINARY_DIR}/temp/Info.plist" COPYONLY)
-endif (APPLE)
+set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_PLATFORM_MAC_SOURCES} "${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns")
+set_source_files_properties("${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+
+set(EXECUTABLE_NAME "${TORQUE_APP_NAME}")
+configure_file("${CMAKE_SOURCE_DIR}/Tools/CMake/Info.plist.in" "${CMAKE_BINARY_DIR}/temp/Info.plist" COPYONLY)
 
 addDef(TORQUE_DEBUG Debug)
 addDef(TORQUE_RELEASE "RelWithDebInfo;Release")
@@ -306,21 +292,15 @@ endforeach()
 # as in the root CMake we force everything to be in game. This is necessary because on these platforms these are considered "libraries"
 # and not runtime binaries like we configure in the root CMake. We don't globally set library outputs to avoid outputting eg. a files to
 # our game directory.
-if (UNIX)
-	get_target_property(GAME_LINK_LIBRARIES ${TORQUE_APP_NAME} LINK_LIBRARIES)
-	foreach (GAME_LINK_LIBRARY ${GAME_LINK_LIBRARIES})
-	  # For eg. OSX some links are not valid targets - for example frameworks provided by OS
-	  if (TARGET ${GAME_LINK_LIBRARY})
-		  get_target_property(LINK_LIBRARY_TYPE ${GAME_LINK_LIBRARY} TYPE)
-			
-		  # Only pay attention to shared libraries and make them output to the app resources
-		  if ("${LINK_LIBRARY_TYPE}" STREQUAL "SHARED_LIBRARY")	 
-        if (APPLE)
-          set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
-        else()
-          set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}")
-        endif(APPLE)
-		  endif()
-	  endif()
-	endforeach()
-endif (UNIX)
+get_target_property(GAME_LINK_LIBRARIES ${TORQUE_APP_NAME} LINK_LIBRARIES)
+foreach (GAME_LINK_LIBRARY ${GAME_LINK_LIBRARIES})
+    # For eg. OSX some links are not valid targets - for example frameworks provided by OS
+    if (TARGET ${GAME_LINK_LIBRARY})
+        get_target_property(LINK_LIBRARY_TYPE ${GAME_LINK_LIBRARY} TYPE)
+        
+        # Only pay attention to shared libraries and make them output to the app resources
+        if ("${LINK_LIBRARY_TYPE}" STREQUAL "SHARED_LIBRARY")	 
+        set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
+        endif()
+    endif()
+endforeach()
