@@ -8,6 +8,20 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
 project(${TORQUE_APP_NAME})
 
+if(APPLE)
+    set(TORQUE_APPLE_TARGET "macOS" CACHE STRING "The apple target")
+    set_property(CACHE TORQUE_APPLE_TARGET PROPERTY STRINGS macOS iphoneOS)
+
+    if(TORQUE_APPLE_TARGET MATCHES "iphoneOS")
+        set(IOS TRUE)
+endif()
+
+if(IOS)
+    set(TOQRUE_IOS_PLATFORM "OS" CACHE STRING "The ios platform")
+    set_property(CACHE TOQRUE_IOS_PLATFORM PROPERTY STRINGS OS SIMULATOR)
+endif()
+
+
 # An application name must be set first
 set(TORQUE_APP_NAME "" CACHE STRING "the app name")
 if("${TORQUE_APP_NAME}" STREQUAL "")
