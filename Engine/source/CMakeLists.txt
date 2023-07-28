@@ -477,6 +477,43 @@ if(IOS)
 		set (CMAKE_IOS_DEVELOPER_ROOT ${XCODE_PRE_43_ROOT})
 	endif (EXISTS ${XCODE_POST_43_ROOT})
 
+  set (CMAKE_IOS_DEVELOPER_ROOT ${CMAKE_IOS_DEVELOPER_ROOT} CACHE PATH "Location of iOS Platform")
+
+  # Find and use the most recent iOS sdk unless specified manually with CMAKE_IOS_SDK_ROOT
+  if (NOT DEFINED CMAKE_IOS_SDK_ROOT)
+    file (GLOB _CMAKE_IOS_SDKS "${CMAKE_IOS_DEVELOPER_ROOT}/SDKs/*")
+    if (_CMAKE_IOS_SDKS) 
+      list (SORT _CMAKE_IOS_SDKS)
+      list (REVERSE _CMAKE_IOS_SDKS)
+      list (GET _CMAKE_IOS_SDKS 0 CMAKE_IOS_SDK_ROOT)
+    else (_CMAKE_IOS_SDKS)
+      message (FATAL_ERROR "No iOS SDK's found in default search path ${CMAKE_IOS_DEVELOPER_ROOT}. Manually set CMAKE_IOS_SDK_ROOT or install the iOS SDK.")
+    endif (_CMAKE_IOS_SDKS)
+    message (STATUS "Toolchain using default iOS SDK: ${CMAKE_IOS_SDK_ROOT}")
+  endif ()
+  set (CMAKE_IOS_SDK_ROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Location of the selected iOS SDK")
+
+  # Set the sysroot default to the most recent SDK
+  set (CMAKE_OSX_SYSROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Sysroot used for iOS support")
+
   set(CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE STRING "IOS Architecture" FORCE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Set deployment target to empty for IOS" FORCE)
+
+  # Set the find root to the iOS developer roots and to user defined paths
+  set (CMAKE_FIND_ROOT_PATH ${CMAKE_IOS_DEVELOPER_ROOT} ${CMAKE_IOS_SDK_ROOT} ${CMAKE_PREFIX_PATH} CACHE STRING  "iOS find search path root")
+
+  # default to searching for frameworks first
+  set (CMAKE_FIND_FRAMEWORK FIRST)
+
+  # set up the default search directories for frameworks
+  set (CMAKE_SYSTEM_FRAMEWORK_PATH
+    ${CMAKE_IOS_SDK_ROOT}/System/Library/Frameworks
+    ${CMAKE_IOS_SDK_ROOT}/System/Library/PrivateFrameworks
+    ${CMAKE_IOS_SDK_ROOT}/Developer/Library/Frameworks
+  )
+
+  # only search the iOS sdks, not the remainder of the host filesystem
+  set (CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY)
+  set (CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+  set (CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 endif()
