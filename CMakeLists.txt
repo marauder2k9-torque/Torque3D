@@ -14,6 +14,7 @@ if(APPLE)
 
     if(TORQUE_APPLE_TARGET MATCHES "iphoneOS")
         set(IOS TRUE)
+    endif()
 endif()
 
 if(IOS)
