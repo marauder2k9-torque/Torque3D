@@ -9,9 +9,13 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 project(${TORQUE_APP_NAME})
 
 if(APPLE)
-    set(TORQUE_APPLE_TARGET "macOS" CACHE STRING "The apple target")
+   enable_language(OBJC)
+   set(TORQUE_APPLE_TARGET "macOS" CACHE STRING "The apple target")
     set_property(CACHE TORQUE_APPLE_TARGET PROPERTY STRINGS macOS iphoneOS)
 
+    set(TORQUE_IOS_PLATFORM "OS" CACHE STRING "The ios platform")
+    set_property(CACHE TORQUE_IOS_PLATFORM PROPERTY STRINGS OS SIMULATOR)
+    
     if(TORQUE_APPLE_TARGET MATCHES "iphoneOS")
         set(IOS TRUE)
     endif()
@@ -39,8 +43,7 @@ if(APPLE)
 endif(APPLE)
 
 if(IOS)
-    set(TORQUE_IOS_PLATFORM "OS" CACHE STRING "The ios platform")
-    set_property(CACHE TORQUE_IOS_PLATFORM PROPERTY STRINGS OS SIMULATOR)
+    
     set (CMAKE_SYSTEM_NAME iOS)
 
     # Check the platform selection and setup for developer root
@@ -48,13 +51,11 @@ if(IOS)
         set (IOS_PLATFORM_LOCATION "iPhoneOS.platform")
     elseif (${TORQUE_IOS_PLATFORM} STREQUAL "SIMULATOR")
         set (IOS_PLATFORM_LOCATION "iPhoneSimulator.platform")
-    else (${TORQUE_IOS_PLATFORM} STREQUAL "OS")
-        message (FATAL_ERROR "Unsupported TORQUE_IOS_PLATFORM value selected. Please choose OS or SIMULATOR")
-    endif (${TORQUE_IOS_PLATFORM} STREQUAL "OS")
+    endif ()
     
     # Setup iOS developer location
     if (NOT DEFINED CMAKE_IOS_DEVELOPER_ROOT)
-        set (CMAKE_IOS_DEVELOPER_ROOT "/Developer/Platforms/${IOS_PLATFORM_LOCATION}/Developer")
+        set (CMAKE_IOS_DEVELOPER_ROOT "/Applications/Xcode.app/Contents/Developer/Platforms/${IOS_PLATFORM_LOCATION}/Developer")
     endif (NOT DEFINED CMAKE_IOS_DEVELOPER_ROOT)
 
     set (CMAKE_IOS_DEVELOPER_ROOT ${CMAKE_IOS_DEVELOPER_ROOT} CACHE PATH "Location of iOS Platform")
@@ -78,7 +79,7 @@ if(IOS)
 
     # set the architecture for iOS - using ARCHS_STANDARD_32_BIT sets armv6,armv7 and appears to be XCode's standard. 
     # The other value that works is ARCHS_UNIVERSAL_IPHONE_OS but that sets armv7 only
-    set (CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_BIT)" CACHE string  "Build architecture for iOS")
+    set (CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_BIT)" CACHE STRING  "Build architecture for iOS")
 
     # Set the find root to the iOS developer roots and to user defined paths
     set (CMAKE_FIND_ROOT_PATH ${CMAKE_IOS_DEVELOPER_ROOT} ${CMAKE_IOS_SDK_ROOT} ${CMAKE_PREFIX_PATH} CACHE STRING  "iOS find search path root")

@@ -8,6 +8,6 @@ if(UNIX AND NOT APPLE)
   include(torqueLinux.cmake)
 endif(UNIX AND NOT APPLE)
 
-if(APPLE AND NOT IOS)
+if(APPLE)
   include(torqueMac.cmake)
 endif()
