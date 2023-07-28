@@ -9,7 +9,7 @@ if (WIN32)
 endif (WIN32)
 
 # Only link Apple frameworks when on an Apple platform
-if (APPLE)
+if (APPLE AND NOT IOS)
     addFramework("Cocoa")
     addFramework("AppKit")
     addFramework("CoreData")
@@ -30,7 +30,31 @@ if (APPLE)
             addFramework("AudioToolbox")
         endif(TORQUE_SFX_OPENAL)
     endif()
-endif (APPLE)
+endif (APPLE AND NOT IOS)
+
+if(IOS)
+addFramework("Foundation")
+addFramework("Cocoa")
+addFramework("AppKit")
+addFramework("CoreData")
+addFramework("Foundation")
+#These are needed by sdl2 static lib
+addFramework("ForceFeedback")
+addFramework("IOKit")
+#grrr damn you sdl!
+addFramework("Carbon")
+addFramework("OpenGLES")
+addFramework("UIKit")
+addFramework("QuartzCore")
+addFramework("CoreGraphics")
+if(TORQUE_SFX_OPENAL)
+    addFramework("OpenAL")
+    addFramework("CoreAudio")
+    addFramework("AudioUnit")
+    addFramework("AudioToolbox")
+endif(TORQUE_SFX_OPENAL)
+
+endif(IOS)
 
 set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} nativeFileDialogs)
 
