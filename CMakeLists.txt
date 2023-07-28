@@ -43,29 +43,23 @@ if(IOS)
     set_property(CACHE TORQUE_IOS_PLATFORM PROPERTY STRINGS OS SIMULATOR)
     set (CMAKE_SYSTEM_NAME iOS)
 
+    # Check the platform selection and setup for developer root
     if (${TORQUE_IOS_PLATFORM} STREQUAL "OS")
         set (IOS_PLATFORM_LOCATION "iPhoneOS.platform")
-	    set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos")
-        set (IOS_ARCH armv7;armv7s;arm64)
     elseif (${TORQUE_IOS_PLATFORM} STREQUAL "SIMULATOR")
-        set (IS_SIMULATOR true)
         set (IOS_PLATFORM_LOCATION "iPhoneSimulator.platform")
-        set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphonesimulator")
-        set (IOS_ARCH i386;x86_64)
-    endif ()
-
-    exec_program(/usr/bin/xcode-select ARGS -print-path OUTPUT_VARIABLE CMAKE_XCODE_DEVELOPER_DIR)
-    set (XCODE_POST_43_ROOT "${CMAKE_XCODE_DEVELOPER_DIR}/Platforms/${IOS_PLATFORM_LOCATION}/Developer")
-    set (XCODE_PRE_43_ROOT "/Developer/Platforms/${IOS_PLATFORM_LOCATION}/Developer")
-    if (EXISTS ${XCODE_POST_43_ROOT})
-        set (CMAKE_IOS_DEVELOPER_ROOT ${XCODE_POST_43_ROOT})
-    elseif(EXISTS ${XCODE_PRE_43_ROOT})
-        set (CMAKE_IOS_DEVELOPER_ROOT ${XCODE_PRE_43_ROOT})
-    endif (EXISTS ${XCODE_POST_43_ROOT})
+    else (${TORQUE_IOS_PLATFORM} STREQUAL "OS")
+        message (FATAL_ERROR "Unsupported TORQUE_IOS_PLATFORM value selected. Please choose OS or SIMULATOR")
+    endif (${TORQUE_IOS_PLATFORM} STREQUAL "OS")
+    
+    # Setup iOS developer location
+    if (NOT DEFINED CMAKE_IOS_DEVELOPER_ROOT)
+        set (CMAKE_IOS_DEVELOPER_ROOT "/Developer/Platforms/${IOS_PLATFORM_LOCATION}/Developer")
+    endif (NOT DEFINED CMAKE_IOS_DEVELOPER_ROOT)
 
     set (CMAKE_IOS_DEVELOPER_ROOT ${CMAKE_IOS_DEVELOPER_ROOT} CACHE PATH "Location of iOS Platform")
 
-    # Find and use the most recent iOS sdk unless specified manually with CMAKE_IOS_SDK_ROOT
+    # Find and use the most recent iOS sdk 
     if (NOT DEFINED CMAKE_IOS_SDK_ROOT)
         file (GLOB _CMAKE_IOS_SDKS "${CMAKE_IOS_DEVELOPER_ROOT}/SDKs/*")
         if (_CMAKE_IOS_SDKS) 
@@ -73,17 +67,18 @@ if(IOS)
             list (REVERSE _CMAKE_IOS_SDKS)
             list (GET _CMAKE_IOS_SDKS 0 CMAKE_IOS_SDK_ROOT)
         else (_CMAKE_IOS_SDKS)
-            message (FATAL_ERROR "No iOS SDK's found in default search path ${CMAKE_IOS_DEVELOPER_ROOT}. Manually set CMAKE_IOS_SDK_ROOT or install the iOS SDK.")
+            message (FATAL_ERROR "No iOS SDK's found in default seach path ${CMAKE_IOS_DEVELOPER_ROOT}. Manually set CMAKE_IOS_SDK_ROOT or install the iOS SDK.")
         endif (_CMAKE_IOS_SDKS)
         message (STATUS "Toolchain using default iOS SDK: ${CMAKE_IOS_SDK_ROOT}")
-    endif ()
+    endif (NOT DEFINED CMAKE_IOS_SDK_ROOT)
     set (CMAKE_IOS_SDK_ROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Location of the selected iOS SDK")
 
     # Set the sysroot default to the most recent SDK
     set (CMAKE_OSX_SYSROOT ${CMAKE_IOS_SDK_ROOT} CACHE PATH "Sysroot used for iOS support")
 
-    set(CMAKE_OSX_ARCHITECTURES ${IOS_ARCH} CACHE STRING "IOS Architecture" FORCE)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "Set deployment target to empty for IOS" FORCE)
+    # set the architecture for iOS - using ARCHS_STANDARD_32_BIT sets armv6,armv7 and appears to be XCode's standard. 
+    # The other value that works is ARCHS_UNIVERSAL_IPHONE_OS but that sets armv7 only
+    set (CMAKE_OSX_ARCHITECTURES "$(ARCHS_STANDARD_32_BIT)" CACHE string  "Build architecture for iOS")
 
     # Set the find root to the iOS developer roots and to user defined paths
     set (CMAKE_FIND_ROOT_PATH ${CMAKE_IOS_DEVELOPER_ROOT} ${CMAKE_IOS_SDK_ROOT} ${CMAKE_PREFIX_PATH} CACHE STRING  "iOS find search path root")
