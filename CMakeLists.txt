@@ -18,8 +18,8 @@ if(APPLE)
 endif()
 
 if(IOS)
-    set(TOQRUE_IOS_PLATFORM "OS" CACHE STRING "The ios platform")
-    set_property(CACHE TOQRUE_IOS_PLATFORM PROPERTY STRINGS OS SIMULATOR)
+    set(TORQUE_IOS_PLATFORM "OS" CACHE STRING "The ios platform")
+    set_property(CACHE TORQUE_IOS_PLATFORM PROPERTY STRINGS OS SIMULATOR)
 endif()
 
 
