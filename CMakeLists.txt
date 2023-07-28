@@ -41,7 +41,7 @@ endif(APPLE)
 if(IOS)
     set(TORQUE_IOS_PLATFORM "OS" CACHE STRING "The ios platform")
     set_property(CACHE TORQUE_IOS_PLATFORM PROPERTY STRINGS OS SIMULATOR)
-
+    set (CMAKE_SYSTEM_NAME iOS)
 
     if (${TORQUE_IOS_PLATFORM} STREQUAL "OS")
         set (IOS_PLATFORM_LOCATION "iPhoneOS.platform")
