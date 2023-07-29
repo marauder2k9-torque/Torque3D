@@ -40,7 +40,7 @@ torqueAddSourceDirectories("T3D/fps" "T3D/fx" "T3D/vehicles" "T3D/physics"
 torqueAddSourceDirectories("ts" "ts/collada" "ts/loader" "ts/arch")
 
 # Handle SFX - OpenAL is handled as a module later on
-torqueAddSourceDirectories("sfx" "sfx/media" "sfx/null")
+torqueAddSourceDirectories("sfx" "sfx/null")
 # Handle GFX
 torqueAddSourceDirectories("gfx" "gfx/Null" "gfx/test" "gfx/bitmap" "gfx/bitmap/loaders"
                              "gfx/util" "gfx/video" "gfx/sim" )
