@@ -70,6 +70,7 @@ torqueAddSourceDirectories("util" "util/messaging")
 
 # Handle assets
 torqueAddSourceDirectories("assets")
+filterOut("assets/assetImporter.cpp")
 
 # Handle Sim
 torqueAddSourceDirectories("sim")
