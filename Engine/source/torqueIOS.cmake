@@ -115,6 +115,8 @@ torqueAddSourceDirectories("renderInstance")
 # Handle i18n
 torqueAddSourceDirectories("i18n")
 
+# Handle platformMac
+torqueAddSourceDirectories("platformIOS")
 
 # Add the collected files to our engine group
 source_group(TREE "${CMAKE_SOURCE_DIR}/Engine/source" PREFIX "Engine" FILES ${TORQUE_SOURCE_FILES})
