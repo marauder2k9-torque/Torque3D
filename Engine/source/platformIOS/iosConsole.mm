@@ -141,7 +141,12 @@ void IOSConsole::printf(const char *s, ...)
    }
    
    Con::stripColorChars(buffer);
-   write(stdout, buffer, strlen(buffer));
+   //write(stdout, buffer, strlen(buffer));
    
    fflush(stdout);
+}
+
+void IOSConsole::process()
+{
+   
 }
