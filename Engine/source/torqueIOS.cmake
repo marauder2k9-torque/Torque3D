@@ -201,24 +201,6 @@ if (NOT TORQUE_NET_CURL)
 endif()
 
 ################# Executable Generation ###################
-if (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
-  set(TORQUE_COMPILE_DEFINITIONS ${TORQUE_COMPILE_DEFINITIONS} TORQUE_SHARED)
-
-  # Build the main engine library
-  add_library(TorqueEngine SHARED ${TORQUE_SOURCE_FILES})
-  target_compile_definitions(TorqueEngine PUBLIC ${TORQUE_COMPILE_DEFINITIONS})
-  target_link_libraries(TorqueEngine ${TORQUE_LINK_LIBRARIES})
-  target_include_directories(TorqueEngine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_BINARY_DIR}/temp" ${TORQUE_INCLUDE_DIRECTORIES})
-  target_compile_features(TorqueEngine PRIVATE cxx_std_20)
-
-  set(TORQUE_SOURCE_FILES "main/main.cpp")
-  set(TORQUE_LINK_LIBRARIES TorqueEngine)
-else()
-  if(NOT TORQUE_TESTING)
-    set(TORQUE_SOURCE_FILES "main/main.cpp" ${TORQUE_SOURCE_FILES})
-  endif()
-endif (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
-
 add_executable(${TORQUE_APP_NAME} MACOSX_BUNDLE ${TORQUE_SOURCE_FILES})
 set_target_properties(${TORQUE_APP_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_BINARY_DIR}/temp/Info.plist")
 
