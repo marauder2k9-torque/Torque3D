@@ -13,6 +13,16 @@ add_compile_options($<$<CXX_COMPILER_ID:MSVC>:/MP>)
 
 project(${TORQUE_APP_NAME})
 
+if(APPLE)
+    if(TORQUE_APPLE_TARGET MATCHES "iphoneOS")
+        set(IOS TRUE)
+    endif()
+endif(APPLE)
+
+if(IOS)
+    set (CMAKE_SYSTEM_NAME iOS)
+endif()
+
 # An application name must be set first
 set(TORQUE_APP_NAME "" CACHE STRING "the app name")
 if("${TORQUE_APP_NAME}" STREQUAL "")
