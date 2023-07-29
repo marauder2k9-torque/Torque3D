@@ -20,4 +20,23 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
+
+#include "app/mainLoop.h"
+#include "platform/platformInput.h"
+#include "console/console.h"
+
+
+int main(int argc, char* argv[])
+{
+   @autoreleasepool
+   {
+      dPrintf("Init commandline");
+      
+      NSString *nsStrVersion = [UIDevice currentDevice].systemVersion;
+      
+      const char* strVersion = [nsStrVersion UTF8String];
+      
+      
+   }
+}
