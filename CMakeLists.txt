@@ -20,7 +20,7 @@ if(APPLE)
 endif(APPLE)
 
 if(IOS)
-    set (CMAKE_SYSTEM_NAME iOS)
+    #set (CMAKE_SYSTEM_NAME iOS)
 endif()
 
 # An application name must be set first
