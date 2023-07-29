@@ -13,7 +13,7 @@ set(TORQUE_COMPILE_DEFINITIONS ICE_NO_DLL PCRE_STATIC TORQUE_ADVANCED_LIGHTING T
 							   TORQUE_OPCODE TORQUE_COLLADA TORQUE_UNICODE UNICODE _UNICODE)
 
 # All link libraries. Modules should append to this the path to specify additional link libraries (.a, .lib, .dylib, .so)
-set(TORQUE_LINK_LIBRARIES tinyxml collada ljpeg squish png_static opcode glad pcre convexDecomp zlib)
+set(TORQUE_LINK_LIBRARIES tinyxml collada ljpeg squish png_static opcode glad pcre zlib)
 
 #general
 advanced_option(TORQUE_MULTITHREAD "Multi Threading" ON)
