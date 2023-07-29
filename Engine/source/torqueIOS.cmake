@@ -6,6 +6,7 @@ enable_language(OBJC)
 forwardDef(TORQUE_OPENGL)
 forwardDef(TORQUE_ADVANCED_LIGHTING)
 forwardDef(TORQUE_BASIC_LIGHTING)
+set(TORQUE_SDL OFF) # we need sdl to do our platform interop
 
 if(TORQUE_TESTING)
 set(TORQUE_COMPILE_DEFINITIONS ${TORQUE_COMPILE_DEFINITIONS} TORQUE_TESTS_ENABLED)
@@ -35,7 +36,7 @@ torqueAddSourceDirectories("T3D/fps" "T3D/fx" "T3D/vehicles" "T3D/physics"
                               "T3D/systems" "T3D/assets" "T3D" "T3D/gameBase/std")
 
 # Handle TS
-torqueAddSourceDirectories("ts" "ts/loader" "ts/arch")
+torqueAddSourceDirectories("ts" "ts/collada" "ts/loader" "ts/arch")
 
 # Handle SFX - OpenAL is handled as a module later on
 torqueAddSourceDirectories("sfx" "sfx/media" "sfx/null")
