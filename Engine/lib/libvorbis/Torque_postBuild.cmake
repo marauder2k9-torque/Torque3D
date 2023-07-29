@@ -1,1 +1,3 @@
+if(NOT IOS)
 set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} libvorbis)
+endif()
