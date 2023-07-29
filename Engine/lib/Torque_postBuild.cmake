@@ -33,13 +33,18 @@ if (APPLE AND NOT IOS)
 endif (APPLE AND NOT IOS)
 
 if(IOS)
-    addFramework("Cocoa")
-    addFramework("AppKit")
-    addFramework("CoreData")
+    addFramework("CoreText")
+    addFramework("GLKit")
+    addFramework("Foundation")
+    addFramework("AudioToolbox")
+    addFramework("QuartzCore")
+    addFramework("UIKit")
     addFramework("Foundation")
 endif(IOS)
 
-set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} nativeFileDialogs)
+if(NOT IOS)
+   set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} nativeFileDialogs)
+endif()
 
 # Linux requires X11 & freetype
 if (UNIX AND NOT APPLE)
