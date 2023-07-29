@@ -27,8 +27,6 @@ torqueAddSourceDirectories("console")
 # Handle Platform
 torqueAddSourceDirectories("platform" "platform/threads" "platform/async"
                                   "platform/input" "platform/output")
-								  
-torqueAddSourceDirectories("platform/nativeDialogs")
 
 # Handle T3D
 torqueAddSourceDirectories("T3D/fps" "T3D/fx" "T3D/vehicles" "T3D/physics"
@@ -198,8 +196,6 @@ addDef(TORQUE_DEBUG Debug)
 addDef(TORQUE_RELEASE "RelWithDebInfo;Release")
 addDef(TORQUE_ENABLE_ASSERTS "Debug;RelWithDebInfo")
 addDef(TORQUE_DEBUG_GFX_MODE "RelWithDebInfo")
-addDef(TORQUE_OGGVORBIS)
-
 
 if (NOT TORQUE_NET_CURL)
   filterOut("app/net/httpObject.h" "app/net/httpObject.cpp")
