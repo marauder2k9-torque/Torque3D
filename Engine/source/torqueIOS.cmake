@@ -65,9 +65,6 @@ torqueAddSourceDirectories("math" "math/util")
 # Handle persistence
 torqueAddSourceDirectories("persistence/taml" "persistence/taml/binary" "persistence/taml/xml")
 
-# Handle Cinterface
-torqueAddSourceDirectories("cinterface")
-
 # Handle util
 torqueAddSourceDirectories("util" "util/messaging")
 
