@@ -34,6 +34,8 @@ torqueAddSourceDirectories("T3D/fps" "T3D/fx" "T3D/vehicles" "T3D/physics"
                               "T3D/lighting" "T3D/gameOBjects" "T3D/components"
                               "T3D/systems" "T3D/assets" "T3D" "T3D/gameBase/std")
 
+filterOut("T3D/assets/assetImporter.cpp")                         
+
 # Handle TS
 torqueAddSourceDirectories("ts" "ts/collada" "ts/loader" "ts/arch")
 
@@ -70,7 +72,6 @@ torqueAddSourceDirectories("util" "util/messaging")
 
 # Handle assets
 torqueAddSourceDirectories("assets")
-filterOut("assets/assetImporter.cpp")
 
 # Handle Sim
 torqueAddSourceDirectories("sim")
