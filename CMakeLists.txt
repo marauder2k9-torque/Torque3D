@@ -1,7 +1,7 @@
 include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_macros.cmake")
 
-if(IOS)
-    include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_ios_configs.cmake")
+if(APPLE)
+    include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_ios_config.cmake")
 else()
     include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_configs.cmake")
 endif()

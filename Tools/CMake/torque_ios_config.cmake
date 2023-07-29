@@ -99,6 +99,11 @@ if(IOS)
     
     set (CMAKE_SYSTEM_NAME iOS)
 
+	# hardcode CMAKE_INSTALL_NAME_TOOL here to install_name_tool, so it behaves as it did before, Alex
+	if (NOT DEFINED CMAKE_INSTALL_NAME_TOOL)
+		find_program(CMAKE_INSTALL_NAME_TOOL install_name_tool)
+	endif (NOT DEFINED CMAKE_INSTALL_NAME_TOOL)
+
     # Check the platform selection and setup for developer root
     if (${TORQUE_IOS_PLATFORM} STREQUAL "OS")
         set (IOS_PLATFORM_LOCATION "iPhoneOS.platform")
