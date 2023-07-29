@@ -141,7 +141,7 @@ if(IOS)
     # hidden visibility is required for cxx on iOS
     set(CMAKE_C_FLAGS_INIT "")
     set(CMAKE_CXX_FLAGS_INIT
-    "-headerpad_max_install_names -fvisibility=hidden -fvisibility-inlines-hidden")
+    "-fvisibility=hidden -std=c++17 -stdlib=libc++ -fvisibility-inlines-hidden")
 
     set(CMAKE_C_LINK_FLAGS
     "-Wl,-search_paths_first ${CMAKE_C_LINK_FLAGS}")

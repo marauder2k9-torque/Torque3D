@@ -37,6 +37,6 @@ int main(int argc, char* argv[])
       
       const char* strVersion = [nsStrVersion UTF8String];
       
-      
+      return 0;
    }
 }
