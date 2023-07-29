@@ -122,7 +122,7 @@ source_group(TREE "${CMAKE_SOURCE_DIR}/Engine/source" PREFIX "Engine" FILES ${TO
 
 ################# Engine Module Handling ###################
 
-set(TORQUE_MODULE_PATHS "${CMAKE_SOURCE_DIR}/Tools/CMake/modules" "${TORQUE_APP_GAME_DIRECTORY}/data")
+set(TORQUE_MODULE_PATHS "${TORQUE_APP_GAME_DIRECTORY}/data")
 if (NOT "${TORQUE_MODULE_USER_PATH}" STREQUAL "")
 	list(APPEND TORQUE_MODULE_PATHS "${TORQUE_MODULE_USER_PATH}")
 endif()
