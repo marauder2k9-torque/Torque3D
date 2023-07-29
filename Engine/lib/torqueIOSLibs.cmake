@@ -7,8 +7,6 @@ mark_as_advanced(ZLIB_ROOT)
 # Png depends on zlib
 add_subdirectory(zlib ${CMAKE_BINARY_DIR}/temp/zlib EXCLUDE_FROM_ALL)
 
-add_subdirectory(nativeFileDialogs ${CMAKE_BINARY_DIR}/temp/nfd EXCLUDE_FROM_ALL)
-
 if (TORQUE_CPU_ARM32 OR TORQUE_CPU_ARM64)
 	set(PNG_ARM_NEON on CACHE BOOL "" FORCE)
 endif (TORQUE_CPU_ARM32 OR TORQUE_CPU_ARM64)

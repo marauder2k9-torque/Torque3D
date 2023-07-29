@@ -9,7 +9,7 @@ if (WIN32)
 endif (WIN32)
 
 # Only link Apple frameworks when on an Apple platform
-if (APPLE)
+if (APPLE AND NOT IOS)
     addFramework("Cocoa")
     addFramework("AppKit")
     addFramework("CoreData")
@@ -30,7 +30,14 @@ if (APPLE)
             addFramework("AudioToolbox")
         endif(TORQUE_SFX_OPENAL)
     endif()
-endif (APPLE)
+endif (APPLE AND NOT IOS)
+
+if(IOS)
+    addFramework("Cocoa")
+    addFramework("AppKit")
+    addFramework("CoreData")
+    addFramework("Foundation")
+endif(IOS)
 
 set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} nativeFileDialogs)
 
