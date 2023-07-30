@@ -76,6 +76,12 @@ macro (advanced_option flag description state)
     option(${flag} ${description} ${state})
     mark_as_advanced(${flag})
 endmacro(advanced_option)
+
+macro (advanced_set cmakeVar valVar docs)
+    set(${cmakeVar} ${valVar} CACHE STRING ${docs})
+    mark_as_advanced(${cmakeVar})
+endmacro(advanced_set)
+
 ################# additional preprocessor defines ###################
 macro(__addDef def config)
     # two possibilities: a) target already known, so add it directly, or b) target not yet known, so add it to its cache
