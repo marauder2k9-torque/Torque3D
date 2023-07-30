@@ -37,7 +37,7 @@ using namespace FS;
          bool rename(const Path& from, const Path& to);
          Path mapTo(const Path& path);
          Path mapFrom(const Path& path);
-      }
+      };
    
       class IOSFile : public File
       {
@@ -47,11 +47,11 @@ using namespace FS;
          FILE* _handle;
          NodeStatus _status;
          
-         IOSFile(const Path& path, String name);
          bool _updateInfo();
          void _updateStatus();
          
       public:
+         IOSFile(const Path& path, String name);
          ~IOSFile();
          
          Path getName() const;
@@ -70,7 +70,7 @@ using namespace FS;
          
       private:
          U32 calculateChecksum();
-      }
+      };
    
       class IOSDirectory : public Directory
       {
@@ -80,15 +80,15 @@ using namespace FS;
          DIR* _handle;
          NodeStatus _status;
          
-         IOSDirectory(const Path& path, String name);
          void _updateStatus();
          
       public:
+         IOSDirectory(const Path& path, String name);
          ~IOSDirectory();
          
          Path getName() const;
          NodeStatus getStatus() const;
-         bool getAttributes(Attributes);
+         bool getAttributes(Attributes*);
          
          bool open();
          bool close();
@@ -96,7 +96,7 @@ using namespace FS;
          
       private:
          U32 calculateChecksum();
-      }
+      };
    
    }
 

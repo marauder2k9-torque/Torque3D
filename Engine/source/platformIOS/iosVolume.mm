@@ -189,6 +189,7 @@ Path IOSFileSystem::mapFrom(const Path &path)
 //---------------------------------------------
 // IOSFile
 //---------------------------------------------
+
 IOSFile::IOSFile(const Path& path, String name)
 {
    _path = path;
@@ -352,5 +353,194 @@ U32 IOSFile::setPosition(U32 delta, SeekMode mode)
    return ftell(_handle);
 }
 
+U32 IOSFile::read(void *dst, U32 size)
+{
+   if(_status != Open && _status != EndOfFile)
+      return 0;
+   
+   U32 bytesRead = fread(dst, 1, size, _handle);
+   
+   if(bytesRead != size)
+   {
+      if(feof(_handle))
+         _status = EndOfFile;
+      else
+         _updateStatus();
+   }
+   
+   return bytesRead;
+}
+
+U32 IOSFile::write(const void *src, U32 size)
+{
+   if((_status != Open && _status != EndOfFile) || !size)
+      return 0;
+   
+   U32 bytesWritten = fwrite(src, 1, size, _handle);
+   
+   if(bytesWritten != size)
+      _updateStatus();
+   
+   return bytesWritten;
+}
+
+void IOSFile::_updateStatus()
+{
+   switch (errno) {
+      case EACCES:   _status = AccessDenied;    break;
+      case ENOSPC:   _status = FileSystemFull;  break;
+      case ENOTDIR:  _status = NoSuchFile;      break;
+      case ENOENT:   _status = NoSuchFile;      break;
+      case EISDIR:   _status = AccessDenied;    break;
+      case EROFS:    _status = AccessDenied;    break;
+      default:       _status = UnknownError;    break;
+   }
+}
+
+//---------------------------------------------
+// IOSDirectory
+//---------------------------------------------
+
+IOSDirectory::IOSDirectory(const Path& path, String name)
+{
+   _path = path;
+   _name = name;
+   _status = Closed;
+   _handle = 0;
+}
+
+IOSDirectory::~IOSDirectory()
+{
+   if(_handle)
+      close();
+}
+
+Path IOSDirectory::getName() const
+{
+   return _path;
+}
+
+bool IOSDirectory::open()
+{
+   if((_handle = opendir(_name)) == 0)
+   {
+      _updateStatus();
+      return false;
+   }
+   
+   _status = Open;
+   return true;
+}
+
+bool IOSDirectory::close()
+{
+   if(_handle)
+   {
+      closedir(_handle);
+      _handle = NULL;
+      return true;
+   }
+   
+   return false;
+}
+
+bool IOSDirectory::read(Attributes *entry)
+{
+   if(_status != Open)
+      return false;
+   
+   struct dirent* de = readdir(_handle);
+   
+   if(!de)
+   {
+      _status = EndOfFile;
+      return false;
+   }
+   
+   
+   if(de->d_name[0] == '.' && (de->d_name[1] == '\0' ||
+      (de->d_name[1] == '.' && de->d_name[2] == '\0')))
+      return read(entry);
+   
+   struct stat info;
+   String file = _name + "/" + de->d_name;
+   
+   int error = stat(file.c_str(), &info);
+   
+   if(error < 0)
+   {
+      _updateStatus();
+      return false;
+   }
+   
+   copyStatAttributes(info, entry);
+   entry->name = de->d_name;
+   return true;
+}
+
+U32 IOSDirectory::calculateChecksum()
+{
+   return 0;
+}
+
+bool IOSDirectory::getAttributes(Attributes* attr)
+{
+   struct stat info;
+   if(stat(_name.c_str(), &info))
+   {
+      _updateStatus();
+      return false;
+   }
+   
+   copyStatAttributes(info, attr);
+   attr->name = _path;
+   return true;
+}
+
+FileNode::NodeStatus IOSDirectory::getStatus() const
+{
+   return _status;
+}
+
+void IOSDirectory::_updateStatus()
+{
+   switch (errno) {
+      case EACCES:   _status = AccessDenied; break;
+      case ENOTDIR:  _status = NoSuchFile;   break;
+      case ENOENT:   _status = NoSuchFile;   break;
+      default:       _status = UnknownError; break;
+   }
+}
+
 }// namespace ios
+
 }// namespace torque
+
+Torque::FS::FileSystemRef Platform::FS::createNativeFS(const String &volume)
+{
+   return new IOS::IOSFileSystem(volume);
+}
+
+String Platform::FS::getAssetDir()
+{
+   return Platform::getExecutablePath();
+}
+
+bool Platform::FS::InstallFileSystems()
+{
+   Platform::FS::Mount("/",  Platform::FS::createNativeFS(String() ) );
+   
+   char buffer[PATH_MAX];
+   if(::getcwd(buffer, sizeof(buffer)))
+   {
+      if(buffer[dStrlen(buffer) - 1] != '/')
+         dStrcat(buffer, "/", PATH_MAX);
+      
+      Platform::FS::SetCwd(buffer);
+   }
+   
+   if(char* home = getenv("HOME"))
+      Platform::FS::Mount("home", Platform::FS::createNativeFS(home));
+   
+   return true;
+}
