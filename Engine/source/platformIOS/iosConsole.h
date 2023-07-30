@@ -18,32 +18,38 @@
 #include "platform/input/event.h"
 #endif
 
+#include <termios.h>
+
 class IOSConsole {
    bool iosConsoleEnabled;
    bool iosConsoleInputEnabled;
    bool inBackground;
-   bool lineOutput;
    
+   int stdOut;
+   int stdIn;
+   int stdErr;
    char inbuf[512];
    S32 inpos;
-   
+   bool lineOutput;
    char curTabComplete[512];
    S32 tabCompleteStart;
    char rgCmds[MAX_CMDS][512];
    S32 iCmdIndex;
    
+   struct termios *originalTermState;
+   
    void printf(const char*s, ...);
 public:
    IOSConsole();
    virtual ~IOSConsole();
-   void process();
    void enable(bool);
    void enableInput(bool enabled);
    void processConsoleLine(const char *consoleLine);
-   
+   void process();
    static void create();
    static void destroy();
    static bool isEnabled();
+   void resetTerminal();
 };
 
 extern IOSConsole *iosConsole;
