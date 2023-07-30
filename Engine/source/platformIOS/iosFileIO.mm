@@ -259,7 +259,7 @@ U32 File::getPosition() const
    AssertFatal(currentStatus != Closed , "File::getPosition: file closed");
    AssertFatal(handle != NULL, "File::getPosition: invalid file handle");
    
-   return ftell((FILE*)handle);
+   return static_cast<U32>(ftell((FILE*)handle));
 }
 
 //-----------------------------------------------------------------------------
@@ -289,7 +289,7 @@ File::FileStatus File::setPosition(S32 position, bool absolutePos)
       AssertFatal(0 <= position, "File::setPosition: negative absolute position");
       // position beyond EOS is OK
       fseek((FILE*)handle, position, SEEK_SET);
-      finalPos = ftell((FILE*)handle);
+      finalPos = static_cast<U32>(ftell((FILE*)handle));
    }
    else
    {
@@ -297,7 +297,7 @@ File::FileStatus File::setPosition(S32 position, bool absolutePos)
       AssertFatal((getPosition() + position) >= 0, "File::setPosition: negative relative position");
       // position beyond EOS is OK
       fseek((FILE*)handle, position, SEEK_CUR);
-      finalPos = ftell((FILE*)handle);
+      finalPos = static_cast<U32>(ftell((FILE*)handle));
    }
    
    // ftell returns -1 on error. set error status
@@ -331,7 +331,7 @@ U32 File::getSize() const
          return 0;
       
       // return the size in bytes
-      return statData.st_size;
+      return static_cast<U32>(statData.st_size);
    }
    
    return 0;
@@ -430,7 +430,7 @@ File::FileStatus File::read(U32 size, char *dst, U32 *bytesRead)
       return currentStatus;
    
    // read from stream
-   U32 nBytes = fread(dst, 1, size, (FILE*)handle);
+   U32 nBytes = static_cast<U32>(fread(dst, 1, size, (FILE*)handle));
    
    // did we hit the end of the stream?
    if( nBytes != size)
@@ -462,7 +462,7 @@ File::FileStatus File::write(U32 size, const char *src, U32 *bytesWritten)
       return currentStatus;
    
    // write bytes to the stream
-   U32 nBytes = fwrite(src, 1, size,(FILE*)handle);
+   U32 nBytes = static_cast<U32>(fwrite(src, 1, size,(FILE*)handle));
    
    // if we couldn't write everything, we've got a problem. set error status.
    if(nBytes != size)
@@ -602,7 +602,7 @@ bool Platform::setCurrentDirectory(StringTableEntry newDir)
 // helper func for getWorkingDirectory
 bool isMainDotCsPresent(NSString* dir)
 {
-   return [[NSFileManager defaultManager] fileExistsAtPath:[dir stringByAppendingPathComponent:@"main.cs"]] == YES;
+   return [[NSFileManager defaultManager] fileExistsAtPath:[dir stringByAppendingPathComponent:@"main." TORQUE_SCRIPT_EXTENSION]] == YES;
 }
 
 //-----------------------------------------------------------------------------
@@ -855,14 +855,14 @@ static bool recurseDumpDirectories(const char *basePath, const char *subPath, Ve
    // Iterate through and grab valid directories
    //////////////////////////////////////////////////////////////////////////
    
-   while (d = readdir(dip))
+   while (d == readdir(dip))
    {
       bool  isDir;
       isDir = false;
       if (d->d_type == DT_UNKNOWN)
       {
          char child [1024];
-         if ((Path[dStrlen(Path) - 1] == '/'))
+         if ((Path[dStrlen(Path) - 1] = '/'))
             dSprintf(child, 1024, "%s%s", Path, d->d_name);
          else
             dSprintf(child, 1024, "%s/%s", Path, d->d_name);

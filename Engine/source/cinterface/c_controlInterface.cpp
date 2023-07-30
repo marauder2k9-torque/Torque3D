@@ -232,7 +232,7 @@ extern "C" {
    {
 #if defined(TORQUE_SDL)
       return gExecutablePath ? gExecutablePath : SDL_GetBasePath();
-#elif
+#else
       return gExecutablePath;
 #endif
    }

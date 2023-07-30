@@ -61,6 +61,9 @@ torqueAddSourceDirectories("windowManager" "windowManager/torque")
 # Handle scene
 torqueAddSourceDirectories("scene" "scene/culling" "scene/zones" "scene/mixin")
 
+# Handle Cinterface
+torqueAddSourceDirectories("cinterface")
+
 # Handle math
 torqueAddSourceDirectories("math" "math/util")
 
