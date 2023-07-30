@@ -221,7 +221,7 @@ append_defs()
 # objects in our link libraries in that case.
 foreach (LIBRARY_BINARY ${TORQUE_ADDITIONAL_LIBRARY_BINARIES})
     # For OSX, we want these binaries to be copied to the Frameworks directory
-    add_custom_command(TARGET ${TORQUE_APP_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${LIBRARY_BINARY} "${TORQUE_APP_GAME_DIRECTORY}/\${CONFIGURATION}\${EFFECTIVE_PLATFORM_NAME}/${TORQUE_APP_NAME}.app/Frameworks")
+    add_custom_command(TARGET ${TORQUE_APP_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${LIBRARY_BINARY} "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Frameworks")
 endforeach()
 
 # Process link libraries for dynamic links - we do this on OSX/Linux to ensure the binaries end up in the correct App directory
@@ -236,7 +236,7 @@ foreach (GAME_LINK_LIBRARY ${GAME_LINK_LIBRARIES})
         
         # Only pay attention to shared libraries and make them output to the app resources
         if ("${LINK_LIBRARY_TYPE}" STREQUAL "SHARED_LIBRARY")	 
-          set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/\${CONFIGURATION}\${EFFECTIVE_PLATFORM_NAME}/${TORQUE_APP_NAME}.app/Frameworks")
+        set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
         endif()
     endif()
 endforeach()
