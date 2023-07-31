@@ -1,10 +1,9 @@
 include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_macros.cmake")
-
+include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_configs.cmake")
 if(APPLE)
-    include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_ios_config.cmake")
-else()
-    include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_configs.cmake")
+    include("${CMAKE_SOURCE_DIR}/Tools/CMake/ios.toolchain.cmake")
 endif()
+
 cmake_minimum_required (VERSION 3.21.0)
 set (CMAKE_CXX_STANDARD 17)
 
