@@ -37,6 +37,10 @@ function(installTemplate templateName)
   add_subdirectory("${CMAKE_SOURCE_DIR}/Templates/${templateName}")
 endfunction()
 
+macro(addLibSubdirectory lib)
+add_subdirectory(lib ${CMAKE_BINARY_DIR}/temp/lib EXCLUDE_FROM_ALL)
+endmacro()
+
 MACRO(SUBDIRLIST result curdir)
   FILE(GLOB children RELATIVE ${curdir} ${curdir}/*)
   SET(dirlist "")

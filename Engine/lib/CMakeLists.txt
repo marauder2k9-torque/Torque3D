@@ -5,7 +5,6 @@ get_filename_component(ZLIB_ROOT "zlib" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURC
 set(ZLIB_ROOT "${ZLIB_ROOT}" CACHE STRING "ZLib root location" FORCE)
 mark_as_advanced(ZLIB_ROOT)
 # Png depends on zlib
-add_subdirectory(zlib ${CMAKE_BINARY_DIR}/temp/zlib EXCLUDE_FROM_ALL)
 
 if(APPLE)
     enable_language(OBJC)
@@ -109,9 +108,6 @@ mark_as_advanced(SDL_WERROR)
 mark_as_advanced(SDL_X11)
 mark_as_advanced(SDL_XINPUT)
 
-add_subdirectory(sdl ${CMAKE_BINARY_DIR}/temp/sdl2 EXCLUDE_FROM_ALL)
-add_subdirectory(nativeFileDialogs ${CMAKE_BINARY_DIR}/temp/nfd EXCLUDE_FROM_ALL)
-
 # Assimp
 advanced_option(ASSIMP_HUNTER_ENABLED "Enable Hunter package manager support" OFF)
 set(ASSIMP_BUILD_NO_OWN_ZLIB ON CACHE BOOL "" FORCE)
@@ -151,8 +147,7 @@ mark_as_advanced(ASSIMP_LIBRARY_OUTPUT_DIRECTORY)
 mark_as_advanced(ASSIMP_LIBRARY_SUFFIX)
 mark_as_advanced(ASSIMP_PACKAGE_VERSION)
 mark_as_advanced(ASSIMP_RUNTIME_OUTPUT_DIRECTORY)
-add_subdirectory(assimp ${CMAKE_BINARY_DIR}/temp/assimp EXCLUDE_FROM_ALL)
-target_compile_definitions(assimp PUBLIC ASSIMP_BUILD_NO_OWN_ZLIB)
+
 if (TORQUE_CPU_ARM32 OR TORQUE_CPU_ARM64)
 	set(PNG_ARM_NEON on CACHE BOOL "" FORCE)
 endif (TORQUE_CPU_ARM32 OR TORQUE_CPU_ARM64)
@@ -175,17 +170,6 @@ endif()
 mark_as_advanced(PNG_DEBUG)
 mark_as_advanced(PNG_FRAMEWORK)
 mark_as_advanced(PNG_PREFIX)
-add_subdirectory(lpng ${CMAKE_BINARY_DIR}/temp/lpng EXCLUDE_FROM_ALL)
-
-
-add_subdirectory(ljpeg ${CMAKE_BINARY_DIR}/temp/ljpeg EXCLUDE_FROM_ALL)
-add_subdirectory(tinyxml ${CMAKE_BINARY_DIR}/temp/tinyxml EXCLUDE_FROM_ALL)
-add_subdirectory(opcode ${CMAKE_BINARY_DIR}/temp/opcode EXCLUDE_FROM_ALL)
-add_subdirectory(pcre ${CMAKE_BINARY_DIR}/temp/pcre EXCLUDE_FROM_ALL)
-add_subdirectory(convexDecomp ${CMAKE_BINARY_DIR}/temp/convexDecomp EXCLUDE_FROM_ALL)
-add_subdirectory(squish ${CMAKE_BINARY_DIR}/temp/squish EXCLUDE_FROM_ALL)
-add_subdirectory(collada ${CMAKE_BINARY_DIR}/temp/collada EXCLUDE_FROM_ALL)
-add_subdirectory(glad ${CMAKE_BINARY_DIR}/temp/glad EXCLUDE_FROM_ALL)
 
 #hidden options
 if(TORQUE_SFX_OPENAL)
@@ -251,11 +235,9 @@ if(TORQUE_SFX_OPENAL)
     mark_as_advanced(AUDIOUNIT_INCLUDE_DIR)
 endif()
 
-add_subdirectory(libvorbis ${CMAKE_BINARY_DIR}/temp/libvorbis EXCLUDE_FROM_ALL)
-add_subdirectory(libogg ${CMAKE_BINARY_DIR}/temp/libogg EXCLUDE_FROM_ALL)
-add_subdirectory(libtheora ${CMAKE_BINARY_DIR}/temp/libtheora EXCLUDE_FROM_ALL)
+foreach (TORQUE_LIB ${TORQUE_LINK_LIBRARIES})
+    addLibSubdirectory(${TORQUE_LIB})
+endforeach()
 
-if(TORQUE_TESTING)
-    add_subdirectory(gtest ${CMAKE_BINARY_DIR}/temp/gtest EXCLUDE_FROM_ALL)
-endif()
+target_compile_definitions(assimp PUBLIC ASSIMP_BUILD_NO_OWN_ZLIB)
 #endif()
