@@ -78,10 +78,9 @@ set(TORQUE_LINK_LIBRARIES tinyxml collada ljpeg squish png_static opcode glad pc
 
 #general
 set(TORQUE_MULTITHREAD ON CACHE BOOL "" FORCE)
-advanced_option(TORQUE_DISABLE_MEMORY_MANAGER "Disable memory manager" ON)
+advanced_set(TORQUE_DISABLE_MEMORY_MANAGER "Disable memory manager" ON)
 
 #fileIO
-set(TORQUE_APP_PASSWORD "changeme" CACHE STRING "zip file password")
 advanced_set(TORQUE_DISABLE_VIRTUAL_MOUNT_SYSTEM "Disable virtual mount system" OFF)
 advanced_set(TORQUE_DISABLE_FIND_ROOT_WITHIN_ZIP "Disable reading root path from zip. Zips will be mounted in-place with file name as directory name." ON)
 advanced_set(TORQUE_ZIP_DISK_LAYOUT "All zips must be placed in the executable directory and contain full paths to the files." OFF)
@@ -107,7 +106,7 @@ advanced_set(TORQUE_DYNAMIC_LIBRARY "Whether or not to build Torque as a dynamic
 advanced_set(TORQUE_PLAYER "Playback only?" OFF)
 advanced_set(TORQUE_DEBUG "T3D Debug mode" OFF)
 #option(DEBUG_SPEW "more debug" OFF)
-advanced_set(TORQUE_SHIPPING "T3D Shipping build?" OFF)
+advanced_set(TORQUE_SHIPPING "T3D Shipping build?" ON)
 advanced_set(TORQUE_DEDICATED "Torque dedicated" OFF) # disables compiling in gfx and sfx frontend functionality
 
 #tools
@@ -247,7 +246,7 @@ endif()
 message(STATUS "Configuring iOS build for platform: ${IOS_PLATFORM}, "
   "architecture(s): ${IOS_ARCH}")
 # Standard settings.
-set(CMAKE_SYSTEM_NAME Darwin)
+set(CMAKE_SYSTEM_NAME iOS)
 set(CMAKE_SYSTEM_VERSION ${IOS_SDK_VERSION})
 set(UNIX TRUE)
 set(APPLE TRUE)
