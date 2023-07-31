@@ -85,8 +85,28 @@ if(IOS)
 
     set(CMAKE_SYSTEM_NAME iOS)
     set(CMAKE_SYSTEM_VERSION ${IOS_SDK_VERSION})
-    set(CMAKE_XCODE_ATTRIBUTE_ARCHS "$(ARCHS_STANDARD)")
     set(CMAKE_OSX_ARCHITECTURES $(ARCH_STANDARD))
+    set(CMAKE_IOS_INSTALL_COMBINED YES)
+
+    if (NOT DEFINED CMAKE_INSTALL_NAME_TOOL)
+        find_program(CMAKE_INSTALL_NAME_TOOL install_name_tool)
+    endif (NOT DEFINED CMAKE_INSTALL_NAME_TOOL)
+    # Set the find root to the iOS developer roots and to user defined paths.
+    set(CMAKE_FIND_ROOT_PATH ${CMAKE_IOS_DEVELOPER_ROOT} ${CMAKE_OSX_SYSROOT}
+    ${CMAKE_PREFIX_PATH} CACHE STRING  "iOS find search path root" FORCE)
+    # Default to searching for frameworks first.
+    set(CMAKE_FIND_FRAMEWORK FIRST)
+    # Set up the default search directories for frameworks.
+    set(CMAKE_SYSTEM_FRAMEWORK_PATH
+    ${CMAKE_OSX_SYSROOT}/System/Library/Frameworks
+    ${CMAKE_OSX_SYSROOT}/System/Library/PrivateFrameworks
+    ${CMAKE_OSX_SYSROOT}/Developer/Library/Frameworks)
+    # Only search the specified iOS SDK, not the remainder of the host filesystem.
+    set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
+    set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+    set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+    
 endif(IOS)
 
 cmake_minimum_required (VERSION 3.21.0)
