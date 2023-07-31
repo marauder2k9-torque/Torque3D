@@ -240,14 +240,13 @@ endif()
 foreach (TORQUE_LIB ${TORQUE_LINK_LIBRARIES})
     addLibSubdirectory(${TORQUE_LIB})
 
-    if(${TORQUE_LIB STREQUAL "assimp"})
+    if(${TORQUE_LIB} STREQUAL "assimp")
         target_compile_definitions(assimp PUBLIC ASSIMP_BUILD_NO_OWN_ZLIB)
     endif()
 endforeach()
 
-target_compile_definitions(assimp PUBLIC ASSIMP_BUILD_NO_OWN_ZLIB)
 
-if(PNG_STATIC)
+if(${PNG_STATIC})
 set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} png_static)
 endif()
 

@@ -38,7 +38,7 @@ function(installTemplate templateName)
 endfunction()
 
 macro(addLibSubdirectory lib)
-add_subdirectory(lib ${CMAKE_BINARY_DIR}/temp/lib EXCLUDE_FROM_ALL)
+add_subdirectory(${lib} ${CMAKE_BINARY_DIR}/temp/${lib} EXCLUDE_FROM_ALL)
 endmacro()
 
 MACRO(SUBDIRLIST result curdir)
