@@ -154,6 +154,8 @@ endif (TORQUE_CPU_ARM32 OR TORQUE_CPU_ARM64)
 
 #PNG
 set(PNG_STATIC on CACHE BOOL "" FORCE)
+
+
 mark_as_advanced(PNG_STATIC)
 set(PNG_SHARED off CACHE BOOL "" FORCE)
 mark_as_advanced(PNG_SHARED)
@@ -240,4 +242,9 @@ foreach (TORQUE_LIB ${TORQUE_LINK_LIBRARIES})
 endforeach()
 
 target_compile_definitions(assimp PUBLIC ASSIMP_BUILD_NO_OWN_ZLIB)
+
+if(PNG_STATIC)
+set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} png_static)
+endif()
+
 #endif()

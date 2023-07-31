@@ -1,4 +1,4 @@
-set(TORQUE_LINK_LIBRARIES tinyxml collada ljpeg squish png_static opcode glad pcre zlib)
+set(TORQUE_LINK_LIBRARIES tinyxml collada ljpeg squish lpng opcode glad pcre zlib)
 
 advanced_set(TORQUE_DISABLE_MEMORY_MANAGER "Disable memory manager" ON)
 
