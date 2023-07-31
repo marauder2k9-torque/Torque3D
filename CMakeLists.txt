@@ -1,10 +1,23 @@
 include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_macros.cmake")
 
+# include general options.
+include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_options.cmake")
+
+# any platform specific options go here.
 if(APPLE)
-    include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_ios_config.cmake")
-else()
-    include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_configs.cmake")
+    include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_apple_options.cmake")
 endif()
+
+include("${CMAKE_SOURCE_DIR}/Tools/CMake/torque_libconfig.cmake")
+
+if(APPLE AND NOT IOS)
+    include("${CMAKE_SOURCE_DIR}/Tools/CMake/MacOSX/torque_mac_config.cmake")
+elseif(IOS)
+    include("${CMAKE_SOURCE_DIR}/Tools/CMake/iOS/torque_ios_config.cmake")
+endif()
+
+
+
 cmake_minimum_required (VERSION 3.21.0)
 set (CMAKE_CXX_STANDARD 17)
 
@@ -21,12 +34,6 @@ endif(APPLE)
 
 if(IOS)
     #set (CMAKE_SYSTEM_NAME iOS)
-endif()
-
-# An application name must be set first
-set(TORQUE_APP_NAME "" CACHE STRING "the app name")
-if("${TORQUE_APP_NAME}" STREQUAL "")
-	message(FATAL_ERROR "Please set TORQUE_APP_NAME first")
 endif()
 
 # Once an app name is determined, we know what our project pathing structure should look like
