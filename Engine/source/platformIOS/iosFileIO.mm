@@ -632,8 +632,6 @@ StringTableEntry Platform::getExecutablePath()
    }
    else if(!cwd)
    {
-      NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-      
       //first check the cwd for main.cs
       static char buf[4096];
       NSString* currentDir = [[NSString alloc ] initWithUTF8String:getcwd(buf,(4096 * sizeof(char))) ];
@@ -641,8 +639,6 @@ StringTableEntry Platform::getExecutablePath()
       if (isMainDotCsPresent(currentDir))
       {
          cwd = buf;
-         [pool release];
-         [currentDir release];
          return cwd;
       }
       
@@ -654,8 +650,6 @@ StringTableEntry Platform::getExecutablePath()
       AssertISV(isMainDotCsPresent(string), "Platform::getExecutablePath - Failed to find main.cs!");
       cwd = dStrdup([string UTF8String]);
       chdir(cwd);
-      [pool release];
-      [currentDir release];
    }
    
    return cwd;
