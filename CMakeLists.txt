@@ -106,7 +106,8 @@ if(IOS)
     set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
     set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
     set(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
-    
+
+    include("${CMAKE_SOURCE_DIR}/Tools/CMake/setup/torque-ios-configs.cmake")
 endif(IOS)
 
 cmake_minimum_required (VERSION 3.21.0)
