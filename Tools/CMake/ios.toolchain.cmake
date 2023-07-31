@@ -159,6 +159,9 @@ list(APPEND _supported_platforms
         "MAC" "MAC_ARM64" "MAC_UNIVERSAL"
         "MAC_CATALYST" "MAC_CATALYST_ARM64")
 
+set(PLATFORM "" CACHE STRING "The apple platform")
+set_property(CACHE PLATFORM PROPERTY STRINGS _supported_platforms)
+
 # Cache what generator is used
 set(USED_CMAKE_GENERATOR "${CMAKE_GENERATOR}")
 
