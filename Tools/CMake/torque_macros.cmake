@@ -138,6 +138,7 @@ function(_bundle_dependencies target)
   set(found_dependencies)
 
   get_target_property(found_dependencies ${target} LINK_LIBRARIES)
+  message("${found_dependencies}")
   list(REMOVE_DUPLICATES found_dependencies)
 
   set(library_paths)
