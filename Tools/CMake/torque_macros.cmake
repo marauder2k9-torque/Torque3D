@@ -128,6 +128,6 @@ endmacro (filterOut)
 ################# apple frameworks ###################
 macro(addFramework framework)
 	if (APPLE)
-		set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} "-framework ${framework}")
+		set(TORQUE_LINK_FRAMEWORKS ${TORQUE_LINK_FRAMEWORKS} "$<LINK_LIBRARY:FRAMEWORK,${framework}.framework>")
 	endif()
 endmacro()
