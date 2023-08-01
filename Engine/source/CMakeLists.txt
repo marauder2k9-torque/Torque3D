@@ -298,8 +298,8 @@ endif (WIN32)
 
 # Prepare OSX Plist
 if (APPLE)
-	set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_PLATFORM_MAC_SOURCES} "${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns")
-	set_source_files_properties("${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+	set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_PLATFORM_MAC_SOURCES})
+	set_source_files_properties("${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 	
 	set(EXECUTABLE_NAME "${TORQUE_APP_NAME}")
 	configure_file("${CMAKE_SOURCE_DIR}/Tools/CMake/Info.plist.in" "${CMAKE_BINARY_DIR}/temp/Info.plist" COPYONLY)
@@ -427,7 +427,10 @@ if (UNIX)
 		  # Only pay attention to shared libraries and make them output to the app resources
 		  if ("${LINK_LIBRARY_TYPE}" STREQUAL "SHARED_LIBRARY")	 
         if (APPLE)
-          set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
+          set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES 
+          XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME AppIcon
+          XCODE_ATTRIBUTE_PRODUCT_NAME ${TORQUE_APP_NAME}
+          LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
           target_link_libraries(${TORQUE_APP_NAME} ${TORQUE_LINK_FRAMEWORKS})
         else()
           set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}")
