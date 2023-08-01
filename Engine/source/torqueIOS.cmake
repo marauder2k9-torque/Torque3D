@@ -187,7 +187,7 @@ endforeach()
 ################# Dynamic File Configuration ###################
 
 # Prepare OSX Plist
-set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_PLATFORM_MAC_SOURCES} "${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns")
+set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_PLATFORM_MAC_SOURCES})
 set_source_files_properties("${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
 
 set(EXECUTABLE_NAME "${TORQUE_APP_NAME}")
@@ -204,7 +204,10 @@ endif()
 
 ################# Executable Generation ###################
 add_executable(${TORQUE_APP_NAME} MACOSX_BUNDLE ${TORQUE_SOURCE_FILES})
-set_target_properties(${TORQUE_APP_NAME} PROPERTIES MACOSX_BUNDLE_INFO_PLIST "${CMAKE_BINARY_DIR}/temp/Info.plist")
+set_target_properties(${TORQUE_APP_NAME} PROPERTIES
+                      XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym"
+                      MACOSX_BUNDLE_INFO_PLIST "${CMAKE_BINARY_DIR}/temp/Info.plist"
+                      RESOURCE "${CMAKE_SOURCE_DIR}/Tools/CMake/torque.icns")
 
 # Ensure the shared libraries are actually referenced at the correct path
 set(CMAKE_XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/Frameworks")
