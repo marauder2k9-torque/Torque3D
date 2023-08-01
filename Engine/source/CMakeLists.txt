@@ -346,6 +346,7 @@ if (APPLE)
 	set(CMAKE_XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/../Frameworks")
 	target_sources(${TORQUE_APP_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets")
 	set_source_files_properties("${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+	set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ArchiveOut/library)
   set_target_properties(
       ${TORQUE_APP_NAME}
       PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${MACOSX_BUNDLE_GUI_IDENTIFIER}"
@@ -416,6 +417,7 @@ foreach (LIBRARY_BINARY ${TORQUE_ADDITIONAL_LIBRARY_BINARIES})
   if (APPLE)
     # For OSX, we want these binaries to be copied to the Frameworks directory
     add_custom_command(TARGET ${TORQUE_APP_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${LIBRARY_BINARY} "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
+    _bundle_dependencies(${TORQUE_APP_NAME})
   else()
     # All other platforms expect the file next to the executable
     add_custom_command(TARGET ${TORQUE_APP_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${LIBRARY_BINARY} "${TORQUE_APP_GAME_DIRECTORY}")
@@ -434,12 +436,12 @@ if (UNIX)
 		  get_target_property(LINK_LIBRARY_TYPE ${GAME_LINK_LIBRARY} TYPE)
 			
 		  # Only pay attention to shared libraries and make them output to the app resources
-		  if ("${LINK_LIBRARY_TYPE}" STREQUAL "SHARED_LIBRARY")	 
+		  if ("${LINK_LIBRARY_TYPE}" STREQUAL "SHARED_LIBRARY")
         if (APPLE)
           set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES 
-          LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks"
-          ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ArchiveOut/library)
+          LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
           target_link_libraries(${TORQUE_APP_NAME} ${TORQUE_LINK_FRAMEWORKS})
+	  
         else()
           set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}")
         endif(APPLE)
