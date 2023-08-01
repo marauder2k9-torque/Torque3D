@@ -126,6 +126,104 @@ macro (filterOut)
 endmacro (filterOut)
 
 ################# apple macros ###################
+# find_dependencies: Check linked interface and direct dependencies of target
+function(find_dependencies)
+  set(oneValueArgs TARGET FOUND_VAR)
+  set(multiValueArgs)
+  cmake_parse_arguments(var "" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  if(NOT DEFINED is_root)
+    # Root of recursive dependency resolution
+    set(is_root TRUE)
+    set(nested_depth 0)
+  else()
+    # Branch of recursive dependency resolution
+    set(is_root FALSE)
+    math(EXPR nested_depth "${nested_depth}+1")
+  endif()
+
+  # * LINK_LIBRARIES are direct dependencies
+  # * INTERFACE_LINK_LIBRARIES are transitive dependencies
+  get_target_property(linked_libraries ${var_TARGET} LINK_LIBRARIES)
+  get_target_property(interface_libraries ${var_TARGET} INTERFACE_LINK_LIBRARIES)
+  message(DEBUG "[${nested_depth}] Linked libraries in target ${var_TARGET}: ${linked_libraries}")
+  message(DEBUG "[${nested_depth}] Linked interface libraries in target ${var_TARGET}: ${interface_libraries}")
+
+  # Consider CMake targets only
+  list(FILTER linked_libraries INCLUDE REGEX ".+::.+")
+  list(FILTER interface_libraries INCLUDE REGEX ".+::.+")
+
+  foreach(library IN LISTS linked_libraries interface_libraries)
+    if(NOT library)
+      continue()
+    elseif(library MATCHES "\\$<.*:[^>]+>")
+      # Generator expression found
+      if(library MATCHES "\\$<\\$<PLATFORM_ID:[^>]+>:.+>")
+        # Platform-dependent generator expression found - platforms are a comma-separated list of CMake host OS
+        # identifiers. Convert to CMake list and check if current host os is contained in list.
+        string(REGEX REPLACE "\\$<\\$<PLATFORM_ID:([^>]+)>:([^>]+)>" "\\1;\\2" gen_expression "${library}")
+        list(GET gen_expression 0 gen_platform)
+        list(GET gen_expression 1 gen_library)
+        string(REPLACE "," ";" gen_platform "${gen_platform}")
+        if(CMAKE_SYSTEM_NAME IN_LIST platform)
+          set(library "${gen_library}")
+        else()
+          continue()
+        endif()
+      elseif(library MATCHES "\\$<\\$<BOOL:[^>]+>:.+>")
+        # Boolean generator expression found - consider parameter a CMake variable that resolves into a CMake-like
+        # boolean value for a simple conditional check.
+        string(REGEX REPLACE "\\$<\\$<BOOL:([^>]+)>:([^>]+)>" "\\1;\\2" gen_expression "${library}")
+        list(GET gen_expression 0 gen_boolean)
+        list(GET gen_expression 1 gen_library)
+        if(${gen_boolean})
+          set(library "${gen_library}")
+        else()
+          continue()
+        endif()
+      elseif(library MATCHES "\\$<TARGET_NAME_IF_EXISTS:[^>]+>")
+        # Target-dependent generator expression found - consider parameter to be a CMake target identifier and check for
+        # target existence.
+        string(REGEX REPLACE "\\$<TARGET_NAME_IF_EXISTS:([^>]+)>" "\\1" gen_target "${library}")
+        if(TARGET ${gen_target})
+          set(library "${gen_target}")
+        else()
+          continue()
+        endif()
+      elseif(library MATCHES "\\$<.*Qt6::EntryPointPrivate>" OR library MATCHES "\\$<.*Qt6::QDarwin.+PermissionPlugin>")
+        # Known Qt6-specific generator expression, ignored.
+        continue()
+      else()
+        # Unknown or unimplemented generator expression found - abort script run to either add to ignore list or
+        # implement detection.
+        message(FATAL_ERROR "${library} is an unsupported generator expression for linked libraries.")
+      endif()
+    endif()
+
+    message(DEBUG "[${nested_depth}] Found ${library}...")
+
+    if(NOT library IN_LIST ${var_FOUND_VAR})
+      list(APPEND found_libraries ${library})
+      # Enter recursive branch
+      find_dependencies(TARGET ${library} FOUND_VAR ${var_FOUND_VAR})
+    endif()
+  endforeach()
+
+  if(NOT is_root)
+    set(found_libraries
+        ${found_libraries}
+        PARENT_SCOPE)
+    # Exit recursive branch
+    return()
+  endif()
+
+  list(REMOVE_DUPLICATES found_libraries)
+  list(APPEND ${var_FOUND_VAR} ${found_libraries})
+  set(${var_FOUND_VAR}
+      ${${var_FOUND_VAR}}
+      PARENT_SCOPE)
+endfunction()
+
 macro(addFramework framework)
 	if (APPLE)
 		set(TORQUE_LINK_FRAMEWORKS ${TORQUE_LINK_FRAMEWORKS} "$<LINK_LIBRARY:FRAMEWORK,${framework}.framework>")
