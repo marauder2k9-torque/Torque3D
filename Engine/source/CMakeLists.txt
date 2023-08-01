@@ -346,9 +346,13 @@ if (APPLE)
 	set(CMAKE_XCODE_ATTRIBUTE_LD_RUNPATH_SEARCH_PATHS "@executable_path/../Frameworks")
 	target_sources(${TORQUE_APP_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets")
 	set_source_files_properties("${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
- 
-  	set_property(SOURCE "${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets" PROPERTY MACOSX_PACKAGE_LOCATION Resources)
-  	source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets")
+  set_target_properties(
+      ${TORQUE_APP_NAME}
+      PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${MACOSX_BUNDLE_GUI_IDENTIFIER}"
+                 XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME AppIcon
+                 XCODE_ATTRIBUTE_PRODUCT_NAME "${TORQUE_APP_NAME}")
+  set_property(SOURCE "${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets" PROPERTY MACOSX_PACKAGE_LOCATION Resources)
+  source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets")
 elseif (WIN32)
 	add_executable(${TORQUE_APP_NAME} WIN32 ${TORQUE_SOURCE_FILES})
     
@@ -431,7 +435,6 @@ if (UNIX)
 		  if ("${LINK_LIBRARY_TYPE}" STREQUAL "SHARED_LIBRARY")	 
         if (APPLE)
           set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES 
-          XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME AppIcon
           LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
           target_link_libraries(${TORQUE_APP_NAME} ${TORQUE_LINK_FRAMEWORKS})
         else()
