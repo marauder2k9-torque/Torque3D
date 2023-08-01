@@ -349,8 +349,10 @@ if (APPLE)
   set_target_properties(
       ${TORQUE_APP_NAME}
       PROPERTIES XCODE_ATTRIBUTE_PRODUCT_BUNDLE_IDENTIFIER "${MACOSX_BUNDLE_GUI_IDENTIFIER}"
-                 XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME AppIcon
-                 XCODE_ATTRIBUTE_PRODUCT_NAME "${TORQUE_APP_NAME}")
+                XCODE_ATTRIBUTE_ASSETCATALOG_COMPILER_APPICON_NAME AppIcon
+                XCODE_ATTRIBUTE_PRODUCT_NAME "${TORQUE_APP_NAME}"
+                XCODE_ATTRIBUTE_INSTALL_PATH "$(LOCAL_APPS_DIR)"
+                XCODE_ATTRIBUTE_SKIP_INSTALL "No")
   set_property(SOURCE "${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets" PROPERTY MACOSX_PACKAGE_LOCATION Resources)
   source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Tools/CMake/app_assets/apple/Assets.xcassets")
 elseif (WIN32)
