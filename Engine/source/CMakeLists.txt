@@ -436,7 +436,8 @@ if (UNIX)
 		  if ("${LINK_LIBRARY_TYPE}" STREQUAL "SHARED_LIBRARY")	 
         if (APPLE)
           set_target_properties(${GAME_LINK_LIBRARY} PROPERTIES 
-          LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks")
+          LIBRARY_OUTPUT_DIRECTORY "${TORQUE_APP_GAME_DIRECTORY}/${TORQUE_APP_NAME}.app/Contents/Frameworks"
+          ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/ArchiveOut/library)
           target_link_libraries(${TORQUE_APP_NAME} ${TORQUE_LINK_FRAMEWORKS})
 	  
         else()
