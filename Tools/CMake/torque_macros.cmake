@@ -125,9 +125,70 @@ macro (filterOut)
   endforeach()
 endmacro (filterOut)
 
-################# apple frameworks ###################
+################# apple macros ###################
 macro(addFramework framework)
 	if (APPLE)
 		set(TORQUE_LINK_FRAMEWORKS ${TORQUE_LINK_FRAMEWORKS} "$<LINK_LIBRARY:FRAMEWORK,${framework}.framework>")
 	endif()
 endmacro()
+
+# _bundle_dependencies: Resolve 3rd party dependencies and add them to macOS app bundle
+function(_bundle_dependencies target)
+  message(DEBUG "Discover dependencies of target ${target}...")
+  set(found_dependencies)
+  find_dependencies(TARGET ${target} FOUND_VAR found_dependencies)
+
+  list(REMOVE_DUPLICATES found_dependencies)
+
+  set(library_paths)
+  file(GLOB sdk_library_paths /Applications/Xcode*.app)
+  set(system_library_path "/usr/lib/")
+
+  foreach(library IN LISTS found_dependencies)
+    get_target_property(library_type ${library} TYPE)
+    get_target_property(is_framework ${library} FRAMEWORK)
+    get_target_property(is_imported ${library} IMPORTED)
+
+    if(is_imported)
+      get_target_property(imported_location ${library} LOCATION)
+      if(NOT imported_location)
+        continue()
+      endif()
+
+      set(is_xcode_framework FALSE)
+      set(is_system_framework FALSE)
+
+      foreach(sdk_library_path IN LISTS sdk_library_paths)
+        if(is_xcode_framework)
+          break()
+        endif()
+        cmake_path(IS_PREFIX sdk_library_path "${imported_location}" is_xcode_framework)
+      endforeach()
+      cmake_path(IS_PREFIX system_library_path "${imported_location}" is_system_framework)
+
+      if(is_system_framework OR is_xcode_framework)
+        continue()
+      elseif(is_framework)
+        file(REAL_PATH "../../.." library_location BASE_DIRECTORY "${imported_location}")
+      elseif(NOT library_type STREQUAL "STATIC_LIBRARY")
+        if(NOT imported_location MATCHES ".+\\.a")
+          set(library_location "${imported_location}")
+        else()
+          continue()
+        endif()
+      else()
+        continue()
+      endif()
+
+      list(APPEND library_paths ${library_location})
+    elseif(NOT is_imported AND library_type STREQUAL "SHARED_LIBRARY")
+      list(APPEND library_paths ${library})
+    endif()
+  endforeach()
+
+  list(REMOVE_DUPLICATES library_paths)
+  set_property(
+    TARGET ${target}
+    APPEND
+    PROPERTY XCODE_EMBED_FRAMEWORKS ${library_paths})
+endfunction()
