@@ -1,44 +1,81 @@
 # Libsndfile module
 option(TORQUE_SFX_LIBSND "Use LibSndfile loading" ON)
 
-include(ExternalProject)
-
 if(TORQUE_SFX_LIBSND)
 
 set(THIRD_PARTY_DIR ${CMAKE_BINARY_DIR}/temp)
+include(ExternalProject)
 
-# ExternalProject_Add(
-#     flac
-#     GIT_REPOSITORY https://github.com/xiph/flac.git
-#     GIT_TAG 1.4.3
-#     PREFIX ${THIRD_PARTY_DIR}/flac
-#     SOURCE_DIR ${THIRD_PARTY_DIR}/flac
-#     STAMP_DIR ${THIRD_PARTY_DIR}/flac-stamp
-#     UPDATE_COMMAND ""
-#     PATCH_COMMAND ""
-#     CMAKE_GENERATOR ${gen}
-#     CMAKE_ARGS -DWITH_OGG:BOOL=OFF -DINSTALL_MANPAGES:BOOL=OFF -DBUILD_PROGRAMS:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DBUILD_DOCS:BOOL=OFF
-#     BUILD_IN_SOURCE 1
-# )
+ExternalProject_Add(
+    ogg
+    GIT_REPOSITORY https://github.com/xiph/ogg.git
+    GIT_TAG v1.3.5
+    PREFIX ${THIRD_PARTY_DIR}
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CMAKE_GENERATOR ${gen}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THIRD_PARTY_DIR}/ogg/install
+)
 
-set(BUILD_PROGRAMS OFF CACHE BOOL "Build and install programs" FORCE)
-set(BUILD_EXAMPLES OFF CACHE BOOL "Build and install examples" FORCE)
-set(BUILD_TESTING OFF CACHE BOOL "Build tests" FORCE)
-set(BUILD_DOCS OFF CACHE BOOL "Build and install doxygen documents" FORCE)
-set(WITH_FORTIFY_SOURCE OFF CACHE BOOL "Enable protection against buffer overflows" FORCE)
-set(WITH_STACK_PROTECTOR OFF CACHE BOOL "Enable GNU GCC stack smash protection" FORCE)
-set(INSTALL_MANPAGES OFF CACHE BOOL "Install MAN pages" FORCE)
-set(INSTALL_PKGCONFIG_MODULES OFF CACHE BOOL "Install PkgConfig modules" FORCE)
-set(INSTALL_CMAKE_CONFIG_MODULE OFF CACHE BOOL "Install CMake package-config module" FORCE)
-set(WITH_OGG OFF CACHE BOOL "ogg support (default: test for libogg)" FORCE)
-set(WITH_AVX OFF CACHE BOOL "scxt is sse4.2 not ACXX" FORCE)
-add_subdirectory(${CMAKE_SOURCE_DIR}/Engine/lib/libflac ${CMAKE_BINARY_DIR}/temp/flac EXCLUDE_FROM_ALL)
-add_dependencies(FLAC libogg)
+set(ENV{Ogg_DIR} ${THIRD_PARTY_DIR}/ogg/install/lib/cmake/Ogg)
+find_package(Ogg)
+
+ExternalProject_Add(
+    vorbis
+    DEPENDS ogg
+    GIT_REPOSITORY https://github.com/xiph/vorbis.git
+    GIT_TAG v1.3.7
+    PREFIX ${THIRD_PARTY_DIR}
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CMAKE_GENERATOR ${gen}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THIRD_PARTY_DIR}/vorbis/install
+    -DOGG_INCLUDE_DIR=${THIRD_PARTY_DIR}/ogg/install/include
+    -DOGG_LIBRARY=${THIRD_PARTY_DIR}/ogg/install/lib/ogg.lib
+)
+
+ExternalProject_Add(
+    opus
+    DEPENDS ogg
+    GIT_REPOSITORY https://github.com/xiph/opus.git
+    GIT_TAG v1.4
+    PREFIX ${THIRD_PARTY_DIR}
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CMAKE_GENERATOR ${gen}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THIRD_PARTY_DIR}/opus/install
+    -DOGG_INCLUDE_DIR=${THIRD_PARTY_DIR}/ogg/install/include
+    -DOGG_LIBRARY=${THIRD_PARTY_DIR}/ogg/install/lib/ogg.lib
+)
+
+
+ExternalProject_Add(
+    flac
+    DEPENDS ogg
+    GIT_REPOSITORY https://github.com/xiph/flac.git
+    GIT_TAG 1.3.3
+    PREFIX ${THIRD_PARTY_DIR}/flac
+    UPDATE_COMMAND ""
+    PATCH_COMMAND ""
+    CMAKE_GENERATOR ${gen}
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${THIRD_PARTY_DIR}/flac/install
+    -DOGG_INCLUDE_DIR=${THIRD_PARTY_DIR}/ogg/install/include
+    -DOGG_LIBRARY=${THIRD_PARTY_DIR}/ogg/install/lib/ogg.lib
+)
+
+set(ENV{FLAC_DIR} ${THIRD_PARTY_DIR}/flac/install/share/FLAC/cmake)
+set(ENV{Opus_DIR} ${THIRD_PARTY_DIR}/opus/install/lib/cmake/Opus)
+set(ENV{Vorbis_DIR} ${THIRD_PARTY_DIR}/vorbis/install/lib/cmake/Vorbis)
+
+find_package(FLAC)
+find_package(Vorbis)
+find_package(Opus)
 
 add_subdirectory(${CMAKE_SOURCE_DIR}/Engine/lib/libsndfile ${CMAKE_BINARY_DIR}/temp/libsndfile EXCLUDE_FROM_ALL)
-add_dependencies(sndfile libogg FLAC libvorbis)
+add_dependencies(sndfile ogg flac vorbis opus)
 
-set(TORQUE_INCLUDE_DIRECTORIES ${TORQUE_INCLUDE_DIRECTORIES} "${CMAKE_SOURCE_DIR}/Engine/lib/libsndfile/include")
+set(TORQUE_INCLUDE_DIRECTORIES ${TORQUE_INCLUDE_DIRECTORIES} ${CMAKE_SOURCE_DIR}/Engine/lib/libsndfile/include)
+
 set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} sndfile)
 
 endif(TORQUE_SFX_LIBSND)

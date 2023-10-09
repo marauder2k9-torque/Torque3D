@@ -21,6 +21,8 @@
 //-----------------------------------------------------------------------------
 
 #include "sfx/sfxFileStream.h"
+
+#include <sndfile.h>
 #include "core/stream/fileStream.h"
 #include "console/console.h"
 #include "core/util/safeDelete.h"
@@ -35,6 +37,38 @@ void SFXFileStream::registerExtension( String ext, SFXFILESTREAM_CREATE_FN creat
    // Register the stream creation first.
    smExtensions.push_back( ext );
    smCreateFns.push_back( create_fn );
+
+   SF_FORMAT_INFO	info;
+   SF_INFO 		sfinfo;
+   U32 format, major_count, subtype_count, m, s;
+
+   memset(&sfinfo, 0, sizeof(sfinfo));
+   Con::printf("Version : %s\n\n", sf_version_string());
+
+   sf_command(NULL, SFC_GET_FORMAT_MAJOR_COUNT, &major_count, sizeof(U32));
+   sf_command(NULL, SFC_GET_FORMAT_SUBTYPE_COUNT, &subtype_count, sizeof(U32));
+
+   sfinfo.channels = 1;
+   for (m = 0; m < major_count; m++)
+   {
+      info.format = m;
+      sf_command(NULL, SFC_GET_FORMAT_MAJOR, &info, sizeof(info));
+      Con::printf("%s  (extension \"%s\")", info.name, info.extension);
+
+      format = info.format;
+
+      for (s = 0; s < subtype_count; s++)
+      {
+         info.format = s;
+         sf_command(NULL, SFC_GET_FORMAT_SUBTYPE, &info, sizeof(info));
+
+         format = (format & SF_FORMAT_TYPEMASK) | info.format;
+
+         sfinfo.format = format;
+         if (sf_format_check(&sfinfo))
+            Con::printf("   %s", info.name);
+      };
+   };
 }
 
 void SFXFileStream::unregisterExtension( String ext )
