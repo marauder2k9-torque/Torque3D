@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2014 GarageGames, LLC
+# Copyright (c) 2016 GarageGames, LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
@@ -20,19 +20,17 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+project(glad)
 
-if(TORQUE_TESTING)
+addPath("${libDir}/glad/src")
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
-
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
-
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
+# TODO EGL support if we ever use EGL instead of GLX
+if (WIN32)
+   addPath("${libDir}/glad/src/wgl")
+elseif (UNIX AND NOT APPLE)
+   addPath("${libDir}/glad/src/glx") 
 endif()
+
+addInclude("${libDir}/glad/include")
+
+finishLibrary()

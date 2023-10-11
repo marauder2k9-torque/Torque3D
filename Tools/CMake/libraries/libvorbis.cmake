@@ -20,19 +20,16 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+project(libvorbis)
 
-if(TORQUE_TESTING)
+addPathRec("${libDir}/libvorbis")
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+addDef(TORQUE_OGGVORBIS)
+addInclude(${libDir}/libvorbis/include)
+addInclude(${libDir}/libogg/include)
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
-
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
+if(UNIX)
+	addInclude(${libDir}/libvorbis/lib)
 endif()
+
+finishLibrary()

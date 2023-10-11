@@ -20,19 +20,33 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+# module Hydra
 
-if(TORQUE_TESTING)
+option(TORQUE_HYDRA "Enable HYDRA module" OFF)
+mark_as_advanced(TORQUE_HYDRA)
+if(TORQUE_HYDRA)
+	if(TORQUE_HYDRA_SDK_PATH STREQUAL "")
+		set(TORQUE_HYDRA_SDK_PATH "" CACHE PATH "HYDRA library path" FORCE)
+	endif()
+else() # hide variable
+    set(TORQUE_HYDRA_SDK_PATH "" CACHE INTERNAL "" FORCE) 
+endif()
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+if(TORQUE_HYDRA)
+	# Source
+	addPathRec( "${srcDir}/platform/input/razerHydra" )
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
+	# Includes
+	addInclude( "${TORQUE_RAZERHYDRA_SDK_PATH}/include" )
+	 
+	# Install
+	if( WIN32 ) 
+		# File Copy for Release   
+		INSTALL(FILES "${TORQUE_RAZERHYDRA_SDK_PATH}/bin/win32/release_dll/sixense.dll"             DESTINATION "${projectOutDir}")
 
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
+		# File Copy for Debug
+		INSTALL(FILES "${TORQUE_RAZERHYDRA_SDK_PATH}/bin/win32/debug_dll/sixensed.dll"              DESTINATION "${projectOutDir}" CONFIGURATIONS "Debug" )
+		# Only needed by the debug sixense library
+		INSTALL(FILES "${TORQUE_RAZERHYDRA_SDK_PATH}/samples/win32/sixense_simple3d/DeviceDLL.dll"  DESTINATION "${projectOutDir}" CONFIGURATIONS "Debug" )
+	endif()
 endif()

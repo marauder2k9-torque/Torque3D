@@ -20,19 +20,25 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+project(libogg)
 
-if(TORQUE_TESTING)
+include(CheckIncludeFiles)
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+# Configure config_type.h
+check_include_files(inttypes.h INCLUDE_INTTYPES_H)
+check_include_files(stdint.h INCLUDE_STDINT_H)
+check_include_files(sys/types.h INCLUDE_SYS_TYPES_H)
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
+set(SIZE16 int16_t)
+set(USIZE16 uint16_t)
+set(SIZE32 int32_t)
+set(USIZE32 uint32_t)
+set(SIZE64 int64_t)
 
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
+configure_file(${libDir}/libogg/include/ogg/config_types.h.in ${libDir}/libogg/include/ogg/config_types.h @ONLY)
 
-endif()
+addPath("${libDir}/libogg" REC)
+
+addInclude(${libDir}/libogg/include)
+
+finishLibrary()

@@ -20,19 +20,10 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+project(nativeFileDialogs)
 
-if(TORQUE_TESTING)
+addPath("${libDir}/nativeFileDialogs" REC)
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+addInclude(${libDir}/nativeFileDialogs/include)
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
-
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
-endif()
+finishLibrary()

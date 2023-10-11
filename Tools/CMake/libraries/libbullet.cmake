@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2014 GarageGames, LLC
+# Copyright (c) 2015 GarageGames, LLC
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to
@@ -20,19 +20,23 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+project(libbullet)
 
-if(TORQUE_TESTING)
+addPath( "${libDir}/bullet/src" )
+addPath( "${libDir}/bullet/src/BulletCollision" )
+addPath( "${libDir}/bullet/src/BulletCollision/BroadphaseCollision" )
+addPath( "${libDir}/bullet/src/BulletCollision/CollisionDispatch" )
+addPath( "${libDir}/bullet/src/BulletCollision/CollisionShapes" )
+addPath( "${libDir}/bullet/src/BulletCollision/Gimpact" )
+addPath( "${libDir}/bullet/src/BulletCollision/NarrowPhaseCollision" )
+addPath( "${libDir}/bullet/src/BulletDynamics" )
+addPath( "${libDir}/bullet/src/BulletDynamics/Character" )
+addPath( "${libDir}/bullet/src/BulletDynamics/ConstraintSolver" )
+addPath( "${libDir}/bullet/src/BulletDynamics/Dynamics" )
+addPath( "${libDir}/bullet/src/BulletDynamics/Vehicle" )
+addPath( "${libDir}/bullet/src/LinearMath" )
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
+addInclude( "${libDir}/bullet/src" )
 
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
-endif()
+finishLibrary()

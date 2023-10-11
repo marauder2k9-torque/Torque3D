@@ -20,19 +20,30 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+project(lpng)
 
-if(TORQUE_TESTING)
+# addDef(PNG_NO_ASSEMBLER_CODE)
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
-
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
-
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
+# Enables NEON for libpng
+if ( TORQUE_CPU_ARM32 OR TORQUE_CPU_ARM64 )
+    set(PNG_INTEL_NEON on CACHE STRING "")
+    add_definitions(-DPNG_ARM_NEON_OPT=1)
+    addPath("${libDir}/lpng/arm")
+else()
+    set(PNG_ARM_NEON off CACHE STRING "")
+    add_definitions(-DPNG_ARM_NEON_OPT=0)
 endif()
+
+# Enables SSE for libpng - also takes care of compiler warnings.
+if ( TORQUE_CPU_X32 OR TORQUE_CPU_X64 )
+    set(PNG_INTEL_SSE on CACHE STRING "")
+    add_definitions(-DPNG_INTEL_SSE_OPT=1)
+    addPath("${libDir}/lpng/intel")
+else()
+    set(PNG_INTEL_SSE off CACHE STRING "")
+    add_definitions(-DPNG_INTEL_SSE_OPT=0)
+endif()
+
+addInclude(${libDir}/zlib)
+
+finishLibrary("${libDir}/${PROJECT_NAME}")

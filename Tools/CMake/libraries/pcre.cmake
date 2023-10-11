@@ -20,19 +20,13 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+project(pcre)
 
-if(TORQUE_TESTING)
+addDef(PCRE_STATIC)
+addDef(HAVE_CONFIG_H)
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+finishLibrary("${libDir}/pcre")
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
-
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
+if(WIN32)
+    set_property(TARGET pcre PROPERTY COMPILE_FLAGS /TP) #/TP = compile as C++
 endif()

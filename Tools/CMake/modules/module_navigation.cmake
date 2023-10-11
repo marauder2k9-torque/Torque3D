@@ -20,19 +20,20 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+# Navigation module
+option(TORQUE_NAVIGATION "Enable Navigation module" ON)
 
-if(TORQUE_TESTING)
+if(TORQUE_NAVIGATION)
+	addDef( "TORQUE_NAVIGATION_ENABLED" )
+	addLib( "recast" )
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+	# files
+	addPathRec( "${srcDir}/navigation" )
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
-
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
-endif()
+	# include paths
+	addInclude( "${libDir}/recast/DebugUtils/Include" )
+	addInclude( "${libDir}/recast/Recast/Include" )
+	addInclude( "${libDir}/recast/Detour/Include" )
+	addInclude( "${libDir}/recast/DetourTileCache/Include" )
+	addInclude( "${libDir}/recast/DetourCrowd/Include" )
+endif(TORQUE_NAVIGATION)

@@ -20,19 +20,14 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+# JTH: We require CMake 3.1.4 for MSVC14 compatibility check
+cmake_minimum_required(VERSION 3.1.4)
 
-if(TORQUE_TESTING)
+include(basics.cmake)
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+setupVersionNumbers()
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
+# the main engine, should come last
+include(torque3d.cmake)
 
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
-endif()
+#setupPackaging()

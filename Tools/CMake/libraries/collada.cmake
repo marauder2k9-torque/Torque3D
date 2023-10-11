@@ -20,19 +20,20 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+project(collada)
 
-if(TORQUE_TESTING)
+addPath("${libDir}/collada/src/1.4/dom")
+addPath("${libDir}/collada/src/dae")
+addPath("${libDir}/collada/src/modules/LIBXMLPlugin")
+addPath("${libDir}/collada/src/modules/stdErrPlugin")
+addPath("${libDir}/collada/src/modules/STLDatabase")
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+addDef(DOM_INCLUDE_TINYXML)
+addDef(PCRE_STATIC)
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
+addInclude(${libDir}/collada/include)
+addInclude(${libDir}/collada/include/1.4)
+addInclude(${libDir}/pcre)
+addInclude(${libDir}/tinyxml)
 
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
-endif()
+finishLibrary()

@@ -20,19 +20,21 @@
 # IN THE SOFTWARE.
 # -----------------------------------------------------------------------------
 
-option(TORQUE_TESTING "Enable unit test module" OFF)
-mark_as_advanced(TORQUE_TESTING)
+# Recast library
+project(recast)
 
-if(TORQUE_TESTING)
+# Source
+addPathRec( "${libDir}/recast/DebugUtils/Source" )
+addPathRec( "${libDir}/recast/Recast/Source" )
+addPathRec( "${libDir}/recast/Detour/Source" )
+addPathRec( "${libDir}/recast/DetourCrowd/Source" )
+addPathRec( "${libDir}/recast/DetourTileCache/Source" )
 
-    # Project defines
-    addDef( "TORQUE_TESTS_ENABLED" )
-    addDef( "_VARIADIC_MAX" 10 )
+# Additional includes
+addInclude( "${libDir}/recast/DebugUtils/Include" )
+addInclude( "${libDir}/recast/Recast/Include" )
+addInclude( "${libDir}/recast/Detour/Include" )
+addInclude( "${libDir}/recast/DetourTileCache/Include" )
+addInclude( "${libDir}/recast/DetourCrowd/Include" )
 
-    # Add source files
-    addPathRec( "${srcDir}/testing" )
-
-    # Add include paths
-    addInclude( "${libDir}/gtest/fused-src/" )
-
-endif()
+finishLibrary()

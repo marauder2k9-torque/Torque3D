@@ -83,6 +83,16 @@ struct SceneBinRange
       return memcmp(minCoord, other.minCoord, sizeof(minCoord)) == 0 &&
          memcmp(maxCoord, other.maxCoord, sizeof(maxCoord)) == 0;
    }
+
+   inline bool operator!=(const SceneBinRange& other) const
+   {
+      if (memcmp(minCoord, other.minCoord, sizeof(minCoord)) == 0 &&
+         memcmp(maxCoord, other.maxCoord, sizeof(maxCoord)) == 0)
+         return false;
+      else
+         return true;
+   }
+
 };
 
 /// Lookup for bins assigned to SceneObject
