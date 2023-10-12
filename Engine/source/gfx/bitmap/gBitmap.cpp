@@ -1234,6 +1234,19 @@ bool  GBitmap::writeBitmap( const String &bmType, Stream &ioStream, U32 compress
    return regInfo->writeFunc( this, ioStream, (compressionLevel == U32_MAX) ? regInfo->defaultCompression : compressionLevel );
 }
 
+bool  GBitmap::writeBitmap(const String& bmType, const Torque::Path& outpath, U32 compressionLevel)
+{
+   const GBitmap::Registration* regInfo = GBitmap::sFindRegInfo(bmType);
+
+   if (regInfo == NULL)
+   {
+      Con::errorf("[GBitmap::writeBitmap] unable to find registration for extension [%s]", bmType.c_str());
+      return false;
+   }
+
+   return regInfo->writeFuncFile(this, outpath, (compressionLevel == U32_MAX) ? regInfo->defaultCompression : compressionLevel);
+}
+
 template<> void *Resource<GBitmap>::create(const Torque::Path &path)
 {
    PROFILE_SCOPE( ResourceGBitmap_create );
@@ -1444,10 +1457,12 @@ DefineEngineFunction(saveScaledImage, bool, (const char* bitmapSource, const cha
    //TODO: support different format targets, for now we just force
    //to png for simplicity
    Torque::Path destinationPath = Torque::Path(bitmapDest);
-   destinationPath.setExtension("png");
+   //destinationPath.setExtension("png");
+
+
 
    // Open up the file on disk.
-   FileStream fs;
+   /*FileStream fs;
    if (!fs.open(destinationPath.getFullPath(), Torque::FS::File::Write))
    {
       Con::errorf("saveScaledImage() - Failed to open output file '%s'!", bitmapDest);
@@ -1455,12 +1470,13 @@ DefineEngineFunction(saveScaledImage, bool, (const char* bitmapSource, const cha
       return false;
    }
    else
-   {
-      image->writeBitmap("png", fs);
+   {*/
+      // yes i realize the irony of sending both the extension and path......
+      image->writeBitmap(destinationPath.getExtension(), destinationPath);
 
-      fs.close();
+      //fs.close();
       delete image;
-   }
+   //}
 
    return true;
 }

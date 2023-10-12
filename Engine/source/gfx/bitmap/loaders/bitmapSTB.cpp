@@ -27,16 +27,27 @@
 #include "core/strings/stringFunctions.h"
 #include "gfx/bitmap/gBitmap.h"
 
+#ifdef __clang__
+#define STBIWDEF static inline
+#endif
+
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_STATIC
 #include "stb_image.h"
 #endif
 
+#ifndef STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_STATIC
+#include "stb_image_write.h"
+#endif
+
 
 static bool sReadSTB(Stream& stream, GBitmap* bitmap);
 static bool sReadSTB(const Torque::Path& path, GBitmap* bitmap);
 static bool sWriteSTB(GBitmap* bitmap, Stream& stream, U32 compressionLevel);
+static bool sWriteSTB(GBitmap* bitmap, const Torque::Path& path, U32 compressionLevel);
 
 static struct _privateRegisterSTB
 {
@@ -52,8 +63,13 @@ static struct _privateRegisterSTB
       reg.extensions.push_back("hdr");
       reg.extensions.push_back("tga");
 
+      reg.readFunc = sReadSTB;
+
       reg.readFileFunc = sReadSTB;
+
       reg.writeFunc = sWriteSTB;
+
+      reg.writeFuncFile = sWriteSTB;
 
       GBitmap::sRegisterFormat(reg);
 
@@ -164,5 +180,62 @@ bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
 
 bool sWriteSTB(GBitmap* bitmap, Stream& stream, U32 compressionLevel)
 {
+   return false;
+}
+
+bool sWriteSTB(GBitmap* bitmap, const Torque::Path& path, U32 compressionLevel)
+{
+   PROFILE_SCOPE(sWriteSTB);
+
+   // get our data to be saved.
+   U8* data = (U8*)bitmap->getBits();
+   U32 width = bitmap->getWidth();
+   U32 height = bitmap->getHeight();
+   U32 bytes = bitmap->getBytesPerPixel();
+   GFXFormat format = bitmap->getFormat();
+   String ext = path.getExtension();
+
+   U32 stride = width * bytes;
+   U32 comp = 0;
+   
+   if (format == GFXFormatR8G8B8)
+   {
+      comp = 3;
+   }
+   else if (format == GFXFormatR8G8B8A8 || format == GFXFormatR8G8B8X8 || format == GFXFormatR8G8B8A8_LINEAR_FORCE)
+   {
+      comp = 4;
+   }
+
+   if (ext.equal("png"))
+   {
+      if (stbi_write_png(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits(), 0))
+         return true;
+   }
+
+   if (ext.equal("tga"))
+   {
+      if (stbi_write_tga(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits()))
+         return true;
+   }
+
+   if (ext.equal("bmp"))
+   {
+      if (stbi_write_bmp(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits()))
+         return true;
+   }
+
+   if (ext.equal("jpg") || ext.equal("jpeg"))
+   {
+      if (stbi_write_jpg(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits(), 90))
+         return true;
+   }
+
+   if (ext.equal("hdr"))
+   {
+      if (stbi_write_hdr(path.getFullPath().c_str(), width, height, comp, (const F32 *)bitmap->getWritableBits()))
+         return true;
+   }
+
    return false;
 }

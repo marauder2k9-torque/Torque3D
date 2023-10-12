@@ -77,6 +77,8 @@ public:
 
       /// The write function prototype.  Compression levels are image-specific - see their registration declaration for details.
       typedef bool(*WriteFunc)(GBitmap *bitmap, Stream &stream, U32 compressionLevel);
+      /// The write function prototype.  Compression levels are image-specific - see their registration declaration for details.
+      typedef bool(*WriteFuncFile)(GBitmap* bitmap, const Torque::Path& path, U32 compressionLevel);
 
       /// Used to sort the registrations so that 
       /// lookups occur in a fixed order.
@@ -85,8 +87,9 @@ public:
       Vector<String>   extensions;     ///< the list of file extensions for this bitmap type [these should be lower case]
       
       ReadFunc    readFunc;            ///< the read function to call for this bitmap type
-      ReadFuncFile    readFileFunc;        ///< the read file function to call for this bitmap type
+      ReadFuncFile    readFileFunc;    ///< the read file function to call for this bitmap type
       WriteFunc   writeFunc;           ///< the write function to call for this bitmap type
+      WriteFuncFile   writeFuncFile;   ///< the write file function to call for this bitmap type
       U32         defaultCompression;  ///< the default compression level [levels are image-specific - see their registration declaration for details]
 
       Registration()
@@ -245,7 +248,6 @@ public:
    /// @param bmType This is a file extension to describe the type of the data [i.e. "png" for PNG file, etc]
    /// @param ioStream The stream to read from
    bool  readBitmap( const String &bmType, Stream &ioStream );
-
    bool readBitmap(const String& bmType, const Torque::Path& path);
 
    /// Write a bitmap to a stream
@@ -253,6 +255,7 @@ public:
    /// @param ioStream The stream to read from
    /// @param compressionLevel Image format-specific compression level.  If set to U32_MAX, we use the default compression defined when the format was registered.
    bool  writeBitmap( const String &bmType, Stream &ioStream, U32 compressionLevel = U32_MAX );
+   bool writeBitmap(const String& bmType, const Torque::Path& outpath, U32 compressionLevel = U32_MAX);
 
    bool readMNG(Stream& io_rStream);               // located in bitmapMng.cc
    bool writeMNG(Stream& io_rStream) const;
