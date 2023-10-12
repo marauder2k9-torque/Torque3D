@@ -1206,6 +1206,21 @@ bool  GBitmap::readBitmap( const String &bmType, Stream &ioStream )
    return regInfo->readFunc( ioStream, this );
 }
 
+bool  GBitmap::readBitmap(const String& bmType,const Torque::Path& path)
+{
+   PROFILE_SCOPE(ResourceGBitmap_readBitmap);
+   const GBitmap::Registration* regInfo = GBitmap::sFindRegInfo(bmType);
+
+   if (regInfo == NULL)
+   {
+      Con::errorf("[GBitmap::readBitmap] unable to find registration for extension [%s]", bmType.c_str());
+      return false;
+   }
+
+   return regInfo->readFileFunc(path, this);
+}
+
+
 bool  GBitmap::writeBitmap( const String &bmType, Stream &ioStream, U32 compressionLevel )
 {
    const GBitmap::Registration   *regInfo = GBitmap::sFindRegInfo( bmType );
@@ -1239,7 +1254,7 @@ template<> void *Resource<GBitmap>::create(const Torque::Path &path)
 
    GBitmap *bmp = new GBitmap;
    const String extension = path.getExtension();
-   if( !bmp->readBitmap( extension, stream ) )
+   if( !bmp->readBitmap( extension, path) )
    {
       Con::errorf( "Resource<GBitmap>::create - error reading '%s'", path.getFullPath().c_str() );
       delete bmp;

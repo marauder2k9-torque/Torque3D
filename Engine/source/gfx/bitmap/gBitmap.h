@@ -72,6 +72,8 @@ public:
    {
       /// The read function prototype.
       typedef bool(*ReadFunc)(Stream &stream, GBitmap *bitmap);
+      /// The write function prototype.  Compression levels are image-specific - see their registration declaration for details.
+      typedef bool(*ReadFuncFile)(const Torque::Path& path, GBitmap* bitmap);
 
       /// The write function prototype.  Compression levels are image-specific - see their registration declaration for details.
       typedef bool(*WriteFunc)(GBitmap *bitmap, Stream &stream, U32 compressionLevel);
@@ -83,6 +85,7 @@ public:
       Vector<String>   extensions;     ///< the list of file extensions for this bitmap type [these should be lower case]
       
       ReadFunc    readFunc;            ///< the read function to call for this bitmap type
+      ReadFuncFile    readFileFunc;        ///< the read file function to call for this bitmap type
       WriteFunc   writeFunc;           ///< the write function to call for this bitmap type
       U32         defaultCompression;  ///< the default compression level [levels are image-specific - see their registration declaration for details]
 
@@ -242,6 +245,8 @@ public:
    /// @param bmType This is a file extension to describe the type of the data [i.e. "png" for PNG file, etc]
    /// @param ioStream The stream to read from
    bool  readBitmap( const String &bmType, Stream &ioStream );
+
+   bool readBitmap(const String& bmType, const Torque::Path& path);
 
    /// Write a bitmap to a stream
    /// @param bmType This is a file extension to describe the type of the data [i.e. "png" for PNG file, etc]

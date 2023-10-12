@@ -93,12 +93,12 @@ GFont* GFont::load( const Torque::Path& path )
    GFont *ret = new GFont;
    ret->mGFTFile = path;
 
-   if(!ret->read(stream))
+   /*if(!ret->read(stream))
    {
       Con::errorf( "GFont::load - error reading '%s'", path.getFullPath().c_str() );
       SAFE_DELETE(ret);
    }
-   else
+   else*/
    {
       PlatformFont   *platFont = createPlatformFont(ret->getFontFaceName(), ret->getFontSize(), ret->getFontCharSet());
 

@@ -47,25 +47,7 @@ static bool sReadPNG(Stream &stream, GBitmap *bitmap);
 static bool sWritePNG(GBitmap *bitmap, Stream &stream, U32 compressionLevel);
 static bool _writePNG(GBitmap *bitmap, Stream &stream, U32 compressionLevel, U32 strategy, U32 filter);
 
-static struct _privateRegisterPNG
-{
-   _privateRegisterPNG()
-   {
-      GBitmap::Registration reg;
-
-      reg.priority = 100;
-      reg.extensions.push_back( "png" );
-
-      reg.readFunc = sReadPNG;
-      reg.writeFunc = sWritePNG;
-      reg.defaultCompression = 6;
-
-      GBitmap::sRegisterFormat( reg );
-   }
-} sStaticRegisterPNG;
-
-
-//-------------------------------------- Replacement I/O for standard LIBPng
+//------------- Replacement I/O for standard LIBPng
 //                                        functions.  we don't wanna use
 //                                        FILE*'s...
 static void pngReadDataFn(png_structp png_ptr,
@@ -300,7 +282,7 @@ static bool sReadPNG(Stream &stream, GBitmap *bitmap)
    // We're outta here, destroy the png structs, and release the lock
    //  as quickly as possible...
    //png_read_end(png_ptr, end_info);
-   delete [] rowPointers;
+   dFree(rowPointers);
    png_read_end(png_ptr, NULL);
    png_destroy_read_struct(&png_ptr, &info_ptr, &end_info);
 
