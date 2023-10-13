@@ -78,7 +78,61 @@ static struct _privateRegisterSTB
 
 bool sReadSTB(Stream& stream, GBitmap* bitmap)
 {
-   return false;
+   U8* buffer;
+   S32 x, y, n, channels;
+   U32 prevWaterMark = FrameAllocator::getWaterMark();
+   U32 size = 0;
+
+   stream.read(&size);
+   buffer = (U8*)dMalloc(size);
+
+   stream.read(size, buffer);
+
+
+   if (!stbi_info_from_memory(buffer, size, &x, &y, &channels))
+   {
+      dFree(buffer);
+      FrameAllocator::setWaterMark(prevWaterMark);
+      return false;
+   }
+
+   unsigned char* data = stbi_load_from_memory(buffer, size, &x, &y, &n, channels);
+
+   bitmap->deleteImage();
+
+   GFXFormat format;
+
+   switch (n) {
+      format = GFXFormatA8;
+      break;
+   case 2:
+      format = GFXFormatA8L8;
+      break;
+   case 3:
+      format = GFXFormatR8G8B8;
+      break;
+   case 4:
+      format = GFXFormatR8G8B8A8;
+      break;
+   default:
+      FrameAllocator::setWaterMark(prevWaterMark);
+      return false;
+   }
+
+   // actually allocate the bitmap space...
+   bitmap->allocateBitmap(x, y,
+      false,            // don't extrude miplevels...
+      format);          // use determined format...
+
+   U8* pBase = (U8*)bitmap->getBits();
+
+   U32 rowBytes = y * x * n;
+
+   dMemcpy(pBase, data, rowBytes);
+
+   stbi_image_free(data);
+
+   return true;
 }
 
 bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
@@ -180,6 +234,35 @@ bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
 
 bool sWriteSTB(GBitmap* bitmap, Stream& stream, U32 compressionLevel)
 {
+   U8* data = (U8*)bitmap->getWritableBits();
+   U32 width = bitmap->getWidth();
+   U32 height = bitmap->getHeight();
+   U32 bytes = bitmap->getBytesPerPixel();
+   GFXFormat format = bitmap->getFormat();
+   // we will always have at least 1 channel.
+   U32 comp = 1;
+   if (format == GFXFormatR8G8B8)
+   {
+      comp = 3;
+   }
+   else if (format == GFXFormatR8G8B8A8 || format == GFXFormatR8G8B8X8 || format == GFXFormatR8G8B8A8_LINEAR_FORCE)
+   {
+      comp = 4;
+   }
+
+   stbi_write_func* func = [](void* context, void* data, int size) {
+      Stream* stream = (Stream*)context;
+      stream->write(size, data);
+   };
+
+   stbi_write_png_compression_level = compressionLevel;
+   if (!stbi_write_png_to_func(func, &stream, width, height, comp, data, 0))
+   {
+      dFree(data);
+      return false;
+   }
+
+
    return false;
 }
 
@@ -188,15 +271,17 @@ bool sWriteSTB(GBitmap* bitmap, const Torque::Path& path, U32 compressionLevel)
    PROFILE_SCOPE(sWriteSTB);
 
    // get our data to be saved.
-   U8* data = (U8*)bitmap->getBits();
    U32 width = bitmap->getWidth();
    U32 height = bitmap->getHeight();
    U32 bytes = bitmap->getBytesPerPixel();
    GFXFormat format = bitmap->getFormat();
    String ext = path.getExtension();
 
+   
+
    U32 stride = width * bytes;
-   U32 comp = 0;
+   // we always have at least 1
+   U32 comp = 1;
    
    if (format == GFXFormatR8G8B8)
    {
@@ -209,6 +294,7 @@ bool sWriteSTB(GBitmap* bitmap, const Torque::Path& path, U32 compressionLevel)
 
    if (ext.equal("png"))
    {
+      stbi_write_png_compression_level = compressionLevel;
       if (stbi_write_png(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits(), 0))
          return true;
    }

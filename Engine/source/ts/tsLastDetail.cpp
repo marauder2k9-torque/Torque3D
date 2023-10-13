@@ -504,14 +504,9 @@ void TSLastDetail::_update()
       String imposterPath = _getDiffuseMapPath();
       String normalsPath = _getNormalMapPath();
 
-      FileStream stream;
-      if ( stream.open( imposterPath, Torque::FS::File::Write  ) )
-         destBmp.writeBitmap( "png", stream );
-      stream.close();
+      destBmp.writeBitmapPath( "png", imposterPath);
 
-      if ( stream.open( normalsPath, Torque::FS::File::Write ) )
-         destNormal.writeBitmap( "png", stream );
-      stream.close();
+      destNormal.writeBitmapPath( "png", normalsPath);
    }
 
    // DEBUG: Some code to force usage of a test image.

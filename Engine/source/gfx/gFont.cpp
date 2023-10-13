@@ -90,15 +90,16 @@ GFont* GFont::load( const Torque::Path& path )
    if ( stream.getStatus() != Stream::Ok )
       return NULL;
 
+   stream.BUFFER_SIZE;
    GFont *ret = new GFont;
    ret->mGFTFile = path;
 
-   /*if(!ret->read(stream))
+   if(!ret->read(stream))
    {
       Con::errorf( "GFont::load - error reading '%s'", path.getFullPath().c_str() );
       SAFE_DELETE(ret);
    }
-   else*/
+   else
    {
       PlatformFont   *platFont = createPlatformFont(ret->getFontFaceName(), ret->getFontSize(), ret->getFontCharSet());
 
@@ -365,7 +366,7 @@ void GFont::addSheet()
     U8 *bits = bitmap->getWritableBits();
     dMemset(bits, 0, sizeof(U8) *TextureSheetSize*TextureSheetSize);
 
-    GFXTexHandle handle = GFXTexHandle( bitmap, &GFXFontTextureProfile, true, avar("%s() - (line %d)", __FUNCTION__, __LINE__) );
+    GFXTexHandle handle( bitmap, &GFXFontTextureProfile, true, avar("%s() - (line %d)", __FUNCTION__, __LINE__) );
     mTextureSheets.increment();
     mTextureSheets.last() = handle;
 
@@ -699,7 +700,8 @@ bool GFont::read(Stream& io_rStream)
    for(i = 0; i < numSheets; i++)
    {
        GBitmap *bmp = new GBitmap;
-       if(!bmp->readBitmap("png", io_rStream))
+       String path = String::ToString("%s/%s %d %d (%s).png", Con::getVariable("$GUI::fontCacheDirectory"), mFaceName.c_str(), mSize, i, getCharSetName(mCharSet));
+       if(!bmp->readBitmapPath("png", path))
        {
            delete bmp;
            return false;
@@ -772,11 +774,17 @@ bool GFont::write(Stream& stream)
         stream.write(ci->xOrigin);
         stream.write(ci->yOrigin);
         stream.write(ci->xIncrement);
-   }
+    }
+
+    
 
    stream.write(mTextureSheets.size());
-   for(i = 0; i < mTextureSheets.size(); i++)
-       mTextureSheets[i].getBitmap()->writeBitmap("png", stream);
+   for (i = 0; i < mTextureSheets.size(); i++)
+   {
+      String path = String::ToString("%s/%s %d %d (%s).png", Con::getVariable("$GUI::fontCacheDirectory"), mFaceName.c_str(), mSize, i, getCharSetName(mCharSet));
+
+      mTextureSheets[i].getBitmap()->writeBitmapPath("png", path);
+   }
 
    stream.write(mCurX);
    stream.write(mCurY);
@@ -866,19 +874,8 @@ void GFont::exportStrip(const char *fileName, U32 padding, U32 kerning)
       curWidth +=  mCharInfoList[i].width + kerning + 2*padding;
    }
 
-   // Write the image!
-   FileStream fs;
-   
-   fs.open( fileName, Torque::FS::File::Write );
-
-   if(fs.getStatus() != Stream::Ok)
-   {
-      Con::errorf("GFont::exportStrip - failed to open '%s' for writing.", fileName);
-      return;
-   }
- 
    // Done!
-   gb.writeBitmap("png", fs);
+   gb.writeBitmapPath("png", fileName);
 }
 
 void  GFont::setPlatformFont(PlatformFont *inPlatformFont)
@@ -1008,7 +1005,7 @@ void GFont::importStrip(const char *fileName, U32 padding, U32 kerning)
       U8 *bits = bitmap->getWritableBits();
       dMemset(bits, 0, sizeof(U8) *TextureSheetSize*TextureSheetSize * strip->getBytesPerPixel());
 
-      GFXTexHandle handle = GFXTexHandle( bitmap, &GFXFontTextureProfile, true, avar("%s() - Font Sheet for %s (line %d)", __FUNCTION__, fileName, __LINE__) );
+      GFXTexHandle handle( bitmap, &GFXFontTextureProfile, true, avar("%s() - Font Sheet for %s (line %d)", __FUNCTION__, fileName, __LINE__) );
       mTextureSheets.increment();
       mTextureSheets.last() = handle;
    }

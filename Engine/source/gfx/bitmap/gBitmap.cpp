@@ -1206,9 +1206,9 @@ bool  GBitmap::readBitmap( const String &bmType, Stream &ioStream )
    return regInfo->readFunc( ioStream, this );
 }
 
-bool  GBitmap::readBitmap(const String& bmType,const Torque::Path& path)
+bool  GBitmap::readBitmapPath(const String& bmType,const Torque::Path& path)
 {
-   PROFILE_SCOPE(ResourceGBitmap_readBitmap);
+   PROFILE_SCOPE(ResourceGBitmap_readBitmapPath);
    const GBitmap::Registration* regInfo = GBitmap::sFindRegInfo(bmType);
 
    if (regInfo == NULL)
@@ -1234,7 +1234,7 @@ bool  GBitmap::writeBitmap( const String &bmType, Stream &ioStream, U32 compress
    return regInfo->writeFunc( this, ioStream, (compressionLevel == U32_MAX) ? regInfo->defaultCompression : compressionLevel );
 }
 
-bool  GBitmap::writeBitmap(const String& bmType, const Torque::Path& outpath, U32 compressionLevel)
+bool  GBitmap::writeBitmapPath(const String& bmType, const Torque::Path& outpath, U32 compressionLevel)
 {
    const GBitmap::Registration* regInfo = GBitmap::sFindRegInfo(bmType);
 
@@ -1267,7 +1267,7 @@ template<> void *Resource<GBitmap>::create(const Torque::Path &path)
 
    GBitmap *bmp = new GBitmap;
    const String extension = path.getExtension();
-   if( !bmp->readBitmap( extension, path) )
+   if( !bmp->readBitmapPath( extension, path) )
    {
       Con::errorf( "Resource<GBitmap>::create - error reading '%s'", path.getFullPath().c_str() );
       delete bmp;
@@ -1472,7 +1472,7 @@ DefineEngineFunction(saveScaledImage, bool, (const char* bitmapSource, const cha
    else
    {*/
       // yes i realize the irony of sending both the extension and path......
-      image->writeBitmap(destinationPath.getExtension(), destinationPath);
+      image->writeBitmapPath(destinationPath.getExtension(), destinationPath);
 
       //fs.close();
       delete image;

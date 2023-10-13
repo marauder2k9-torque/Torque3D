@@ -248,14 +248,14 @@ public:
    /// @param bmType This is a file extension to describe the type of the data [i.e. "png" for PNG file, etc]
    /// @param ioStream The stream to read from
    bool  readBitmap( const String &bmType, Stream &ioStream );
-   bool readBitmap(const String& bmType, const Torque::Path& path);
+   bool readBitmapPath(const String& bmType, const Torque::Path& path);
 
    /// Write a bitmap to a stream
    /// @param bmType This is a file extension to describe the type of the data [i.e. "png" for PNG file, etc]
    /// @param ioStream The stream to read from
    /// @param compressionLevel Image format-specific compression level.  If set to U32_MAX, we use the default compression defined when the format was registered.
    bool  writeBitmap( const String &bmType, Stream &ioStream, U32 compressionLevel = U32_MAX );
-   bool writeBitmap(const String& bmType, const Torque::Path& outpath, U32 compressionLevel = U32_MAX);
+   bool writeBitmapPath(const String& bmType, const Torque::Path& outpath, U32 compressionLevel = U32_MAX);
 
    bool readMNG(Stream& io_rStream);               // located in bitmapMng.cc
    bool writeMNG(Stream& io_rStream) const;

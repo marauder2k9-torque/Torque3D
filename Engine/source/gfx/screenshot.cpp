@@ -234,20 +234,11 @@ void ScreenShot::_singleCapture( GuiCanvas *canvas )
    char filename[256];
    dSprintf( filename, 256, "%s.%s", mFilename, mWriteJPG ? "jpg" : "png" );
 
-   // Open up the file on disk.
-   FileStream fs;
-   if ( !fs.open( filename, Torque::FS::File::Write ) )
-      Con::errorf( "ScreenShot::_singleCapture() - Failed to open output file '%s'!", filename );
+   // Write it and close.
+   if ( mWriteJPG )
+      bitmap->writeBitmapPath( "jpg", filename);
    else
-   {
-      // Write it and close.
-      if ( mWriteJPG )
-         bitmap->writeBitmap( "jpg", fs );
-      else
-         bitmap->writeBitmap( "png", fs );
-
-      fs.close();
-   }
+      bitmap->writeBitmapPath( "png", filename);
 
    // Cleanup.
    delete bitmap;
