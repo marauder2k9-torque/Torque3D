@@ -29,6 +29,7 @@
 #include "platform/types.h"
 #endif
 
+
 #include <string.h>
 
 template< class T > class Vector;
@@ -39,9 +40,6 @@ typedef UTF8 StringChar;
 
 /// The String class represents a 0-terminated array of characters.
 class String
-#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
-   : public AllocateFromTorqueHeap
-#endif
 {
 public:
    class StringData;
@@ -243,9 +241,6 @@ public:
       @endcode
    */
    class StrFormat
-#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
-      : public AllocateFromTorqueHeap
-#endif
    {
    public:
       StrFormat()
@@ -314,9 +309,6 @@ private:
 
 // Utility class for formatting strings.
 class StringBuilder
-#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
-   : public AllocateFromTorqueHeap
-#endif
 {
    protected:
 
