@@ -74,6 +74,9 @@
 ///       add strings to it. If you carelessly add many strings, you will end up wasting
 ///       space.
 class _StringTable
+#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
+   : public AllocateFromTorqueHeap
+#endif
 {
 private:
    /// @name Implementation details

@@ -45,6 +45,9 @@
 
 /// Information about a console type.
 class ConsoleBaseType
+#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
+   : public AllocateFromTorqueHeap
+#endif
 {
    protected:
 

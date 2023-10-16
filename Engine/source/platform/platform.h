@@ -457,13 +457,21 @@ inline void destructInPlace(T* p)
 #if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
 #  define TORQUE_TMM_ARGS_DECL   , const char* fileName, const U32 lineNum
 #  define TORQUE_TMM_ARGS        , fileName, lineNum
-#  define TORQUE_TMM_LOC         , __FILE__, __LINE__
-   extern void* FN_CDECL operator new(dsize_t size, const char*, const U32);
-   extern void* FN_CDECL operator new[](dsize_t size, const char*, const U32);
-   extern void  FN_CDECL operator delete(void* ptr);
-   extern void  FN_CDECL operator delete[](void* ptr);
-#  define _new new(__FILE__, __LINE__)
-#  define new  _new
+#  define TORQUE_TMM_LOC         , __FILE__, __LINE__  
+struct AllocateFromTorqueHeap {
+   // new/delete overload
+   void* _cdecl operator new(dsize_t num_bytes) /* throw( std::bad_alloc ) */;
+   void* _cdecl operator new(size_t size, void* ptr);
+   void* _cdecl operator new(dsize_t num_bytes, const std::nothrow_t&) throw();
+   void* _cdecl operator new(dsize_t size, const char* name, const U32 line);
+   void _cdecl operator delete(void* data);
+
+   // array new/delete overload
+   void* _cdecl operator new[](dsize_t num_bytes) /* throw( std::bad_alloc ) */;
+   void* _cdecl operator new[](dsize_t num_bytes, const std::nothrow_t&) throw();
+   void* _cdecl operator new[](dsize_t size, const char* name, const U32 line);
+   void _cdecl operator delete[](void* data);
+};
 #else
 #  define TORQUE_TMM_ARGS_DECL
 #  define TORQUE_TMM_ARGS

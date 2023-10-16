@@ -500,7 +500,12 @@ class EngineCRuntimeObjectPool : public IEngineObjectPool
 ///   must be the @b first class in the list to ensure binary-compatible class layouts.
 /// - EngineObjects are cooperatively reference-counted by both the engine as well as the control
 ///   layer.
-class EngineObject : public StrongRefBase
+class EngineObject
+#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
+   : public AllocateFromTorqueHeap, public StrongRefBase
+#else
+ : public StrongRefBase
+#endif
 {
    public:
    
@@ -537,13 +542,8 @@ class EngineObject : public StrongRefBase
 
       /// Return a string that describes this instance.  Meant primarily for debugging.
       virtual String describeSelf() const;
-                  
-      #ifndef TORQUE_DISABLE_MEMORY_MANAGER
-      // Make sure no matter what, we get the new/delete calls.
-      void* operator new( size_t size );
-      void* operator new( size_t size, IEngineObjectPool* pool );
-      #endif
-      
+
+#if defined(TORQUE_DISABLE_MEMORY_MANAGER)
       /// Allocate a new object in the default object pool.
       /// @param size Size of the object in bytes.
       /// @return Memory block for new object; never NULL.
@@ -559,12 +559,12 @@ class EngineObject : public StrongRefBase
       /// @return Memory block for the new object; never NULL.
       void* operator new( size_t size, IEngineObjectPool* pool TORQUE_TMM_ARGS_DECL );
       
-      /// Placement new.
+      //Placement new.
       void* operator new( size_t size, void* ptr ) { return ptr; }
             
-      /// Release the given object's memory in the pool it has been allocated from.
+      // Release the given object's memory in the pool it has been allocated from.
       void operator delete( void* ptr );
-
+#endif
       /// Return the pool of EngineObjects to which this object belongs.
       IEngineObjectPool* getEngineObjectPool() const { return mEngineObjectPool; }
       

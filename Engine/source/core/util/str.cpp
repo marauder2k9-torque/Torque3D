@@ -249,7 +249,12 @@ struct StringDataImpl
 };
 
 ///
-class String::StringData : protected StringDataImpl
+class String::StringData
+#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
+   : public AllocateFromTorqueHeap, protected StringDataImpl
+#else
+   : protected StringDataImpl
+#endif
 {
    public:
 

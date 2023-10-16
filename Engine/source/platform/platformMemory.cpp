@@ -485,9 +485,7 @@ static void rotateLeft(TreeNode *hdr)
    temp->left = hdr;
    hdr->parent = temp;
 }
-#endif
 
-#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
 static void rotateRight(TreeNode *hdr)
 {
    TreeNode *temp = hdr->left;
@@ -621,8 +619,8 @@ static void treeRemove(FreeHeader *hdr)
    checkGuard((Header *) hdr, false);
    setGuard((Header *) hdr, true);
 #endif
-   //validateTree();
-   //gRemoveCount++;
+   /*validateTree();
+   gRemoveCount++;*/
 
    FreeHeader *prev = hdr->prevQueue;
    FreeHeader *next = hdr->nextQueue;
@@ -1309,9 +1307,9 @@ static void* alloc(dsize_t size, bool array, const char* fileName, const U32 lin
 #endif
 
    FreeHeader *header = treeFindSmallestGreaterThan(size);
-   if(header)
+   /*if(header)
       treeRemove(header);
-   else
+   else*/
       header = (FreeHeader *) allocMemPage(size);
 
    // ok, see if there's enough room in the block to make another block
@@ -1718,35 +1716,64 @@ void setMinimumAllocUnit(U32 allocUnit)
 
 // Manage our own memory, add overloaded memory operators and functions
 
-void* FN_CDECL operator new(dsize_t size, const char* fileName, const U32 line)
-{
-   return Memory::alloc(size, false, fileName, line);
-}
-
-void* FN_CDECL operator new[](dsize_t size, const char* fileName, const U32 line)
-{
-   return Memory::alloc(size, true, fileName, line);
-}
-
-void* FN_CDECL operator new(dsize_t size)
+void* AllocateFromTorqueHeap::operator new(dsize_t size)
 {
    return Memory::alloc(size, false, NULL, 0);
 }
 
-void* FN_CDECL operator new[](dsize_t size)
+void* AllocateFromTorqueHeap::operator new(size_t size, void* ptr)
+{
+   Memory::alloc(size, false, NULL, 0);
+   return ptr; 
+}
+
+void* AllocateFromTorqueHeap::operator new(dsize_t num_bytes, const std::nothrow_t&) throw()
+{
+   try {
+      return Memory::alloc(num_bytes, false, NULL, 0);
+   }
+   catch ( ... )
+   {
+      return nullptr;
+   }
+}
+
+void* AllocateFromTorqueHeap::operator new(dsize_t size, const char* name, const U32 line)
+{
+   return Memory::alloc(size, false, name, line);
+}
+
+void* AllocateFromTorqueHeap::operator new[](dsize_t size)
 {
    return Memory::alloc(size, true, NULL, 0);
 }
 
-void FN_CDECL operator delete(void* mem)
+void* AllocateFromTorqueHeap::operator new[](dsize_t num_bytes, const std::nothrow_t&) throw()
 {
-   Memory::free(mem, false);
+   try {
+      return Memory::alloc(num_bytes, true, NULL, 0);
+   }
+   catch (...)
+   {
+      return nullptr;
+   }
 }
 
-void FN_CDECL operator delete[](void* mem)
+void* AllocateFromTorqueHeap::operator new[](dsize_t size, const char* name, const U32 line)
+{
+   return Memory::alloc(size, true, name, line);
+}
+
+void AllocateFromTorqueHeap::operator delete(void* mem)
+{
+   return Memory::free(mem, false);
+}
+
+void AllocateFromTorqueHeap::operator delete[](void* mem)
 {
    Memory::free(mem, true);
 }
+
 
 void* dMalloc_r(dsize_t in_size, const char* fileName, const dsize_t line)
 {

@@ -44,6 +44,9 @@
 /// DataChunker. This also only grows (you can call freeBlocks to deallocate
 /// and reset things).
 class DataChunker
+#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
+   : public AllocateFromTorqueHeap
+#endif
 {
 public:
    /// Block of allocated memory.
