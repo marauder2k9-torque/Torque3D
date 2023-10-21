@@ -154,7 +154,7 @@ void GuiConvexEditorCtrl::onSleep()
 
 void GuiConvexEditorCtrl::setVisible( bool val )
 {
-   //ConvexShape::smRenderEdges = value;
+   //ConvexShape::smRenderEdges = val;
 
    if ( isProperlyAdded() )
    {
@@ -294,7 +294,6 @@ void GuiConvexEditorCtrl::on3DMouseDown(const Gui3DMouseEvent & event)
    mouseLock();   
 
    mMouseDown = true;
-
    if ( event.modifier & SI_ALT )
    {
       setActiveTool( mCreateTool );
@@ -1163,8 +1162,8 @@ void GuiConvexEditorCtrl::drawFacePlane( ConvexShape *shape, S32 faceId )
    // Build a vb of the face points ( in world space ) scaled outward in
    // the surface space in x/y with uv coords.
 
-   /*
-   Vector< Point3F > points;
+   
+   /*Vector< Point3F > points;
    Vector< Point2F > coords;
 
    shape->getSurfaceTriangles( faceId, &points, &coords, false );
@@ -1204,8 +1203,8 @@ void GuiConvexEditorCtrl::drawFacePlane( ConvexShape *shape, S32 faceId )
    GFXTexHandle tex( "core/art/grids/512_transp", &GFXStaticTextureSRGBProfile, "ConvexEditor_grid" );
    GFX->setTexture( 0, tex );
    GFX->setupGenericShaders();
-   GFX->drawPrimitive( GFXTriangleList, 0, points.size() / 3 );
-   */
+   GFX->drawPrimitive( GFXTriangleList, 0, points.size() / 3 );*/
+   
 }
 
 
@@ -1778,16 +1777,21 @@ bool GuiConvexEditorCtrl::_cursorCast( const Gui3DMouseEvent &event, ConvexShape
 {
    RayInfo ri;
    
-   if ( gServerContainer.castRay( event.pos, event.pos + event.vec * 10000.0f, StaticShapeObjectType, &ri, &GuiConvexEditorCtrl::_cursorCastCallback ) &&
-        dynamic_cast< ConvexShape* >( ri.object ) )
+   if (gServerContainer.collideBox(event.pos, event.pos + event.vec * 10000.0f, StaticShapeObjectType, &ri) &&
+      dynamic_cast<ConvexShape*>(ri.object))
    {
       // Do not select or edit ConvexShapes that are within a Prefab.
       if ( Prefab::getPrefabByChild( ri.object ) )
          return false;
 
-      *hitShape = static_cast< ConvexShape* >( ri.object );
-      *hitFace = ri.face;
-      mLastRayInfo = ri;
+      ConvexShape* temp = static_cast< ConvexShape* >( ri.object );
+      *hitShape = temp;
+
+      RayInfo riT;
+
+      temp->castRay(event.pos, event.pos + event.vec * 10000.0f, &riT);
+
+      *hitFace = riT.face;
 
       return true;
    }
@@ -2242,7 +2246,16 @@ ConvexEditorTool::EventResult ConvexEditorCreateTool::on3DMouseDown( const Gui3D
 
       if ( !hit )
       {
-         objMat.setPosition( event.pos + event.vec * 100.0f );      
+         Point3F hitPos(event.pos);
+
+         if (mEditor->getGridSnap() && mEditor->mGridPlaneSize != 0.f)
+         {
+            hitPos.x -= mFmod(hitPos.x, mEditor->mGridPlaneSize);
+            hitPos.y -= mFmod(hitPos.y, mEditor->mGridPlaneSize);
+            hitPos.z -= mFmod(hitPos.z, mEditor->mGridPlaneSize);
+         }
+
+         objMat.setPosition( hitPos + event.vec * 100.0f );
       }
       else
       {
@@ -2256,6 +2269,12 @@ ConvexEditorTool::EventResult ConvexEditorCreateTool::on3DMouseDown( const Gui3D
          {
             Point3F rvec;
             Point3F fvec( mEditor->getCameraMat().getForwardVector() );
+
+            if (mEditor->getGridSnap())
+            {
+               fvec = Point3F::UnitY;
+            }
+
             Point3F uvec( ri.normal );
 
             rvec = mCross( fvec, uvec );
@@ -2367,7 +2386,14 @@ ConvexEditorTool::EventResult ConvexEditorCreateTool::on3DMouseMove( const Gui3D
       if ( t < 0.0f || t > 1.0f )
          return Handled;
 
-      hitPos.interpolate( start, end, t );      
+      hitPos.interpolate( start, end, t );
+
+      if (mEditor->getGridSnap() && mEditor->mGridPlaneSize != 0.f)
+      {
+            hitPos.x -= mFmod(hitPos.x, mEditor->mGridPlaneSize);
+            hitPos.y -= mFmod(hitPos.y, mEditor->mGridPlaneSize);
+            hitPos.z -= mFmod(hitPos.z, mEditor->mGridPlaneSize);
+      }
 
       MatrixF worldToObj( mTransform );
       worldToObj.inverse();
@@ -2404,6 +2430,13 @@ ConvexEditorTool::EventResult ConvexEditorCreateTool::on3DMouseDragged( const Gu
 
    Point3F hitPos;
    hitPos.interpolate( start, end, t );
+
+   if (mEditor->getGridSnap() && mEditor->mGridPlaneSize != 0.f)
+   {
+      hitPos.x -= mFmod(hitPos.x, mEditor->mGridPlaneSize);
+      hitPos.y -= mFmod(hitPos.y, mEditor->mGridPlaneSize);
+      hitPos.z -= mFmod(hitPos.z, mEditor->mGridPlaneSize);
+   }
    
    MatrixF xfm( mTransform );
    xfm.inverse();      
@@ -2484,7 +2517,14 @@ ConvexShape* ConvexEditorCreateTool::extrudeShapeFromFace( ConvexShape *inShape,
       inShapeToWorld.mulP( p0 );
       inShapeToWorld.mulP( p1 );
 
-      Point3F newPos = MathUtils::mClosestPointOnSegment( p0, p1, shapePos );      
+      Point3F newPos = MathUtils::mClosestPointOnSegment( p0, p1, shapePos );
+
+      if (mEditor->getGridSnap() && mEditor->mGridPlaneSize != 0.f)
+      {
+         newPos.x -= mFmod(newPos.x, mEditor->mGridPlaneSize);
+         newPos.y -= mFmod(newPos.y, mEditor->mGridPlaneSize);
+         newPos.z -= mFmod(newPos.z, mEditor->mGridPlaneSize);
+      }
 
       Point3F rvec = p0 - p1;
       rvec.normalizeSafe();

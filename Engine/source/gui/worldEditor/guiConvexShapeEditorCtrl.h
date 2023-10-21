@@ -135,6 +135,7 @@ public:
    void updateShape();
 
    float getGridSnapSize() { return mGridPlaneSize; }
+   bool getGridSnap() { return mGridSnap; }
    /// Interface with Tools.
    /// @{ 
 
