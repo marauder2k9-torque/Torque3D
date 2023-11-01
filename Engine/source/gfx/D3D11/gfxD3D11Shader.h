@@ -378,6 +378,20 @@ typedef StrongRefPtr<gfxD3D11Include> gfxD3DIncludeRef;
 
 /////////////////// GFXShader implementation /////////////////////////////
 
+class GFXD3D11ShaderProgram : public GFXShaderProgram
+{
+   friend class GFXD3D11Device;
+   friend class GFXD3D11ShaderConstBuffer;
+
+protected:
+   virtual bool _initPixel() = 0;
+   virtual bool _initVertex() = 0;
+   virtual bool _initCompute() = 0;
+   virtual bool _initGeometry() = 0;
+   virtual bool _initTessControl() = 0;
+   virtual bool _initTessEvaluation() = 0;
+};
+
 class GFXD3D11Shader : public GFXShader
 {
    friend class GFXD3D11Device;

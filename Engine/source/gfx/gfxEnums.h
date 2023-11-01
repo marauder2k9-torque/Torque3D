@@ -314,28 +314,45 @@ enum GFXShaderConstType
 {
    /// GFX"S"hader"C"onstant"T"ype
    // Scalar
-   GFXSCT_Float, 
+   // doubles and atomics require 4.1 and up in gl.
+   GFXSCT_Float,
+   GFXSCT_Int,
+   GFXSCT_UInt,
+   GFXSCT_Bool,
    // Vectors
    GFXSCT_Float2, 
    GFXSCT_Float3, 
-   GFXSCT_Float4, 
+   GFXSCT_Float4,
+   GFXSCT_Int2,
+   GFXSCT_Int3,
+   GFXSCT_Int4,
+   GFXSCT_UInt2,
+   GFXSCT_UInt3,
+   GFXSCT_UInt4,
+   GFXSCT_Bool2,
+   GFXSCT_Bool3,
+   GFXSCT_Bool4,
    // Matrices
    GFXSCT_Float2x2, 
    GFXSCT_Float3x3,
    GFXSCT_Float3x4,
    GFXSCT_Float4x3,
    GFXSCT_Float4x4, 
-   // Scalar
-   GFXSCT_Int, 
-   // Vectors
-   GFXSCT_Int2, 
-   GFXSCT_Int3, 
-   GFXSCT_Int4, 
    // Samplers
    GFXSCT_Sampler,
+   GFXSCT_SamplerBuffer,
+   GFXSCT_Sampler2DRect,
+   GFXSCT_Sampler1D,
+   GFXSCT_Sampler1DArray,
+   GFXSCT_Sampler2D,
+   GFXSCT_Sampler2DArray,
+   GFXSCT_Sampler2DMS,
+   GFXSCT_Sampler2DMSArray,
+   GFXSCT_Sampler3D,
    GFXSCT_SamplerCube,
    GFXSCT_SamplerCubeArray,
-   GFXSCT_SamplerTextureArray
+   GFXSCT_SamplerTextureArray,
+   GFXSCT_UniformBufferObject
 };
 
 /// Defines a vertex declaration type.

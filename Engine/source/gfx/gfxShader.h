@@ -74,6 +74,16 @@ public:
    U32 arraySize; // > 1 means it is an array!
 };
 
+enum class ShaderTypes
+{
+   VertexShader,
+   PixelShader,
+   ComputeShader,
+   GeometryShader,
+   TessellationControl,
+   TessellationEvaluation
+};
+
 /// This is an opaque handle used by GFXShaderConstBuffer clients to set individual shader constants.
 /// Derived classes can put whatever info they need into here, these handles are owned by the shader constant buffer
 /// (or shader).  Client code should not free these.
@@ -208,6 +218,87 @@ public:
 
 typedef StrongRefPtr<GFXShaderConstBuffer> GFXShaderConstBufferRef;
 
+/// A strong pointer to a reference counted GFXShader.
+typedef StrongRefPtr<GFXShader> GFXShaderRef;
+
+class GFXShaderProgram : public StrongRefBase, public GFXResource
+{
+   friend class GFXShaderConstBuffer;
+protected:
+   // if we have files handle them
+   // The vertex shader file.
+   Torque::Path mVertexFile;
+   // The pixel shader file.
+   Torque::Path mPixelFile;
+   // The geometry shader file.
+   Torque::Path mGeometryFile;
+   // the compute shader file.
+   Torque::Path mComputeFile;
+   // the tessellation control file.
+   Torque::Path mTessControlFile;
+   // the tessellation evaluation file.
+   Torque::Path mTessEvalFile;
+   /// Counter that is incremented each time this shader is reloaded.
+   U32 mReloadKey;
+
+   Signal<void()> mReloadSignal; // if we have files this reload signal is triggered.
+   //---------------------------------
+
+   GFXShaderRef mVertexShader;
+   GFXShaderRef mPixelShader;
+   GFXShaderRef mComputeShader;
+   GFXShaderRef mGeometryShader;
+   GFXShaderRef mTessControlShader;
+   GFXShaderRef mTessEvaluationShader;
+
+   GFXVertexFormat* mInstancingFormat;
+   Vector<String> mSamplerNamesOrdered;
+
+   /// We could probably make these per stage, but for now global.
+   Vector<GFXShaderMacro> mMacros;
+   /// The pixel version this is compiled for.
+   F32 mLanguageVersion;
+
+   //---------------------------------
+   bool mHasVertex;
+   bool mHasPixel;
+   bool mHasGeometry;
+   bool mHasCompute;
+   bool mHasTessControl;
+   bool mHasTessEval;
+
+public:
+   GFXShaderProgram();
+
+   GFXShaderProgram(F32 languageVersion, GFXVertexFormat* instancingFormat = NULL);
+   // buffermap for the shaders, each shader has a handle in this buffer map.
+   GFXShaderConstBufferRef BufferMap;
+
+   // init fron source code
+   bool init(  const String shaderSource,
+               ShaderTypes shaderType);
+
+   // int from file.
+   bool init(  const Torque::Path& shaderFile,
+               ShaderTypes shaderType);
+
+   /// Reloads the shader from disk.
+   bool reload();
+
+   Signal<void()> getReloadSignal() { return mReloadSignal; }
+
+protected:
+
+   /// Called when the shader files change on disk.
+   void _onFileChanged(const Torque::Path& path) { reload(); }
+
+   virtual bool _initPixel() = 0;
+   virtual bool _initVertex() = 0;
+   virtual bool _initCompute() = 0;
+   virtual bool _initGeometry() = 0;
+   virtual bool _initTessControl() = 0;
+   virtual bool _initTessEvaluation() = 0;
+};
 
 //**************************************************************************
 // Shader
@@ -298,15 +389,6 @@ public:
    virtual ~GFXShader();
 
    ///
-   /// Deprecated. Remove on T3D 4.0
-#ifndef TORQUE_OPENGL
-   bool init(  const Torque::Path &vertFile, 
-               const Torque::Path &pixFile, 
-               F32 pixVersion, 
-               const Vector<GFXShaderMacro> &macros );
-#endif
-
-   ///
    bool init(  const Torque::Path &vertFile, 
                const Torque::Path &pixFile, 
                F32 pixVersion, 
@@ -378,11 +460,7 @@ protected:
 };
 
 /// A strong pointer to a reference counted GFXShader.
-typedef StrongRefPtr<GFXShader> GFXShaderRef;
-
-
-/// A weak pointer to a reference counted GFXShader.
-typedef WeakRefPtr<GFXShader> GFXShaderWeakRef;
+typedef StrongRefPtr<GFXShaderProgram> GFXShaderProgramRef;
 
 
 #endif // GFXSHADER

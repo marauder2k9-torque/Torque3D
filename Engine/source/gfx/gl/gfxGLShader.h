@@ -34,6 +34,21 @@ class FileStream;
 class GFXGLShaderConstBuffer;
 class GFXGLDevice;
 
+class GFXGLShaderProgram : public GFXShaderProgram
+{
+   friend class GFXD3D11Device;
+   friend class GFXD3D11ShaderConstBuffer;
+
+protected:
+   virtual bool _initPixel() = 0;
+   virtual bool _initVertex() = 0;
+   virtual bool _initCompute() = 0;
+   virtual bool _initGeometry() = 0;
+   virtual bool _initTessControl() = 0;
+   virtual bool _initTessEvaluation() = 0;
+};
+
+
 class GFXGLShader : public GFXShader
 {
    typedef Map<String, GFXGLShaderConstHandle*> HandleMap;

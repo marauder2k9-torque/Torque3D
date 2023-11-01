@@ -555,14 +555,55 @@ bool GFXGLShader::_init()
 void GFXGLShader::initConstantDescs()
 {
    mConstants.clear();
+
    GLint numUniforms;
    glGetProgramiv(mProgram, GL_ACTIVE_UNIFORMS, &numUniforms);
    GLint maxNameLength;
    glGetProgramiv(mProgram, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxNameLength);
 
-   if(!maxNameLength)
+   if (!maxNameLength)
       return;
    maxNameLength++;
+
+   // process uniform blocks
+   GLint numUniformBlocks;
+   glGetProgramiv(mProgram, GL_ACTIVE_UNIFORM_BLOCKS, &numUniformBlocks);
+   if(numUniformBlocks > 0)
+   {
+      GLint maxUniformBlockNameLength;
+      glGetProgramiv(mProgram, GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH, &maxUniformBlockNameLength);
+      maxUniformBlockNameLength++;
+
+      for (U32 i = 0; i < numUniformBlocks; i++)
+      {
+         GLsizei uniformBlockSize;
+         GLint size;
+         glGetActiveUniformBlockiv(mProgram, i, GL_UNIFORM_BLOCK_DATA_SIZE, &uniformBlockSize);
+
+         FrameTemp<GLchar> blockName(maxUniformBlockNameLength);
+         glGetActiveUniformBlockName(mProgram, i, maxUniformBlockNameLength, &size, blockName);
+
+         // number of uniforms in this block
+         GLint subUniforms;
+         glGetActiveUniformBlockiv(mProgram, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS, &subUniforms);
+
+         // these are where the unforms will exist in the uniform list.
+         GLint* uniformIndices = new GLint[subUniforms];
+         glGetActiveUniformBlockiv(mProgram, i, GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES, uniformIndices);
+
+         // method for pulling uniform information from a block, need to use GL_UNIFORM_OFFSET for the handle.
+         /*for (U32 i = 0; i < subUniforms; i++)
+         {
+            const GLuint idx = (GLuint)uniformIndices[i];
+            GLenum type;
+            GLint offset;
+
+            glGetActiveUniformName(mProgram, idx, maxNameLength, 0, name);
+            glGetActiveUniformsiv(mProgram, 1, &idx, GL_UNIFORM_TYPE, &type);
+            glGetActiveUniformsiv(mProgram, 1, &idx, GL_UNIFORM_OFFSET, &offset);
+         }*/
+      }
+   }
 
    FrameTemp<GLchar> uniformName(maxNameLength);
    
@@ -581,7 +622,7 @@ void GFXGLShader::initConstantDescs()
       // Insert $ to match D3D behavior of having a $ prepended to parameters to main.
       desc.name.insert(0, '$');
       desc.arraySize = size;
-      
+
       switch(type)
       {
          case GL_FLOAT:
@@ -621,20 +662,33 @@ void GFXGLShader::initConstantDescs()
             desc.constType = GFXSCT_Float4x3;
             break;
          case GL_SAMPLER_1D:
-         case GL_SAMPLER_2D:
-         case GL_SAMPLER_3D:
          case GL_SAMPLER_1D_SHADOW:
+            desc.constType = GFXSCT_Sampler1D;
+            break;
+         case GL_SAMPLER_1D_ARRAY:
+            desc.constType = GFXSCT_Sampler1DArray;
+            break;
+         case GL_SAMPLER_2D:
          case GL_SAMPLER_2D_SHADOW:
-            desc.constType = GFXSCT_Sampler;
+            desc.constType = GFXSCT_Sampler2D;
+            break;
+         case GL_SAMPLER_2D_ARRAY:
+            desc.constType = GFXSCT_Sampler2DArray;
+            break;
+         case GL_SAMPLER_2D_MULTISAMPLE:
+            desc.constType = GFXSCT_Sampler2DMS;
+            break;
+         case GL_SAMPLER_2D_MULTISAMPLE_ARRAY:
+            desc.constType = GFXSCT_Sampler2DMSArray;
+            break;
+         case GL_SAMPLER_3D:
+         
             break;
          case GL_SAMPLER_CUBE:
             desc.constType = GFXSCT_SamplerCube;
             break;
          case GL_SAMPLER_CUBE_MAP_ARRAY_ARB:
             desc.constType = GFXSCT_SamplerCubeArray;
-            break;
-         case GL_SAMPLER_2D_ARRAY:
-            desc.constType = GFXSCT_SamplerTextureArray;
             break;
          default:
             AssertFatal(false, "GFXGLShader::initConstantDescs - unrecognized uniform type");
@@ -1024,7 +1078,7 @@ bool GFXGLShader::_loadShaderFromStream(  GLuint shader,
    Vector<U32> lengths;
    
    // The GLSL version declaration must go first!
-   const char *versionDecl = "#version 330\n";
+   const char *versionDecl = "#version 430\n";
    buffers.push_back( dStrdup( versionDecl ) );
    lengths.push_back( dStrlen( versionDecl ) );
 
