@@ -308,10 +308,9 @@ bool AssimpShapeLoader::fillGuiTreeView(const char* sourceShapePath, GuiTreeView
    String cleanFile = AppMaterial::cleanString(path.getFileName());
 
    // Attempt to import with Assimp.
-   const aiScene* shapeScene = importer.ReadFile(path.getFullPath().c_str(), (aiProcessPreset_TargetRealtime_Quality | aiProcess_CalcTangentSpace)
-      & ~aiProcess_RemoveRedundantMaterials & ~aiProcess_GenSmoothNormals);
+   const aiScene* shapeScene = importer.ReadFile(path.getFullPath().c_str(), aiProcessPreset_TargetRealtime_Quality  | aiProcess_CalcTangentSpace);
 
-   if (!shapeScene)
+   if (!shapeScene || shapeScene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !shapeScene->mRootNode)
    {
       Con::printf("AssimpShapeLoader::fillGuiTreeView - Assimp Error: %s", importer.GetErrorString());
       return false;
