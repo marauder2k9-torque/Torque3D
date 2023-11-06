@@ -325,7 +325,7 @@ void SoundAsset::initializeAsset(void)
 
    //loadSound(slotCount);
    //mSoundPath = getOwned() ? expandAssetFilePath(mSoundFile) : mSoundPath;
-   //loadSound();
+   loadSound();
 }
 
 void SoundAsset::_onResourceChanged(const Torque::Path &path)

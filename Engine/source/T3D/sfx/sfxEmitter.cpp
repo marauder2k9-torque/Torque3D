@@ -291,7 +291,9 @@ void SFXEmitter::initPersistFields()
    docsURL;
    addGroup( "Media" );
 
-   INITPERSISTFIELD_SOUNDASSET(Sound, SFXEmitter, "");
+   //INITPERSISTFIELD_SOUNDASSET(Sound, SFXEmitter, "");
+
+   addProtectedField("track", TypeSoundAssetPtr, Offset(mSoundAssetId, SFXEmitter), &_setSoundData, &defaultProtectedGetFn, "");
 
       /*addField("track", TypeSFXTrackName, Offset(mTrack, SFXEmitter),
          "The track which the emitter should play.\n"
@@ -408,7 +410,8 @@ U32 SFXEmitter::packUpdate(NetConnection* con, U32 mask, BitStream* stream)
 
    // track
    if (stream->writeFlag(mask & DirtyUpdateMask))
-      PACK_ASSET(con, Sound);
+      PACK_ASSET(con, Sound)
+
    //if (stream->writeFlag(mDirty.test(Track)))
    //   sfxWrite( stream, mTrack );
 
@@ -773,7 +776,7 @@ void SFXEmitter::_update()
    SFXStatus prevState = mSource ? mSource->getStatus() : SFXStatusNull;
 
    // are we overriding the asset properties?
-   bool useTrackDescriptionOnly = (mUseTrackDescriptionOnly && mSoundAsset.notNull() && getSoundProfile());
+   bool useTrackDescriptionOnly = (mUseTrackDescriptionOnly && mSoundAsset.notNull());
 
    if (mSoundAsset.notNull())
    {
@@ -782,7 +785,7 @@ void SFXEmitter::_update()
       else
          mInstanceDescription = &mDescription;
 
-      mLocalProfile = getSoundProfile();
+      mLocalProfile = mSoundAsset->getSfxProfile();
 
       // Make sure all the settings are valid.
       mInstanceDescription->validate();
@@ -796,12 +799,12 @@ void SFXEmitter::_update()
    if( mDirty.test( Track | Is3D | IsLooping | IsStreaming | TrackOnly ) )
    {
       SFX_DELETE( mSource );
-      if (getSoundProfile())
+      if (mLocalProfile)
       {
          mSource = SFX->createSource(mLocalProfile, &transform, &velocity);
          if (!mSource)
             Con::errorf("SFXEmitter::_update() - failed to create sound for track %i (%s)",
-               getSoundProfile()->getId(), getSoundProfile()->getName());
+               mLocalProfile->getId(), mLocalProfile->getName());
 
          // If we're supposed to play when the emitter is 
          // added to the scene then also restart playback 
@@ -1217,7 +1220,7 @@ void SFXEmitter::setScale( const VectorF &scale )
 {
    F32 maxDistance;
    
-   if( mUseTrackDescriptionOnly && mSoundAsset.notNull() && getSoundProfile())
+   if( mUseTrackDescriptionOnly && mSoundAsset.notNull())
       maxDistance = mSoundAsset->getSfxDescription()->mMaxDistance;
    else
    {

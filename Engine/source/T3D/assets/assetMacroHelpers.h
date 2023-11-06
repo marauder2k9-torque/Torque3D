@@ -34,6 +34,56 @@
    m##name##Asset = NULL;\
    m##name = NULL;
 
+#define DECLARE_ASSET(class, name, assetClass) \
+   StringTableEntry m##name##Name; \
+   StringTableEntry m##name##AssetId;\
+   AssetPtr<assetClass> m##name##Asset;\
+   S32 m##name;\
+   bool _set##name(StringTableEntry _in)\
+   {\
+      if(m##name##AssetId != _in || m##name##Name != _in)\
+      {\
+         if (_in == NULL || _in == StringTable->EmptyString())\
+         {\
+            m##name##Name = StringTable->EmptyString();\
+            m##name##AssetId = StringTable->EmptyString();\
+            m##name##Asset = NULL;\
+            m##name = NULL;\
+            return true;\
+         }\
+         \
+         if (AssetDatabase.isDeclaredAsset(_in))\
+         {\
+            m##name##AssetId = _in;\
+            \
+            U32 assetState = assetClass::getAssetById(m##name##AssetId, &m##name##Asset);\
+            \
+            if (assetClass::Ok == assetState)\
+            {\
+               m##name##Name = StringTable->EmptyString();\
+            }\
+         }\
+         else\
+         {\
+            StringTableEntry assetId = assetClass::getAssetIdByFileName(_in);\
+            if (assetId != StringTable->EmptyString())\
+            {\
+               m##name##AssetId = assetId;\
+               if(assetClass::getAssetById(m##name##AssetId, &m##name##Asset) == assetClass::Ok)\
+               {\
+                  m##name##Name = StringTable->EmptyString();\
+               }\
+            }\
+            else\
+            {\
+               m##name##Name = _in;\
+               m##name##AssetId = StringTable->EmptyString();\
+               m##name##Asset = NULL;\
+            }\
+         }\
+      }\
+   }
+
 //load asset into memory by looking up the ID, spew a warning if anything goes wrong
 #define LOAD_ASSET(name, assetClass)\
 if (m##name##AssetId != StringTable->EmptyString())\
@@ -145,6 +195,12 @@ DefineEngineMethod(className, set##name, bool, (const char* assetName), , assetT
    m##name##Asset[index] = NULL;\
    m##name[index] = NULL;\
 }
+
+#define DECLARE_ASSET_ARRAY(name, class, assetClass, max) \
+   StringTableEntry m##name##Name[max]; \
+   StringTableEntry m##name##AssetId[max];\
+   AssetPtr<assetClass> m##name##Asset[max];\
+   S32 m##name[max];
 
 //load asset into memory by looking up the ID, spew a warning if anything goes wrong
 #define LOAD_ASSET_ARRAY(name, index, assetClass)\
