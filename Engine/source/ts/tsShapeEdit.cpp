@@ -655,6 +655,21 @@ bool TSShape::setNodeTransform(const String& name, const Point3F& pos, const Qua
    return true;
 }
 
+bool TSShape::setNodeTransform(const S32 nodeIndex, const Point3F& pos, const QuatF& rot)
+{
+   if (findNode(nodeIndex) == -1)
+   {
+      Con::errorf("TSShape::setNodeTransform: Could not find node index '%d'", nodeIndex);
+      return false;
+   }
+
+   // Update initial node position and rotation
+   defaultTranslations[nodeIndex] = pos;
+   defaultRotations[nodeIndex].set(rot);
+
+   return true;
+}
+
 //-----------------------------------------------------------------------------
 
 S32 TSShape::addObject(const String& objName, S32 subShapeIndex)

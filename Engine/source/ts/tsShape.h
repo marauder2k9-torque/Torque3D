@@ -663,6 +663,7 @@ class TSShape
    bool renameSequence(const String& oldName, const String& newName);
 
    bool setNodeTransform(const String& name, const Point3F& pos, const QuatF& rot);
+   bool setNodeTransform(const S32 nodeIndex, const Point3F& pos, const QuatF& rot);
    bool addNode(const String& name, const String& parentName, const Point3F& pos, const QuatF& rot);
    bool removeNode(const String& name);
 
