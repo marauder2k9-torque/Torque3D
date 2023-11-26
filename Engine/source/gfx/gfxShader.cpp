@@ -234,30 +234,41 @@ bool GFXShaderProgram::reload()
    bool success = false;
    if (mHasVertex)
    {
-
+      if (init(mVertexFile, ShaderType::VertexShader))
+         success = true;
    }
 
    if (mHasPixel)
    {
-
+      if (init(mPixelFile, ShaderType::PixelShader))
+         success = true;
    }
 
    if (mHasCompute)
    {
-
+      if (init(mComputeFile, ShaderType::ComputeShader))
+         success = true;
    }
 
    if (mHasGeometry)
    {
-
+      if (init(mGeometryFile, ShaderType::GeometryShader))
+         success = true;
    }
 
    if (mHasTessControl)
    {
-
+      if (init(mTessControlFile, ShaderType::TessellationControl))
+         success = true;
    }
 
    if (mHasTessEval)
+   {
+      if (init(mTessEvalFile, ShaderType::TessellationEvaluation))
+         success = true;
+   }
+
+   if (success)
    {
 
    }
@@ -269,12 +280,12 @@ bool GFXShaderProgram::reload()
    return success;
 }
 
-bool GFXShaderProgram::init(const String shaderSource, ShaderTypes shaderType)
+bool GFXShaderProgram::init(const String shaderSource, ShaderType shaderType)
 {
    switch (shaderType)
    {
-   case ShaderTypes::VertexShader:
-      if (!_initVertex())
+   case ShaderType::VertexShader:
+      if (!_initVertex(shaderSource))
       {
          return false;
       }
@@ -284,8 +295,8 @@ bool GFXShaderProgram::init(const String shaderSource, ShaderTypes shaderType)
          return true;
       }
       break;
-   case ShaderTypes::PixelShader:
-      if (!_initPixel())
+   case ShaderType::PixelShader:
+      if (!_initPixel(shaderSource))
       {
          return false;
       }
@@ -295,8 +306,8 @@ bool GFXShaderProgram::init(const String shaderSource, ShaderTypes shaderType)
          return true;
       }
       break;
-   case ShaderTypes::ComputeShader:
-      if (!_initCompute())
+   case ShaderType::ComputeShader:
+      if (!_initCompute(shaderSource))
       {
          return false;
       }
@@ -306,8 +317,8 @@ bool GFXShaderProgram::init(const String shaderSource, ShaderTypes shaderType)
          return true;
       }
       break;
-   case ShaderTypes::GeometryShader:
-      if (!_initGeometry())
+   case ShaderType::GeometryShader:
+      if (!_initGeometry(shaderSource))
       {
          return false;
       }
@@ -317,8 +328,8 @@ bool GFXShaderProgram::init(const String shaderSource, ShaderTypes shaderType)
          return true;
       }
       break;
-   case ShaderTypes::TessellationControl:
-      if (!_initTessControl())
+   case ShaderType::TessellationControl:
+      if (!_initTessControl(shaderSource))
       {
          return false;
       }
@@ -328,8 +339,8 @@ bool GFXShaderProgram::init(const String shaderSource, ShaderTypes shaderType)
          return true;
       }
       break;
-   case ShaderTypes::TessellationEvaluation:
-      if (!_initTessEvaluation())
+   case ShaderType::TessellationEvaluation:
+      if (!_initTessEvaluation(shaderSource))
       {
          return false;
       }
@@ -345,7 +356,7 @@ bool GFXShaderProgram::init(const String shaderSource, ShaderTypes shaderType)
    return false;
 }
 
-bool GFXShaderProgram::init(const Torque::Path& shaderFile, ShaderTypes shaderType)
+bool GFXShaderProgram::init(const Torque::Path& shaderFile, ShaderType shaderType)
 {
 
    FileStream f;
@@ -361,7 +372,7 @@ bool GFXShaderProgram::init(const Torque::Path& shaderFile, ShaderTypes shaderTy
 
    switch (shaderType)
    {
-   case ShaderTypes::VertexShader:
+   case ShaderType::VertexShader:
       mVertexFile = shaderFile;
       if (!init(data, shaderType))
       {
@@ -374,7 +385,7 @@ bool GFXShaderProgram::init(const Torque::Path& shaderFile, ShaderTypes shaderTy
          return true;
       }
       break;
-   case ShaderTypes::PixelShader:
+   case ShaderType::PixelShader:
       mPixelFile = shaderFile;
       if (!init(data, shaderType))
       {
@@ -387,7 +398,7 @@ bool GFXShaderProgram::init(const Torque::Path& shaderFile, ShaderTypes shaderTy
          return true;
       }
       break;
-   case ShaderTypes::ComputeShader:
+   case ShaderType::ComputeShader:
       mComputeFile = shaderFile;
       if (!init(data, shaderType))
       {
@@ -400,7 +411,7 @@ bool GFXShaderProgram::init(const Torque::Path& shaderFile, ShaderTypes shaderTy
          return true;
       }
       break;
-   case ShaderTypes::GeometryShader:
+   case ShaderType::GeometryShader:
       mGeometryFile = shaderFile;
       if (!init(data, shaderType))
       {
@@ -413,7 +424,7 @@ bool GFXShaderProgram::init(const Torque::Path& shaderFile, ShaderTypes shaderTy
          return true;
       }
       break;
-   case ShaderTypes::TessellationControl:
+   case ShaderType::TessellationControl:
       mTessControlFile = shaderFile;
       if (!init(data, shaderType))
       {
@@ -426,7 +437,7 @@ bool GFXShaderProgram::init(const Torque::Path& shaderFile, ShaderTypes shaderTy
          return true;
       }
       break;
-   case ShaderTypes::TessellationEvaluation:
+   case ShaderType::TessellationEvaluation:
       mTessEvalFile = shaderFile;
       if (!init(data, shaderType))
       {

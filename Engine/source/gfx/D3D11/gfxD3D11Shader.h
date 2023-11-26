@@ -251,10 +251,15 @@ class GFXD3D11ShaderConstHandle : public GFXShaderConstHandle
 {
 public:   
 
+   // which shader stage is this handle attached to.
+   ShaderType mShaderType;
+
    // GFXShaderConstHandle
    const String& getName() const;
    GFXShaderConstType getType() const;
    U32 getArraySize() const;
+
+   U32 getAlignment() const;
 
    WeakRefPtr<GFXD3D11Shader> mShader;
 
@@ -371,26 +376,12 @@ protected:
    //pixel
    GFXD3D11ConstBufferLayout* mPixelConstBufferLayout;
    GenericConstBuffer* mPixelConstBuffer;
+
+   U8* mBuffer;
 };
 
 class gfxD3D11Include;
 typedef StrongRefPtr<gfxD3D11Include> gfxD3DIncludeRef;
-
-/////////////////// GFXShader implementation /////////////////////////////
-
-class GFXD3D11ShaderProgram : public GFXShaderProgram
-{
-   friend class GFXD3D11Device;
-   friend class GFXD3D11ShaderConstBuffer;
-
-protected:
-   virtual bool _initPixel() = 0;
-   virtual bool _initVertex() = 0;
-   virtual bool _initCompute() = 0;
-   virtual bool _initGeometry() = 0;
-   virtual bool _initTessControl() = 0;
-   virtual bool _initTessEvaluation() = 0;
-};
 
 class GFXD3D11Shader : public GFXShader
 {
@@ -483,5 +474,123 @@ inline bool GFXD3D11Shader::getDisassembly(String &outStr) const
    outStr = mDissasembly;
    return (outStr.isNotEmpty());
 }
+
+/////////////////// GFXShaderProgram implementation /////////////////////////////
+class GFXD3D11ShaderProgram : public GFXShaderProgram
+{
+   friend class GFXD3D11Device;
+   friend class GFXD3D11ShaderConstBuffer;
+public:
+   typedef Map<String, GFXD3D11ShaderConstHandle*> HandleMap;
+
+   GFXD3D11ShaderProgram();
+   virtual ~GFXD3D11ShaderProgram();
+
+   virtual GFXShaderConstHandle* getShaderConstHandle(const String& name);
+   virtual GFXShaderConstHandle* findShaderConstHandle(const String& name);
+
+protected:
+   // these probably shouldn't be at this level?
+   ID3D11VertexShader* mVertShader;
+   ID3D11PixelShader* mPixShader;
+   ID3D11GeometryShader* mGeoShader;
+   ID3D11ComputeShader* mCompShader;
+   ID3D11HullShader* mHullShader;
+   ID3D11DomainShader* mDomainShader;
+
+   virtual bool _initPixel(const String& inPixel);
+   virtual bool _initVertex(const String& inVertex);
+   virtual bool _initCompute(const String& inCompute);
+   virtual bool _initGeometry(const String& inGeometry);
+   virtual bool _initTessControl(const String& inTessControl);
+   virtual bool _initTessEvaluation(const String& inTessEval);
+
+   void initShaderReflection(ShaderType inShaderType);
+   const char* getTarget(D3D_FEATURE_LEVEL featureLevel, ShaderType inShaderType);
+};
+
+class GFXDXShaderConstBuffer : public GFXShaderConstBuffer
+{
+public:
+   GFXDXShaderConstBuffer(GFXD3D11ShaderProgram* shader, U32 bufSize, U8* existingConstants);
+   ~GFXDXShaderConstBuffer();
+
+   /// Called by GFXD3D11Device to activate this buffer.
+   void activate();
+
+   /// Called when the shader this buffer references is reloaded.
+   void onShaderReload(GFXD3D11ShaderProgram* shader);
+
+   // GFXShaderConstBuffer
+   virtual GFXShader* getShader() { return NULL; } // needs updated to return shader program.
+   virtual void set(GFXShaderConstHandle* handle, const F32 fv);
+   virtual void set(GFXShaderConstHandle* handle, const Point2F& fv);
+   virtual void set(GFXShaderConstHandle* handle, const Point3F& fv);
+   virtual void set(GFXShaderConstHandle* handle, const Point4F& fv);
+   virtual void set(GFXShaderConstHandle* handle, const PlaneF& fv);
+   virtual void set(GFXShaderConstHandle* handle, const LinearColorF& fv);
+   virtual void set(GFXShaderConstHandle* handle, const S32 f);
+   virtual void set(GFXShaderConstHandle* handle, const Point2I& fv);
+   virtual void set(GFXShaderConstHandle* handle, const Point3I& fv);
+   virtual void set(GFXShaderConstHandle* handle, const Point4I& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<F32>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point2F>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point3F>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point4F>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<S32>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point2I>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point3I>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point4I>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const MatrixF& mat, const GFXShaderConstType matType = GFXSCT_Float4x4);
+   virtual void set(GFXShaderConstHandle* handle, const MatrixF* mat, const U32 arraySize, const GFXShaderConstType matrixType = GFXSCT_Float4x4);
+
+   // GFXResource
+   virtual const String describeSelf() const;
+   virtual void zombify() {}
+   virtual void resurrect() {}
+
+private:
+   friend class GFXD3D11ShaderProgram;
+   U8* mBuffer;
+   WeakRefPtr<GFXD3D11ShaderProgram> mShader;
+
+   template<typename ConstType>
+   void internalSet(GFXShaderConstHandle* handle, const ConstType& param);
+
+   template<typename ConstType>
+   void internalSet(GFXShaderConstHandle* handle, const AlignedArray<ConstType>& fv);
+};
+
+class GFXDXShaderConstHandle : public GFXShaderConstHandle
+{
+   friend class GFXD3D11ShaderProgram;
+
+public:
+
+   GFXDXShaderConstHandle(GFXD3D11ShaderProgram* shader);
+   GFXDXShaderConstHandle(GFXD3D11ShaderProgram* shader, const GFXShaderConstDesc& desc, U32 loc, S32 samplerNum);
+   virtual ~GFXDXShaderConstHandle();
+
+   void reinit(const GFXShaderConstDesc& desc, U32 loc, S32 samplerNum);
+
+   const String& getName() const { return mDesc.name; }
+   GFXShaderConstType getType() const { return mDesc.constType; }
+   U32 getArraySize() const { return mDesc.arraySize; }
+   U32 getAlignment() const {} //return shaderConstTypeSize(mDesc.constType); }
+
+   U32 getSize() const;
+   void setValid(bool valid) { mValid = valid; }
+   /// @warning This will always return the value assigned when the shader was
+   /// initialized.  If the value is later changed this method won't reflect that.
+   S32 getSamplerRegister() const { return mSamplerNum; }
+
+   GFXShaderConstDesc mDesc;
+   GFXD3D11ShaderProgram* mShader;
+   U32 mLocation;
+   U32 mOffset;
+   U32 mSize;
+   S32 mSamplerNum;
+   bool mInstancingConstant;
+};
 
 #endif

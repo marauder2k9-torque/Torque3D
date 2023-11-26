@@ -313,22 +313,23 @@ enum GFXMatrixType
 enum GFXShaderConstType
 {
    /// GFX"S"hader"C"onstant"T"ype
-   // Scalar
-   // doubles and atomics require 4.1 and up in gl.
+   // Float
    GFXSCT_Float,
-   GFXSCT_Int,
-   GFXSCT_UInt,
-   GFXSCT_Bool,
-   // Vectors
    GFXSCT_Float2, 
    GFXSCT_Float3, 
    GFXSCT_Float4,
+   // int
+   GFXSCT_Int,
    GFXSCT_Int2,
    GFXSCT_Int3,
    GFXSCT_Int4,
+   // uint
+   GFXSCT_UInt,
    GFXSCT_UInt2,
    GFXSCT_UInt3,
    GFXSCT_UInt4,
+   // bool
+   GFXSCT_Bool,
    GFXSCT_Bool2,
    GFXSCT_Bool3,
    GFXSCT_Bool4,
@@ -338,7 +339,7 @@ enum GFXShaderConstType
    GFXSCT_Float3x4,
    GFXSCT_Float4x3,
    GFXSCT_Float4x4, 
-   // Samplers
+   // Samplers, DX side these are textures aswell.
    GFXSCT_Sampler,
    GFXSCT_SamplerBuffer,
    GFXSCT_Sampler2DRect,

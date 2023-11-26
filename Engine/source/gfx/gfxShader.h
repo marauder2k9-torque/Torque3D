@@ -74,7 +74,8 @@ public:
    U32 arraySize; // > 1 means it is an array!
 };
 
-enum class ShaderTypes
+
+enum class ShaderType
 {
    VertexShader,
    PixelShader,
@@ -105,6 +106,7 @@ public:
    virtual GFXShaderConstType getType() const = 0;
 
    virtual U32 getArraySize() const = 0;
+   virtual U32 getAlignment() const = 0;
    
    /// Returns -1 if this handle does not point to a Sampler.
    virtual S32 getSamplerRegister() const = 0;
@@ -276,28 +278,31 @@ public:
 
    // init fron source code
    bool init(  const String shaderSource,
-               ShaderTypes shaderType);
+               ShaderType shaderType);
 
    // int from file.
    bool init(  const Torque::Path& shaderFile,
-               ShaderTypes shaderType);
+               ShaderType shaderType);
 
    /// Reloads the shader from disk.
    bool reload();
 
    Signal<void()> getReloadSignal() { return mReloadSignal; }
 
+   virtual GFXShaderConstHandle* getShaderConstHandle(const String& name) = 0;
+   virtual GFXShaderConstHandle* findShaderConstHandle(const String& name) = 0;
+
 protected:
 
    /// Called when the shader files change on disk.
    void _onFileChanged(const Torque::Path& path) { reload(); }
 
-   virtual bool _initPixel() = 0;
-   virtual bool _initVertex() = 0;
-   virtual bool _initCompute() = 0;
-   virtual bool _initGeometry() = 0;
-   virtual bool _initTessControl() = 0;
-   virtual bool _initTessEvaluation() = 0;
+   virtual bool _initPixel(const String& inPixel) = 0;
+   virtual bool _initVertex(const String& inVertex) = 0;
+   virtual bool _initCompute(const String& inCompute) = 0;
+   virtual bool _initGeometry(const String& inGeometry) = 0;
+   virtual bool _initTessControl(const String& inTessControl) = 0;
+   virtual bool _initTessEvaluation(const String& inTessEval) = 0;
 };
 
 //**************************************************************************

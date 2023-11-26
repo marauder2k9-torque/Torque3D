@@ -122,6 +122,14 @@ U32 GFXD3D11ShaderConstHandle::getArraySize() const
       return mPixelHandle.arraySize;
 }
 
+U32 GFXD3D11ShaderConstHandle::getAlignment() const
+{
+   if (mVertexConstant)
+      return mVertexHandle.alignValue;
+   else
+      return mPixelHandle.alignValue;
+}
+
 S32 GFXD3D11ShaderConstHandle::getSamplerRegister() const
 {
    if ( !mValid || !isSampler() )
@@ -167,10 +175,6 @@ bool GFXD3D11ConstBufferLayout::set(const ParamDesc& pd, const GFXShaderConstTyp
    case GFXSCT_Float4x4:
       return setMatrix(pd, constType, size, data, basePointer);
       break;
-      // TODO add other AlignedVector here
-   case GFXSCT_Float2:
-      if (size > sizeof(Point2F))
-         size = pd.size;
    default:
       break;
    }
@@ -1564,4 +1568,101 @@ void GFXD3D11Shader::zombify()
 void GFXD3D11Shader::resurrect()
 {
    // Shaders are never zombies, and therefore don't have to be brought back.
+}
+
+//------------------------------------------------------------------------------
+// GFXD3D11ShaderProgram
+//------------------------------------------------------------------------------
+
+GFXD3D11ShaderProgram::GFXD3D11ShaderProgram()
+{
+   mVertShader    = NULL;
+   mPixShader     = NULL;
+   mGeoShader     = NULL;
+   mCompShader    = NULL;
+   mHullShader    = NULL;
+   mDomainShader  = NULL;
+}
+
+GFXD3D11ShaderProgram::~GFXD3D11ShaderProgram()
+{
+   SAFE_RELEASE(mVertShader);
+   SAFE_RELEASE(mPixShader);
+   SAFE_RELEASE(mGeoShader);
+   SAFE_RELEASE(mCompShader);
+   SAFE_RELEASE(mHullShader);
+   SAFE_RELEASE(mDomainShader);
+}
+
+bool GFXD3D11ShaderProgram::_initPixel(const String& inPixel)
+{
+   return false;
+}
+
+bool GFXD3D11ShaderProgram::_initVertex(const String& inVertex)
+{
+   return false;
+}
+
+bool GFXD3D11ShaderProgram::_initCompute(const String& inCompute)
+{
+   return false;
+}
+
+bool GFXD3D11ShaderProgram::_initGeometry(const String& inGeometry)
+{
+   return false;
+}
+
+bool GFXD3D11ShaderProgram::_initTessControl(const String& inTessControl)
+{
+   return false;
+}
+
+bool GFXD3D11ShaderProgram::_initTessEvaluation(const String& inTessEval)
+{
+   return false;
+}
+
+void GFXD3D11ShaderProgram::initShaderReflection(ShaderType inShaderType)
+{
+}
+
+const char* GFXD3D11ShaderProgram::getTarget(D3D_FEATURE_LEVEL featureLevel, ShaderType inShaderType)
+{
+   switch (featureLevel)
+   {
+   case D3D_FEATURE_LEVEL_10_1:
+      switch (inShaderType)
+      {
+      case ShaderType::VertexShader:
+         return "vs_4_1";
+      case ShaderType::PixelShader:
+         return "ps_4_1";
+      case ShaderType::ComputeShader:
+         return "cs_4_1";
+      case ShaderType::GeometryShader:
+         return "gs_4_1";
+      default:
+         // hull and domain (tess shaders) not supported pre 11.
+         return "";
+      }
+   case D3D_FEATURE_LEVEL_11_0:
+   case D3D_FEATURE_LEVEL_11_1:
+      switch (inShaderType)
+      {
+      case ShaderType::VertexShader:
+         return "vs_5_0";
+      case ShaderType::PixelShader:
+         return "ps_5_0";
+      case ShaderType::ComputeShader:
+         return "cs_5_0";
+      case ShaderType::GeometryShader:
+         return "gs_5_0";
+      case ShaderType::TessellationControl:
+         return "hs_5_0";
+      case ShaderType::TessellationEvaluation:
+         return "ds_5_0";
+      }
+   }
 }
