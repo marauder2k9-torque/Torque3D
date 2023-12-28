@@ -1,0 +1,84 @@
+// Blueprint specifier required and a name for the shader output.
+Blueprint "testShader"
+{
+    // Parser expects these data types to be set first, every shader for now
+    // requires at least one shader stage, note if a pixel shader stage
+    // does not exist then a shaderData object will not be created. 
+    // The files that are generated from this file will automatically be output
+    // to an export folder in the same directory as this file.
+
+    // Vertex data struct: set by source
+    struct VertexData 
+    {
+        float3 pos : POSITION;
+    };
+
+    // Pixel data struct: connection stage
+    struct PixelData 
+    {
+        float4 hpos : SV_Position;
+    };
+
+    // Pixel shader output.
+    struct PixelOut 
+    {
+        float4 col : SV_TARGET;
+    };
+
+    /*
+    Other struct data:
+    ComputeData
+    GeometryData
+    DomainData
+    HullData
+
+    Structs with these names require semantic specifiers.
+    */
+
+    // Vertex shader Stage
+    VertexShader
+    {
+        // set the main entry point for this shader, this will default to main
+        // and in glsl a main will always exist regardless.
+        #pragma entry main
+
+        uniform float4x4 modelView;
+
+        // PixelData is required for the function type, just like in HLSL
+        // this will help the parser distinguish for different api's which 
+        // stage the vertex shader is feeding next.
+        PixelData main(VertexData IN)
+        {
+            PixelData Out;
+
+            Out.hpos = mul(modelView, float4(IN.pos, 1.0));
+        };
+    };
+
+    // Pixel Shader Stage
+    PixelShader
+    {
+        #pragma entry main
+
+        // note we use glsl sampler specifiers.
+        uniform sampler2D mTexture;
+        uniform float3 ambientColor;
+
+        // PixelOut is required for the function type, just like in HLSL
+        // this will help the parser set the output targets for different apis.
+        PixelOut main(PixelData IN)
+        {
+            PixelOut Out;
+
+            Out.col = ambientColor;
+        }
+    };
+
+    /*
+    Other Shader stages:
+    ComputeShader
+    GeometryShader
+    DomainShader
+    HullShader
+    */
+};

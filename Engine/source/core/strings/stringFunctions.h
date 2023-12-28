@@ -175,9 +175,9 @@ inline char *dStrtok(char *str, const char *sep)
 }
 
 
-inline S32 dAtoi(const char *str)
+inline S32 dAtoi(const char *str, char** end = NULL, U32 base = 10)
 {
-   return strtol(str, NULL, 10);
+   return strtol(str, end, base);
 }
 
 inline U32 dAtoui(const char *str, U32 base = 10)
@@ -190,9 +190,9 @@ inline U16 dAtous(const char *str, U32 base = 10)
    return strtoul(str, NULL, base);
 }
 
-inline F32 dAtof(const char *str)
+inline F32 dAtof(const char *str, char** end = NULL)
 {
-   return strtof(str, NULL);
+   return strtof(str, end);
 }
 
 inline F64 dAtod(const char *str)
