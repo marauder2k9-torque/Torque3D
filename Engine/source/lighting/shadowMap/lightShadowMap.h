@@ -97,13 +97,11 @@ struct LightingShaderConstants
 
    GFXShaderConstHandle* mShadowMapSC;
    GFXShaderConstHandle* mShadowMapSizeSC;
-
+   GFXShaderConstHandle* mAtlasXOffsetSC;
    GFXShaderConstHandle* mCookieMapSC;
 
    GFXShaderConstHandle* mRandomDirsConst;
    GFXShaderConstHandle* mShadowSoftnessConst;
-   GFXShaderConstHandle* mAtlasXOffsetSC;
-   GFXShaderConstHandle* mAtlasYOffsetSC;
    GFXShaderConstHandle* mAtlasScaleSC;
 
    // fadeStartLength.x = Distance in eye space to start fading shadows
@@ -116,11 +114,11 @@ struct LightingShaderConstants
    // Static Specific:   
    GFXShaderConstHandle* mWorldToLightProjSC;
    GFXShaderConstHandle* mViewToLightProjSC;
-   GFXShaderConstHandle* mScaleXSC;
-   GFXShaderConstHandle* mScaleYSC;
-   GFXShaderConstHandle* mOffsetXSC;
-   GFXShaderConstHandle* mOffsetYSC;
    GFXShaderConstHandle* mFarPlaneScalePSSM;
+
+   GFXShaderConstHandle* mCascadeData;
+   GFXShaderConstHandle* mAtlasOffset;
+   GFXShaderConstHandle* mCascadeSplitsSC;
 
    LightingShaderConstants();
    ~LightingShaderConstants();

@@ -432,20 +432,17 @@ LightingShaderConstants::LightingShaderConstants()
       mCookieMapSC(NULL),
       mRandomDirsConst(NULL),
       mShadowSoftnessConst(NULL), 
-      mAtlasXOffsetSC(NULL), 
-      mAtlasYOffsetSC(NULL),
       mAtlasScaleSC(NULL), 
       mFadeStartLength(NULL), 
       mOverDarkFactorPSSM(NULL), 
       mTapRotationTexSC(NULL),
-
+      mAtlasXOffsetSC(NULL), // needed for paraboloid..
       mWorldToLightProjSC(NULL), 
       mViewToLightProjSC(NULL),
-      mScaleXSC(NULL), 
-      mScaleYSC(NULL),
-      mOffsetXSC(NULL), 
-      mOffsetYSC(NULL), 
-      mFarPlaneScalePSSM(NULL)
+      mFarPlaneScalePSSM(NULL),
+      mCascadeData(NULL),
+      mCascadeSplitsSC(NULL),
+      mAtlasOffset(NULL)
 {
 }
 
@@ -492,21 +489,19 @@ void LightingShaderConstants::init(GFXShader* shader)
    mCookieMapSC = shader->getShaderConstHandle("$cookieMap");
 
    mShadowSoftnessConst = shader->getShaderConstHandle("$shadowSoftness");
-   mAtlasXOffsetSC = shader->getShaderConstHandle("$atlasXOffset");
-   mAtlasYOffsetSC = shader->getShaderConstHandle("$atlasYOffset");
    mAtlasScaleSC = shader->getShaderConstHandle("$atlasScale");
-
+   mAtlasXOffsetSC = shader->getShaderConstHandle("$atlasXOffset");
    mFadeStartLength = shader->getShaderConstHandle("$fadeStartLength");
    mOverDarkFactorPSSM = shader->getShaderConstHandle("$overDarkPSSM");
    mTapRotationTexSC = shader->getShaderConstHandle( "$gTapRotationTex" );
 
    mWorldToLightProjSC = shader->getShaderConstHandle("$worldToLightProj");
    mViewToLightProjSC = shader->getShaderConstHandle("$viewToLightProj");
-   mScaleXSC = shader->getShaderConstHandle("$scaleX");
-   mScaleYSC = shader->getShaderConstHandle("$scaleY");
-   mOffsetXSC = shader->getShaderConstHandle("$offsetX");
-   mOffsetYSC = shader->getShaderConstHandle("$offsetY");
    mFarPlaneScalePSSM = shader->getShaderConstHandle("$farPlaneScalePSSM");
+
+   mCascadeData = shader->getShaderConstHandle("$cascadeData");
+   mAtlasOffset = shader->getShaderConstHandle("$atlasOffset");
+   mCascadeSplitsSC = shader->getShaderConstHandle("$cascadeSplits");
 
    mInit = true;
 }

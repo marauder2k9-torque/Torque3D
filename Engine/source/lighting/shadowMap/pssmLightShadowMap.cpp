@@ -118,19 +118,25 @@ void PSSMLightShadowMap::_setNumSplits( U32 numSplits, U32 texSize )
 
 void PSSMLightShadowMap::_calcSplitPos(const Frustum& currFrustum)
 {
+   const ShadowMapParams* params = mLight->getExtended<ShadowMapParams>();
    const F32 nearDist = 0.01f; // TODO: Should this be adjustable or different?
    const F32 farDist = currFrustum.getFarDist();
+   F32 clipRange = farDist - nearDist;
 
-   for ( U32 i = 1; i < mNumSplits; i++ )
+   //Old method.
+   for (U32 i = 1; i < mNumSplits; i++)
    {
       F32 step = (F32) i / (F32) mNumSplits;
       F32 logSplit = nearDist * mPow(farDist / nearDist, step);
       F32 linearSplit = nearDist + (farDist - nearDist) * step;
       mSplitDist[i] = mLerp( linearSplit, logSplit, mClampF( mLogWeight, 0.0f, 1.0f ) );
+      mCascadeSplit[i] = (nearDist + mSplitDist[i]) / clipRange;
    }
 
    mSplitDist[0] = nearDist;
+   mCascadeSplit[0] = (nearDist + mSplitDist[0]) / clipRange;
    mSplitDist[mNumSplits] = farDist;
+   mCascadeSplit[mNumSplits] = (nearDist + mSplitDist[mNumSplits]) / clipRange;
 }
 
 Box3F PSSMLightShadowMap::_calcClipSpaceAABB(const Frustum& f, const MatrixF& transform, F32 farDist)
@@ -414,21 +420,16 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
 
    const ShadowMapParams *p = mLight->getExtended<ShadowMapParams>();
 
-   Point4F  sx(Point4F::Zero), 
-            sy(Point4F::Zero),
-            ox(Point4F::Zero), 
-            oy(Point4F::Zero), 
-            aXOff(Point4F::Zero), 
-            aYOff(Point4F::Zero);
-
+   static AlignedArray<Point4F> cascadeOffsetScale(mNumSplits, sizeof(Point4F));
+   dMemset(cascadeOffsetScale.getBuffer(), 0, cascadeOffsetScale.getBufferSize());
+   // load up cascadeOffsets and scale.
    for (U32 i = 0; i < mNumSplits; i++)
    {
-      sx[i] = mScaleProj[i].x;
-      sy[i] = mScaleProj[i].y;
-      ox[i] = mOffsetProj[i].x;
-      oy[i] = mOffsetProj[i].y;
+      cascadeOffsetScale[i].set(mScaleProj[i].x, mScaleProj[i].y, mOffsetProj[i].x, mOffsetProj[i].y);
    }
 
+   static AlignedArray<Point2F> atlasOffset(mNumSplits, sizeof(Point4F));
+   dMemset(atlasOffset.getBuffer(), 0, atlasOffset.getBufferSize());
    Point2F shadowMapAtlas;
    if (mNumSplits < 4)
    {
@@ -437,31 +438,29 @@ void PSSMLightShadowMap::setShaderParameters(GFXShaderConstBuffer* params, Light
    
       // 1xmNumSplits
       for (U32 i = 0; i < mNumSplits; i++)
-         aXOff[i] = (F32)i * shadowMapAtlas.x;
+         atlasOffset[i].x = (F32)i * shadowMapAtlas.x;
    }
    else
    {
-      shadowMapAtlas.set(0.5f, 0.5f);
+      shadowMapAtlas.set(0.5000f, 0.5000f);
   
       // 2x2
       for (U32 i = 0; i < mNumSplits; i++)
       {
          if (i == 1 || i == 3)
-            aXOff[i] = 0.5f;
+            atlasOffset[i].x = 0.5000f;
          if (i > 1)
-            aYOff[i] = 0.5f;
+            atlasOffset[i].y = 0.5000f;
       }
    }
 
-   // These values change based on static/dynamic.
-   params->setSafe(lsc->mScaleXSC, sx);
-   params->setSafe(lsc->mScaleYSC, sy);
-   params->setSafe(lsc->mOffsetXSC, ox);
-   params->setSafe(lsc->mOffsetYSC, oy);
-   params->setSafe(lsc->mFarPlaneScalePSSM, mFarPlaneScalePSSM);
+   // set our aligned arrays.
+   params->setSafe(lsc->mCascadeData, cascadeOffsetScale);
+   params->setSafe(lsc->mAtlasOffset, atlasOffset);
+   params->setSafe(lsc->mCascadeSplitsSC, mCascadeSplit);
 
-   params->setSafe(lsc->mAtlasXOffsetSC, aXOff);
-   params->setSafe(lsc->mAtlasYOffsetSC, aYOff);
+   // These values change based on static/dynamic.
+   params->setSafe(lsc->mFarPlaneScalePSSM, mFarPlaneScalePSSM);
    params->setSafe(lsc->mAtlasScaleSC, shadowMapAtlas);
 
    Point4F lightParams( mLight->getRange().x, p->overDarkFactor.x, 0.0f, 0.0f );

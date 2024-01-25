@@ -61,6 +61,7 @@ uniform float3 lightDirection;
 uniform float2 lightSpotParams;
 uniform float4 lightMapParams;
 uniform float4 vsFarPlane;
+uniform float4 zNearFarInvNearFar;
 uniform float4x4 worldToLightProj;
 uniform float4 lightParams;
 
@@ -103,12 +104,18 @@ float4 main(   ConvexConnectP IN ) : SV_TARGET
       if (getFlag(surface.matFlag, 0)) //also skip if we don't recieve shadows
       {  
          // Get the shadow texture coordinate
-         float4 pxlPosLightProj = mul( worldToLightProj, float4( surface.P, 1 ) );
-         float2 shadowCoord = ( ( pxlPosLightProj.xy / pxlPosLightProj.w ) * 0.5 ) + float2( 0.5, 0.5 );
-         shadowCoord.y = 1.0f - shadowCoord.y;
-         //distance to light in shadow map space
-         float distToLight = pxlPosLightProj.z / lightRange;
-         shadow = softShadow_filter(TORQUE_SAMPLER2D_MAKEARG(shadowMap), ssPos.xy, shadowCoord, shadowSoftness, distToLight, surfaceToLight.NdotL, lightParams.y);
+         float4 shadowCoord = mul( worldToLightProj, float4( surface.P, 1 ) );
+         shadowCoord.y = -shadowCoord.y;
+         shadowCoord.xy /= shadowCoord.w;
+         shadowCoord.xy *= 0.5;
+         shadowCoord.xy += 0.5;  
+         shadowCoord.z /= lightRange;
+         shadowCoord.z -= getShadowBias(0.002, surface.N, surface.P, lightPosition);
+ 
+         float lightSize = 50.5f; 
+
+         shadow *= softShadow_filterPCSS(TORQUE_SAMPLER2D_MAKEARG(shadowMap), shadowCoord.xyz, shadowSoftness, lightSize);
+         shadow = clamp(shadow, 0.0f, 1.0f);
          #ifdef USE_COOKIE_TEX
             // Lookup the cookie sample.
             float4 cookie = TORQUE_TEX2D(cookieMap, shadowCoord);

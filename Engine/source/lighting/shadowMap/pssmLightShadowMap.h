@@ -66,6 +66,7 @@ protected:
    Point3F mScaleProj[MAX_SPLITS];
    Point3F mOffsetProj[MAX_SPLITS];
    Point4F mFarPlaneScalePSSM;
+   Point4F mCascadeSplit;
    F32 mLogWeight;
 };
 
