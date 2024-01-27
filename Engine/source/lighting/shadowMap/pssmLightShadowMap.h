@@ -59,6 +59,9 @@ protected:
    void _calcPlanesCullForShadowCasters(Vector< Vector<PlaneF> > &out, const Frustum &viewFrustum, const Point3F &_ligthDir);
    void _roundProjection(const MatrixF& lightMat, const MatrixF& cropMatrix, Point3F &offset, U32 splitNum);
 
+   MatrixF _getSplitLightMatrix(const F32, const F32, const Frustum& viewFrustum);
+   Vector<MatrixF> _getLightSpaceMatrices(const Frustum& viewFrustum);
+
    static const S32 MAX_SPLITS = 4;
    U32 mNumSplits;
    F32 mSplitDist[MAX_SPLITS+1];   // +1 because we store a cap

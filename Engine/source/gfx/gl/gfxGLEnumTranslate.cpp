@@ -157,6 +157,7 @@ void GFXGLEnumTranslate::init()
    GFXGLTextureFormat[GFXFormatR8G8B8A8] = GL_RGBA;
    GFXGLTextureFormat[GFXFormatR8G8B8X8] = GL_RGBA;
    GFXGLTextureFormat[GFXFormatB8G8R8A8] = GL_BGRA;
+   GFXGLTextureFormat[GFXFormatR32G32F] = GL_RG32F;
    GFXGLTextureFormat[GFXFormatR10G10B10A2] = GL_RGBA;
    GFXGLTextureFormat[GFXFormatR11G11B10] = GL_RGB;
    GFXGLTextureFormat[GFXFormatD32] = GL_DEPTH_COMPONENT;

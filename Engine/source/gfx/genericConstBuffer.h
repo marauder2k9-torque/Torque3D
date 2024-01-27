@@ -185,6 +185,7 @@ public:
    inline void set(const GenericConstBufferLayout::ParamDesc& pd, const AlignedArray<Point2I>& fv) { internalSet(pd, GFXSCT_Int2, fv.getElementSize() * fv.size(), fv.getBuffer()); }
    inline void set(const GenericConstBufferLayout::ParamDesc& pd, const AlignedArray<Point3I>& fv) { internalSet(pd, GFXSCT_Int3, fv.getElementSize() * fv.size(), fv.getBuffer()); }
    inline void set(const GenericConstBufferLayout::ParamDesc& pd, const AlignedArray<Point4I>& fv) { internalSet(pd, GFXSCT_Int4, fv.getElementSize() * fv.size(), fv.getBuffer()); }
+   inline void set(const GenericConstBufferLayout::ParamDesc& pd, const AlignedArray<MatrixF>& fv) { internalSet(pd, GFXSCT_Float4x4, fv.getElementSize() * fv.size(), fv.getBuffer()); }
 
    inline void set( const GenericConstBufferLayout::ParamDesc& pd, const MatrixF& mat, const GFXShaderConstType matrixType )
    {

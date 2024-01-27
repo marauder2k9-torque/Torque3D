@@ -339,6 +339,7 @@ public:
    virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point2I>& fv);
    virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point3I>& fv);
    virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point4I>& fv);
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<MatrixF>& fv);
    virtual void set(GFXShaderConstHandle* handle, const MatrixF& mat, const GFXShaderConstType matType = GFXSCT_Float4x4);
    virtual void set(GFXShaderConstHandle* handle, const MatrixF* mat, const U32 arraySize, const GFXShaderConstType matrixType = GFXSCT_Float4x4);
 

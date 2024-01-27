@@ -283,6 +283,11 @@ void GFXGLShaderConstBuffer::set(GFXShaderConstHandle* handle, const AlignedArra
    internalSet(handle, fv);
 }
 
+void GFXGLShaderConstBuffer::set(GFXShaderConstHandle* handle, const AlignedArray<MatrixF>& fv)
+{
+   internalSet(handle, fv);
+}
+
 void GFXGLShaderConstBuffer::set(GFXShaderConstHandle* handle, const MatrixF& mat, const GFXShaderConstType matType)
 {
    AssertFatal(handle, "GFXGLShaderConstBuffer::set - Handle is NULL!" );

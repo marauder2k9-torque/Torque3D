@@ -32,7 +32,11 @@
 
 class EyeSpaceDepthOutHLSL : public ShaderFeatureHLSL
 {
+protected:
+   ShaderIncludeDependency mComputeDepth;
 public:
+
+   EyeSpaceDepthOutHLSL();
 
    // ShaderFeature
    virtual void processVert( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd );
@@ -46,7 +50,11 @@ public:
 
 class DepthOutHLSL : public ShaderFeatureHLSL
 {
+protected:
+   ShaderIncludeDependency mComputeDepth;
 public:
+
+   DepthOutHLSL();
 
    // ShaderFeature
    virtual void processVert( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd );

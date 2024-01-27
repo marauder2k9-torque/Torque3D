@@ -189,6 +189,7 @@ public:
    virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point2I>& fv) = 0;
    virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point3I>& fv) = 0;
    virtual void set(GFXShaderConstHandle* handle, const AlignedArray<Point4I>& fv) = 0;
+   virtual void set(GFXShaderConstHandle* handle, const AlignedArray<MatrixF>& fv) = 0;
    
    /// Set a variable sized matrix shader constant.   
    virtual void set( GFXShaderConstHandle* handle, 

@@ -26,6 +26,13 @@
 #include "materials/materialFeatureTypes.h"
 #include "materials/materialFeatureData.h"
 #include "terrain/terrFeatureTypes.h"
+#include "shaderGen/shaderGen.h"
+
+EyeSpaceDepthOutHLSL::EyeSpaceDepthOutHLSL()
+   :mComputeDepth(ShaderGen::smCommonShaderPath + String("/computeVSM.hlsl"))
+{
+   addDependency(&mComputeDepth);
+}
 
 void EyeSpaceDepthOutHLSL::processVert(   Vector<ShaderComponent*> &componentList, 
                                           const MaterialFeatureData &fd )
@@ -108,7 +115,7 @@ void EyeSpaceDepthOutHLSL::processPix( Vector<ShaderComponent*> &componentList,
    // If there isn't an output conditioner for the pre-pass, than just write
    // out the depth to rgba and return.
    if( !fd.features[MFT_DeferredConditioner] )
-      meta->addStatement( new GenOp( "   @;\r\n", assignColor( new GenOp( "float4(@.rrr,1)", depthOut ), Material::None ) ) );
+      meta->addStatement( new GenOp( "   @;\r\n", assignColor( new GenOp( "float4(ComputeMoments(@),0,1)", depthOut ), Material::None ) ) );
    
    output = meta;
 }
@@ -124,6 +131,11 @@ ShaderFeature::Resources EyeSpaceDepthOutHLSL::getResources( const MaterialFeatu
    return temp; 
 }
 
+DepthOutHLSL::DepthOutHLSL()
+   :mComputeDepth(ShaderGen::smCommonShaderPath + String("/computeVSM.hlsl"))
+{
+   addDependency(&mComputeDepth);
+}
 
 void DepthOutHLSL::processVert(  Vector<ShaderComponent*> &componentList, 
                                  const MaterialFeatureData &fd )
@@ -161,7 +173,7 @@ void DepthOutHLSL::processPix(   Vector<ShaderComponent*> &componentList,
    depthOut->setName(getOutputVarName());
    */
 
-   LangElement *depthOut = new GenOp( "float4( @, 0, 0, 1 )", depthVar );
+   LangElement *depthOut = new GenOp( "float4( ComputeMoments(@), 0, 1 )", depthVar );
 
    output = new GenOp( "   @;\r\n", assignColor( depthOut, Material::None ) );
 }

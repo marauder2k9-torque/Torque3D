@@ -119,7 +119,7 @@ void PSSMLightShadowMap::_setNumSplits( U32 numSplits, U32 texSize )
 void PSSMLightShadowMap::_calcSplitPos(const Frustum& currFrustum)
 {
    const ShadowMapParams* params = mLight->getExtended<ShadowMapParams>();
-   const F32 nearDist = 0.01f; // TODO: Should this be adjustable or different?
+   const F32 nearDist = 1.0f; // TODO: Should this be adjustable or different?
    const F32 farDist = currFrustum.getFarDist();
    F32 clipRange = farDist - nearDist;
 
@@ -202,6 +202,115 @@ void PSSMLightShadowMap::_roundProjection(const MatrixF& lightMat, const MatrixF
    offset.y += originRounded.y;
 }
 
+MatrixF PSSMLightShadowMap::_getSplitLightMatrix(const F32 near, const F32 far, const Frustum& viewFrustum)
+{
+   MatrixF proj;
+   MatrixF view;
+
+   Frustum subFrust(viewFrustum);
+   subFrust.cropNearFar(near, far);
+
+   viewFrustum.getProjectionMatrix(&proj);
+   proj.reverseProjection();
+
+   Vector<Point4F> corners;
+
+   F32 tanHalfHFOV = mTan(mDegToRad(mRadToDeg(viewFrustum.getFov()) / 2.0f));
+   F32 tanHalfVFOV = mTan(mDegToRad((mRadToDeg(viewFrustum.getFov()) * viewFrustum.getAspectRatio()) / 2.0f));
+
+   F32 xn = near * tanHalfHFOV;
+   F32 xf = far * tanHalfHFOV;
+   F32 yn = near * tanHalfVFOV;
+   F32 yf = far * tanHalfVFOV;
+
+   corners.push_back(Point4F(xn, yn, near, 1.0));
+   corners.push_back(Point4F(-xn, yn, near, 1.0));
+   corners.push_back(Point4F(xn,-yn, near, 1.0));
+   corners.push_back(Point4F(-xn, -yn, near, 1.0));
+
+   corners.push_back(Point4F(xf, yf, far, 1.0));
+   corners.push_back(Point4F(-xf, yf, far, 1.0));
+   corners.push_back(Point4F(xf, -yf, far, 1.0));
+   corners.push_back(Point4F(-xf, -yf, far, 1.0));
+
+
+   Point3F center(0, 0, 0);
+   for (U32 i = 0; i < corners.size(); i++)
+   {
+      const Point3F& pt = Point3F(corners[i].x, corners[i].y, corners[i].z);
+      center += pt;
+   }
+   center /= corners.size();
+
+   // Standard view that will be overridden below.
+   VectorF vLookatPt(center), vUpVec(0.0f, 0.0f, 1.0f);
+   // create camera matrix
+   VectorF cross = mCross(vUpVec, vLookatPt);
+   cross.normalizeSafe();
+
+   MatrixF lightMatrix(true);
+   lightMatrix.setColumn(0, cross);
+   lightMatrix.setColumn(1, vLookatPt);
+   lightMatrix.setColumn(2, vUpVec);
+   lightMatrix.setPosition(center + mLight->getDirection());
+
+   F32 minX = F32_MAX;
+   F32 minY = F32_MAX;
+   F32 minZ = F32_MAX;
+   F32 maxX = F32_MIN;
+   F32 maxY = F32_MIN;
+   F32 maxZ = F32_MIN;
+
+   for (U32 i = 0; i < corners.size(); i++)
+   {
+      Point4F trf(corners[i]);
+
+      proj.mul(trf);
+
+      lightMatrix.mul(trf);
+      minX = mMin(minX, trf.x);
+      maxX = mMax(maxX, trf.x);
+      minY = mMin(minY, trf.y);
+      maxY = mMax(maxY, trf.y);
+      minZ = mMin(minZ, trf.z);
+      maxZ = mMax(maxZ, trf.z);
+   }
+
+   F32 zMult = 10.0f;
+   if (minZ < 0) {
+      minZ *= zMult;
+   }
+   else {
+      minZ /= zMult;
+   }
+
+   if (maxZ < 0) {
+      maxZ /= zMult;
+   }
+   else {
+      maxZ *= zMult;
+   }
+
+   MatrixF lightProj;
+
+   MathUtils::makeOrthoProjection(&lightProj, minX, maxX, minY, maxY, minZ, maxZ, true);
+
+   return lightProj;
+}
+
+Vector<MatrixF> PSSMLightShadowMap::_getLightSpaceMatrices(const Frustum& viewFrustum)
+{
+   Vector<MatrixF> ret;
+   {
+      for (U32 i = 0; i < mNumSplits; i++)
+      {
+         ret.push_back(_getSplitLightMatrix(mSplitDist[i], mSplitDist[i + 1], viewFrustum));
+      }
+   }
+
+   return ret;
+}
+
 void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
                                     const SceneRenderState *diffuseState )
 {
@@ -239,6 +348,8 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
    MatrixF lightMatrix;
    calcLightMatrices( lightMatrix, diffuseState->getCameraFrustum() );
    lightMatrix.inverse();
+
+   // get a projection matrix made up from the lightMatrix in the previous step.
    MatrixF tempProjMat = GFX->getProjectionMatrix();
    tempProjMat.reverseProjection();
    MatrixF lightViewProj = tempProjMat * lightMatrix;
@@ -256,6 +367,8 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
    
    mWorldToLightProj = tempProjMat * toLightSpace;
 
+   Vector<MatrixF> splitMatrics = _getLightSpaceMatrices(fullFrustum);
+
    // Apply the PSSM 
    const F32 savedSmallestVisible = TSShapeInstance::smSmallestVisiblePixelSize;
    const F32 savedDetailAdjust = TSShapeInstance::smDetailAdjust;
@@ -269,100 +382,13 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
    {
       GFXTransformSaver splitSaver;
 
-      // Calculate a sub-frustum
-      Frustum subFrustum(fullFrustum);
-      subFrustum.cropNearFar(mSplitDist[i], mSplitDist[i+1]);
-
-      // Calculate our AABB in the light's clip space.
-      Box3F clipAABB = _calcClipSpaceAABB(subFrustum, lightViewProj, fullFrustum.getFarDist());
- 
-      // Calculate our crop matrix
-      Point3F scale(2.0f / (clipAABB.maxExtents.x - clipAABB.minExtents.x),
-         2.0f / (clipAABB.maxExtents.y - clipAABB.minExtents.y),
-         1.0f);
-
-      // TODO: This seems to produce less "pops" of the
-      // shadow resolution as the camera spins around and
-      // it should produce pixels that are closer to being
-      // square.
-      //
-      // Still is it the right thing to do?
-      //
-      scale.y = scale.x = ( getMin( scale.x, scale.y ) ); 
-      //scale.x = mFloor(scale.x); 
-      //scale.y = mFloor(scale.y); 
-
-      Point3F offset(   -0.5f * (clipAABB.maxExtents.x + clipAABB.minExtents.x) * scale.x,
-                        -0.5f * (clipAABB.maxExtents.y + clipAABB.minExtents.y) * scale.y,
-                        0.0f );
-
-      MatrixF cropMatrix(true);
-      cropMatrix.scale(scale);
-      cropMatrix.setPosition(offset);
-
-      _roundProjection(lightMatrix, cropMatrix, offset, i);
-
-      cropMatrix.setPosition(offset);      
-
-      // Save scale/offset for shader computations
-      mScaleProj[i].set(scale);
-      mOffsetProj[i].set(offset);
-
-      // Adjust the far plane to the max z we got (maybe add a little to deal with split overlap)
-      bool isOrtho;
-      {
-         F32 left, right, bottom, top, nearDist, farDist;
-         GFX->getFrustum(&left, &right, &bottom, &top, &nearDist, &farDist,&isOrtho);
-         // BTRTODO: Fix me!
-         farDist = clipAABB.maxExtents.z;
-         if (!isOrtho)
-            GFX->setFrustum(left, right, bottom, top, nearDist, farDist);
-         else
-         {
-            // Calculate a new far plane, add a fudge factor to avoid bringing
-            // the far plane in too close.
-            F32 newFar = pfar * clipAABB.maxExtents.z + 1.0f;
-            mFarPlaneScalePSSM[i] = (pfar - pnear) / (newFar - pnear);
-            GFX->setOrtho(left, right, bottom, top, pnear, newFar, true);
-         }
-      }
-
-      // Crop matrix multiply needs to be post-projection.
-      MatrixF alightProj = GFX->getProjectionMatrix();
-      alightProj.reverseProjection();
-      alightProj = cropMatrix * alightProj;
-      alightProj.reverseProjection();
-
       // Set our new projection
-      GFX->setProjectionMatrix(alightProj);
+      GFX->setProjectionMatrix(splitMatrics[i]);
 
       // Render into the quad of the shadow map we are using.
       GFX->setViewport(mViewports[i]);
 
       SceneManager* sceneManager = diffuseState->getSceneManager();
-
-      // The frustum is currently the  full size and has not had
-      // cropping applied.
-      //
-      // We make that adjustment here.
-
-      const Frustum& uncroppedFrustum = GFX->getFrustum();
-      Frustum croppedFrustum;
-      scale *= 0.5f;
-      croppedFrustum.set(
-         isOrtho,
-         uncroppedFrustum.getNearLeft() / scale.x,
-         uncroppedFrustum.getNearRight() / scale.x,
-         uncroppedFrustum.getNearTop() / scale.y,
-         uncroppedFrustum.getNearBottom() / scale.y,
-         uncroppedFrustum.getNearDist(),
-         uncroppedFrustum.getFarDist(),
-         uncroppedFrustum.getTransform()
-      );
-
-      MatrixF camera = GFX->getWorldMatrix();
-      camera.inverse();
-      croppedFrustum.setTransform( camera );
 
       // Setup the scene state and use the diffuse state
       // camera position and screen metrics values so that
@@ -372,7 +398,7 @@ void PSSMLightShadowMap::_render(   RenderPassManager* renderPass,
       (
          sceneManager,
          SPT_Shadow,
-         SceneCameraState( diffuseState->getViewport(), croppedFrustum,
+         SceneCameraState( diffuseState->getViewport(), GFX->getFrustum(),
                            GFX->getWorldMatrix(), GFX->getProjectionMatrix() ),
          renderPass
       );
