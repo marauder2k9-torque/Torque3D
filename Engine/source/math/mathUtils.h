@@ -380,6 +380,11 @@ namespace MathUtils
                               F32 farPlane,
                               bool gfxRotate );
 
+   void orthoInverseProjection(const MatrixF& projMatrix,
+      const F32 nearSplit,
+      const F32 farSplit,
+      MatrixF* outMatrix);
+
    /// Find the intersection of the line going from @a edgeA to @a edgeB with the triangle
    /// given by @a faceA, @a faceB, and @a faceC.
    /// @param edgeA Starting point of edge.

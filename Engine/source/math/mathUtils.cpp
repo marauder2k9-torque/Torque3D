@@ -1553,6 +1553,36 @@ void makeOrthoProjection(  MatrixF *outMatrix,
 
 //-----------------------------------------------------------------------------
 
+// Calculate the inverse of an orthographic projection matrix
+void orthoInverseProjection(const MatrixF& projMatrix,
+   const F32 nearSplit,
+   const F32 farSplit,
+   MatrixF* outMatrix) {
+   F32 left, right, bottom, top;
+
+   // Extract values from the original projection matrix
+   left = -projMatrix[0] / projMatrix[3];
+   right = projMatrix[0] / projMatrix[3];
+   bottom = -projMatrix[5] / projMatrix[7];
+   top = projMatrix[5] / projMatrix[7];
+
+   // Calculate the inverse of the orthographic projection matrix
+   MatrixF invProjMatrix;
+   invProjMatrix.identity();
+   invProjMatrix[0] = 2.0f / (right - left);
+   invProjMatrix[5] = 2.0f / (top - bottom);
+   invProjMatrix[10] = 1.0f / (farSplit - nearSplit);
+   invProjMatrix[12] = (right + left) / (left - right);
+   invProjMatrix[13] = (top + bottom) / (bottom - top);
+   invProjMatrix[14] = -nearSplit / (farSplit - nearSplit);
+
+   // Set the output matrix
+   *outMatrix = invProjMatrix;
+}
+
+
+//-----------------------------------------------------------------------------
+
 bool edgeFaceIntersect( const Point3F &edgeA, const Point3F &edgeB, 
                         const Point3F &faceA, const Point3F &faceB, const Point3F &faceC, const Point3F &faceD, Point3F *intersection )
 {

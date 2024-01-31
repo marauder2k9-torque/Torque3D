@@ -73,6 +73,7 @@ class Point4F
   public:
    Point4F();               ///< Create an uninitialized point.
    Point4F(const Point4F&); ///< Copy constructor.
+   Point4F(const Point3F&, F32 copy_w = 1.0f);
 
    /// Create point from coordinates.
    Point4F(F32 _x, F32 _y, F32 _z, F32 _w);
@@ -133,6 +134,11 @@ inline Point4F::Point4F()
 
 inline Point4F::Point4F(const Point4F& _copy)
  : x(_copy.x), y(_copy.y), z(_copy.z), w(_copy.w)
+{
+}
+
+inline Point4F::Point4F(const Point3F& _copy, F32 copy_w)
+   : x(_copy.x), y(_copy.y), z(_copy.z), w(copy_w)
 {
 }
 
