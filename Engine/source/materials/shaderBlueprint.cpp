@@ -125,7 +125,7 @@ const std::unordered_map<std::string, ShaderToken> WordMap
    {"discard", ShaderToken::Discard},
 
    // Shader data specifiers.
-   {"uniform", ShaderToken::Discard },
+   {"uniform", ShaderToken::Uniform },
    {"struct",  ShaderToken::StructBlock },
 
    // Modifiers
@@ -170,7 +170,7 @@ ConsoleDocClass(ShaderBlueprint,
    "@tsexample\n"
    "singleton ShaderBlueprint( DiffuseShader )\n"
    "{\n"
-   "	BlueprintFile = $Core::CommonShaderPath @ \"/diffuse.blueprint\";\n"
+   "	BlueprintFile = $Core::CommonShaderPath @ \"/diffuse.tlsl\";\n"
    "};\n"
    "@endtsexample\n\n"
 
@@ -808,9 +808,103 @@ bool ShaderBlueprint::parseVariableDefinition(String& name, ShaderVarType*& type
          if (!getToken("]", true))
             return false;
       }
+   }
 
-      // is this variable being set to a default value?
-      if (getToken("="))
+   // is this variable being set to a default value?
+   if (getToken("="))
+   {
+      if (type->isArray)
+      {
+         // arrays that are initialized should have a size as an integer, not a macro.
+         S32 arraySize = -1;
+         arraySize = dAtoi(type->size.c_str());
+
+         if (arraySize == -1)
+         {
+            Con::printf("ShaderBlueprint - Error: array no initialized properly.");
+            return false;
+         }
+
+         // check for open
+         if (!getToken("{"))
+         {
+            return false;
+         }
+
+         // loop over our expected array entries.
+         for (S32 i = 0; i < arraySize; i++)
+         {
+            // is this a scalar?
+            if (type->type == ShaderToken::Float ||
+               type->type == ShaderToken::Int ||
+               type->type == ShaderToken::UInt)
+            {
+               // keep track of where we started.
+               const char* first = mBuffer;
+
+               while (!getToken(","))
+               {
+                  mBuffer++;
+               }
+
+               U32 len = mBuffer - first;
+               char temp[256];
+               dMemcpy(temp, first, len);
+               temp[len] = '\0';
+               type->arrayValues.push_back(temp);
+            }
+            else
+            {
+               // we are a vector type, a bit more complicated....
+               if (!getToken(type->type))
+               {
+                  Con::printf("ShaderBlueprint - Error: array of vector type requires type before each value.");
+                  return false;
+               }
+
+               if (!getToken("("))
+               {
+                  return false;
+               }
+
+               const char* first = mBuffer;
+
+               while (!getToken(")"))
+               {
+                  mBuffer++;
+               }
+
+               U32 len = mBuffer - first;
+               char temp[256];
+               dMemcpy(temp, first, len);
+               temp[len] = '\0';
+               type->arrayValues.push_back(temp);
+
+               // get our separator, go to the next token to be ready for the next loop
+               if (i != arraySize - 1)
+               {
+                  if (!getToken(","))
+                  {
+                     return false;
+                  }
+               }
+
+            }
+         }
+
+         // check for close.
+         if (!getToken("}"))
+         {
+            return false;
+         }
+
+         // check for a line ending, if it doesn't exist we will add one anyway..
+         if (!getToken(";"))
+         {
+            return true;
+         }
+      }
+      else
       {
          // keep track of where we started.
          const char* first = mBuffer;
@@ -882,93 +976,103 @@ bool ShaderBlueprint::parseShaderBlueprint()
 {
    if (getToken("{", true))
    {
-      // this is top level parse, atm only looking for structs here for shader stage data
-      // and includes. NOTE: structs do not be added to shaders stages at this point.
-      if (getToken(ShaderToken::StructBlock))
+      while (!getToken("}"))
       {
-         // is this within the ranges of the shaderstage data.
-         if (isTokenInRange(ShaderToken::VertexData, ShaderToken::HullData))
+         // is this an include?
+         if (getToken(ShaderToken::Include))
          {
-            U32 dataIdx = 0;
 
-            // are we an expected struct.
-            switch (mCurToken)
+         }
+
+         // Parse our structure shader datat blocks.
+         if (getToken(ShaderToken::StructBlock))
+         {
+            // is this within the ranges of the shaderstage data.
+            if (isTokenInRange(ShaderToken::VertexData, ShaderToken::HullData))
             {
-            case ShaderToken::VertexData:
-               dataIdx = 0;
-               break;
-            case ShaderToken::PixelData:
-               dataIdx = 1;
-               break;
-            case ShaderToken::ComputeData:
-               dataIdx = 2;
-               break;
-            case ShaderToken::GeometryData:
-               dataIdx = 3;
-               break;
-            case ShaderToken::DomainData:
-               dataIdx = 4;
-               break;
-            case ShaderToken::HullData:
-               dataIdx = 5;
-               break;
-            default:
-               Con::printf("ShaderBlueprint - Error: User Defined struct not expected: '%s'!", mTokenIdentifier.c_str());
-               return false;
-            }
+               U32 dataIdx = 0;
 
-            // Set name and ready next token.
-            mBlueprintStructs[dataIdx]->name = mTokenIdentifier;
-            nextToken();
-
-            if (!getToken("{", true))
-            {
-               // error 
-               return false;
-            }
-
-            // Lets get the fields.
-            ShaderStructVar* prevVar = NULL; // prev var
-            while (!getToken("}"))
-            {
-               // unexpected end of struct.
-               if (getToken("}"))
-                  return false;
-
-               ShaderStructVar* var = new ShaderStructVar();
-               if (!parseStructVariable(var, true))
+               // are we an expected struct.
+               switch (mCurToken)
                {
+               case ShaderToken::VertexData:
+                  dataIdx = 0;
+                  break;
+               case ShaderToken::PixelData:
+                  dataIdx = 1;
+                  break;
+               case ShaderToken::ComputeData:
+                  dataIdx = 2;
+                  break;
+               case ShaderToken::GeometryData:
+                  dataIdx = 3;
+                  break;
+               case ShaderToken::DomainData:
+                  dataIdx = 4;
+                  break;
+               case ShaderToken::HullData:
+                  dataIdx = 5;
+                  break;
+               default:
+                  Con::printf("ShaderBlueprint - Error: User Defined struct not expected: '%s'!", mTokenIdentifier.c_str());
                   return false;
                }
 
-               if (prevVar == NULL)
+               // create a struct for this.
+               mBlueprintStructs[dataIdx] = new ShaderStruct();
+               // Set name and ready next token.
+               mBlueprintStructs[dataIdx]->name = mTokenIdentifier;
+               nextToken();
+
+               if (!getToken("{", true))
                {
-                  mBlueprintStructs[dataIdx]->firstVar = var;
-               }
-               else
-               {
-                  prevVar->nextVar = var;
+                  // error 
+                  return false;
                }
 
-               prevVar = var;
+               // Lets get the fields.
+               ShaderStructVar* prevVar = NULL; // prev var
+               while (!getToken("}"))
+               {
+                  // unexpected end of struct.
+                  if (getToken("}"))
+                     return false;
+
+                  // parse struct variabes, since this is shaderdata they require
+                  // semantic specifiers.
+                  ShaderStructVar* var = new ShaderStructVar();
+                  if (!parseStructVariable(var, true))
+                  {
+                     return false;
+                  }
+
+                  if (prevVar == NULL)
+                  {
+                     mBlueprintStructs[dataIdx]->firstVar = var;
+                  }
+                  else
+                  {
+                     prevVar->nextVar = var;
+                  }
+
+                  prevVar = var;
+               }
+            }
+            else
+            {
+               // if not this is a user defined data type that will be a global, these structs
+               // will get copied into every shader stage upon generation.
+
             }
          }
 
-         // if not this is a user defined data type.
-      }
-
-      // is this within the ranges of the shader stages.
-      if (isTokenInRange(ShaderToken::Vertex, ShaderToken::Hull))
-      {
-         // now get the shaderstage token and move to the next token.
-         ShaderToken shaderStage;
-         getTokenRange(ShaderToken::Vertex, ShaderToken::Hull, shaderStage);
-      }
-
-      // is this an include?
-      if (getToken(ShaderToken::Include))
-      {
-
+         // is this within the ranges of the shader stages.
+         if (isTokenInRange(ShaderToken::Vertex, ShaderToken::Hull))
+         {
+            // now get the shaderstage token and move to the next token.
+            ShaderToken shaderStage;
+            getTokenRange(ShaderToken::Vertex, ShaderToken::Hull, shaderStage);
+         }
       }
    }
 

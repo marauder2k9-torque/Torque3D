@@ -34,18 +34,18 @@
 
 enum ShaderToken
 {
-   // Main Specifier used to verify file type.
-   Blueprint,
-   // Shader Include
-   Include,
-   // Shader Stages
+   // Shader Stages, these need to be first for our 0-5 array
    Vertex,
    Pixel,
    Compute,
    Geometry,
    Domain,
    Hull,
-
+   // Main Specifier used to verify file type.
+   Blueprint,
+   // Shader Include
+   Include,
+   
    // Shader Attribute Blocks
    VertexData,
    PixelData,
@@ -188,10 +188,9 @@ struct ShaderStructVar;
 
 struct ShaderVarType
 {
-   // type of this var.
-   ShaderToken type = ShaderToken::Float;
+   // type of this var, set to void, a var cant be void.
+   ShaderToken type = ShaderToken::Void;
    bool isArray = false;
-   bool uniform = false;
 
    // is this an array and its size is set from a macro?
    String size = String::EmptyString;
@@ -201,6 +200,11 @@ struct ShaderVarType
    // if there are errors here, let the api compiler sort it out.
    // initial values can also be set by a macro.
    String initValue = String::EmptyString;
+
+   // arrays are initialized differently in glsl as to hlsl
+   // array should be written in the hlsl style, the generators
+   // will automatically change this.
+   Vector<String> arrayValues;
 };
 
 struct ShaderRoot
@@ -235,7 +239,7 @@ struct ShaderVarDeclare : public ShaderDataBlock
 {
    String name;
    bool uniform;
-   ShaderToken type;
+   ShaderVarType* type;
    ShaderVarDeclare* nextVarDeclare;
 
    ShaderVarDeclare()
@@ -243,7 +247,7 @@ struct ShaderVarDeclare : public ShaderDataBlock
       blockType = ShaderDataBlockType::VariableDeclaration;
       name = String::EmptyString;
       uniform = false;
-      type = ShaderToken::Void;
+      type = NULL;
       nextVarDeclare = NULL;
    }
 };
@@ -277,6 +281,40 @@ struct ShaderStructVar : public ShaderRoot
       semantic = StructVarSemantic::Position;
       type = new ShaderVarType();
       semanticRegister = -1;
+   }
+};
+
+struct ShaderFunctionArgument : public ShaderRoot
+{
+   String name;
+   ShaderVarType* type;
+   ShaderToken modifier;
+   ShaderFunctionArgument* nextArg;
+
+   ShaderFunctionArgument()
+   {
+      blockType = ShaderDataBlockType::Argument;
+
+      name = String::EmptyString;
+      type = NULL;
+      // just set to void as a negation.
+      modifier = ShaderToken::Void;
+      nextArg = NULL;
+   }
+};
+
+struct ShaderFunction : public ShaderDataBlock
+{
+   String name;
+   ShaderFunctionArgument* firstArgument;
+   ShaderToken returnType;
+   ShaderFunction()
+   {
+      blockType = ShaderDataBlockType::Function;
+
+      name = String::EmptyString;
+      firstArgument = NULL;
+      returnType = ShaderToken::Void;
    }
 };
 
