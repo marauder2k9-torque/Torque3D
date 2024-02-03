@@ -34,7 +34,7 @@ const std::unordered_map<std::string, ShaderToken> WordMap
 {
    {"Blueprint",        ShaderToken::Blueprint },
    // is this stage supposed to be an included in multiple shaders?
-   {"ShaderInclude",     ShaderToken::Include },
+   {"ShaderInclude",    ShaderToken::Include },
    //Shader stages.
    {"VertexShader",     ShaderToken::Vertex },
    {"PixelShader",      ShaderToken::Pixel },
@@ -56,36 +56,37 @@ const std::unordered_map<std::string, ShaderToken> WordMap
    {"float",   ShaderToken::Float},
    {"int",     ShaderToken::Int},
    {"uint",    ShaderToken::UInt},
+   {"bool",    ShaderToken::Bool},
 
    // HLSL Float vector.
-   {"float2", ShaderToken::Float2},
-   {"float3", ShaderToken::Float3},
-   {"float4", ShaderToken::Float4},
+   {"float2",  ShaderToken::Float2},
+   {"float3",  ShaderToken::Float3},
+   {"float4",  ShaderToken::Float4},
 
    // GLSL Float vector.
-   {"vec2", ShaderToken::Float2},
-   {"vec3", ShaderToken::Float3},
-   {"vec4", ShaderToken::Float4},
+   {"vec2",    ShaderToken::Float2},
+   {"vec3",    ShaderToken::Float3},
+   {"vec4",    ShaderToken::Float4},
 
    // HLSL Int vector.
-   {"int2", ShaderToken::Int2},
-   {"int3", ShaderToken::Int3},
-   {"int4", ShaderToken::Int4},
+   {"int2",    ShaderToken::Int2},
+   {"int3",    ShaderToken::Int3},
+   {"int4",    ShaderToken::Int4},
 
    // GLSL Int vector.
-   {"ivec2", ShaderToken::Int2},
-   {"ivec3", ShaderToken::Int3},
-   {"ivec4", ShaderToken::Int4},
+   {"ivec2",   ShaderToken::Int2},
+   {"ivec3",   ShaderToken::Int3},
+   {"ivec4",   ShaderToken::Int4},
 
    // HLSL UInt vector.
-   {"int2", ShaderToken::Int2},
-   {"int3", ShaderToken::Int3},
-   {"int4", ShaderToken::Int4},
+   {"uint2",   ShaderToken::UInt2},
+   {"uint3",   ShaderToken::UInt3},
+   {"uint4",   ShaderToken::UInt4},
 
    // GLSL UInt vector.
-   {"uvec2", ShaderToken::UInt2},
-   {"uvec3", ShaderToken::UInt3},
-   {"uvec4", ShaderToken::UInt4},
+   {"uvec2",   ShaderToken::UInt2},
+   {"uvec3",   ShaderToken::UInt3},
+   {"uvec4",   ShaderToken::UInt4},
 
    // HLSL Matrices.
    {"float2x2", ShaderToken::Float2x2 },
@@ -94,7 +95,7 @@ const std::unordered_map<std::string, ShaderToken> WordMap
    {"float4x3", ShaderToken::Float4x3 },
    {"float4x4", ShaderToken::Float4x4 },
 
-   // GLSL UInt vector.
+   // GLSL Matrices.
    {"mat2x2",  ShaderToken::Float2x2 },
    {"mat2",    ShaderToken::Float2x2 },
    {"mat3x3",  ShaderToken::Float3x3 },
@@ -139,19 +140,19 @@ const std::unordered_map<std::string, ShaderToken> WordMap
 
 const std::unordered_map<std::string, StructVarSemantic> SemanticMap
 {
-   {"POSITION", StructVarSemantic::Position},
-   {"POSITIONT", StructVarSemantic::PositionT},
-   {"NORMAL", StructVarSemantic::Normal},
-   {"BINORMAL", StructVarSemantic::Binormal},
-   {"COLOR", StructVarSemantic::Color},
-   {"TANGENT", StructVarSemantic::Tangent},
-   {"TESCOORD", StructVarSemantic::TexCoord},
-   {"PSIZE", StructVarSemantic::PSize},
-   {"BLENDINDICES", StructVarSemantic::BlendIndices},
-   {"BLENDWEIGHT", StructVarSemantic::BlendWeight},
-   {"SV_Position", StructVarSemantic::SV_Position},
-   {"SV_Target", StructVarSemantic::SV_Target},
-   {"SV_Depth", StructVarSemantic::SV_Depth},
+   {"POSITION",      StructVarSemantic::Position},
+   {"POSITIONT",     StructVarSemantic::PositionT},
+   {"NORMAL",        StructVarSemantic::Normal},
+   {"BINORMAL",      StructVarSemantic::Binormal},
+   {"COLOR",         StructVarSemantic::Color},
+   {"TANGENT",       StructVarSemantic::Tangent},
+   {"TESCOORD",      StructVarSemantic::TexCoord},
+   {"PSIZE",         StructVarSemantic::PSize},
+   {"BLENDINDICES",  StructVarSemantic::BlendIndices},
+   {"BLENDWEIGHT",   StructVarSemantic::BlendWeight},
+   {"SV_Position",   StructVarSemantic::SV_Position},
+   {"SV_Target",     StructVarSemantic::SV_Target},
+   {"SV_Depth",      StructVarSemantic::SV_Depth},
 };
 
 // used to identify tokens, mostly for error messages when expected.
@@ -382,6 +383,7 @@ ShaderBlueprint::ShaderBlueprint()
    for (U32 i = 0; i < 6; i++)
    {
       mBlueprintStructs[i] = NULL;
+      mShaderStages[i] = NULL;
    };
 }
 
@@ -892,13 +894,14 @@ bool ShaderBlueprint::parseVariableDefinition(String& name, ShaderVarType*& type
             }
          }
 
-         // check for close.
+         // check for close, false if this doesnt exist.
          if (!getToken("}"))
          {
             return false;
          }
 
          // check for a line ending, if it doesn't exist we will add one anyway..
+         // this is mostly to get onto the next token.
          if (!getToken(";"))
          {
             return true;
@@ -1058,12 +1061,12 @@ bool ShaderBlueprint::parseShaderBlueprint()
                   prevVar = var;
                }
             }
-            else
-            {
-               // if not this is a user defined data type that will be a global, these structs
-               // will get copied into every shader stage upon generation.
+            //else
+            //{
+            //   // if not this is a user defined data type that will be a global, these structs
+            //   // will get copied into every shader stage upon generation.
 
-            }
+            //}
          }
 
          // is this within the ranges of the shader stages.

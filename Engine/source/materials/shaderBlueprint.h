@@ -60,6 +60,7 @@ enum ShaderToken
    Float,
    Int,
    UInt,
+   Bool,
    // Float vector.
    Float2,
    Float3,
@@ -158,6 +159,7 @@ enum ShaderToken
 enum ShaderDataBlockType
 {
    First,
+   Stage,
    DataBlock,
    VariableDeclaration,
    Struct,
@@ -166,21 +168,26 @@ enum ShaderDataBlockType
    Argument
 };
 
+// the order of these are important as they become the
+// layout binding for glsl, as defined in gfxGLShader
 enum StructVarSemantic
 {
-   Position,
-   PositionT,
-   Color,
+   // application vertex attributes, integer values are important.
+   Position = 0,
    Normal,
-   PSize,
-   BlendIndices,
-   BlendWeight,
-   Binormal,
+   Color,
    Tangent,
-   TexCoord,
+   TangentW,
+   Binormal,
+   TexCoord, // this + trailing number become layout location.
+   // pixel shader data, the integer values here dont matter.
    SV_Position,
    SV_Target,
    SV_Depth,
+   PositionT,
+   PSize,
+   BlendIndices,
+   BlendWeight,
 };
 
 struct ShaderDataBlock;
@@ -307,6 +314,7 @@ struct ShaderFunction : public ShaderDataBlock
 {
    String name;
    ShaderFunctionArgument* firstArgument;
+   ShaderToken modifier;
    ShaderToken returnType;
    ShaderFunction()
    {
@@ -314,7 +322,22 @@ struct ShaderFunction : public ShaderDataBlock
 
       name = String::EmptyString;
       firstArgument = NULL;
+      // just set to void as a negation.
+      modifier = ShaderToken::Void;
       returnType = ShaderToken::Void;
+   }
+};
+
+struct ShaderStage : public ShaderDataBlock
+{
+   ShaderToken shaderStage;
+   ShaderDataBlock* firstBlock;
+   ShaderStage()
+   {
+      blockType = ShaderDataBlockType::Stage;
+
+      shaderStage = ShaderToken::Vertex;
+      firstBlock = NULL;
    }
 };
 
@@ -325,6 +348,7 @@ protected:
    StringTableEntry mBlueprintFile;
    // we can only ever have a max of 6 of these.
    ShaderStruct* mBlueprintStructs[6];
+   ShaderStage* mShaderStages[6];
 
    void _onFileChanged(const Torque::Path& path) {  }
 
@@ -375,9 +399,10 @@ private:
 
    // parse functions
    bool initParser(const char* buffer, U32 buffLen);
-   bool parseShaderBlueprint();
+      
    bool parseVariableDefinition(String& name, ShaderVarType*& type);
    bool parseStructVariable(ShaderStructVar*& var, bool semantic = false);
+   bool parseShaderBlueprint();
 };
 
 #endif
