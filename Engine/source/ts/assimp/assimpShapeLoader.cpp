@@ -153,7 +153,7 @@ void AssimpShapeLoader::enumerateScene()
 
    // Mandatory options
    //ppsteps |= aiProcess_ValidateDataStructure | aiProcess_Triangulate | aiProcess_ImproveCacheLocality;
-   ppsteps |= aiProcess_Triangulate;
+   ppsteps |= aiProcess_Triangulate | aiProcess_GenBoundingBoxes;
    //aiProcess_SortByPType              | // make 'clean' meshes which consist of a single typ of primitives
 
    aiPropertyStore* props = aiCreatePropertyStore();

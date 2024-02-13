@@ -42,6 +42,15 @@
 #include "ts/loader/appSequence.h"
 #endif
 
+#include <assimp/cimport.h>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+#include <assimp/types.h>
+
+struct aiNode;
+struct aiMetadata;
+struct aiTexture;
+
 class TSShapeLoader
 {
 
@@ -79,21 +88,6 @@ public:
 
    static void updateProgress(S32 major, const char* msg, S32 numMinor=0, S32 minor=0);
 
-protected:
-   struct Subshape
-   {
-      Vector<AppNode*>           branches;         ///< Shape branches
-      Vector<AppMesh*>           objMeshes;        ///< Object meshes for this subshape
-      Vector<S32>                objNodes;         ///< AppNode indices with objects attached
-
-      ~Subshape()
-      {
-         // Delete children
-         for (S32 i = 0; i < branches.size(); i++)
-            delete branches[i];
-      }
-   };
-
 public:
    static const F32 DefaultTime;
    static const F64 MinFrameRate;
@@ -102,30 +96,27 @@ public:
 
 protected:
    // Variables used during loading that must be held until the shape is deleted
+   const struct aiScene*         mScene;
    TSShape*                      shape;
-   Vector<AppMesh*>              appMeshes;
 
    // Variables used during loading, but that can be discarded afterwards
    static Torque::Path           shapePath;
-
-   AppNode*                      boundsNode;
-   Vector<AppNode*>              appNodes;            ///< Nodes in the loaded shape
-   Vector<AppSequence*>          appSequences;
-
-   Vector<Subshape*>             subshapes;
+   Vector<String>                shapeMeshes;
 
    Vector<QuatF*>                nodeRotCache;
    Vector<Point3F*>              nodeTransCache;
-   Vector<QuatF*>                nodeScaleRotCache;
    Vector<Point3F*>              nodeScaleCache;
 
    //--------------------------------------------------------------------------
+   TSMesh* constructTSMesh(aiMesh* inMesh);
+   void processMeshs(aiNode* inNode, S32 nodeIdx);
+   void processNode(aiNode* inNode, S32 parentIdx, bool recurse);
+   bool isBillboard(const char* inName);
+   bool isZBillboard(const char* inName);
 
    // Collect the nodes, objects and sequences for the scene
-   virtual void enumerateScene() = 0;
-   bool processNode(AppNode* node);
-   virtual bool ignoreNode(const String& name) { return false; }
-   virtual bool ignoreMesh(const String& name) { return false; }
+   bool ignoreNode(const String& name);
+   bool ignoreMesh(const String& name);
 
    void addSkin(AppMesh* mesh);
    void addDetailMesh(AppMesh* mesh);
@@ -135,15 +126,10 @@ protected:
    // Node transform methods
    MatrixF getLocalNodeMatrix(AppNode* node, F32 t);
    void generateNodeTransform(AppNode* node, F32 t, bool blend, F32 referenceTime,
-                              QuatF& rot, Point3F& trans, QuatF& srot, Point3F& scale);
+                              QuatF& rot, Point3F& trans, Point3F& scale);
 
    virtual void computeBounds(Box3F& bounds);
 
-   // Create objects, materials and sequences
-   void recurseSubshape(AppNode* appNode, S32 parentIndex, bool recurseChildren);
-
-   void generateSubshapes();
-   void generateObjects();
    void generateSkins();
    void generateDefaultStates();
    void generateObjectState(TSShape::Object& obj, F32 t, bool addFrame, bool addMatFrame);
@@ -181,12 +167,16 @@ protected:
    void sortDetails();
    void install();
 
+   void assimpToTorqueMat(const aiMatrix4x4& inAssimpMat, MatrixF& outMat);
+   void extractTexture(U32 index, aiTexture* pTex);
+
 public:
-   TSShapeLoader() : boundsNode(0), shape(NULL) { }
+   TSShapeLoader() : shape(NULL), mScene(NULL) { }
    virtual ~TSShapeLoader();
 
    static const Torque::Path& getShapePath() { return shapePath; }
 
+  
    static void zapScale(MatrixF& mat);
 
    TSShape* generateShape(const Torque::Path& path);

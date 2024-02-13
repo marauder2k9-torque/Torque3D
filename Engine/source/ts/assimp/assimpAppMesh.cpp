@@ -272,6 +272,7 @@ void AssimpAppMesh::lockMesh(F32 t, const MatrixF& objOffset)
 void AssimpAppMesh::lookupSkinData()
 {  // This function is intentionally left blank. The skin data - bones, weights and indexes are
    // processed in lockMesh() with the rest of the mesh data.
+
 }
 
 F32 AssimpAppMesh::getVisValue(F32 t)
