@@ -800,7 +800,7 @@ void NavMesh::buildNextTile()
       // Intermediate data for tile build.
       TileData tempdata;
       TileData &tdata = mSaveIntermediates ? mTileData[i] : tempdata;
-      
+
       // Remove any previous data.
       nm->removeTile(nm->getTileRefAt(tile.x, tile.y, 0), 0, 0);
 
@@ -1366,7 +1366,7 @@ void NavMesh::render(ObjectRenderInst *ri, SceneRenderState *state, BaseMatInsta
       return;
 
    PROFILE_SCOPE(NavMesh_Render);
-   
+
    // Recast debug draw
    NetObject *no = getServerObject();
    if(no)
@@ -1400,7 +1400,7 @@ void NavMesh::render(ObjectRenderInst *ri, SceneRenderState *state, BaseMatInsta
       {
 		  mDbgDraw.cancelOverride();
       }
-      
+
       if((!gEditingMission && n->mAlwaysRender) || (gEditingMission && Con::getBoolVariable("$Nav::Editor::renderMesh", 1))) mDbgDraw.renderGroup(0);
       if(Con::getBoolVariable("$Nav::Editor::renderPortals")) mDbgDraw.renderGroup(1);
       if(Con::getBoolVariable("$Nav::Editor::renderBVTree"))  mDbgDraw.renderGroup(2);
@@ -1631,7 +1631,7 @@ bool NavMesh::save()
 {
    if(!dStrlen(mFileName) || !nm)
       return false;
-   
+
    FileStream stream;
    if(!stream.open(mFileName, Torque::FS::File::Write))
    {

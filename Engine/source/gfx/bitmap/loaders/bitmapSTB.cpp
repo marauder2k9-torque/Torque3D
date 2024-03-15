@@ -496,7 +496,7 @@ struct DeferredPNGWriterData
    S32 channels = 0;
    dsize_t offset = 0;
    U8* pPixelData = NULL;
-   GFXFormat format;
+   GFXFormat format = GFXFormat::GFXFormatB8G8R8A8;
    Stream* pStream = NULL;
 };
 

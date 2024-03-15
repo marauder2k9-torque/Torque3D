@@ -18,6 +18,7 @@ public:
         mDSView( NULL ),
         mTextureArray( NULL )
    {
+      dMemset( &mTextureArrayDesc, 0, sizeof(mTextureArrayDesc));
    }
 
    ~GFXD3D11TextureArray() { Release();  };

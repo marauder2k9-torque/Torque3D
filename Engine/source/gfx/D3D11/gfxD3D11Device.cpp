@@ -411,7 +411,6 @@ void GFXD3D11Device::enumerateVideoModes()
          AssertFatal(false, "GFXD3D11Device::enumerateVideoModes -> EnumOutputs call failure");
 
       UINT numModes = 0;
-      DXGI_MODE_DESC* displayModes = NULL;
       DXGI_FORMAT format = GFXD3D11TextureFormat[GFXFormatR8G8B8A8_SRGB];
 
       // Get the number of elements
@@ -420,7 +419,7 @@ void GFXD3D11Device::enumerateVideoModes()
       if(FAILED(hr))
          AssertFatal(false, "GFXD3D11Device::enumerateVideoModes -> GetDisplayModeList call failure");
 
-      displayModes = new DXGI_MODE_DESC[numModes];
+      DXGI_MODE_DESC* displayModes = new DXGI_MODE_DESC[numModes];
 
       // Get the list
       hr = pOutput->GetDisplayModeList(format, 0, &numModes, displayModes);
@@ -428,7 +427,7 @@ void GFXD3D11Device::enumerateVideoModes()
       if(FAILED(hr))
          AssertFatal(false, "GFXD3D11Device::enumerateVideoModes -> GetDisplayModeList call failure");
 
-      for(U32 numMode = 0; numMode < numModes; ++numMode)
+      for(U32 numMode = 0; numMode < numModes; numMode++)
       {
          GFXVideoMode toAdd;
 
@@ -1424,15 +1423,15 @@ String GFXD3D11Device::_createTempShaderInternal(const GFXVertexFormat *vertexFo
 {
    U32 elemCount = vertexFormat->getElementCount();
    //Input data
-   StringBuilder inputData;
-   inputData.append("struct VertIn {");
+   StringBuilder* inputData = new StringBuilder();
+   inputData->append("struct VertIn {");
    //Output data
-   StringBuilder outputData;
-   outputData.append("struct VertOut {");
+   StringBuilder* outputData = new StringBuilder();
+   outputData->append("struct VertOut {");
    // Shader main body data
-   StringBuilder mainBodyData;
+   StringBuilder* mainBodyData = new StringBuilder();
    //make shader
-   mainBodyData.append("VertOut main(VertIn IN){VertOut OUT;");
+   mainBodyData->append("VertOut main(VertIn IN){VertOut OUT;");
 
    for (U32 i = 0; i < elemCount; i++)
    {
@@ -1506,40 +1505,50 @@ String GFXD3D11Device::_createTempShaderInternal(const GFXVertexFormat *vertexFo
 
       StringBuilder in;
       in.format("%s %s%d : %s;", type.c_str(), "var", i, semantic.c_str());
-      inputData.append(in.data());
+      inputData->append(in.data());
 
       //SV_Position must be float4
       if (semanticOut == String("SV_Position"))
       {
          StringBuilder out;
          out.format("float4 %s%d : %s;", "var", i, semanticOut.c_str());
-         outputData.append(out.data());
+         outputData->append(out.data());
          StringBuilder body;
          body.format("OUT.%s%d = float4(IN.%s%d.xyz,1);", "var", i, "var", i);
-         mainBodyData.append(body.data());
+         mainBodyData->append(body.data());
       }
       else
       {
          StringBuilder out;
          out.format("%s %s%d : %s;", type.c_str(), "var", i, semanticOut.c_str());
-         outputData.append(out.data());
+         outputData->append(out.data());
          StringBuilder body;
          body.format("OUT.%s%d = IN.%s%d;", "var", i, "var", i);
-         mainBodyData.append(body.data());
+         mainBodyData->append(body.data());
       }
    }
 
-   inputData.append("};");
-   outputData.append("};");
-   mainBodyData.append("return OUT;}");
+   inputData->append("};");
+   outputData->append("};");
+   mainBodyData->append("return OUT;}");
 
-   //final data
-   StringBuilder finalData;
-   finalData.append(inputData.data());
-   finalData.append(outputData.data());
-   finalData.append(mainBodyData.data());
+   // Final data
+   StringBuilder* finalData = new StringBuilder();
+   finalData->append(inputData->data());
+   finalData->append(outputData->data());
+   finalData->append(mainBodyData->data());
 
-   return String(finalData.data());
+   // Clean up heap-allocated objects
+   delete inputData;
+   delete outputData;
+   delete mainBodyData;
+
+   String result(finalData->data());
+
+   // Clean up heap-allocated finalData
+   delete finalData;
+
+   return result;
 }
 
 GFXVertexDecl* GFXD3D11Device::allocVertexDecl( const GFXVertexFormat *vertexFormat )
@@ -1572,13 +1581,13 @@ GFXVertexDecl* GFXD3D11Device::allocVertexDecl( const GFXVertexFormat *vertexFor
 #endif
 
       ID3DBlob *errorBlob = NULL;
-      HRESULT hr = D3DCompile(shaderData.c_str(), shaderData.length(), NULL, NULL, NULL, "main", "vs_5_0", flags, 0, &code, &errorBlob);
+      D3DCompile(shaderData.c_str(), shaderData.length(), NULL, NULL, NULL, "main", "vs_5_0", flags, 0, &code, &errorBlob);
       StringBuilder error;
 
       if(errorBlob)
       {
          error.append((char*)errorBlob->GetBufferPointer(), errorBlob->GetBufferSize());
-         AssertFatal(hr, error.data());
+         AssertFatal(false, error.data());
       }
 
       SAFE_RELEASE(errorBlob);

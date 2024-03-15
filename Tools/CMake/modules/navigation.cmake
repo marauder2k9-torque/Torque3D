@@ -6,7 +6,7 @@ if(TORQUE_NAVIGATION)
   
   file(GLOB_RECURSE TORQUE_NAV_SOURCES "${CMAKE_SOURCE_DIR}/Engine/source/navigation/*.cpp" "${CMAKE_SOURCE_DIR}/Engine/source/navigation/*.h" )
   set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_NAV_SOURCES})
-  set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} recast)
+  set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} Recast DebugUtils Detour)
   set(TORQUE_COMPILE_DEFINITIONS ${TORQUE_COMPILE_DEFINITIONS} recast TORQUE_NAVIGATION_ENABLED)
 
   # Since recast lives elsewhere we need to ensure it is known to Torque when providing a link to it
