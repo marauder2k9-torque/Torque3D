@@ -91,6 +91,10 @@ if (TORQUE_OPENGL)
   torqueAddSourceDirectories("gfx/gl" "gfx/gl/sdl" "gfx/gl/tGL")
 endif (TORQUE_OPENGL)
 
+if(TORQUE_METAL)
+  torqueAddSourceDirectories("gfx/metal" "gfx/metal/sdl" "gfx/metal/MetalHeader")
+endif(TORQUE_METAL)
+
 if (WIN32 AND TORQUE_D3D11)
   torqueAddSourceDirectories("gfx/D3D11")
 endif (WIN32 AND TORQUE_D3D11)

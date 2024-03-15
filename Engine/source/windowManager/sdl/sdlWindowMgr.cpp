@@ -244,6 +244,8 @@ PlatformWindow *PlatformWindowManagerSDL::createWindow(GFXDevice *device, const 
 
    if(GFX->getAdapterType() == OpenGL)
        windowFlags |= SDL_WINDOW_OPENGL;
+   else if(GFX->getAdapterType() == Metal)
+      windowFlags |= SDL_WINDOW_METAL;
 
    window->mWindowHandle = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, mode.resolution.x, mode.resolution.y, windowFlags );
    window->mWindowId = SDL_GetWindowID( window->mWindowHandle );

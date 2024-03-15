@@ -52,6 +52,7 @@ advanced_option(TORQUE_DEBUG_GFX_MODE "triggers graphics debug mode" OFF)
 advanced_option(TORQUE_ADVANCED_LIGHTING "Advanced Lighting" ON)
 advanced_option(TORQUE_BASIC_LIGHTING "Basic Lighting" ON)
 advanced_option(TORQUE_OPENGL "Allow OpenGL render" ON) # we need OpenGL to render on Linux/Mac
+advanced_option(TORQUE_METAL "Use metal renderer" OFF) # We can use metal....
 if(WIN32)
 	advanced_option(TORQUE_D3D11 "Allow Direct3D 11 render" ON)
 	addDef(TORQUE_D3D11)
