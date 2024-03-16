@@ -92,7 +92,7 @@ if (TORQUE_OPENGL)
 endif (TORQUE_OPENGL)
 
 if(TORQUE_METAL)
-  torqueAddSourceDirectories("gfx/metal" "gfx/metal/sdl" "gfx/metal/MetalHeader")
+  torqueAddSourceDirectories("gfx/metal" "gfx/metal/sdl")
 endif(TORQUE_METAL)
 
 if (WIN32 AND TORQUE_D3D11)
@@ -473,6 +473,10 @@ if (TORQUE_TARGET_PROPERTIES)
    set_target_properties(${TORQUE_APP_NAME} PROPERTIES ${TORQUE_TARGET_PROPERTIES})
 endif (TORQUE_TARGET_PROPERTIES)
 target_include_directories(${TORQUE_APP_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_BINARY_DIR}/temp" ${TORQUE_INCLUDE_DIRECTORIES})
+
+if(TORQUE_METAL)
+  target_include_directories(${TORQUE_APP_NAME} SYSTEM PUBLIC ${TORQUE_LIB_ROOT_DIRECTORY}/metal-cmake/metal-cpp)
+endif(TORQUE_METAL)
 
 if(TORQUE_TESTING)
   if(WIN32)

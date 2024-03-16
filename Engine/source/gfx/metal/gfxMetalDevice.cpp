@@ -24,7 +24,7 @@
 
 #include "gfx/metal/gfxMetalDevice.h"
 
-GFXAdapter::CreateDeviceInstanceDelegate GFXMETALDevice::mCreateDeviceInstance(GFXMETALDevice::createInstance)
+GFXAdapter::CreateDeviceInstanceDelegate GFXMETALDevice::mCreateDeviceInstance(GFXMETALDevice::createInstance);
 
 GFXDevice *GFXMETALDevice::createInstance(U32 adapterIndex)
 {
@@ -36,3 +36,5 @@ GFXMETALDevice::GFXMETALDevice( U32 adapterIndex )
    
 }
 
+void GFXMETALDevice::leaveDebugEvent() {
+}

@@ -61,7 +61,7 @@ void EnumerateVideoModes(Vector<GFXVideoMode>& outModes)
    }
 }
 
-void GFXMETALDevice::enumerateAdapters(<#Vector<GFXAdapter *> &adapterList#>)
+void GFXMETALDevice::enumerateAdapters(Vector<GFXAdapter *> &adapterList)
 {
 #ifdef TORQUE_TESTS_ENABLED
    return;
@@ -87,12 +87,25 @@ void GFXMETALDevice::enumerateAdapters(<#Vector<GFXAdapter *> &adapterList#>)
       return;
    }
    
-   SDL_ClearError();
-   
    GFXAdapter* toAdd = new GFXAdapter;
    toAdd->mIndex = 0;
    
    dStrcpy(toAdd->mName, "Metal Device", GFXAdapter::MaxAdapterNameLen);
    
+   SDL_MetalView view = SDL_Metal_CreateView(tempWindow);
+   
+   CA::MetalLayer* layer = static_cast<CA::MetalLayer*>(SDL_Metal_GetLayer(view));
    
 }
+
+void GFXMETALDevice::init(const GFXVideoMode &mode, PlatformWindow *window)
+{
+   
+}
+
+GFXWindowTarget* GFXMETALDevice::allocWindowTarget(PlatformWindow *window)
+{
+   
+}
+
+#endif
