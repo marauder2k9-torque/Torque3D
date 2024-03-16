@@ -39,7 +39,7 @@ class StdConsole
    bool stdConsoleInputEnabled;
    // true if we're running in the background
    bool inBackground;
-
+   
    int stdOut;
    int stdIn;
    int stdErr;
@@ -50,13 +50,13 @@ class StdConsole
    S32  tabCompleteStart;
    char rgCmds[MAX_CMDS][512];
    S32  iCmdIndex;
-
+   
    // this holds the original terminal state
    // before we messed with it
    struct termios *originalTermState;
-
+   
    void printf(const char *s, ...);
-
+   
 public:
    StdConsole();
    virtual ~StdConsole();
@@ -68,6 +68,8 @@ public:
    static void destroy();
    static bool isEnabled();
    void resetTerminal();
+   
+   void setLineOutpuut(bool inLineOutput) {lineOutput = inLineOutput;}
 };
 
 extern StdConsole *stdConsole;

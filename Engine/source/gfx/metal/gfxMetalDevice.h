@@ -19,14 +19,16 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
-
 #ifndef _GFXMETALDEVICE_H_
 #define _GFXMETALDEVICE_H_
 
 #include "platform/platform.h"
 #include "gfx/gfxDevice.h"
 #include "gfx/gfxInit.h"
-#include "SDL.h"
+
+#include "gfx/gfxFence.h"
+#include "gfx/gfxResource.h"
+#include "windowManager/platformWindow.h"
 
 #ifndef NS_PRIVATE_IMPLEMENTATION
 #define NS_PRIVATE_IMPLEMENTATION

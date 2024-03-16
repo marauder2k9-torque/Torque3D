@@ -68,6 +68,9 @@ inline static void _GFXInitReportAdapters(Vector<GFXAdapter*> &adapters)
    {
       switch (adapters[i]->mType)
       {
+      case Metal:
+         Con::printf("   Metal device found");
+         break;
       case OpenGL:
          Con::printf("   OpenGL device found");
          break;

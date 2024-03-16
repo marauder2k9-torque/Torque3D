@@ -25,16 +25,20 @@
 #import "console/console.h"
 #import "platformPOSIX/POSIXStdConsole.h"
 #import "platformPOSIX/POSIXState.h"
+#include "console/debugOutputConsumer.h"
 
 extern void InitWindowingSystem();
 
 //------------------------------------------------------------------------------
 void Platform::init()
 {
-    StdConsole::create();
-    stdConsole->enable(true);
+   StdConsole::create();
+   stdConsole->enable(true);
+   stdConsole->setLineOutpuut(true);
+   
+   DebugOutputConsumer::destroy();
 
-    Con::printf("Initializing platform...");
+   Con::printf("Initializing platform...");
    
    // Set the platform variable for the scripts
    Con::setVariable( "$platform", "macos" );

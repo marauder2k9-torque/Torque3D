@@ -475,7 +475,8 @@ endif (TORQUE_TARGET_PROPERTIES)
 target_include_directories(${TORQUE_APP_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_BINARY_DIR}/temp" ${TORQUE_INCLUDE_DIRECTORIES})
 
 if(TORQUE_METAL)
-  target_include_directories(${TORQUE_APP_NAME} SYSTEM PUBLIC ${TORQUE_LIB_ROOT_DIRECTORY}/metal-cmake/metal-cpp)
+  target_include_directories(${TORQUE_APP_NAME} SYSTEM PUBLIC ${TORQUE_LIB_ROOT_DIRECTORY}/metal-cmake/metal-cpp
+                                                              ${TORQUE_LIB_ROOT_DIRECTORY}/metal-cmake/metal-cpp-extensions)
 endif(TORQUE_METAL)
 
 if(TORQUE_TESTING)
