@@ -77,7 +77,7 @@ void GFXMETALDevice::enumerateAdapters(Vector<GFXAdapter *> &adapterList)
    
    AssertFatal(SDL_WasInit(SDL_INIT_VIDEO), "Enumerate Metal Devices: SDL was not initialized");
    
-   // Create a dummy window & openGL context so that gl functions can be used here
+   // Create a dummy window with metal.
   SDL_Window* tempWindow =  SDL_CreateWindow(
        "",                                // window title
        SDL_WINDOWPOS_UNDEFINED,           // initial x position
@@ -98,7 +98,15 @@ void GFXMETALDevice::enumerateAdapters(Vector<GFXAdapter *> &adapterList)
    GFXAdapter* toAdd = new GFXAdapter;
    toAdd->mIndex = 0;
    
-   dStrcpy(toAdd->mName, "Metal Device", GFXAdapter::MaxAdapterNameLen);
+   // we just create this device here to get the name.
+   MTL::Device* _tempDevice = MTL::CreateSystemDefaultDevice();
+   
+   dStrcpy(toAdd->mName, _tempDevice->name()->cString(NS::ASCIIStringEncoding), GFXAdapter::MaxAdapterNameLen);
+   dStrcat(toAdd->mName, " Metal", GFXAdapter::MaxAdapterNameLen);
+   
+   // release it... that seemed useless didnt it....
+   _tempDevice->release();
+   
    toAdd->mType = Metal;
    
    toAdd->mShaderModel = 0.f;
@@ -109,10 +117,6 @@ void GFXMETALDevice::enumerateAdapters(Vector<GFXAdapter *> &adapterList)
 
    // Add to the list of available adapters.
    adapterList.push_back(toAdd);
-   
-   SDL_MetalView view = SDL_Metal_CreateView(tempWindow);
-   
-   CA::MetalLayer* layer = static_cast<CA::MetalLayer*>(SDL_Metal_GetLayer(view));
    
    // Cleanup window
    SDL_DestroyWindow( tempWindow );
@@ -149,6 +153,12 @@ GFXMETALDevice::GFXMETALDevice( U32 adapterIndex )
 }
 
 bool GFXMETALDevice::beginSceneInternal() {
+   mCanCurrentlyRender = true;
+   return true;
+}
+
+void GFXMETALDevice::endSceneInternal() {
+   mCanCurrentlyRender = false;
 }
 
 GFXMETALDevice::~GFXMETALDevice() noexcept {
@@ -186,9 +196,6 @@ void GFXMETALDevice::setShaderConstBufferInternal(GFXShaderConstBuffer *buffer) 
 }
 
 void GFXMETALDevice::setTextureInternal(U32 textureUnit, const GFXTextureObject *texture) {
-}
-
-void GFXMETALDevice::endSceneInternal() {
 }
 
 void GFXMETALDevice::initStates() {

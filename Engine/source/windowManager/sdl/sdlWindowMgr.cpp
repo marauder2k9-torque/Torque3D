@@ -246,6 +246,10 @@ PlatformWindow *PlatformWindowManagerSDL::createWindow(GFXDevice *device, const 
        windowFlags |= SDL_WINDOW_OPENGL;
    else if(GFX->getAdapterType() == Metal)
       windowFlags |= SDL_WINDOW_METAL;
+   
+#if defined(TORQUE_OS_MAC)
+   //windowFlags |= SDL_WINDOW_ALLOW_HIGHDPI;
+#endif
 
    window->mWindowHandle = SDL_CreateWindow("", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, mode.resolution.x, mode.resolution.y, windowFlags );
    window->mWindowId = SDL_GetWindowID( window->mWindowHandle );
