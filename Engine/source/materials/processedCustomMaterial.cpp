@@ -35,7 +35,6 @@
 #include "materials/materialParameters.h"
 #include "gfx/sim/gfxStateBlockData.h"
 #include "core/util/safeDelete.h"
-#include "gfx/genericConstBuffer.h"
 #include "console/simFieldDictionary.h"
 #include "console/propertyParsing.h"
 #include "gfx/util/screenspace.h"
@@ -93,6 +92,14 @@ void ProcessedCustomMaterial::_setStageData()
          mMaxTex = i+1;
          continue;
       }
+
+       if (filename.equal(String("$photometricmask"), String::NoCase))
+       {
+          rpd->mTexType[i] = Material::PhotometricMask;
+          rpd->mSamplerNames[i] = mCustomMaterial->mSamplerNames[i];
+          mMaxTex = i + 1;
+          continue;
+       }
 
       if(filename.equal(String("$lightmap"), String::NoCase))
       {
@@ -353,6 +360,7 @@ void ProcessedCustomMaterial::setTextureStages( SceneRenderState *state, const S
             break;
 
          case Material::Mask:
+         case Material::PhotometricMask:
          case Material::Standard:
          case Material::Bump:
          case Material::Detail:
