@@ -42,10 +42,11 @@ const std::unordered_map<std::string, ShaderToken> WordMap
    {"GeometryShader",   ShaderToken::Geometry },
    {"DomainShader",     ShaderToken::Domain },
    {"HullShader",       ShaderToken::Hull },
-   
+
    //Shader Attribute blocks.
    {"VertexData",    ShaderToken::VertexData },
    {"PixelData",     ShaderToken::PixelData },
+   {"PixelOut",      ShaderToken::PixelOut },
    {"ComputeData",   ShaderToken::ComputeData },
    {"GeometryData",  ShaderToken::GeometryData },
    {"DomainData",    ShaderToken::DomainData },
@@ -263,10 +264,11 @@ bool ShaderBlueprint::isComment()
          {
             break;
          }
+         mBuffer++;
 
-         if (mBuffer < mBufferEnd)
-            mBuffer += 2;
       }
+      if (mBuffer < mBufferEnd)
+         mBuffer += 2;
    }
 
    return ret;
@@ -292,7 +294,7 @@ bool ShaderBlueprint::getToken(U32 tokenId, bool force)
          // always report line from the blueprint file rather than the current shader stage.
          Con::printf("ShaderBlueprint Error - Expected: '%s', could not be found on line: %d", MapFind->second, mLine);
       }
-      
+
       return false;
    }
 
@@ -321,7 +323,7 @@ bool ShaderBlueprint::getToken(const char* tokenName, bool force)
 
 bool ShaderBlueprint::isTokenInRange(U32 tokenStart, U32 tokenEnd)
 {
-   if (mCurToken >= tokenStart || mCurToken <= tokenEnd)
+   if (mCurToken >= tokenStart && mCurToken <= tokenEnd)
    {
       return true;
    }
@@ -332,7 +334,7 @@ bool ShaderBlueprint::isTokenInRange(U32 tokenStart, U32 tokenEnd)
 bool ShaderBlueprint::getTokenRange(U32 tokenStart, U32 tokenEnd, ShaderToken& outToken, bool force)
 {
    bool success = false;
-   if (mCurToken >= tokenStart || mCurToken <= tokenEnd)
+   if (mCurToken >= tokenStart && mCurToken <= tokenEnd)
    {
       outToken = (ShaderToken)mCurToken;
       success = true;
@@ -382,8 +384,12 @@ ShaderBlueprint::ShaderBlueprint()
 
    for (U32 i = 0; i < 6; i++)
    {
-      mBlueprintStructs[i] = NULL;
       mShaderStages[i] = NULL;
+   };
+
+   for (U32 i = 0; i < 7; i++)
+   {
+      mBlueprintStructs[i] = NULL;
    };
 }
 
@@ -735,7 +741,7 @@ void ShaderBlueprint::nextToken()
       return;
    }
 
-   // if we have reached here it must be a variable. 
+   // if we have reached here it must be a variable.
    while (mBuffer < mBufferEnd && mBuffer[0] != 0 && !dIsspace(mBuffer[0]) && !isOpOrSymbol(mBuffer[0]))
    {
       mBuffer++;
@@ -746,7 +752,7 @@ void ShaderBlueprint::nextToken()
    dMemcpy(temp, first, len);
    temp[len] = '\0';
    mTokenIdentifier = temp;
-    
+
    // make sure its not a keyword, if it is set the token.
    auto MapFind = WordMap.find(temp);
    if (MapFind != WordMap.end())
@@ -823,7 +829,7 @@ bool ShaderBlueprint::parseVariableDefinition(String& name, ShaderVarType*& type
 
          if (arraySize == -1)
          {
-            Con::printf("ShaderBlueprint - Error: array no initialized properly.");
+            Con::printf("ShaderBlueprint - Error: array not initialized properly.");
             return false;
          }
 
@@ -975,6 +981,22 @@ bool ShaderBlueprint::parseStructVariable(ShaderStructVar*& var, bool semantic)
    return true;
 }
 
+bool ShaderBlueprint::parseShaderStage(ShaderStage*&)
+{
+   // early out.
+   if (getToken("}"))
+   {
+      return true;
+   }
+
+   while (!getToken("}"))
+   {
+
+   }
+
+
+}
+
 bool ShaderBlueprint::parseShaderBlueprint()
 {
    if (getToken("{", true))
@@ -991,7 +1013,7 @@ bool ShaderBlueprint::parseShaderBlueprint()
          if (getToken(ShaderToken::StructBlock))
          {
             // is this within the ranges of the shaderstage data.
-            if (isTokenInRange(ShaderToken::VertexData, ShaderToken::HullData))
+            if (isTokenInRange(ShaderToken::VertexData, ShaderToken::PixelOut))
             {
                U32 dataIdx = 0;
 
@@ -1016,6 +1038,9 @@ bool ShaderBlueprint::parseShaderBlueprint()
                case ShaderToken::HullData:
                   dataIdx = 5;
                   break;
+               case ShaderToken::PixelOut: // pixelOut is the final stage of all shaders apart from the compute.
+                  dataIdx = 6;
+                  break;
                default:
                   Con::printf("ShaderBlueprint - Error: User Defined struct not expected: '%s'!", mTokenIdentifier.c_str());
                   return false;
@@ -1029,7 +1054,7 @@ bool ShaderBlueprint::parseShaderBlueprint()
 
                if (!getToken("{", true))
                {
-                  // error 
+                  // error
                   return false;
                }
 
@@ -1060,6 +1085,11 @@ bool ShaderBlueprint::parseShaderBlueprint()
 
                   prevVar = var;
                }
+
+               if (!getToken(";", true))
+               {
+                  return false;
+               }
             }
             //else
             //{
@@ -1073,8 +1103,34 @@ bool ShaderBlueprint::parseShaderBlueprint()
          if (isTokenInRange(ShaderToken::Vertex, ShaderToken::Hull))
          {
             // now get the shaderstage token and move to the next token.
-            ShaderToken shaderStage;
-            getTokenRange(ShaderToken::Vertex, ShaderToken::Hull, shaderStage);
+            ShaderToken shaderStageToken;
+            getTokenRange(ShaderToken::Vertex, ShaderToken::Hull, shaderStageToken);
+
+            // parse our shader stage.
+            if (!getToken("{", true))
+            {
+               // error
+               return false;
+            }
+
+            ShaderStage* newStage = new ShaderStage();
+            newStage->shaderStage = shaderStageToken;
+
+            parseShaderStage(newStage);
+
+            mShaderStages[shaderStageToken] = newStage;
+
+            if (!getToken(";", true))
+            {
+               return false;
+            }
+
+         }
+
+         // if we get a variable name here, its wrong..
+         if (getToken(ShaderToken::VariableName))
+         {
+            return false;
          }
       }
    }

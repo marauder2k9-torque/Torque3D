@@ -45,7 +45,7 @@ enum ShaderToken
    Blueprint,
    // Shader Include
    Include,
-   
+
    // Shader Attribute Blocks
    VertexData,
    PixelData,
@@ -53,6 +53,7 @@ enum ShaderToken
    GeometryData,
    DomainData,
    HullData,
+   PixelOut,
 
    Void,
    // Const types
@@ -140,7 +141,7 @@ enum ShaderToken
    // Shader Data Specifiers.
    Uniform,
    StructBlock,
-   
+
    // Modifiers.
    Const,
    Static,
@@ -347,7 +348,7 @@ class ShaderBlueprint : public SimObject
 protected:
    StringTableEntry mBlueprintFile;
    // we can only ever have a max of 6 of these.
-   ShaderStruct* mBlueprintStructs[6];
+   ShaderStruct* mBlueprintStructs[7];
    ShaderStage* mShaderStages[6];
 
    void _onFileChanged(const Torque::Path& path) {  }
@@ -399,9 +400,12 @@ private:
 
    // parse functions
    bool initParser(const char* buffer, U32 buffLen);
-      
+
    bool parseVariableDefinition(String& name, ShaderVarType*& type);
    bool parseStructVariable(ShaderStructVar*& var, bool semantic = false);
+   bool parseShaderStage(ShaderStage*&);
+
+   // main parse function that kicks it all off.
    bool parseShaderBlueprint();
 };
 

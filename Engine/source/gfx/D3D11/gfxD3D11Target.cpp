@@ -28,7 +28,7 @@
 #include "gfx/gfxStringEnumTranslate.h"
 #include "windowManager/win32/win32Window.h"
 
-GFXD3D11TextureTarget::GFXD3D11TextureTarget(bool genMips) 
+GFXD3D11TextureTarget::GFXD3D11TextureTarget(bool genMips)
    :  mTargetSize( Point2I::Zero ),
       mTargetFormat( GFXFormatR8G8B8A8 )
 {
@@ -51,7 +51,7 @@ GFXD3D11TextureTarget::~GFXD3D11TextureTarget()
       mResolveTargets[i] = NULL;
       SAFE_RELEASE(mTargetViews[i]);
       SAFE_RELEASE(mTargets[i]);
-      SAFE_RELEASE(mTargetSRViews[i]);      
+      SAFE_RELEASE(mTargetSRViews[i]);
    }
 
    zombify();
@@ -63,7 +63,7 @@ void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *te
 
    AssertFatal(slot < MaxRenderSlotId, "GFXD3D11TextureTarget::attachTexture - out of range slot.");
 
-   // TODO:  The way this is implemented... you can attach a texture 
+   // TODO:  The way this is implemented... you can attach a texture
    // object multiple times and it will release and reset it.
    //
    // We should rework this to detect when no change has occured
@@ -76,7 +76,7 @@ void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *te
    SAFE_RELEASE(mTargetViews[slot]);
    SAFE_RELEASE(mTargets[slot]);
    SAFE_RELEASE(mTargetSRViews[slot]);
-   
+
    mResolveTargets[slot] = NULL;
 
    if(slot == Color0)
@@ -88,7 +88,7 @@ void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *te
    // Are we clearing?
    if(!tex)
    {
-      // Yup - just exit, it'll stay NULL.      
+      // Yup - just exit, it'll stay NULL.
       return;
    }
 
@@ -112,30 +112,30 @@ void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *te
 
       // Grab the surface level.
       if( slot == DepthStencil )
-      {       
+      {
          mTargets[slot] = d3dto->getSurface();
          if ( mTargets[slot] )
             mTargets[slot]->AddRef();
 
          mTargetViews[slot] = d3dto->getDSView();
          if( mTargetViews[slot])
-            mTargetViews[slot]->AddRef();         
+            mTargetViews[slot]->AddRef();
 
       }
       else
-      {         
+      {
          // getSurface will almost always return NULL. It will only return non-NULL
          // if the surface that it needs to render to is different than the mip level
          // in the actual texture. This will happen with MSAA.
          if( d3dto->getSurface() == NULL )
          {
-            
+
             mTargets[slot] = d3dto->get2DTex();
             mTargets[slot]->AddRef();
             mTargetViews[slot] = d3dto->getRTView();
-            mTargetViews[slot]->AddRef();         
-         } 
-         else 
+            mTargetViews[slot]->AddRef();
+         }
+         else
          {
             mTargets[slot] = d3dto->getSurface();
             mTargets[slot]->AddRef();
@@ -151,7 +151,7 @@ void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *te
                mTargetSize.set( tex->getSize().x, tex->getSize().y );
                mTargetFormat = tex->getFormat();
             }
-         }           
+         }
       }
 
       // Update surface size
@@ -209,7 +209,7 @@ void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXCubemap *tex, U32
    // Are we clearing?
    if(!tex)
    {
-      // Yup - just exit, it'll stay NULL.      
+      // Yup - just exit, it'll stay NULL.
       return;
    }
 
@@ -221,7 +221,7 @@ void GFXD3D11TextureTarget::attachTexture( RenderSlot slot, GFXCubemap *tex, U32
    mTargetViews[slot]->AddRef();
    mTargetSRViews[slot] = cube->getSRView();
    mTargetSRViews[slot]->AddRef();
-   
+
    // Update surface size
    if(slot == Color0)
    {
@@ -245,10 +245,10 @@ void GFXD3D11TextureTarget::activate()
    GFXDEBUGEVENT_SCOPE( GFXPCD3D11TextureTarget_activate, ColorI::RED );
 
    AssertFatal( mTargets[GFXTextureTarget::Color0], "GFXD3D11TextureTarget::activate() - You can never have a NULL primary render target!" );
-  
+
    // Clear the state indicator.
    stateApplied();
-   
+
    // Now set all the new surfaces into the appropriate slots.
    ID3D11RenderTargetView* rtViews[MaxRenderSlotId] = { NULL, NULL, NULL, NULL, NULL, NULL };
 
@@ -274,7 +274,7 @@ void GFXD3D11TextureTarget::deactivate()
       if (pSRView)
          D3D11DEVICECONTEXT->GenerateMips(pSRView);
    }
-   
+
 }
 
 void GFXD3D11TextureTarget::resolve()
@@ -304,7 +304,7 @@ void GFXD3D11TextureTarget::resolveTo( GFXTextureObject *tex )
    D3D11_TEXTURE2D_DESC desc;
    mTargets[Color0]->GetDesc(&desc);
    D3D11DEVICECONTEXT->CopySubresourceRegion(((GFXD3D11TextureObject*)(tex))->get2DTex(), 0, 0, 0, 0, mTargets[Color0], 0, NULL);
-      
+
 }
 
 void GFXD3D11TextureTarget::zombify()
@@ -355,11 +355,11 @@ void GFXD3D11WindowTarget::initPresentationParams()
 
 const Point2I GFXD3D11WindowTarget::getSize()
 {
-   return mWindow->getVideoMode().resolution; 
+   return mWindow->getVideoMode().resolution;
 }
 
 GFXFormat GFXD3D11WindowTarget::getFormat()
-{ 
+{
    S32 format = mPresentationParams.BufferDesc.Format;
    GFXREVERSE_LOOKUP( GFXD3D11TextureFormat, GFXFormat, format );
    return (GFXFormat)format;
@@ -390,13 +390,10 @@ void GFXD3D11WindowTarget::createSwapChain()
 {
    //create dxgi factory & swapchain
    IDXGIFactory1* DXGIFactory;
-   HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&DXGIFactory));
-   if (FAILED(hr))
+   if (FAILED(CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&DXGIFactory))))
       AssertFatal(false, "GFXD3D11WindowTarget::createSwapChain - couldn't create dxgi factory.");
 
-   hr = DXGIFactory->CreateSwapChain(D3D11DEVICE, &mPresentationParams, &mSwapChain);
-
-   if (FAILED(hr))
+   if (FAILED(DXGIFactory->CreateSwapChain(D3D11DEVICE, &mPresentationParams, &mSwapChain)))
       AssertFatal(false, "GFXD3D11WindowTarget::createSwapChain - couldn't create swap chain.");
 
    SAFE_RELEASE(DXGIFactory);
@@ -426,8 +423,7 @@ void GFXD3D11WindowTarget::createBuffersAndViews()
    desc.SampleDesc.Quality = 0;
    desc.MiscFlags = 0;
 
-   HRESULT hr = D3D11DEVICE->CreateTexture2D(&desc, NULL, &mDepthStencil);
-   if (FAILED(hr))
+   if (FAILED(D3D11DEVICE->CreateTexture2D(&desc, NULL, &mDepthStencil)))
       AssertFatal(false, "GFXD3D11WindowTarget::createBuffersAndViews - couldn't create device's depth-stencil surface.");
 
    D3D11_DEPTH_STENCIL_VIEW_DESC depthDesc;
@@ -436,8 +432,7 @@ void GFXD3D11WindowTarget::createBuffersAndViews()
    depthDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
    depthDesc.Texture2D.MipSlice = 0;
 
-   hr = D3D11DEVICE->CreateDepthStencilView(mDepthStencil, &depthDesc, &mDepthStencilView);
-   if (FAILED(hr))
+   if (FAILED(D3D11DEVICE->CreateDepthStencilView(mDepthStencil, &depthDesc, &mDepthStencilView)))
       AssertFatal(false, "GFXD3D11WindowTarget::createBuffersAndViews - couldn't create depth stencil view");
 
    setBackBuffer();
@@ -448,9 +443,7 @@ void GFXD3D11WindowTarget::createBuffersAndViews()
    RTDesc.Texture2D.MipSlice = 0;
    RTDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 
-   hr = D3D11DEVICE->CreateRenderTargetView(mBackBuffer, &RTDesc, &mBackBufferView);
-
-   if (FAILED(hr))
+   if (FAILED(D3D11DEVICE->CreateRenderTargetView(mBackBuffer, &RTDesc, &mBackBufferView)))
       AssertFatal(false, "GFXD3D11WindowTarget::createBuffersAndViews - couldn't create back buffer target view");
 
    //debug names
@@ -471,13 +464,12 @@ void GFXD3D11WindowTarget::createBuffersAndViews()
 
 void GFXD3D11WindowTarget::resetMode()
 {
-   HRESULT hr;
    if (mSwapChain)
    {
       // The current video settings.
       DXGI_SWAP_CHAIN_DESC desc;
-      hr = mSwapChain->GetDesc(&desc);
-      if (FAILED(hr))
+
+      if (FAILED(mSwapChain->GetDesc(&desc)))
          AssertFatal(false, "GFXD3D11WindowTarget::resetMode - failed to get swap chain description!");
 
       bool fullscreen = !desc.Windowed;
@@ -487,7 +479,7 @@ void GFXD3D11WindowTarget::resetMode()
       const GFXVideoMode& vm = mWindow->getVideoMode();
 
       // Early out if none of the settings which require a device reset
-      // have changed.      
+      // have changed.
       if (backbufferSize == vm.resolution &&
          fullscreen == vm.fullScreen)
          return;
@@ -511,22 +503,17 @@ void GFXD3D11WindowTarget::resetMode()
    {
       mPresentationParams.BufferDesc.RefreshRate.Numerator = 0;
       mPresentationParams.BufferDesc.RefreshRate.Denominator = 0;
-      hr = mSwapChain->ResizeTarget(&mPresentationParams.BufferDesc);
 
-      if (FAILED(hr))
+      if (FAILED(mSwapChain->ResizeTarget(&mPresentationParams.BufferDesc)))
          AssertFatal(false, "GFXD3D11WindowTarget::resetMode - failed to resize target!");
 
    }
 
-   hr = mSwapChain->ResizeBuffers(mPresentationParams.BufferCount, mPresentationParams.BufferDesc.Width, mPresentationParams.BufferDesc.Height,
-      mPresentationParams.BufferDesc.Format, mPresentationParams.Windowed ? 0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
-
-   if (FAILED(hr))
+   if (FAILED(mSwapChain->ResizeBuffers(mPresentationParams.BufferCount, mPresentationParams.BufferDesc.Width, mPresentationParams.BufferDesc.Height,
+      mPresentationParams.BufferDesc.Format, mPresentationParams.Windowed ? 0 : DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH)))
       AssertFatal(false, "GFXD3D11WindowTarget::resetMode - failed to resize back buffer!");
 
-   hr = mSwapChain->SetFullscreenState(!mPresentationParams.Windowed, NULL);
-
-   if (FAILED(hr))
+   if (FAILED(mSwapChain->SetFullscreenState(!mPresentationParams.Windowed, NULL)))
       AssertFatal(false, "GFXD3D11WindowTarget::resetMode - failed to change screen states!");
 
    // Update our size, too.
