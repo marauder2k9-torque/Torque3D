@@ -25,7 +25,7 @@
 #include "console/console.h"
 #include "core/stringTable.h"
 #include "platform/platformCPUCount.h"
-#include <math.h>
+#include <cmath>
 #include <intrin.h>
 
 Platform::SystemInfo_struct Platform::SystemInfo;

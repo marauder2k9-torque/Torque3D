@@ -23,7 +23,7 @@
 #include "platform/platform.h"
 #include "math/mMath.h"
 #include "math/util/frustum.h"
-#include <math.h>    // Caution!!! Possible platform specific include
+#include <cmath>    // Caution!!! Possible platform specific include
 
 
 //------------------------------------------------------------------------------
