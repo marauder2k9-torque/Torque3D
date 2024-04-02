@@ -104,74 +104,82 @@ public:
    const TYPE* getData() const { return &dim[0]; }
    TYPE* getData() { return &dim[0]; }
 
-   Point operator-() const {
-      Point result;
-      for (U32 i = 0; i < size; ++i) {
-         result.dim[i] = -dim[i];
-      }
-      return result;
+   //------------------- Operators ---------------------
+   
+   Point<TYPE, size>& operator=(const Point<TYPE, size>& other) {
+     if (this != &other) {
+         for (U32 i = 0; i < size; ++i)
+             dim[i] = other.dim[i];
+     }
+     return *this;
    }
 
-   Point& operator-=(const Point& other) {
-      for (U32 i = 0; i < size; ++i) {
-         dim[i] -= other.dim[i];
-      }
-      return *this;
-   }
-
-   Point operator+(const Point& other) const {
-      Point result;
-      for (U32 i = 0; i < size; ++i) {
+    
+   Point<TYPE, size> operator+(const Point<TYPE, size>& other) const {
+     Point<TYPE, size> result;
+     for (U32 i = 0; i < size; ++i)
          result.dim[i] = dim[i] + other.dim[i];
-      }
-      return result;
+     return result;
    }
-
-   Point& operator+=(const Point& other) {
-      for (U32 i = 0; i < size; ++i) {
+   
+   Point<TYPE, size>& operator+=(const Point<TYPE, size>& other) {
+     for (U32 i = 0; i < size; ++i)
          dim[i] += other.dim[i];
-      }
-      return *this;
+     return *this;
    }
 
-   Point operator*(const TYPE& scalar) const {
-      Point result;
-      for (U32 i = 0; i < size; ++i) {
+   Point<TYPE, size> operator-(const Point<TYPE, size>& other) const {
+     Point<TYPE, size> result;
+     for (U32 i = 0; i < size; ++i)
+         result.dim[i] = dim[i] - other.dim[i];
+     return result;
+   }
+   
+   Point<TYPE, size>& operator-=(const Point<TYPE, size>& other) {
+     for (U32 i = 0; i < size; ++i)
+         dim[i] -= other.dim[i];
+     return *this;
+   }
+
+   Point<TYPE, size> operator*(TYPE scalar) const {
+     Point<TYPE, size> result;
+     for (U32 i = 0; i < size; ++i)
          result.dim[i] = dim[i] * scalar;
-      }
-      return result;
+     return result;
    }
-
-   Point operator*(const Point& other) const {
-      Point result;
-      for (U32 i = 0; i < size; ++i) {
-         result.dim[i] = dim[i] * other.dim[i];
-      }
-      return result;
-   }
-
-   Point& operator*=(const TYPE& scalar) {
-      for (U32 i = 0; i < size; ++i) {
+   
+   Point<TYPE, size>& operator*=(TYPE scalar) {
+     for (U32 i = 0; i < size; ++i)
          dim[i] *= scalar;
-      }
-      return *this;
+     return *this;
+   }
+   
+   Point<TYPE, size> operator/(TYPE scalar) const {
+      Point<TYPE, size> result;
+      // should we check for zero?
+      for (U32 i = 0; i < size; ++i)
+         result.dim[i] = dim[i] / scalar;
+      return result;
+   }
+   
+   Point<TYPE, size>& operator/=(TYPE scalar) {
+     for (unsigned int i = 0; i < size; ++i)
+         dim[i] /= scalar;
+     return *this;
    }
 
-   Point& operator=(const Point& other) {
-      for (U32 i = 0; i < size; ++i) {
-         dim[i] = other.dim[i];
-      }
-      return *this;
+   bool operator==(const Point<TYPE, size>& other) const {
+     for (U32 i = 0; i < size; ++i) {
+         if (dim[i] != other.dim[i])
+             return false;
+     }
+     return true;
    }
 
-   bool operator==(const Point& other) const {
-      for (U32 i = 0; i < size; ++i) {
-         if (dim[i] != other.dim[i]) {
-            return false;
-         }
-      }
-      return true;
+   bool operator!=(const Point<TYPE, size>& other) const {
+        return !(*this == other);
    }
+
 };
 
 typedef Point<F32, 3> Point3;
