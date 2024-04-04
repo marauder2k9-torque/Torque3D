@@ -513,7 +513,7 @@ F32 MeshRoadProfile::getProfileLen()
 
 F32 MeshRoadProfile::getNodePosPercent(U32 nodeId)
 {
-   nodeId = mFmod(nodeId, mNodes.size());
+   nodeId = mFmod((F32)nodeId, (F32)mNodes.size());
 
    if(nodeId == 0)
       return 0.0f;
