@@ -232,6 +232,17 @@ inline T mClampToZero(T& input)
    return input;
 }
 //---------------------------------------
+// FMOD
+inline F32 mFmod(const F32 val, const F32 mod)
+{
+   return fmod(val, mod);
+}
+
+inline F64 mFmod(const F64 val, const F64 mod)
+{
+   return (F64) fmod(val, mod);
+}
+//---------------------------------------
 
 template<typename T>
 inline bool mIsEqual(T a, T b, const T epsilon = std::numeric_limits<T>::epsilon()) {
@@ -245,12 +256,7 @@ inline bool mIsEqual(T a, T b, const T epsilon = std::numeric_limits<T>::epsilon
 //   return diff > -epsilon && diff < epsilon;
 //}
 
-inline F32 mFmod(const F32 val, const F32 mod)
-{
-   return fmod(val, mod);
-}
-
-inline S32 mRound(const F32 val)  
+inline S32 mRound(const F32 val)
 {  
    return (S32)floor(val + 0.5f);  
 }  
@@ -480,11 +486,6 @@ inline F32 mCatmullrom(F32 t, F32 p0, F32 p1, F32 p2, F32 p3)
 inline F64 mAbsD(const F64 val)
 {
    return (F64) fabs(val);
-}
-
-inline F64 mFmodD(const F64 val, const F64 mod)
-{
-   return (F64) fmod(val, mod);
 }
 
 inline F64 mSqrtD(const F64 val)

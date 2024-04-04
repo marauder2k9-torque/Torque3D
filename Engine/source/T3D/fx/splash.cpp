@@ -606,7 +606,7 @@ SplashRing Splash::createRing()
    ring.color = mDataBlock->colors[0];
    ring.lifetime = mDataBlock->ringLifetime;
    ring.elapsedTime = 0.0;
-   ring.v = mDataBlock->texFactor * mFmod( mElapsedTime, 1.0 );
+   ring.v = mDataBlock->texFactor * mFmod((F32) mElapsedTime, 1.0f );
 
    return ring;
 }
