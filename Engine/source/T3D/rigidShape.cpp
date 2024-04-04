@@ -1325,7 +1325,7 @@ bool RigidShape::resolveCollision(Rigid&  ns,CollisionList& cList, F32 dt)
             // Penetration force. This is actually a spring which
             // will seperate the body from the collision surface.
             F32 zi = 2 * mFabs(mRigid.getZeroImpulse(r, c.normal) / dt);
-            F32 s = mMax((mDataBlock->collisionTol - c.distance) * zi - ((vn / 2.0) * zi),0.0f);
+            F32 s = mMax((F32)((mDataBlock->collisionTol - c.distance) * zi - ((vn / 2.0) * zi)),0.0f);
             Point3F f = c.normal * s;
 
             // Friction impulse, calculated as a function of the

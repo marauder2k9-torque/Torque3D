@@ -330,7 +330,7 @@ void GFXGLCubemapArray::init(GFXCubemapHandle *cubemaps, const U32 cubemapCount)
    glGenTextures(1, &mCubemap);
    PRESERVE_CUBEMAP_ARRAY_TEXTURE();
    glBindTexture(GL_TEXTURE_CUBE_MAP_ARRAY, mCubemap);
-   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAX_LEVEL, mMin(mMipMapLevels - 1, 1));
+   glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAX_LEVEL, mMin(mMipMapLevels - 1, 1u));
    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_CUBE_MAP_ARRAY, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

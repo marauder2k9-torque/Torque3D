@@ -389,7 +389,7 @@ namespace IBLUtilities
          l24 * SHConstants[4] * (x*x - y * y)
          );
 
-      return LinearColorF(mMax(result.red, 0), mMax(result.green, 0), mMax(result.blue, 0));
+      return LinearColorF(mMax(result.red, 0.0f), mMax(result.green, 0.0f), mMax(result.blue, 0.0f));
    }
 
    MatrixF getSideMatrix(U32 side)

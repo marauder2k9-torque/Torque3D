@@ -303,6 +303,6 @@ namespace ImageUtil
 
    U32 getMaxMipCount(const U32 width, const U32 height)
    {
-      return mFloor(mLog2(mMax(width, height))) + 1;
+      return mFloor(mLog2((F32)mMax(width, height))) + 1;
    }
 }

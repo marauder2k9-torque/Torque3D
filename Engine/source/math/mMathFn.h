@@ -161,7 +161,7 @@ inline S32 mAbs(const S32 val){
 }
 
 inline S64 mAbs(const S64 val){
-   retun labs(val);
+   return labs(val);
 }
 //---------------------------------------
 // Sign
@@ -176,11 +176,40 @@ inline S32 mSign( T n )
    return 0;
 }
 //---------------------------------------
+// Max Min
+template<typename T>
+inline T mMax(const T a, const T b)
+{
+   if(static_cast<T>(a) > static_cast<T>(b))
+      return a;
+   return b;
+}
+
+template<typename T>
+inline T mMin(const T a, const T b)
+{
+   if(static_cast<T>(a) < static_cast<T>(b))
+      return a;
+   return b;
+}
+//---------------------------------------
+// Floor
+inline F32 mFloor(const F32 val)
+{
+   return (F32) floor(val);
+}
+
+inline F64 mFloor(const F64 val)
+{
+   return (F64) floor(val);
+}
+//---------------------------------------
+
 
 template<typename T>
 inline bool mIsEqual(T a, T b, const T epsilon = std::numeric_limits<T>::epsilon()) {
     T diff = a - b;
-    return std::abs(diff) <= epsilon;
+    return mAbs(static_cast<T>(diff)) <= epsilon;
 }
 
 //inline bool mIsEqual( F32 a, F32 b, const F32 epsilon = __EQUAL_CONST_F )
@@ -200,26 +229,6 @@ inline F32 mClampToZero(F32& input)
       input = 0.0f;
 
    return input;
-}
-
-
-inline F32 mMax(const F32 x, const F32 y)
-{
-   if (x > y)
-      return x;
-   return y;
-}
-
-inline F32 mMin(const F32 x, const F32 y)
-{
-   if (x < y)
-      return x;
-   return y;
-}
-
-inline F32 mFloor(const F32 val)
-{
-   return (F32) floor(val);
 }
 
 inline F32 mCeil(const F32 val)
@@ -253,11 +262,6 @@ inline F32 mRound(const F32 val, const S32 n)
       
    return mFloor((val*place)+0.5)/place;  
 }  
-
-inline S32 mAbs(const S32 val)
-{
-   return abs(val);
-}
 
 inline F32 mRoundToNearest( const F32 val )
 {
@@ -472,11 +476,6 @@ inline F64 mFmodD(const F64 val, const F64 mod)
 inline F64 mSqrtD(const F64 val)
 {
    return (F64) sqrt(val);
-}
-
-inline F64 mFloorD(const F64 val)
-{
-   return (F64) floor(val);
 }
 
 inline F64 mCeilD(const F64 val)

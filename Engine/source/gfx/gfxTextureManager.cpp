@@ -761,7 +761,7 @@ GFXTextureObject *GFXTextureManager::createTexture( U32 width, U32 height, GFXFo
    //check to see if we've handled the mips just now, and if not, then handle them here
    if (numMips == numMipLevels && (localWidth != width || localHeight != height))
    {
-      numMips = mFloor(mLog2(mMax(localWidth, localHeight))) + 1;
+      numMips = mFloor(mLog2((F32)mMax(localWidth, localHeight))) + 1;
    }
 
 //   AssertFatal( checkFmt == format, "Anonymous texture didn't get the format it wanted." );
@@ -1484,7 +1484,7 @@ void GFXTextureManager::_validateTexParams( const U32 width, const U32 height,
       // NOTE: Does this belong here?
       if( inOutNumMips == 0 && !autoGenSupp )
       {
-         inOutNumMips = mFloor(mLog2(mMax(width, height))) + 1;
+         inOutNumMips = mFloor(mLog2((F32)mMax(width, height))) + 1;
       }
    }
 }
