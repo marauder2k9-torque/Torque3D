@@ -147,12 +147,47 @@ inline void m_matF_x_vectorF(const F32 *m, const F32 *v, F32 *vresult)
 
 //--------------------------------------
 // Inlines
-
-inline bool mIsEqual( F32 a, F32 b, const F32 epsilon = __EQUAL_CONST_F )
-{
-   F32 diff = a - b;
-   return diff > -epsilon && diff < epsilon; 
+// Absolute values
+inline F32 mAbs(const F32 val){
+   return (F32) fabs(val);
 }
+
+inline F64 mAbs(const F64 val){
+   return fabs(val);
+}
+
+inline S32 mAbs(const S32 val){
+   return abs(val);
+}
+
+inline S64 mAbs(const S64 val){
+   retun labs(val);
+}
+//---------------------------------------
+// Sign
+template <typename T>
+inline S32 mSign( T n )
+{
+   if ( n > static_cast<T>(0) )
+      return 1;
+   if ( n < static_cast<T>(0) )
+      return -1;
+
+   return 0;
+}
+//---------------------------------------
+
+template<typename T>
+inline bool mIsEqual(T a, T b, const T epsilon = std::numeric_limits<T>::epsilon()) {
+    T diff = a - b;
+    return std::abs(diff) <= epsilon;
+}
+
+//inline bool mIsEqual( F32 a, F32 b, const F32 epsilon = __EQUAL_CONST_F )
+//{
+//   F32 diff = a - b;
+//   return diff > -epsilon && diff < epsilon;
+//}
 
 inline bool mIsZero(const F32 val, const F32 epsilon = __EQUAL_CONST_F )
 {
