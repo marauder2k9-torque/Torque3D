@@ -1906,7 +1906,7 @@ bool GuiInspectorType2DValue::updateRects()
    Point2I fieldPos = getPosition();
 
    mEditCtrlRect.set(fieldExtent.x - dividerPos + dividerMargin, 1, dividerPos - dividerMargin - 29, fieldExtent.y);
-   S32 cellWidth = mCeil((dividerPos - dividerMargin - 29));
+   S32 cellWidth = mCeil((F32)(dividerPos - dividerMargin - 29));
 
    mCtrlX->setExtent(Point2I(cellWidth - 3, 18));
    mCtrlY->setExtent(Point2I(cellWidth - 3, 18));
@@ -2019,7 +2019,7 @@ bool GuiInspectorType3DValue::updateRects()
    Point2I fieldExtent = getExtent();
    Point2I fieldPos = getPosition();
 
-   S32 cellWidth = mCeil((dividerPos - dividerMargin - 29));
+   S32 cellWidth = mCeil((F32)(dividerPos - dividerMargin - 29));
 
    mCtrlZ->setExtent(Point2I(cellWidth - 3, 18));
 
@@ -2121,7 +2121,7 @@ bool GuiInspectorType4DValue::updateRects()
    Point2I fieldExtent = getExtent();
    Point2I fieldPos = getPosition();
 
-   S32 cellWidth = mCeil((dividerPos - dividerMargin - 29));
+   S32 cellWidth = mCeil((F32)(dividerPos - dividerMargin - 29));
 
    mCtrlW->setExtent(Point2I(cellWidth - 3, 18));
 
@@ -2468,7 +2468,7 @@ bool GuiInspectorTypeMatrixRotation::updateRects()
    Point2I fieldPos = getPosition();
 
    mEditCtrlRect.set(fieldExtent.x - dividerPos + dividerMargin, 1, dividerPos - dividerMargin - 29, fieldExtent.y);
-   S32 cellWidth = mCeil((dividerPos - dividerMargin - 29));
+   S32 cellWidth = mCeil((F32)(dividerPos - dividerMargin - 29));
 
    mCtrlX->setExtent(Point2I(cellWidth - 3, 18));
    mCtrlY->setExtent(Point2I(cellWidth - 3, 18));
