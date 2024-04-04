@@ -156,8 +156,8 @@ bool VolumetricFogRTManager::Init()
    if (mTargetScale < 1 || GFX->getAdapterType() == Direct3D11)
       mTargetScale = 1;
    
-   mWidth = mFloor(mPlatformWindow->getClientExtent().x / mTargetScale);
-   mHeight = mFloor(mPlatformWindow->getClientExtent().y / mTargetScale);
+   mWidth = mFloor((F32)(mPlatformWindow->getClientExtent().x / mTargetScale));
+   mHeight = mFloor((F32)(mPlatformWindow->getClientExtent().y / mTargetScale));
    
    mDepthBuffer = GFXTexHandle(mWidth, mHeight, GFXFormatR32F,
    &GFXRenderTargetProfile, avar("%s() - mDepthBuffer (line %d)", __FUNCTION__, __LINE__));
@@ -226,8 +226,8 @@ bool VolumetricFogRTManager::Resize()
    if (mTargetScale < 1 || GFX->getAdapterType() == Direct3D11)
       mTargetScale = 1;
 
-   mWidth = mFloor(mPlatformWindow->getClientExtent().x / mTargetScale);
-   mHeight = mFloor(mPlatformWindow->getClientExtent().y / mTargetScale);
+   mWidth = mFloor((F32)(mPlatformWindow->getClientExtent().x / mTargetScale));
+   mHeight = mFloor((F32)(mPlatformWindow->getClientExtent().y / mTargetScale));
    
    if (mWidth < 16 || mHeight < 16)
       return false;

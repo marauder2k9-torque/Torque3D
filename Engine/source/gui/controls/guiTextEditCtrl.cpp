@@ -1352,7 +1352,7 @@ void GuiTextEditCtrl::drawText( const RectI &drawRect, bool isFocused )
          else
          {
             //mTextOffset.x -= skipForward;
-            S32 mul = (S32)( mFloor( (cursorOffset-drawRect.extent.x) / skipForward ) );
+            S32 mul = (S32)( mFloor((F32)(cursorOffset-drawRect.extent.x) / skipForward ) );
             mTextOffset.x -= skipForward * mul + drawRect.extent.x - 1; // -1 is for the cursor width
          }
       }
@@ -1366,7 +1366,7 @@ void GuiTextEditCtrl::drawText( const RectI &drawRect, bool isFocused )
             mTextOffset.x = drawRect.point.x + paddingLeftTop.x;
          else
          {
-            S32 mul = (S32)( mFloor( cursorOffset / skipBackward ) );
+            S32 mul = (S32)( mFloor((F32)( cursorOffset / skipBackward )) );
             mTextOffset.x += drawRect.point.x - mTextOffset.x - skipBackward * mul;
          }
       }

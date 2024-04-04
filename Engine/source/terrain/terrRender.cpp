@@ -167,10 +167,10 @@ void TerrainBlock::_updateMaterials()
    U32 ormTexArraySize = ormTexArray.size();
 #ifdef TORQUE_TOOLS
    // For performance improvement when adding terrain layers, we always allocate at least 32 textures to the arrays in tool builds
-   detailTexArraySize = mMax(32, detailTexArraySize);
-   macroTexArraySize = mMax(32, macroTexArraySize);
-   normalTexArraySize = mMax(32, normalTexArraySize);
-   ormTexArraySize = mMax(32, ormTexArraySize);
+   detailTexArraySize = mMax(32u, detailTexArraySize);
+   macroTexArraySize = mMax(32u, macroTexArraySize);
+   normalTexArraySize = mMax(32u, normalTexArraySize);
+   ormTexArraySize = mMax(32u, ormTexArraySize);
 #endif
 
    // Format has been explicitly set

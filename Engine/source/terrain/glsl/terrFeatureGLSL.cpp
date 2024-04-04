@@ -211,7 +211,7 @@ Var* TerrainFeatGLSL::_getDetailIdStrengthParallax()
       detailInfo->arraySize = getProcessIndex();
    }
 
-   detailInfo->arraySize = mMax(detailInfo->arraySize, getProcessIndex() + 1);
+   detailInfo->arraySize = mMax((S32)detailInfo->arraySize, getProcessIndex() + 1);
 
    return detailInfo;
 }
@@ -231,7 +231,7 @@ Var* TerrainFeatGLSL::_getMacroIdStrengthParallax()
       detailInfo->arraySize = getProcessIndex();
    }
 
-   detailInfo->arraySize = mMax(detailInfo->arraySize, getProcessIndex() + 1);
+   detailInfo->arraySize = mMax((S32)detailInfo->arraySize, getProcessIndex() + 1);
 
    return detailInfo;
 }
@@ -446,7 +446,7 @@ void TerrainDetailMapFeatGLSL::processVert(  Vector<ShaderComponent*> &component
       detScaleAndFade->constSortPos = cspPotentialPrimitive;
    }
 
-   detScaleAndFade->arraySize = mMax(detScaleAndFade->arraySize, detailIndex + 1);
+   detScaleAndFade->arraySize = mMax((S32)detScaleAndFade->arraySize, detailIndex + 1);
 
    // This is done here to make sure the macro array size/alignment is correct
    Var* macroScaleAndFade = (Var*)LangElement::find("macroScaleAndFade");
@@ -459,7 +459,7 @@ void TerrainDetailMapFeatGLSL::processVert(  Vector<ShaderComponent*> &component
       macroScaleAndFade->constSortPos = cspPotentialPrimitive;
    }
 
-   macroScaleAndFade->arraySize = mMax(macroScaleAndFade->arraySize, detailIndex + 1);
+   macroScaleAndFade->arraySize = mMax((S32)macroScaleAndFade->arraySize, detailIndex + 1);
 
    // Setup the detail coord.
    //
@@ -720,7 +720,7 @@ void TerrainMacroMapFeatGLSL::processVert(  Vector<ShaderComponent*> &componentL
    macroScaleAndFade->constSortPos = cspPotentialPrimitive;
    }
 
-   macroScaleAndFade->arraySize = mMax(macroScaleAndFade->arraySize, detailIndex + 1);
+   macroScaleAndFade->arraySize = mMax((S32)macroScaleAndFade->arraySize, detailIndex + 1);
 
    // Setup the detail coord.
    meta->addStatement( new GenOp( "   @.xyz = @ * @.xyx;\r\n", outTex, inTex, new IndexOp(macroScaleAndFade, detailIndex)) );

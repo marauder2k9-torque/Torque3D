@@ -481,7 +481,7 @@ void MeshFit::addCapsule( F32 radius, F32 height, const MatrixF& mat )
       return;
 
    // Translate and scale the mesh verts
-   height = mMax( 0, height );
+   height = mMax( 0.0f, height );
    F32 offset = ( height / ( 2 * radius ) ) - 0.5f;
    for ( S32 i = 0; i < mesh->mVertexData.size(); i++ )
    {
