@@ -105,7 +105,6 @@ public:
    TYPE* getData() { return &dim[0]; }
 
    //------------------- Operators ---------------------
-   
    Point<TYPE, size>& operator=(const Point<TYPE, size>& other) {
      if (this != &other) {
          for (U32 i = 0; i < size; ++i)
@@ -168,6 +167,7 @@ public:
      return *this;
    }
 
+   /// For more control please use isEqual.
    bool operator==(const Point<TYPE, size>& other) const {
      for (U32 i = 0; i < size; ++i) {
          if (dim[i] != other.dim[i])

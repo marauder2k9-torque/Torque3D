@@ -72,7 +72,7 @@ Point3F mPerp( const Point3F &inVec )
 
    Point3F outVec = mCross( inVec, vec );
    outVec.normalize();
-
+   
    //AssertFatal( mIsZero( mDot( inVec, outVec ) ), "mPerp, failed to generate perpendicular" );
 
    return outVec;   
