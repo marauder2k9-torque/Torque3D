@@ -261,7 +261,7 @@ inline F32 afxXM_WaveBase::calc_initial_speed()
 
 inline F32 afxXM_WaveBase::calc_new_speed()
 {
-  return mClampF((!speed_is_randomized) ? 
+  return mClamp((!speed_is_randomized) ? 
                 (speed + speed*db->accel) : 
                 (db->speed + gRandGen.randF()*2.0f*db->speed_vari - db->speed_vari), 0.001f, 200.0f);
 }

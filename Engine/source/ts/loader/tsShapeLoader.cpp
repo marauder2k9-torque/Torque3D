@@ -612,7 +612,7 @@ void TSShapeLoader::generateObjectState(TSShape::Object& obj, F32 t, bool addFra
 
    state.frameIndex = 0;
    state.matFrameIndex = 0;
-   state.vis = mClampF(appMeshes[obj.startMeshIndex]->getVisValue(t), 0.0f, 1.0f);
+   state.vis = mClamp(appMeshes[obj.startMeshIndex]->getVisValue(t), 0.0f, 1.0f);
 
    if (addFrame || addMatFrame)
    {

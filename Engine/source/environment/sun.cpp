@@ -424,8 +424,8 @@ void Sun::animate( F32 duration, F32 startAzimuth, F32 endAzimuth, F32 startElev
 void Sun::_conformLights()
 {
    // Build the light direction from the azimuth and elevation.
-   F32 yaw = mDegToRad(mClampF(mSunAzimuth,0,359));
-   F32 pitch = mDegToRad(mClampF(mSunElevation,-360,+360));
+   F32 yaw = mDegToRad(mClamp(mSunAzimuth,0.f,359.f));
+   F32 pitch = mDegToRad(mClamp(mSunElevation,-360.f,360.f));
    VectorF lightDirection;
    MathUtils::getVectorFromAngles(lightDirection, yaw, pitch);
    lightDirection.normalize();

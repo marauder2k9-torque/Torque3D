@@ -382,7 +382,7 @@ void TSThread::advancePos(F32 delta)
 	  mSeqPos += delta;
       if (!getSequence()->isCyclic())
       {
-		  mSeqPos = mClampF(mSeqPos, 0.0f, 1.0f);
+		  mSeqPos = mClamp(mSeqPos, 0.0f, 1.0f);
          path.loop = 0;
       }
       else
@@ -406,7 +406,7 @@ void TSThread::advancePos(F32 delta)
    {
 	   mSeqPos += delta;
       if (!getSequence()->isCyclic())
-		  mSeqPos = mClampF(mSeqPos, 0.0f, 1.0f);
+		  mSeqPos = mClamp(mSeqPos, 0.0f, 1.0f);
       else
       {
 		  mSeqPos -= S32(mSeqPos);

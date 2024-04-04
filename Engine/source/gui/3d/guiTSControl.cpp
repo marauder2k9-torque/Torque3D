@@ -738,10 +738,10 @@ void GuiTSCtrl::drawLine( Point3F p0, Point3F p1, const ColorI &color, F32 width
    MathUtils::mProjectWorldToScreen( p0, &p0, mSaveViewport, mSaveModelview, mSaveProjection );   
    MathUtils::mProjectWorldToScreen( p1, &p1, mSaveViewport, mSaveModelview, mSaveProjection );   
 
-   p0.x = mClampF( p0.x, 0.0f, mSaveViewport.extent.x );
-   p0.y = mClampF( p0.y, 0.0f, mSaveViewport.extent.y );
-   p1.x = mClampF( p1.x, 0.0f, mSaveViewport.extent.x );
-   p1.y = mClampF( p1.y, 0.0f, mSaveViewport.extent.y );
+   p0.x = mClamp( p0.x, 0.0f, (F32)mSaveViewport.extent.x );
+   p0.y = mClamp( p0.y, 0.0f, (F32)mSaveViewport.extent.y );
+   p1.x = mClamp( p1.x, 0.0f, (F32)mSaveViewport.extent.x );
+   p1.y = mClamp( p1.y, 0.0f, (F32)mSaveViewport.extent.y );
    p0.z = p1.z = 0.0f;
 
    _drawLine( p0, p1, color, width );

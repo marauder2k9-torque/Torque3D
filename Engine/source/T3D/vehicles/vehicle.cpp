@@ -735,10 +735,10 @@ void Vehicle::updateMove(const Move* move)
    // Steering
    if (move != &NullMove) {
       F32 y = move->yaw;
-      mSteering.x = mClampF(mSteering.x + y,-mDataBlock->maxSteeringAngle,
+      mSteering.x = mClamp(mSteering.x + y,-mDataBlock->maxSteeringAngle,
                             mDataBlock->maxSteeringAngle);
       F32 p = move->pitch;
-      mSteering.y = mClampF(mSteering.y + p,-mDataBlock->maxSteeringAngle,
+      mSteering.y = mClamp(mSteering.y + p,-mDataBlock->maxSteeringAngle,
                             mDataBlock->maxSteeringAngle);
    }
    else {
@@ -969,7 +969,7 @@ U32 Vehicle::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
    }
 
    
-   stream->writeFloat(mClampF(getEnergyValue(), 0.f, 1.f), 8);
+   stream->writeFloat(mClamp(getEnergyValue(), 0.f, 1.f), 8);
 
    return retMask;
 }

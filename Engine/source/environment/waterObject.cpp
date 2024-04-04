@@ -455,7 +455,7 @@ bool WaterObject::_checkDensity( void *object, const char *index, const char *da
    //Water densities above 1000 shoot the player high and fast into the air.
    //value clamped to prevent errors.
    WaterObject *water = static_cast<WaterObject*>( object );
-   water->mDensity = mClampF(dAtof( data ), 0.0f, 1000.0f);
+   water->mDensity = mClamp(dAtof( data ), 0.0f, 1000.0f);
 
    return false;
 }

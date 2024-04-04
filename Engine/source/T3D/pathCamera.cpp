@@ -300,7 +300,7 @@ void PathCamera::getCameraTransform(F32* pos, MatrixF* mat)
 
 void PathCamera::setPosition(F32 pos)
 {
-   mPosition = mClampF(pos, (F32)mNodeBase, (F32)(mNodeBase + mNodeCount - 1));
+   mPosition = mClamp(pos, (F32)mNodeBase, (F32)(mNodeBase + mNodeCount - 1));
    MatrixF mat;
    interpolateMat(mPosition,&mat);
    Parent::setTransform(mat);

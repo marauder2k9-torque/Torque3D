@@ -165,7 +165,7 @@ void afxXM_BoxAdapt::updateParams(F32 dt, F32 elapsed, afxXM_Params& params)
   F32 x_dim = obj_box.len_x()*obj_scale.x;
   F32 y_dim = obj_box.len_y()*obj_scale.y;
 
-  F32 dim = mClampF(getMax(x_dim, y_dim), dim_range.x, dim_range.y);
+  F32 dim = mClamp(getMax(x_dim, y_dim), dim_range.x, dim_range.y);
   dim *= scale_factor*wt_factor*0.5f;
 
   //Con::printf("SET liveScaleFactor=%g x_dim=%g, y_dim=%g", dim, obj_box.len_x(), obj_box.len_y());

@@ -421,11 +421,11 @@ bool ParticleData::protectedSetSizes( void *object, const char *index, const cha
    U32 i;
 
    if (!index)
-      return (val >= 0.f && val <= MaxParticleSize);
+      return (val >= 0.f && val <= (F32)MaxParticleSize);
    else
       i = dAtoui(index);
 
-   pData->sizes[i] = mClampF( val, 0.f, MaxParticleSize );
+   pData->sizes[i] = mClamp( val, 0.f, (F32)MaxParticleSize );
 
    return false;
 }
@@ -441,7 +441,7 @@ bool ParticleData::protectedSetTimes( void *object, const char *index, const cha
    else
       i = dAtoui(index);
 
-   pData->times[i] = mClampF( val, 0.f, 1.f );
+   pData->times[i] = mClamp( val, 0.f, 1.f );
 
    return false;
 }
@@ -561,7 +561,7 @@ bool ParticleData::onAdd()
    start_angle = mFmod(start_angle, 360.0f);
    if (start_angle < 0.0f)
      start_angle += 360.0f;
-   angle_variance = mClampF(angle_variance, -180.0f, 180.0f);
+   angle_variance = mClamp(angle_variance, -180.0f, 180.0f);
    return true;
 }
 

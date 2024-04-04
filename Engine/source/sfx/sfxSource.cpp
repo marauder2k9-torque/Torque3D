@@ -1020,16 +1020,16 @@ void SFXSource::_setMinMaxDistance( F32 min, F32 max )
 
 void SFXSource::_setCone( F32 innerAngle, F32 outerAngle, F32 outerVolume )
 {
-   mConeInsideAngle = mClampF( innerAngle, 0.0, 360.0 );
-   mConeOutsideAngle = mClampF( outerAngle, mConeInsideAngle, 360.0 );
-   mConeOutsideVolume = mClampF( outerVolume, 0.0, 1.0 );
+   mConeInsideAngle = mClamp( innerAngle, 0.0f, 360.0f );
+   mConeOutsideAngle = mClamp( outerAngle, mConeInsideAngle, 360.0f );
+   mConeOutsideVolume = mClamp( outerVolume, 0.0f, 1.0f );
 }
 
 //-----------------------------------------------------------------------------
 
 void SFXSource::_setVolume( F32 volume )
 {
-   mVolume = mClampF( volume, 0.f, 1.f );
+   mVolume = mClamp( volume, 0.f, 1.f );
    mPreFadeVolume = mVolume;
    _updateVolume( SFX->getListener( 0 ).getTransform() );
 }
@@ -1038,7 +1038,7 @@ void SFXSource::_setVolume( F32 volume )
 
 void SFXSource::setModulativeVolume( F32 value )
 {
-   mModulativeVolume = mClampF( value, 0.f, 1.f );
+   mModulativeVolume = mClamp( value, 0.f, 1.f );
    _updateVolume( SFX->getListener( 0 ).getTransform() );
 }
 
@@ -1046,7 +1046,7 @@ void SFXSource::setModulativeVolume( F32 value )
 
 void SFXSource::_setPitch( F32 pitch )
 {
-   mPitch = mClampF( pitch, 0.001f, 2.0f );
+   mPitch = mClamp( pitch, 0.001f, 2.0f );
    _updatePitch();
 }
 
@@ -1054,7 +1054,7 @@ void SFXSource::_setPitch( F32 pitch )
 
 void SFXSource::setModulativePitch( F32 value )
 {
-   mModulativePitch = mClampF( value, 0.001f, 2.0f );
+   mModulativePitch = mClamp( value, 0.001f, 2.0f );
    _updatePitch();
 }
 

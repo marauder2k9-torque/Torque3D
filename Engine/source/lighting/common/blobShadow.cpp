@@ -294,7 +294,7 @@ void BlobShadow::buildPartition(const Point3F & p, const Point3F & lightDir, F32
 
    F32 visibleAlpha = 255.0f;
    if (mShapeBase && mShapeBase->getFadeVal())
-      visibleAlpha = mClampF(255.0f * mShapeBase->getFadeVal(), 0, 255);
+      visibleAlpha = mClamp(255.0f * mShapeBase->getFadeVal(), 0.f, 255.f);
    visibleAlpha *= 1.0f - (dist / gBlobShadowSphere.radius);
    F32 invRadius = 1.0f / radius;
    for (S32 i=0; i<mPartitionVerts.size(); i++)

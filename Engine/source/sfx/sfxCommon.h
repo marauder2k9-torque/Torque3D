@@ -385,33 +385,33 @@ public:
 
    void validate()
    {
-      flDensity = mClampF(flDensity, 0.0f, 1.0f);
-      flDiffusion = mClampF(flDiffusion, 0.0f, 1.0f);
-      flGain = mClampF(flGain, 0.0f, 1.0f);
-      flGainHF = mClampF(flGainHF, 0.0f, 1.0f);
-      flGainLF = mClampF(flGainLF, 0.0f, 1.0f);
-      flDecayTime = mClampF(flDecayTime, 0.1f, 20.0f);
-      flDecayHFRatio = mClampF(flDecayHFRatio, 0.1f, 2.0f);
-      flDecayLFRatio = mClampF(flDecayLFRatio, 0.1f, 2.0f);
-      flReflectionsGain = mClampF(flReflectionsGain, 0.0f, 3.16f);
-      flReflectionsDelay = mClampF(flReflectionsDelay, 0.0f, 0.3f);
-      flReflectionsPan[0] = mClampF(flReflectionsPan[0], -1.0f, 1.0f);
-      flReflectionsPan[1] = mClampF(flReflectionsPan[1], -1.0f, 1.0f);
-      flReflectionsPan[2] = mClampF(flReflectionsPan[2], -1.0f, 1.0f);
-      flLateReverbGain = mClampF(flLateReverbGain, 0.0f, 10.0f);
-      flLateReverbDelay = mClampF(flLateReverbDelay, 0.0f, 0.1f);
-      flLateReverbPan[0] = mClampF(flLateReverbPan[0], -1.0f, 1.0f);
-      flLateReverbPan[1] = mClampF(flLateReverbPan[1], -1.0f, 1.0f);
-      flLateReverbPan[2] = mClampF(flLateReverbPan[2], -1.0f, 1.0f);
-      flEchoTime = mClampF(flEchoTime, 0.075f, 0.25f);
-      flEchoDepth = mClampF(flEchoDepth, 0.0f, 1.0f);
-      flModulationTime = mClampF(flModulationTime, 0.04f, 4.0f);
-      flModulationDepth = mClampF(flModulationDepth, 0.0f, 1.0f);
-      flAirAbsorptionGainHF = mClampF(flAirAbsorptionGainHF, 0.892f, 1.0f);
-      flHFReference = mClampF(flHFReference, 1000.0f, 20000.0f);
-      flLFReference = mClampF(flLFReference, 20.0f, 1000.0f);
-      flRoomRolloffFactor = mClampF(flRoomRolloffFactor, 0.0f, 10.0f);
-      iDecayHFLimit = mClampF(iDecayHFLimit, 0, 1);
+      flDensity = mClamp(flDensity, 0.0f, 1.0f);
+      flDiffusion = mClamp(flDiffusion, 0.0f, 1.0f);
+      flGain = mClamp(flGain, 0.0f, 1.0f);
+      flGainHF = mClamp(flGainHF, 0.0f, 1.0f);
+      flGainLF = mClamp(flGainLF, 0.0f, 1.0f);
+      flDecayTime = mClamp(flDecayTime, 0.1f, 20.0f);
+      flDecayHFRatio = mClamp(flDecayHFRatio, 0.1f, 2.0f);
+      flDecayLFRatio = mClamp(flDecayLFRatio, 0.1f, 2.0f);
+      flReflectionsGain = mClamp(flReflectionsGain, 0.0f, 3.16f);
+      flReflectionsDelay = mClamp(flReflectionsDelay, 0.0f, 0.3f);
+      flReflectionsPan[0] = mClamp(flReflectionsPan[0], -1.0f, 1.0f);
+      flReflectionsPan[1] = mClamp(flReflectionsPan[1], -1.0f, 1.0f);
+      flReflectionsPan[2] = mClamp(flReflectionsPan[2], -1.0f, 1.0f);
+      flLateReverbGain = mClamp(flLateReverbGain, 0.0f, 10.0f);
+      flLateReverbDelay = mClamp(flLateReverbDelay, 0.0f, 0.1f);
+      flLateReverbPan[0] = mClamp(flLateReverbPan[0], -1.0f, 1.0f);
+      flLateReverbPan[1] = mClamp(flLateReverbPan[1], -1.0f, 1.0f);
+      flLateReverbPan[2] = mClamp(flLateReverbPan[2], -1.0f, 1.0f);
+      flEchoTime = mClamp(flEchoTime, 0.075f, 0.25f);
+      flEchoDepth = mClamp(flEchoDepth, 0.0f, 1.0f);
+      flModulationTime = mClamp(flModulationTime, 0.04f, 4.0f);
+      flModulationDepth = mClamp(flModulationDepth, 0.0f, 1.0f);
+      flAirAbsorptionGainHF = mClamp(flAirAbsorptionGainHF, 0.892f, 1.0f);
+      flHFReference = mClamp(flHFReference, 1000.0f, 20000.0f);
+      flLFReference = mClamp(flLFReference, 20.0f, 1000.0f);
+      flRoomRolloffFactor = mClamp(flRoomRolloffFactor, 0.0f, 10.0f);
+      iDecayHFLimit = mClamp(iDecayHFLimit, 0, 1);
    }
 };
 
@@ -489,33 +489,33 @@ public:
 
    void validate()
    {
-      flDensity = mClampF(flDensity, 0.0f, 1.0f);
-      flDiffusion = mClampF(flDiffusion, 0.0f, 1.0f);
-      flGain = mClampF(flGain, 0.0f, 1.0f);
-      flGainHF = mClampF(flGainHF, 0.0f, 1.0f);
-      flGainLF = mClampF(flGainLF, 0.0f, 1.0f);
-      flDecayTime = mClampF(flDecayTime, 0.1f, 20.0f);
-      flDecayHFRatio = mClampF(flDecayHFRatio, 0.1f, 2.0f);
-      flDecayLFRatio = mClampF(flDecayLFRatio, 0.1f, 2.0f);
-      flReflectionsGain = mClampF(flReflectionsGain, 0.0f, 3.16f);
-      flReflectionsDelay = mClampF(flReflectionsDelay, 0.0f, 0.3f);
-      flReflectionsPan[0] = mClampF(flReflectionsPan[0], -1.0f, 1.0f);
-      flReflectionsPan[1] = mClampF(flReflectionsPan[1], -1.0f, 1.0f);
-      flReflectionsPan[2] = mClampF(flReflectionsPan[2], -1.0f, 1.0f);
-      flLateReverbGain = mClampF(flLateReverbGain, 0.0f, 10.0f);
-      flLateReverbDelay = mClampF(flLateReverbDelay, 0.0f, 0.1f);
-      flLateReverbPan[0] = mClampF(flLateReverbPan[0], -1.0f, 1.0f);
-      flLateReverbPan[1] = mClampF(flLateReverbPan[1], -1.0f, 1.0f);
-      flLateReverbPan[2] = mClampF(flLateReverbPan[2], -1.0f, 1.0f);
-      flEchoTime = mClampF(flEchoTime, 0.075f, 0.25f);
-      flEchoDepth = mClampF(flEchoDepth, 0.0f, 1.0f);
-      flModulationTime = mClampF(flModulationTime, 0.04f, 4.0f);
-      flModulationDepth = mClampF(flModulationDepth, 0.0f, 1.0f);
-      flAirAbsorptionGainHF = mClampF(flAirAbsorptionGainHF, 0.892f, 1.0f);
-      flHFReference = mClampF(flHFReference, 1000.0f, 20000.0f);
-      flLFReference = mClampF(flLFReference, 20.0f, 1000.0f);
-      flRoomRolloffFactor = mClampF(flRoomRolloffFactor, 0.0f, 10.0f);
-      iDecayHFLimit = mClampF(iDecayHFLimit, 0, 1);
+      flDensity = mClamp(flDensity, 0.0f, 1.0f);
+      flDiffusion = mClamp(flDiffusion, 0.0f, 1.0f);
+      flGain = mClamp(flGain, 0.0f, 1.0f);
+      flGainHF = mClamp(flGainHF, 0.0f, 1.0f);
+      flGainLF = mClamp(flGainLF, 0.0f, 1.0f);
+      flDecayTime = mClamp(flDecayTime, 0.1f, 20.0f);
+      flDecayHFRatio = mClamp(flDecayHFRatio, 0.1f, 2.0f);
+      flDecayLFRatio = mClamp(flDecayLFRatio, 0.1f, 2.0f);
+      flReflectionsGain = mClamp(flReflectionsGain, 0.0f, 3.16f);
+      flReflectionsDelay = mClamp(flReflectionsDelay, 0.0f, 0.3f);
+      flReflectionsPan[0] = mClamp(flReflectionsPan[0], -1.0f, 1.0f);
+      flReflectionsPan[1] = mClamp(flReflectionsPan[1], -1.0f, 1.0f);
+      flReflectionsPan[2] = mClamp(flReflectionsPan[2], -1.0f, 1.0f);
+      flLateReverbGain = mClamp(flLateReverbGain, 0.0f, 10.0f);
+      flLateReverbDelay = mClamp(flLateReverbDelay, 0.0f, 0.1f);
+      flLateReverbPan[0] = mClamp(flLateReverbPan[0], -1.0f, 1.0f);
+      flLateReverbPan[1] = mClamp(flLateReverbPan[1], -1.0f, 1.0f);
+      flLateReverbPan[2] = mClamp(flLateReverbPan[2], -1.0f, 1.0f);
+      flEchoTime = mClamp(flEchoTime, 0.075f, 0.25f);
+      flEchoDepth = mClamp(flEchoDepth, 0.0f, 1.0f);
+      flModulationTime = mClamp(flModulationTime, 0.04f, 4.0f);
+      flModulationDepth = mClamp(flModulationDepth, 0.0f, 1.0f);
+      flAirAbsorptionGainHF = mClamp(flAirAbsorptionGainHF, 0.892f, 1.0f);
+      flHFReference = mClamp(flHFReference, 1000.0f, 20000.0f);
+      flLFReference = mClamp(flLFReference, 20.0f, 1000.0f);
+      flRoomRolloffFactor = mClamp(flRoomRolloffFactor, 0.0f, 10.0f);
+      iDecayHFLimit = mClamp(iDecayHFLimit, 0, 1);
    }
 };
 
@@ -584,8 +584,8 @@ class SFXMaterialProperties
       
       void validate()
       {
-         mDirectOcclusion = mClampF( mDirectOcclusion, 0.0f, 1.0f );
-         mReverbOcclusion = mClampF( mReverbOcclusion, 0.0f, 1.0f );
+         mDirectOcclusion = mClamp( mDirectOcclusion, 0.0f, 1.0f );
+         mReverbOcclusion = mClamp( mReverbOcclusion, 0.0f, 1.0f );
       }
 };
 
@@ -604,7 +604,7 @@ struct SFXVariantFloat
       
    /// Variance of value.  Final value will be
    ///
-   ///   mClampF( randF( mValue + mVariance[ 0 ], mValue + mVariance[ 1 ] ), min, max )
+   ///   mClamp( randF( mValue + mVariance[ 0 ], mValue + mVariance[ 1 ] ), min, max )
    ///
    /// with min and max being dependent on the context of the value.
    F32 mVariance[ NUM_VALUES ][ 2 ];
@@ -613,7 +613,7 @@ struct SFXVariantFloat
    {
       AssertFatal( index < NUM_VALUES, "SFXVariantFloat::getValue() - index out of range!" );
       
-      return mClampF( gRandGen.randF( mValue[ index ] + mVariance[ index ][ 0 ],
+      return mClamp( gRandGen.randF( mValue[ index ] + mVariance[ index ][ 0 ],
                                       mValue[ index ] + mVariance[ index ][ 1 ] ),
                       min, max );
    }

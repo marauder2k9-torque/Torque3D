@@ -427,10 +427,10 @@ inline void LinearColorF::interpolate(const LinearColorF& in_rC1,
 
 inline void LinearColorF::clamp()
 {
-   red = mClampF(red, 0.0f, 1.0f);
-   green = mClampF(green, 0.0f, 1.0f);
-   blue = mClampF(blue, 0.0f, 1.0f);
-   alpha = mClampF(alpha, 0.0f, 1.0f);
+   red = mClamp(red, 0.0f, 1.0f);
+   green = mClamp(green, 0.0f, 1.0f);
+   blue = mClamp(blue, 0.0f, 1.0f);
+   alpha = mClamp(alpha, 0.0f, 1.0f);
 }
 
 inline F32 LinearColorF::luminance()

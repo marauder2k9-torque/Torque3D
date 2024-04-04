@@ -460,8 +460,8 @@ void TerrCell::_updateVertexBuffer()
          // We clamp here to keep the geometry from reading across
          // one side of the height map to the other causing walls
          // around the edges of the terrain.
-         gridPt.x = mClamp( mPoint.x + x * stepSize, 0, blockSize - 1 );
-         gridPt.y = mClamp( mPoint.y + y * stepSize, 0, blockSize - 1 );
+         gridPt.x = mClamp( mPoint.x + x * stepSize, 0u, blockSize - 1 );
+         gridPt.y = mClamp( mPoint.y + y * stepSize, 0u, blockSize - 1 );
 
          // Setup this point.
          point.x = (F32)gridPt.x * squareSize;
@@ -498,8 +498,8 @@ void TerrCell::_updateVertexBuffer()
    // Top edge skirt
    for ( U32 i = 0; i < smVBStride; i++ )
    {      
-      gridPt.x = mClamp( mPoint.x + i * stepSize, 0, blockSize - 1 );
-      gridPt.y = mClamp( mPoint.y, 0, blockSize - 1 );
+      gridPt.x = mClamp( mPoint.x + i * stepSize, 0u, blockSize - 1 );
+      gridPt.y = mClamp( (U32)mPoint.y, 0u, blockSize - 1 );
       
       point.x = (F32)gridPt.x * squareSize;
       point.y = (F32)gridPt.y * squareSize;
@@ -522,8 +522,8 @@ void TerrCell::_updateVertexBuffer()
    // Bottom edge skirt
    for ( U32 i = 0; i < smVBStride; i++ )
    {      
-      gridPt.x = mClamp( mPoint.x + i * stepSize, 0, blockSize - 1 );
-      gridPt.y = mClamp( mPoint.y + smMinCellSize * stepSize, 0, blockSize - 1 );
+      gridPt.x = mClamp( mPoint.x + i * stepSize, 0u, blockSize - 1 );
+      gridPt.y = mClamp( mPoint.y + smMinCellSize * stepSize, 0u, blockSize - 1 );
 
       point.x = (F32)gridPt.x * squareSize;
       point.y = (F32)gridPt.y * squareSize;
@@ -546,8 +546,8 @@ void TerrCell::_updateVertexBuffer()
    // Left edge skirt
    for ( U32 i = 0; i < smVBStride; i++ )
    {      
-      gridPt.x = mClamp( mPoint.x, 0, blockSize - 1 );
-      gridPt.y = mClamp( mPoint.y + i * stepSize, 0, blockSize - 1 );
+      gridPt.x = mClamp( (U32)mPoint.x, 0u, blockSize - 1 );
+      gridPt.y = mClamp( mPoint.y + i * stepSize, 0u, blockSize - 1 );
 
       point.x = (F32)gridPt.x * squareSize;
       point.y = (F32)gridPt.y * squareSize;
@@ -570,8 +570,8 @@ void TerrCell::_updateVertexBuffer()
    // Right edge skirt
    for ( U32 i = 0; i < smVBStride; i++ )
    {      
-      gridPt.x = mClamp( mPoint.x + smMinCellSize * stepSize, 0, blockSize - 1 );
-      gridPt.y = mClamp( mPoint.y + i * stepSize, 0, blockSize - 1 );
+      gridPt.x = mClamp( mPoint.x + smMinCellSize * stepSize, 0u, blockSize - 1 );
+      gridPt.y = mClamp( mPoint.y + i * stepSize, 0u, blockSize - 1 );
 
       point.x = (F32)gridPt.x * squareSize;
       point.y = (F32)gridPt.y * squareSize;
@@ -1186,8 +1186,8 @@ void TerrCell::createZodiacVertexBuffer()
          // We clamp here to keep the geometry from reading across
          // one side of the height map to the other causing walls
          // around the edges of the terrain.
-         gridPt.x = mClamp( mPoint.x + x * stepSize, 0, blockSize - 1 );
-         gridPt.y = mClamp( mPoint.y + y * stepSize, 0, blockSize - 1 );
+         gridPt.x = mClamp( mPoint.x + x * stepSize, 0u, blockSize - 1 );
+         gridPt.y = mClamp( mPoint.y + y * stepSize, 0u, blockSize - 1 );
 
          // Setup this point.
          point.x = (F32)gridPt.x * squareSize;

@@ -189,8 +189,8 @@ void WindowInputGenerator::handleMouseMove( WindowId did, U32 modifier, S32 x, S
       if( mClampToWindow )
       {
          Point2I winExtent = mWindow->getClientExtent();
-         x = mClampF(x, 0.0f, F32(winExtent.x  - 1));
-         y = mClampF(y, 0.0f, F32(winExtent.y  - 1));
+         x = mClamp((F32)x, 0.0f, F32(winExtent.x  - 1));
+         y = mClamp((F32)y, 0.0f, F32(winExtent.y  - 1));
 
       }
 

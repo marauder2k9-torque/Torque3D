@@ -158,7 +158,7 @@ void ForestWind::processTick()
    else
    {
       mCurrentInterp += deltaTime;
-      mCurrentInterp = mClampF( mCurrentInterp, 0.0f, 1.0f );
+      mCurrentInterp = mClamp( mCurrentInterp, 0.0f, 1.0f );
       mDirection.interpolate( mDirection, Point3F( mCurrentTarget.x, mCurrentTarget.y, 0 ), mCurrentInterp );
       //F32 rotateAmt = mLerp( 0, mTargetYawAngle, mCurrentInterp );
 

@@ -243,12 +243,20 @@ inline F64 mFmod(const F64 val, const F64 mod)
    return (F64) fmod(val, mod);
 }
 //---------------------------------------
-
+// Equal
 template<typename T>
 inline bool mIsEqual(T a, T b, const T epsilon = std::numeric_limits<T>::epsilon()) {
     T diff = a - b;
     return mAbs(static_cast<T>(diff)) <= epsilon;
 }
+//---------------------------------------
+// Clamp
+template<typename T>
+inline T mClamp(T val, T low, T high)
+{
+   return mMax(mMin(val, high), low);
+}
+
 
 //inline bool mIsEqual( F32 a, F32 b, const F32 epsilon = __EQUAL_CONST_F )
 //{
@@ -286,21 +294,6 @@ inline F32 mRoundF(const F32 val, const F32 step)
 inline F32 mRoundToNearest( const F32 val )
 {
    return mFloor( val + .5f );
-}
-
-inline S32 mClamp(S32 val, S32 low, S32 high)
-{
-   return getMax(getMin(val, high), low);
-}
-
-inline U32 mClampU(U32 val, U32 low, U32 high)
-{
-   return getMax(getMin(val, high), low);
-}
-
-inline F32 mClampF(F32 val, F32 low, F32 high)
-{
-   return (F32) getMax(getMin(val, high), low);
 }
 
 inline S32 mWrap(S32 val, S32 low, S32 high)

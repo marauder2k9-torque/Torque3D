@@ -80,7 +80,7 @@ void WindDeformationConstHandles::setConsts( SceneRenderState *state,
       // Calculate distance to camera fade.   
       F32 toCamLen = ( state->getDiffuseCameraPosition() - wind->getPosition()).len();
       F32 toCamInterp = 1.0f - (toCamLen / ForestWindMgr::smWindEffectRadius);
-      toCamInterp = mClampF( toCamInterp, 0.0f, 1.0f );
+      toCamInterp = mClamp( toCamInterp, 0.0f, 1.0f );
 
       windDir.set( wind->getDirection().x, wind->getDirection().y, 0.0f );
       windSpeed = wind->getStrength();

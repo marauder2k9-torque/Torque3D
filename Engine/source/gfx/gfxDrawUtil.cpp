@@ -615,7 +615,7 @@ void GFXDrawUtil::drawRoundedRect(const F32& cornerRadius,
    F32 radius = cornerRadius;
    if ((minExtent * 0.5) < radius)
    {
-      radius = mClampF(radius, 0.0f, (minExtent * 0.5));
+      radius = mClamp(radius, 0.0f, (minExtent * 0.5f));
    }
 
    mRoundRectangleShaderConsts->set(mRoundRectangleShader->getShaderConstHandle("$modelView"), tempMatrix, GFXSCT_Float4x4);
@@ -730,7 +730,7 @@ void GFXDrawUtil::drawCircleFill(const Point2F& upperLeft, const Point2F& lowerR
 
    if ((minExtent * 0.5) < shaderRadius)
    {
-      shaderRadius = mClampF(radius, 0.0f, (minExtent * 0.5));
+      shaderRadius = mClamp(radius, 0.0f, (minExtent * 0.5f));
    }
 
    mCircleShaderConsts->set(mCircleShader->getShaderConstHandle("$modelView"), tempMatrix, GFXSCT_Float4x4);

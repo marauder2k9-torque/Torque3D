@@ -296,7 +296,7 @@ DefineEngineFunction( mClamp, F32, ( F32 v, F32 min, F32 max ),,
     "@returns The specified value clamped to the specified bounds."
     "@ingroup Math" )
 {
-   return mClampF( v, min, max );
+   return mClamp( v, min, max );
 }
 
 DefineEngineFunction( mSaturate, F32, ( F32 v ),,
@@ -305,7 +305,7 @@ DefineEngineFunction( mSaturate, F32, ( F32 v ),,
     "@returns The specified value clamped between 0 and 1 (inclusive)."
     "@ingroup Math" )
 {
-   return mClampF( v, 0.0f, 1.0f );
+   return mClamp( v, 0.0f, 1.0f );
 }
 
 DefineEngineFunction(mWrapF, F32, (F32 v, F32 min, F32 max), ,

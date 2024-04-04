@@ -2085,7 +2085,7 @@ void TerrainEditor::setBrushSize( S32 w, S32 h )
 
 void TerrainEditor::setBrushPressure( F32 pressure )
 {
-   pressure = mClampF( pressure, 0.01f, 1.0f );
+   pressure = mClamp( pressure, 0.01f, 1.0f );
 
    if ( mBrushPressure == pressure )
       return;
@@ -2099,7 +2099,7 @@ void TerrainEditor::setBrushPressure( F32 pressure )
 
 void TerrainEditor::setBrushSoftness( F32 softness )
 {
-   softness = mClampF( softness, 0.01f, 1.0f );
+   softness = mClamp( softness, 0.01f, 1.0f );
 
    if ( mBrushSoftness == softness )
       return;

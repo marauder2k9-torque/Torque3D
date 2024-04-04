@@ -799,7 +799,7 @@ void TerrainSmoothAction::smooth( TerrainBlock *terrain, F32 factor, U32 steps )
 DefineEngineMethod( TerrainSmoothAction, smooth, void, ( TerrainBlock *terrain, F32 factor, U32 steps ), , "( TerrainBlock obj, F32 factor, U32 steps )")
 {
 	if (terrain)
-   	object->smooth( terrain, factor, mClamp( steps, 1, 13 ) );
+   	object->smooth( terrain, factor, mClamp( steps, 1u, 13u ) );
 }
 
 void TerrainSmoothAction::undo()

@@ -306,19 +306,19 @@ bool ForestBrushTool::updateGuiInfo()
 
 void ForestBrushTool::setSize( F32 val )
 {
-   mSize = mClampF( val, 0.0f, 150.0f );
+   mSize = mClamp( val, 0.0f, 150.0f );
    Con::executef( this, "syncBrushToolbar" );
 }
 
 void ForestBrushTool::setPressure( F32 val )
 {   
-   mPressure = mClampF( val, 0.0f, 1.0f );
+   mPressure = mClamp( val, 0.0f, 1.0f );
    Con::executef( this, "syncBrushToolbar" );
 }
 
 void ForestBrushTool::setHardness( F32 val )
 {
-   mHardness = mClampF( val, 0.0f, 1.0f );
+   mHardness = mClamp( val, 0.0f, 1.0f );
    Con::executef( this, "syncBrushToolbar" );
 }
 
@@ -399,7 +399,7 @@ void ForestBrushTool::_paint( const Point3F &point )
       pElement = randElementSet.get();
       pData = pElement->mData;
 
-      scaleFactor =  mLerp( pElement->mScaleMin, pElement->mScaleMax, mClampF( mPow( mRandom.randF(), pElement->mScaleExponent ), 0.0f, 1.0f ) );
+      scaleFactor =  mLerp( pElement->mScaleMin, pElement->mScaleMax, mClamp( mPow( mRandom.randF(), pElement->mScaleExponent ), 0.0f, 1.0f ) );
       radius = getMax( pData->mRadius * scaleFactor, 0.1f );
       area = mCircleArea( radius );
 

@@ -97,9 +97,9 @@ void GFXCubemap::initNormalize( U32 size )
                ((F32(v) * stride) + start) * t[i];
             vector.normalizeSafe();
             vector = ((vector * 0.5) + Point3F(0.5, 0.5, 0.5)) * 255.0;
-            vector.x = mClampF(vector.x, 0.0f, 255.0f);
-            vector.y = mClampF(vector.y, 0.0f, 255.0f);
-            vector.z = mClampF(vector.z, 0.0f, 255.0f);
+            vector.x = mClamp(vector.x, 0.0f, 255.0f);
+            vector.y = mClamp(vector.y, 0.0f, 255.0f);
+            vector.z = mClamp(vector.z, 0.0f, 255.0f);
             // easy way to avoid knowledge of the format (RGB, RGBA, RGBX, ...)...
             U8 *bits = bitmap->getAddress(u, v);
             bits[0] = U8(vector.x);

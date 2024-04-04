@@ -2732,7 +2732,7 @@ void Player::updateMove(const Move* move)
          F32 p = move->pitch * (mPose == SprintPose ? mDataBlock->sprintPitchScale : 1.0f);
          if (p > M_PI_F) 
             p -= M_2PI_F;
-         mHead.x = mClampF(mHead.x + p,mDataBlock->minLookAngle,
+         mHead.x = mClamp(mHead.x + p,mDataBlock->minLookAngle,
                            mDataBlock->maxLookAngle);
 
          F32 y = move->yaw * (mPose == SprintPose ? mDataBlock->sprintYawScale : 1.0f);
@@ -2741,7 +2741,7 @@ void Player::updateMove(const Move* move)
 
          if (move->freeLook && ((isMounted() && getMountNode() == 0) || (con && !con->isFirstPerson())))
          {
-            mHead.z = mClampF(mHead.z + y,
+            mHead.z = mClamp(mHead.z + y,
                               -mDataBlock->maxFreelookAngle,
                               mDataBlock->maxFreelookAngle);
          }
@@ -3565,7 +3565,7 @@ void Player::updateLookAnimation(F32 dt)
       {
          F32 d = mDataBlock->maxLookAngle - mDataBlock->minLookAngle;
          F32 tp = (renderHead.x - mDataBlock->minLookAngle) / d;
-         mShapeInstance->setPos(mArmAnimation.thread,mClampF(tp,0,1));
+         mShapeInstance->setPos(mArmAnimation.thread,mClamp(tp,0.f,1.f));
       }
    }
    
@@ -3573,14 +3573,14 @@ void Player::updateLookAnimation(F32 dt)
    {
       F32 d = mDataBlock->maxLookAngle - mDataBlock->minLookAngle;
       F32 tp = (renderHead.x - mDataBlock->minLookAngle) / d;
-      mShapeInstance->setPos(mHeadVThread,mClampF(tp,0,1));
+      mShapeInstance->setPos(mHeadVThread,mClamp(tp,0.f,1.f));
    }
    
    if (mHeadHThread) 
    {
       F32 d = 2 * mDataBlock->maxFreelookAngle;
       F32 tp = (renderHead.z + mDataBlock->maxFreelookAngle) / d;
-      mShapeInstance->setPos(mHeadHThread,mClampF(tp,0,1));
+      mShapeInstance->setPos(mHeadHThread,mClamp(tp,0.f,1.f));
    }
 }
 

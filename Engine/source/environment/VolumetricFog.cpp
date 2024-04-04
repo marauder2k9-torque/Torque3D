@@ -1128,7 +1128,7 @@ void VolumetricFog::render(ObjectRenderInst *ri, SceneRenderState *state, BaseMa
 
    mShaderConsts->setSafe(mModelViewProjSC, xform);
    if (mFadeSize > 0.0f)
-      mShaderConsts->setSafe(mFadeSizeSC, mClampF(mPixelSize / mFadeSize, 0.0f, 1.0f));
+      mShaderConsts->setSafe(mFadeSizeSC, mClamp(mPixelSize / mFadeSize, 0.0f, 1.0f));
    else
       mShaderConsts->setSafe(mFadeSizeSC, 1.0f);
    mShaderConsts->setSafe(mFogColorSC, mFogColor);

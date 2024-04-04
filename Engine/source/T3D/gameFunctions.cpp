@@ -182,7 +182,7 @@ DefineEngineFunction( setDefaultFov, void, ( F32 defaultFOV ),,
             "@param defaultFOV The default field of view in degrees\n"
 				"@ingroup CameraSystem")
 {
-   CameraAndFOV::sDefaultFov = mClampF(defaultFOV, MinCameraFov, MaxCameraFov);
+   CameraAndFOV::sDefaultFov = mClamp(defaultFOV, MinCameraFov, MaxCameraFov);
    if(CameraAndFOV::sCameraFov == CameraAndFOV::sTargetFov)
       CameraAndFOV::sTargetFov = CameraAndFOV::sDefaultFov;
 }
@@ -194,7 +194,7 @@ DefineEngineFunction( setZoomSpeed, void, ( S32 speed ),,
             "@param speed The camera's zoom speed in ms per 90deg FOV change\n"
 				"@ingroup CameraSystem")
 {
-   CameraAndFOV::sZoomSpeed = mClamp(speed, 0, CameraAndFOV::MaxZoomSpeed);
+   CameraAndFOV::sZoomSpeed = mClamp(speed, 0, (S32)CameraAndFOV::MaxZoomSpeed);
 }
 
 DefineEngineFunction( setFov, void, ( F32 FOV ),,
@@ -202,7 +202,7 @@ DefineEngineFunction( setFov, void, ( F32 FOV ),,
             "@param FOV The camera's new FOV in degrees\n"
 				"@ingroup CameraSystem")
 {
-   CameraAndFOV::sTargetFov = mClampF(FOV, MinCameraFov, MaxCameraFov);
+   CameraAndFOV::sTargetFov = mClamp(FOV, MinCameraFov, MaxCameraFov);
 }
 
 F32 GameGetCameraFov()
@@ -346,7 +346,7 @@ bool GameProcessCameraQuery(CameraQuery *query)
 
       // Scale the normal visible distance by the performance 
       // tuning scale which we never let over 1.
-      CameraAndFOV::sVisDistanceScale = mClampF( CameraAndFOV::sVisDistanceScale, 0.01f, 1.0f );
+      CameraAndFOV::sVisDistanceScale = mClamp( CameraAndFOV::sVisDistanceScale, 0.01f, 1.0f );
       query->farPlane = gClientSceneGraph->getVisibleDistance() * CameraAndFOV::sVisDistanceScale;
 
       // Provide some default values

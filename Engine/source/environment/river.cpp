@@ -1377,7 +1377,7 @@ F32 River::getWaterCoverage( const Box3F &worldBox ) const
    }
 
    F32 height = worldBox.maxExtents.z - worldBox.minExtents.z;
-   F32 distance = mClampF( farthest, 0.0f, height );
+   F32 distance = mClamp( farthest, 0.0f, height );
    F32 coverage = distance / height;
 
    return coverage;   
@@ -1986,7 +1986,7 @@ void River::setNode(const Point3F &pos, const F32 &width, const F32 &depth, cons
 
 void River::setNodeWidth( U32 idx, F32 meters )
 {
-   meters = mClampF( meters, MIN_NODE_WIDTH, MAX_NODE_WIDTH );
+   meters = mClamp( meters, MIN_NODE_WIDTH, MAX_NODE_WIDTH );
 
    if ( mNodes.size() - 1 < idx )
       return;
@@ -2018,7 +2018,7 @@ F32 River::getNodeWidth( U32 idx ) const
 
 void River::setNodeDepth( U32 idx, F32 meters )
 {
-   meters = mClampF( meters, MIN_NODE_DEPTH, MAX_NODE_DEPTH );
+   meters = mClamp( meters, MIN_NODE_DEPTH, MAX_NODE_DEPTH );
    
    if ( mNodes.size() - 1 < idx )
       return;

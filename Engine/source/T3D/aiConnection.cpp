@@ -123,7 +123,7 @@ static inline F32 moveClamp(F32 v)
 {
    // Support function to convert/clamp the input into a move rotation
    // which only allows 0 -> M_2PI.
-   F32 a = mClampF(v, -M_2PI_F, M_2PI_F);
+   F32 a = mClamp(v, -M_2PI_F, M_2PI_F);
    return (a < 0) ? a + M_2PI_F : a;
 }
 
@@ -169,13 +169,13 @@ DefineEngineMethod(AIConnection, setMove, void, (const char * field, F32 value),
 
    // Ok, a little slow for now, but this is just an example..
    if (!dStricmp(field,"x"))
-      move.x = mClampF(value,-1,1);
+      move.x = mClamp(value,-1.f,1.f);
       else
    if (!dStricmp(field,"y"))
-      move.y = mClampF(value,-1,1);
+      move.y = mClamp(value,-1.f,1.f);
       else
    if (!dStricmp(field,"z"))
-      move.z = mClampF(value,-1,1);
+      move.z = mClamp(value,-1.f,1.f);
       else
    if (!dStricmp(field,"yaw"))
       move.yaw = moveClamp(value);

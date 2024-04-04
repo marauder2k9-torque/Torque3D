@@ -172,7 +172,7 @@ void GuiCrossHairHud::drawDamage(Point2I offset, F32 damage, F32 opacity)
 
    // Damage should be 0->1 (0 being no damage,or healthy), but
    // we'll just make sure here as we flip it.
-   damage = mClampF(1 - damage, 0, 1);
+   damage = mClamp(1 - damage, 0.f, 1.f);
 
    // Center the bar
    RectI rect(offset, mDamageRectSize);

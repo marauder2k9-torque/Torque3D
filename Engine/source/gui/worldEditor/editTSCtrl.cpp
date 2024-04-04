@@ -1280,7 +1280,7 @@ DefineEngineMethod( EditTSCtrl, renderCircle, void, ( Point3F pos, Point3F norma
    {
       mCross( normal, Point3F(0,0,1), &aa.axis );
       aa.axis.normalizeSafe();
-      aa.angle = mAcos( mClampF( dotUp, -1.f, 1.f ) );
+      aa.angle = mAcos( mClamp( dotUp, -1.f, 1.f ) );
    }
 
    MatrixF mat;

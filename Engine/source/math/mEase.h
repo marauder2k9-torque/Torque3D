@@ -98,7 +98,7 @@ class EaseF : public Ease
    {
        F32 v = getValue(t,0.0f,1.0f,1.0f);
        if (noExtrapolation)
-           v = mClampF(v,0.0f,1.0f);
+           v = mClamp(v,0.0f,1.0f);
        return v;
    }
    F32 getUnitValue(F32 t) const

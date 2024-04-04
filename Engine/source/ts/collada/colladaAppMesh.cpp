@@ -825,7 +825,7 @@ void ColladaAppMesh::getMorphVertexData(const domMorph* morph, F32 time, const M
       }
 
       // Result = Base*(1.0-w1-w2 ... -wN) + w1*Target1 + w2*Target2 ... + wN*TargetN
-      weightSum = mClampF(1.0f - weightSum, 0.0f, 1.0f);
+      weightSum = mClamp(1.0f - weightSum, 0.0f, 1.0f);
 
       for (S32 iVert = 0; iVert < vertTuples.size(); iVert++) {
          points_array[iVert] *= weightSum;

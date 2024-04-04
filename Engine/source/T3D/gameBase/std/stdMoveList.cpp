@@ -48,7 +48,7 @@ void StdMoveList::clearMoves(U32 count)
 {
    if (!mConnection->isConnectionToServer())
    {
-      count = mClamp(count,0,mMoveCredit);
+      count = mClamp(count,0u,mMoveCredit);
       mMoveCredit -= count;
    }
 

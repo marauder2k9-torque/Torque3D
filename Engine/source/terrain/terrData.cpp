@@ -333,7 +333,7 @@ bool TerrainBlock::_setLightMapSize( void *obj, const char *index, const char *d
 
    // Limit the lightmap size, and ensure it is a power of 2
    const U32 maxTextureSize = GFX->getCardProfiler()->queryProfile( "maxTextureSize", 1024 );
-   mapSize = mClamp( getNextPow2( mapSize ), 0, maxTextureSize );
+   mapSize = mClamp( getNextPow2( mapSize ), 0u, maxTextureSize );
 
    if ( terrain->mLightMapSize != mapSize )
    {

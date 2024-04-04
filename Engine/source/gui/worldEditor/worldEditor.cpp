@@ -1653,7 +1653,7 @@ void WorldEditor::renderScreenObj( SceneObject *obj, const Point3F& projPos, con
          if( dist > mFadeIconsDist )
          {
             F32 iconDist = dist - mFadeIconsDist;
-            iconAlpha = mClampF( 255 - ( 255 * ( iconDist / 10.f ) ), 0.f, 255.f );
+            iconAlpha = mClamp( 255 - ( 255 * ( iconDist / 10.f ) ), 0.f, 255.f );
          }
       }
 

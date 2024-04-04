@@ -222,7 +222,7 @@ inline QuatF& QuatF::neg()
 
 inline F32 QuatF::dot( const QuatF &q ) const
 {
-   return mClampF(w*q.w + x*q.x + y*q.y + z*q.z, -1.0f, 1.0f);
+   return mClamp(w*q.w + x*q.x + y*q.y + z*q.z, -1.0f, 1.0f);
 }
 
 inline F32 QuatF::angleBetween( const QuatF & q )

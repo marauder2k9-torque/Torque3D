@@ -462,7 +462,7 @@ void TurretShape::updateAnimation(F32 dt)
       if (!mIsZero(d))
       {
          F32 pos = (mRot.x - mPitchUp) / d;
-         mShapeInstance->setPos(mPitchThread, mClampF(pos, 0.0f, 1.0f));
+         mShapeInstance->setPos(mPitchThread, mClamp(pos, 0.0f, 1.0f));
       }
    }
    if (mHeadingThread)
@@ -491,7 +491,7 @@ void TurretShape::updateAnimation(F32 dt)
             pos = mFmod(pos, 1.0f);
          }
       }
-      mShapeInstance->setPos(mHeadingThread, mClampF(pos, 0.0f, 1.0f));
+      mShapeInstance->setPos(mHeadingThread, mClamp(pos, 0.0f, 1.0f));
    }
 }
 
@@ -865,10 +865,10 @@ void TurretShape::_updateNodes(const Point3F& rot)
 
 void TurretShape::_applyLimits(Point3F& rot)
 {
-   rot.x = mClampF(rot.x, mPitchUp, mPitchDown);
+   rot.x = mClamp(rot.x, mPitchUp, mPitchDown);
    if (mHeadingMax < mDegToRad(180.0f))
    {
-      rot.z = mClampF(rot.z, -mHeadingMax, mHeadingMax);
+      rot.z = mClamp(rot.z, -mHeadingMax, mHeadingMax);
    }
 }
 

@@ -141,7 +141,7 @@ void ExtrudedPolyList::adjustCollisionTime()
    if( !mCollisionList->getCount() )
       return;
 
-   mCollisionList->setTime( mClampF( mCollisionList->getTime(), 0.f, 1.f ) );
+   mCollisionList->setTime( mClamp( mCollisionList->getTime(), 0.f, 1.f ) );
 }
 
 

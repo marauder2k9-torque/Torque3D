@@ -210,7 +210,7 @@ void GuiInspector::onMouseDragged(const GuiEvent &event)
    // Distance from mouse/divider position in local space
    // to the right edge of the inspector
    mDividerPos = inspectorWidth - localPnt.x;
-   mDividerPos = mClamp( mDividerPos, 0, inspectorWidth );
+   mDividerPos = mClamp( mDividerPos, 0.f, (F32)inspectorWidth );
 
    // Divide that by the inspectorWidth to get a percentage
    mDividerPos /= inspectorWidth;

@@ -262,7 +262,7 @@ F32 Filter::getValue(F32 x) const
    if (size() < 2)
       return 0.0f;
 
-   x = mClampF(x, 0.0f, 1.0f);
+   x = mClamp(x, 0.0f, 1.0f);
    x *= F32(size()-1);
 
    F32 p0,p1,p2,p3;
@@ -283,7 +283,7 @@ F32 Filter::getValue(F32 x) const
    else
       p3 = *(begin()+i2+1);
 
-   return mClampF( mCatmullrom(dt, p0, p1, p2, p3), 0.0f, 1.0f );
+   return mClamp( mCatmullrom(dt, p0, p1, p2, p3), 0.0f, 1.0f );
 }
 
 

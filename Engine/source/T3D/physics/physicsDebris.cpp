@@ -611,7 +611,7 @@ void PhysicsDebris::applyRadialImpulse( const Point3F &origin, F32 radius, F32 m
       if ( dist == 0.0f )
          force *= magnitude;
       else
-         force *= mClampF( radius / dist, 0.0f, 1.0f ) * magnitude;
+         force *= mClamp( radius / dist, 0.0f, 1.0f ) * magnitude;
 
       body.applyImpulse( origin, force );
    }

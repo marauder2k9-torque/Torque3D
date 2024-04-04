@@ -179,7 +179,7 @@ bool GuiSliderCtrl::onWake()
    else
       value = mValue;
 
-   mValue = mClampF( value, mRange.x, mRange.y );
+   mValue = mClamp( value, mRange.x, mRange.y );
 
    // mouse scroll increment percentage is 5% of the range
    mIncAmount = ( ( mRange.y - mRange.x ) * 0.05 );

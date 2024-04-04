@@ -1156,7 +1156,7 @@ void ProcessedShaderMaterial::_setShaderConstants(SceneRenderState * state, cons
    // Diffuse
    shaderConsts->setSafe(handles->mDiffuseColorSC, mMaterial->mDiffuse[stageNum]);
 
-   shaderConsts->setSafe( handles->mAlphaTestValueSC, mClampF( (F32)mMaterial->mAlphaRef / 255.0f, 0.0f, 1.0f ) );      
+   shaderConsts->setSafe( handles->mAlphaTestValueSC, mClamp( (F32)mMaterial->mAlphaRef / 255.0f, 0.0f, 1.0f ) );      
 
    if(handles->mDiffuseAtlasParamsSC)
    {
