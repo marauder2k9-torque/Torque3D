@@ -142,23 +142,23 @@ bool triBoxOverlap(const Point3F &boxcenter, const Point3F &boxhalfsize, const P
 
    /* Bullet 3:  */
    /*  test the 9 tests first (this was faster) */
-   fex = mFabs(e0.x);
-   fey = mFabs(e0.y);
-   fez = mFabs(e0.z);
+   fex = mAbs(e0.x);
+   fey = mAbs(e0.y);
+   fez = mAbs(e0.z);
    AXISTEST_X01(e0.z, e0.y, fez, fey);
    AXISTEST_Y02(e0.z, e0.x, fez, fex);
    AXISTEST_Z12(e0.y, e0.x, fey, fex);
 
-   fex = mFabs(e1.x);
-   fey = mFabs(e1.y);
-   fez = mFabs(e1.z);
+   fex = mAbs(e1.x);
+   fey = mAbs(e1.y);
+   fez = mAbs(e1.z);
    AXISTEST_X01(e1.z, e1.y, fez, fey);
    AXISTEST_Y02(e1.z, e1.x, fez, fex);
    AXISTEST_Z0(e1.y, e1.x, fey, fex);
 
-   fex = mFabs(e2.x);
-   fey = mFabs(e2.y);
-   fez = mFabs(e2.z);
+   fex = mAbs(e2.x);
+   fey = mAbs(e2.y);
+   fez = mAbs(e2.z);
    AXISTEST_X2(e2.z, e2.y, fez, fey);
    AXISTEST_Y1(e2.z, e2.x, fez, fex);
    AXISTEST_Z12(e2.y, e2.x, fey, fex);

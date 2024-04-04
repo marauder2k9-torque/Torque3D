@@ -577,9 +577,9 @@ void FlyingVehicle::updateForces(F32 /*dt*/)
    // Steering
    Point2F steering;
    steering.x = mSteering.x / mDataBlock->maxSteeringAngle;
-   steering.x *= mFabs(steering.x);
+   steering.x *= mAbs(steering.x);
    steering.y = mSteering.y / mDataBlock->maxSteeringAngle;
-   steering.y *= mFabs(steering.y);
+   steering.y *= mAbs(steering.y);
    torque -= xv * steering.y * mDataBlock->steeringForce;
    torque -= zv * steering.x * mDataBlock->steeringForce;
 
@@ -709,7 +709,7 @@ void FlyingVehicle::updateJet(F32 dt)
    // Trail jets
    Point3F yv;
    mObjToWorld.getColumn(1,&yv);
-   F32 speed = mFabs(mDot(yv,mRigid.linVelocity));
+   F32 speed = mAbs(mDot(yv,mRigid.linVelocity));
    F32 trail = 0;
    if (speed > mDataBlock->minTrailSpeed) {
       trail = dt;

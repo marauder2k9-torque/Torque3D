@@ -327,7 +327,7 @@ F32 WorldEditorSelection::_snapFloat(const F32 &val, const F32 &snap) const
 
    F32 temp = val;
 
-   if (mFabs(a) > (snap / 2))
+   if (mAbs(a) > (snap / 2))
       val < 0.0f ? temp -= snap : temp += snap;
 
    return(temp - a);

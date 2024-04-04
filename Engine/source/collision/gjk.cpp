@@ -373,7 +373,7 @@ F32 GjkCollisionState::distance(const MatrixF& a2w, const MatrixF& b2w,
          mu = nm;
       if (mu > dontCareDist)
          return mu;
-      if (mFabs(mDist - mu) <= mDist * rel_error)
+      if (mAbs(mDist - mu) <= mDist * rel_error)
          return mDist;
 
       ++num_iterations;

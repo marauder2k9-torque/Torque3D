@@ -700,7 +700,7 @@ F32 sqrDistanceEdges(const Point3F& start0, const Point3F& end0,
    Point3F kDiff = start0 - start1;
    F32 fC   = kDiff.lenSquared();
    F32 fB0  = mDot(kDiff, direction0);
-   F32 fDet = mFabs(fA00*fA11 - fA01*fA01);
+   F32 fDet = mAbs(fA00*fA11 - fA01*fA01);
 
    // Since the endpoints are tested as vertices, we're not interested
    // in parallel lines, and intersections that don't involve end-points.
@@ -722,7 +722,7 @@ F32 sqrDistanceEdges(const Point3F& start0, const Point3F& end0,
          // Intersection points.
          *is = start0 + direction0 * fS;
          *it = start1 + direction1 * fT;
-         return mFabs(fSqrDist);
+         return mAbs(fSqrDist);
       }
    }
 

@@ -282,7 +282,7 @@ void PhysicalZone::renderObject(ObjectRenderInst *ri,
    Point3F forceDir = getForce(&start);
    F32 forceLen = forceDir.len()/ baseForce;
    forceDir.normalizeSafe();
-   ColorI guideCol = LinearColorF(mFabs(forceDir.x), mFabs(forceDir.y), mFabs(forceDir.z), 0.125).toColorI();
+   ColorI guideCol = LinearColorF(mAbs(forceDir.x), mAbs(forceDir.y), mAbs(forceDir.z), 0.125).toColorI();
 
    if (force_type == VECTOR)
    {

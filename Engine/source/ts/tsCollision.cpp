@@ -1599,7 +1599,7 @@ bool TSMesh::castRayOpcode( const Point3F &start, const Point3F &end, RayInfo *i
                n2.Normalize();
 
                F32 eps = .01f;
-               if ( mFabs(n.x - n2.x) < eps && mFabs(n.y - n2.y) < eps && mFabs(n.z - n2.z) < eps)
+               if ( mAbs(n.x - n2.x) < eps && mAbs(n.y - n2.y) < eps && mAbs(n.z - n2.z) < eps)
                {
                   faces[numFaces++] = i;
                }

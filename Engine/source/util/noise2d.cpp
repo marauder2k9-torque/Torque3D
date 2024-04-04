@@ -185,7 +185,7 @@ void Noise2D::rigidMultiFractal(Vector<F32> *dst, Vector<F32> *sig, U32 size, U3
       {
          F32 fx = (F32)x * scale;
 
-         F32 signal = mFabs(getValue(fx,fy,interval));   // get absolute value of signal (this creates the ridges)
+         F32 signal = mAbs(getValue(fx,fy,interval));   // get absolute value of signal (this creates the ridges)
          //signal = mSqrt(signal);
          signal = offset - signal;  // invert and translate (note that "offset" should be ~= 1.0)
          signal *= signal + 0.1;          // square the signal, to increase "sharpness" of ridges
@@ -218,7 +218,7 @@ void Noise2D::rigidMultiFractal(Vector<F32> *dst, Vector<F32> *sig, U32 size, U3
             // weight successive contributions by previous signal
             F32 weight = mClampF(signal * gain, 0.0f, 1.0f);
 
-            signal = mFabs(getValue( fx, fy, interval ));
+            signal = mAbs(getValue( fx, fy, interval ));
 
             signal = offset - signal;
             signal *= signal + 0.2;
@@ -420,7 +420,7 @@ F32 Noise2D::turbulence(F32 x, F32 y, F32 freq)
 	{
 		x2 = freq * x;
 		y2 = freq * y;
-		t += mFabs(getValue(x2, y2, (S32)freq)) / freq;
+		t += mAbs(getValue(x2, y2, (S32)freq)) / freq;
 	}
 	return t;
 }

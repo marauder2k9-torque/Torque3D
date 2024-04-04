@@ -522,7 +522,7 @@ void SceneObject::resetWorldBox()
 
    mWorldBox = mObjBox;
 
-   Point3F scale = Point3F(mFabs(mObjScale.x), mFabs(mObjScale.y), mFabs(mObjScale.z));
+   Point3F scale = Point3F(mAbs(mObjScale.x), mAbs(mObjScale.y), mAbs(mObjScale.z));
    mWorldBox.minExtents.convolve(scale);
    mWorldBox.maxExtents.convolve(scale);
 
@@ -591,7 +591,7 @@ void SceneObject::resetRenderWorldBox()
    AssertFatal( mObjBox.isValidBox(), "Bad object box!" );
 
    mRenderWorldBox = mObjBox;
-   Point3F scale = Point3F(mFabs(mObjScale.x), mFabs(mObjScale.y), mFabs(mObjScale.z));
+   Point3F scale = Point3F(mAbs(mObjScale.x), mAbs(mObjScale.y), mAbs(mObjScale.z));
    mRenderWorldBox.minExtents.convolve(scale);
    mRenderWorldBox.maxExtents.convolve(scale);
 

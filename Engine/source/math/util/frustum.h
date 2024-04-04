@@ -374,10 +374,10 @@ class Frustum : public PolyhedronImpl< FrustumData >
       F32 getNearBottom() const { return mNearBottom; }
 
       /// Return the camera-space width of the frustum.
-      F32 getWidth() const { return mFabs( mNearRight - mNearLeft ); }
+      F32 getWidth() const { return mAbs( mNearRight - mNearLeft ); }
 
       /// Return the camera-space height of the frustum.
-      F32 getHeight() const { return mFabs( mNearTop - mNearBottom ); }
+      F32 getHeight() const { return mAbs( mNearTop - mNearBottom ); }
 
       ///
       F32 getFov() const

@@ -1392,7 +1392,7 @@ F32 ScatterSky::_vernierScale( F32 fCos )
 
 F32 ScatterSky::_getMiePhase( F32 fCos, F32 fCos2, F32 g, F32 g2)
 {
-   return 1.5f * ((1.0f - g2) / (2.0f + g2)) * (1.0f + fCos2) / mPow(mFabs(1.0f + g2 - 2.0f*g*fCos), 1.5f);
+   return 1.5f * ((1.0f - g2) / (2.0f + g2)) * (1.0f + fCos2) / mPow(mAbs(1.0f + g2 - 2.0f*g*fCos), 1.5f);
 }
 
 F32 ScatterSky::_getRayleighPhase( F32 fCos2 )

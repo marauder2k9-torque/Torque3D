@@ -1386,7 +1386,7 @@ void GuiConvexEditorCtrl::updateModifiedFace( ConvexShape *shape, S32 faceId )
       F32 dt0 = mDot( uvec, fvec );
       F32 dt1 = mDot( uvec, rvec );
 
-      if ( mFabs( dt0 ) < mFabs( dt1 ) )
+      if ( mAbs( dt0 ) < mAbs( dt1 ) )
       {
          rvec = mCross( fvec, uvec );
          rvec.normalizeSafe();
@@ -2410,8 +2410,8 @@ ConvexEditorTool::EventResult ConvexEditorCreateTool::on3DMouseDragged( const Gu
    xfm.mulP( hitPos);      
    
    Point3F scale;
-   scale.x = getMax( mFabs( hitPos.x ), 0.1f );
-   scale.y = getMax( mFabs( hitPos.y ), 0.1f );
+   scale.x = getMax( mAbs( hitPos.x ), 0.1f );
+   scale.y = getMax( mAbs( hitPos.y ), 0.1f );
    scale.z = 0.1f;
 
    mNewConvex->resizePlanes( scale );

@@ -304,20 +304,20 @@ U32 AIClient::getMoveList( Move **movePtr,U32 *numMoves ) {
 
 
       // Check if we should mMove, or if we are 'close enough'
-      if( ( ( mFabs( xDiff ) > mMoveTolerance ) || 
-            ( mFabs( yDiff ) > mMoveTolerance ) ) && ( !mIsZero( mMoveSpeed ) ) )
+      if( ( ( mAbs( xDiff ) > mMoveTolerance ) || 
+            ( mAbs( yDiff ) > mMoveTolerance ) ) && ( !mIsZero( mMoveSpeed ) ) )
       {
          if( mIsZero( xDiff ) )
             mMove.y = ( mLocation.y > mMoveDestination.y ? -moveSpeed : moveSpeed );
          else if( mIsZero( yDiff ) )
             mMove.x = ( mLocation.x > mMoveDestination.x ? -moveSpeed : moveSpeed );
-         else if( mFabs( xDiff ) > mFabs( yDiff ) ) {
-            F32 value = mFabs( yDiff / xDiff ) * mMoveSpeed;
+         else if( mAbs( xDiff ) > mAbs( yDiff ) ) {
+            F32 value = mAbs( yDiff / xDiff ) * mMoveSpeed;
             mMove.y = ( mLocation.y > mMoveDestination.y ? -value : value );
             mMove.x = ( mLocation.x > mMoveDestination.x ? -moveSpeed : moveSpeed );
          }
          else {
-            F32 value = mFabs( xDiff / yDiff ) * mMoveSpeed;
+            F32 value = mAbs( xDiff / yDiff ) * mMoveSpeed;
             mMove.x = ( mLocation.x > mMoveDestination.x ? -value : value );
             mMove.y = ( mLocation.y > mMoveDestination.y ? -moveSpeed : moveSpeed );
          }

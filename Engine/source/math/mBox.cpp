@@ -123,75 +123,75 @@ bool Box3F::collideOrientedBox(const Point3F & bRadii, const MatrixF & toA) cons
 
    const F32 * f = toA;
 
-   absXX = mFabs(f[0]);
-   absYX = mFabs(f[1]);
-   absZX = mFabs(f[2]);
+   absXX = mAbs(f[0]);
+   absYX = mAbs(f[1]);
+   absZX = mAbs(f[2]);
 
-	if (aRadii.x + bRadii.x * absXX + bRadii.y * absYX + bRadii.z * absZX - mFabs(p.x)<0.0f)
+	if (aRadii.x + bRadii.x * absXX + bRadii.y * absYX + bRadii.z * absZX - mAbs(p.x)<0.0f)
 		return false;
 
-   absXY = mFabs(f[4]);
-   absYY = mFabs(f[5]);
-   absZY = mFabs(f[6]);
-	if (aRadii.y + bRadii.x * absXY +	bRadii.y * absYY +	bRadii.z * absZY - mFabs(p.y)<0.0f)
+   absXY = mAbs(f[4]);
+   absYY = mAbs(f[5]);
+   absZY = mAbs(f[6]);
+	if (aRadii.y + bRadii.x * absXY +	bRadii.y * absYY +	bRadii.z * absZY - mAbs(p.y)<0.0f)
 		return false;
 	
-   absXZ = mFabs(f[8]);
-   absYZ = mFabs(f[9]);
-   absZZ = mFabs(f[10]);
-	if (aRadii.z + bRadii.x * absXZ + bRadii.y * absYZ +	bRadii.z * absZZ - mFabs(p.z)<0.0f)
+   absXZ = mAbs(f[8]);
+   absYZ = mAbs(f[9]);
+   absZZ = mAbs(f[10]);
+	if (aRadii.z + bRadii.x * absXZ + bRadii.y * absYZ +	bRadii.z * absZZ - mAbs(p.z)<0.0f)
 		return false;
 
-	if (aRadii.x*absXX + aRadii.y*absXY + aRadii.z*absXZ + bRadii.x - mFabs(p.x*f[0] + p.y*f[4] + p.z*f[8])<0.0f)
+	if (aRadii.x*absXX + aRadii.y*absXY + aRadii.z*absXZ + bRadii.x - mAbs(p.x*f[0] + p.y*f[4] + p.z*f[8])<0.0f)
 		return false;
 
-	if (aRadii.x*absYX + aRadii.y*absYY + aRadii.z*absYZ + bRadii.y - mFabs(p.x*f[1] + p.y*f[5] + p.z*f[9])<0.0f)
+	if (aRadii.x*absYX + aRadii.y*absYY + aRadii.z*absYZ + bRadii.y - mAbs(p.x*f[1] + p.y*f[5] + p.z*f[9])<0.0f)
 		return false;		
 	
-	if (aRadii.x*absZX + aRadii.y*absZY + aRadii.z*absZZ + bRadii.z - mFabs(p.x*f[2] + p.y*f[6] + p.z*f[10])<0.0f)
+	if (aRadii.x*absZX + aRadii.y*absZY + aRadii.z*absZZ + bRadii.z - mAbs(p.x*f[2] + p.y*f[6] + p.z*f[10])<0.0f)
 		return false;		
 	
-	if (mFabs(p.z*f[4] - p.y*f[8]) >
+	if (mAbs(p.z*f[4] - p.y*f[8]) >
 				aRadii.y * absXZ + aRadii.z * absXY +
 				bRadii.y * absZX + bRadii.z * absYX)
 		return false;
 	
-	if (mFabs(p.z*f[5] - p.y*f[9]) >
+	if (mAbs(p.z*f[5] - p.y*f[9]) >
 				aRadii.y * absYZ + aRadii.z * absYY +
 				bRadii.x * absZX + bRadii.z * absXX)
 		return false;
 	
-	if (mFabs(p.z*f[6] - p.y*f[10]) >
+	if (mAbs(p.z*f[6] - p.y*f[10]) >
 				aRadii.y * absZZ + aRadii.z * absZY +
 				bRadii.x * absYX + bRadii.y * absXX)
 		return false;
 	
-	if (mFabs(p.x*f[8] - p.z*f[0]) >
+	if (mAbs(p.x*f[8] - p.z*f[0]) >
 				aRadii.x * absXZ + aRadii.z * absXX +
 				bRadii.y * absZY + bRadii.z * absYY)
 		return false;
 	
-	if (mFabs(p.x*f[9] - p.z*f[1]) >
+	if (mAbs(p.x*f[9] - p.z*f[1]) >
 				aRadii.x * absYZ + aRadii.z * absYX +
 				bRadii.x * absZY + bRadii.z * absXY)
 		return false;
 	
-	if (mFabs(p.x*f[10] - p.z*f[2]) >
+	if (mAbs(p.x*f[10] - p.z*f[2]) >
 				aRadii.x * absZZ + aRadii.z * absZX +
 				bRadii.x * absYY + bRadii.y * absXY)
 		return false;
 	
-	if (mFabs(p.y*f[0] - p.x*f[4]) >
+	if (mAbs(p.y*f[0] - p.x*f[4]) >
 				aRadii.x * absXY + aRadii.y * absXX +
 				bRadii.y * absZZ + bRadii.z * absYZ)
 		return false;
 	
-	if (mFabs(p.y*f[1] - p.x*f[5]) >
+	if (mAbs(p.y*f[1] - p.x*f[5]) >
 				aRadii.x * absYY + aRadii.y * absYX +
 				bRadii.x * absZZ + bRadii.z * absXZ)
 		return false;
 	
-	if (mFabs(p.y*f[2] - p.x*f[6]) >
+	if (mAbs(p.y*f[2] - p.x*f[6]) >
 				aRadii.x * absZY + aRadii.y * absZX +
 				bRadii.x * absYZ + bRadii.y * absXZ)
 		return false;

@@ -1344,7 +1344,7 @@ void ParticleEmitter::emitParticles(const Point3F& start,
    bool particlesAdded = false;
 
    Point3F axisx;
-   if( mFabs(axis.z) < 0.9f )
+   if( mAbs(axis.z) < 0.9f )
       mCross(axis, Point3F(0, 0, 1), &axisx);
    else
       mCross(axis, Point3F(0, 1, 0), &axisx);
@@ -1498,7 +1498,7 @@ void ParticleEmitter::emitParticles(const Point3F& rCenter,
       axisz.set( 0.0, 0.0, 1.0 );
    }
 
-   if( mFabs(axisz.z) < 0.98 )
+   if( mAbs(axisz.z) < 0.98 )
    {
       mCross(axisz, Point3F(0, 0, 1), &axisy);
       axisy.normalize();
@@ -2264,7 +2264,7 @@ void ParticleEmitter::setupAligned( const Particle *part,
 
    // Find a right vector for this particle.
    Point3F right;
-   if (mFabs(dir.y) > mFabs(dir.z))
+   if (mAbs(dir.y) > mAbs(dir.z))
       mCross(Point3F::UnitZ, dir, &right);
    else
       mCross(Point3F::UnitY, dir, &right);

@@ -380,7 +380,7 @@ void TSShapeInstance::renderDebugNormals( F32 normalScalar, S32 dl )
             meshMat.mulV( norm );
 
             // Then render them.
-            PrimBuild::color4f( mFabs( norm.x ), mFabs( norm.y ), mFabs( norm.z ), 1.0f );
+            PrimBuild::color4f( mAbs( norm.x ), mAbs( norm.y ), mAbs( norm.z ), 1.0f );
             PrimBuild::vertex3fv( vert );
             PrimBuild::vertex3fv( vert + (norm * normalScalar) );
          }

@@ -1160,7 +1160,7 @@ void ConvexShape::resizePlanes( const Point3F &size )
       objToPlane.mulV( size, &lim );
 
       F32 sign = ( mPlanes[i].d > 0.0f ) ? 1.0f : -1.0f;
-      mPlanes[i].d = mFabs(lim.z) * 0.5f * sign;
+      mPlanes[i].d = mAbs(lim.z) * 0.5f * sign;
       
       //mPlanes[i].d = -lim.z * 0.5f;      
 

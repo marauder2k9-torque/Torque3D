@@ -149,7 +149,7 @@ void BlobShadow::setLightMatrices(const Point3F & lightDir, const Point3F & pos)
 
    // construct light matrix
    Point3F x,z;
-   if (mFabs(lightDir.z)>0.001f)
+   if (mAbs(lightDir.z)>0.001f)
    {
       // mCross(Point3F(1,0,0),lightDir,&z);
       z.x = 0.0f;
@@ -245,9 +245,9 @@ void BlobShadow::buildPartition(const Point3F & p, const Point3F & lightDir, F32
    x *= radius;
    y *= shadowLen;
    z *= radius;
-   gBlobShadowBox.maxExtents.set(mFabs(x.x)+mFabs(y.x)+mFabs(z.x),
-      mFabs(x.y)+mFabs(y.y)+mFabs(z.y),
-      mFabs(x.z)+mFabs(y.z)+mFabs(z.z));
+   gBlobShadowBox.maxExtents.set(mAbs(x.x)+mAbs(y.x)+mAbs(z.x),
+      mAbs(x.y)+mAbs(y.y)+mAbs(z.y),
+      mAbs(x.z)+mAbs(y.z)+mAbs(z.z));
    y *= 0.5f;
    gBlobShadowSphere.radius = gBlobShadowBox.maxExtents.len();
    gBlobShadowSphere.center = p + y;

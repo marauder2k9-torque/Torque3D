@@ -86,9 +86,9 @@ bool MatrixF::isAffine() const
        mDot(two, three) > 0.0001f)
       return false;
 
-   if (mFabs(1.0f - one.lenSquared()) > 0.0001f ||
-       mFabs(1.0f - two.lenSquared()) > 0.0001f ||
-       mFabs(1.0f - three.lenSquared()) > 0.0001f)
+   if (mAbs(1.0f - one.lenSquared()) > 0.0001f ||
+       mAbs(1.0f - two.lenSquared()) > 0.0001f ||
+       mAbs(1.0f - three.lenSquared()) > 0.0001f)
       return false;
 
    getRow(0, &one);
@@ -99,9 +99,9 @@ bool MatrixF::isAffine() const
        mDot(two, three) > 0.0001f)
       return false;
 
-   if (mFabs(1.0f - one.lenSquared()) > 0.0001f ||
-       mFabs(1.0f - two.lenSquared()) > 0.0001f ||
-       mFabs(1.0f - three.lenSquared()) > 0.0001f)
+   if (mAbs(1.0f - one.lenSquared()) > 0.0001f ||
+       mAbs(1.0f - two.lenSquared()) > 0.0001f ||
+       mAbs(1.0f - three.lenSquared()) > 0.0001f)
       return false;
 
    // We're ok.
@@ -126,7 +126,7 @@ bool MatrixF::fullInverse()
            + c.x*a.y*b.z*d.w - c.x*a.y*b.w*d.z - c.x*b.y*a.z*d.w + c.x*b.y*a.w*d.z + c.x*d.y*a.z*b.w - c.x*d.y*a.w*b.z
            - d.x*a.y*b.z*c.w + d.x*a.y*b.w*c.z + d.x*b.y*a.z*c.w - d.x*b.y*a.w*c.z - d.x*c.y*a.z*b.w + d.x*c.y*a.w*b.z;
 
-   if (mFabs(det)<0.00001f)
+   if (mAbs(det)<0.00001f)
       return false;
 
    Point4F aa,bb,cc,dd;

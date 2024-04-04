@@ -512,30 +512,30 @@ inline bool Point3F::isZero() const
 
 inline bool Point3F::isUnitLength() const
 {
-   return ( mFabs( 1.0f - ( x*x + y*y + z*z ) ) < POINT_EPSILON );
+   return ( mAbs( 1.0f - ( x*x + y*y + z*z ) ) < POINT_EPSILON );
 }
 
 inline bool Point3F::equal( const Point3F &compare, F32 epsilon ) const
 {
-   return( ( mFabs( x - compare.x ) < epsilon ) &&
-           ( mFabs( y - compare.y ) < epsilon ) &&
-           ( mFabs( z - compare.z ) < epsilon ) );
+   return( ( mAbs( x - compare.x ) < epsilon ) &&
+           ( mAbs( y - compare.y ) < epsilon ) &&
+           ( mAbs( z - compare.z ) < epsilon ) );
 }
 
 inline U32 Point3F::getLeastComponentIndex() const
 {
    U32 idx;
 
-   if ( mFabs( x ) < mFabs( y ) )
+   if ( mAbs( x ) < mAbs( y ) )
    {
-      if ( mFabs( x ) < mFabs( z ) )
+      if ( mAbs( x ) < mAbs( z ) )
          idx = 0;
       else
          idx = 2;
    }
    else
    {
-      if ( mFabs( y ) < mFabs( z ) )
+      if ( mAbs( y ) < mAbs( z ) )
          idx = 1;  
       else
          idx = 2;
@@ -548,16 +548,16 @@ inline U32 Point3F::getGreatestComponentIndex() const
 {
    U32 idx;
 
-   if ( mFabs( x ) > mFabs( y ) )
+   if ( mAbs( x ) > mAbs( y ) )
    {
-      if ( mFabs( x ) > mFabs( z ) )
+      if ( mAbs( x ) > mAbs( z ) )
          idx = 0;
       else
          idx = 2;
    }
    else
    {
-      if ( mFabs( y ) > mFabs( z ) )
+      if ( mAbs( y ) > mAbs( z ) )
          idx = 1;  
       else
          idx = 2;
@@ -568,12 +568,12 @@ inline U32 Point3F::getGreatestComponentIndex() const
 
 inline F32 Point3F::least() const
 {
-   return getMin( mFabs( x ), getMin( mFabs( y ), mFabs( z ) ) );
+   return getMin( mAbs( x ), getMin( mAbs( y ), mAbs( z ) ) );
 }
 
 inline F32 Point3F::most() const
 {
-   return getMax( mFabs( x ), getMax( mFabs( y ), mFabs( z ) ) );
+   return getMax( mAbs( x ), getMax( mAbs( y ), mAbs( z ) ) );
 }
 
 inline void Point3F::neg()

@@ -546,7 +546,7 @@ U32 VolumetricFog::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
    if (stream->writeFlag(mask & FogModulationMask))
    {
       PACK_ASSET(con, Texture);
-      mTexTiles = mFabs(mTexTiles);
+      mTexTiles = mAbs(mTexTiles);
       stream->write(mTexTiles);
       stream->write(mStrength);
       mathWrite(*stream, mSpeed);
@@ -617,7 +617,7 @@ void VolumetricFog::unpackUpdate(NetConnection *con, BitStream *stream)
    {
       UNPACK_ASSET(con, Texture);
       stream->read(&mTexTiles);
-      mTexTiles = mFabs(mTexTiles);
+      mTexTiles = mAbs(mTexTiles);
       stream->read(&mStrength);
       mathRead(*stream, &mSpeed);
       mSpeed1.set(mSpeed.x, mSpeed.y);

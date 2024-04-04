@@ -999,7 +999,7 @@ bool Explosion::onAdd()
    mDelayMS = mDataBlock->delayMS + sgRandom.randI( -mDataBlock->delayVariance, mDataBlock->delayVariance );
    mEndingMS = mDataBlock->lifetimeMS + sgRandom.randI( -mDataBlock->lifetimeVariance, mDataBlock->lifetimeVariance );
 
-   if( mFabs( mDataBlock->offset ) > 0.001f )
+   if( mAbs( mDataBlock->offset ) > 0.001f )
    {
       MatrixF axisOrient = MathUtils::createOrientFromDir( mInitialNormal );
 
@@ -1312,7 +1312,7 @@ void Explosion::launchDebris( Point3F &axis )
    }
 
    Point3F axisx;
-   if (mFabs(axis.z) < 0.999f)
+   if (mAbs(axis.z) < 0.999f)
       mCross(axis, Point3F(0.0f, 0.0f, 1.0f), &axisx);
    else
       mCross(axis, Point3F(0.0f, 1.0f, 0.0f), &axisx);

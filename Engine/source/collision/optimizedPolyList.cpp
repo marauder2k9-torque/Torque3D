@@ -188,7 +188,7 @@ U32 OptimizedPolyList::insertPlane(const PlaneF& plane)
    for (U32 i = 0; i < mPlaneList.size(); i++)
    {
       if (mPlaneList[i].equal(transPlane) &&
-          mFabs( mPlaneList[i].d - transPlane.d ) < POINT_EPSILON)
+          mAbs( mPlaneList[i].d - transPlane.d ) < POINT_EPSILON)
       {
          retIdx = i;
          break;

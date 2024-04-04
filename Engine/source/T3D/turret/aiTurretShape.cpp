@@ -910,7 +910,7 @@ void AITurretShape::_trackTarget(F32 dt)
    if (mHeadingRate > 0)
    {
       F32 rate = mHeadingRate * dt;
-      F32 rateCheck = mFabs(rot.z - mRot.z);
+      F32 rateCheck = mAbs(rot.z - mRot.z);
       if (rateCheck > rate)
       {
          // This will clamp the new value to the rate regardless if it
@@ -921,7 +921,7 @@ void AITurretShape::_trackTarget(F32 dt)
    if (mPitchRate > 0)
    {
       F32 rate = mPitchRate * dt;
-      F32 rateCheck = mFabs(rot.x - mRot.x);
+      F32 rateCheck = mAbs(rot.x - mRot.x);
       if (rateCheck > rate)
       {
          // This will clamp the new value to the rate regardless if it

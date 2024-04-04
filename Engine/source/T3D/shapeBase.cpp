@@ -708,7 +708,7 @@ DefineEngineMethod(ShapeBaseData, getDeployTransform, TransformF, ( Point3F pos,
    normal.normalize();
 
    VectorF xAxis;
-   if( mFabs(normal.z) > mFabs(normal.x) && mFabs(normal.z) > mFabs(normal.y))
+   if( mAbs(normal.z) > mAbs(normal.x) && mAbs(normal.z) > mAbs(normal.y))
       mCross( VectorF( 0, 1, 0 ), normal, &xAxis );
    else
       mCross( VectorF( 0, 0, 1 ), normal, &xAxis );

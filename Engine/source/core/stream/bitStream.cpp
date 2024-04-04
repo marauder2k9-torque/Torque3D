@@ -520,15 +520,15 @@ void BitStream::writeQuat( const QuatF& quat, U32 bitCount )
 {
    F32 quatVals[4] = { quat.x, quat.y, quat.z, quat.w };
    bool flipQuat = (quatVals[0] < 0);
-   F32 maxVal = mFabs(quatVals[0]);
+   F32 maxVal = mAbs(quatVals[0]);
    S32 idxMax = 0;
 
    for (S32 i = 1; i < 4; ++i)
    {
-      if (mFabs(quatVals[i]) > maxVal)
+      if (mAbs(quatVals[i]) > maxVal)
       {
          idxMax = i;
-         maxVal = mFabs(quatVals[i]);
+         maxVal = mAbs(quatVals[i]);
          flipQuat = (quatVals[i] < 0);
       }
    }

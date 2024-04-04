@@ -336,10 +336,10 @@ void getAnglesFromVector( const VectorF &vec, F32 &yawAng, F32 &pitchAng )
    if( yawAng < 0.0f )
       yawAng += M_2PI_F;
 
-   if( mFabs(vec.x) > mFabs(vec.y) )
-      pitchAng = mAtan2( mFabs(vec.z), mFabs(vec.x) );
+   if( mAbs(vec.x) > mAbs(vec.y) )
+      pitchAng = mAtan2( mAbs(vec.z), mAbs(vec.x) );
    else
-      pitchAng = mAtan2( mFabs(vec.z), mFabs(vec.y) );
+      pitchAng = mAtan2( mAbs(vec.z), mAbs(vec.y) );
    if( vec.z < 0.0f )
       pitchAng = -pitchAng;
 }
@@ -534,7 +534,7 @@ F32 mTriangleDistance( const Point3F &A, const Point3F &B, const Point3F &C, con
     F32 b0 = mDot( diff, edge0 );
     F32 b1 = mDot( diff, edge1 );
     F32 c = diff.lenSquared();
-    F32 det = mFabs(a00*a11-a01*a01);
+    F32 det = mAbs(a00*a11-a01*a01);
     F32 s = a01*b1-a11*b0;
     F32 t = a01*b0-a00*b1;
     F32 sqrDistance;
@@ -979,7 +979,7 @@ bool mRayQuadCollide(   const Quad &quad,
 
    // Take a Abs of the dot because we do not care if the ray is heading up or down,
    // but if it is perfectly parallel to the quad we want to reject it.
-   if ( mFabs(det) < eps ) 
+   if ( mAbs(det) < eps ) 
       return false;
 
    F32 inv_det = 1.0f / det;
@@ -1015,7 +1015,7 @@ bool mRayQuadCollide(   const Quad &quad,
       VectorF e21 = quad.p10 - quad.p11;
       VectorF P_prime = mCross(ray.direction, e21);
       F32 det_prime = mDot(e23, P_prime);
-      if ( mFabs(det_prime) < eps) 
+      if ( mAbs(det_prime) < eps) 
          return false;
       F32 inv_det_prime = 1.0f / det_prime;
       VectorF T_prime = ray.origin - quad.p11;
@@ -1044,14 +1044,14 @@ bool mRayQuadCollide(   const Quad &quad,
    VectorF e02 = quad.p11 - quad.p00;
    VectorF n = mCross(e01, e03);
 
-   if ( mFabs(n.x) >= mFabs(n.y) && 
-      mFabs(n.x) >= mFabs(n.z) )
+   if ( mAbs(n.x) >= mAbs(n.y) && 
+      mAbs(n.x) >= mAbs(n.z) )
    {
       alpha_11 = ( e02.y * e03.z - e02.z * e03.y ) / n.x;
       beta_11  = ( e01.y * e02.z - e01.z * e02.y ) / n.x;
    }
-   else if ( mFabs(n.y) >= mFabs(n.x) && 
-      mFabs(n.y) >= mFabs(n.z) ) 
+   else if ( mAbs(n.y) >= mAbs(n.x) && 
+      mAbs(n.y) >= mAbs(n.z) ) 
    {  
       alpha_11 = ((e02.z * e03.x) - (e02.x * e03.z)) / n.y;
       beta_11  = ((e01.z * e02.x) - (e01.x * e02.z)) / n.y;
@@ -1066,16 +1066,16 @@ bool mRayQuadCollide(   const Quad &quad,
 
    F32 u,v;
 
-   if ( mFabs(alpha_11 - 1.0f) < eps) 
+   if ( mAbs(alpha_11 - 1.0f) < eps) 
    {    
       // Q is a trapezium.
       u = alpha;
-      if ( mFabs(beta_11 - 1.0f) < eps) 
+      if ( mAbs(beta_11 - 1.0f) < eps) 
          v = beta; // Q is a parallelogram.
       else 
          v = beta / ((u * (beta_11 - 1.0f)) + 1.0f); // Q is a trapezium.
    }
-   else if ( mFabs(beta_11 - 1.0f) < eps) 
+   else if ( mAbs(beta_11 - 1.0f) < eps) 
    {
       // Q is a trapezium.
       v = beta;
@@ -1359,8 +1359,8 @@ bool reduceFrustum( const Frustum& frustum, const RectI& viewport, const RectF& 
 
    // Get the extents of the frustum.
 
-   const F32 frustumXExtent = mFabs( frustum.getNearRight() - frustum.getNearLeft() );
-   const F32 frustumYExtent = mFabs( frustum.getNearTop() - frustum.getNearBottom() );
+   const F32 frustumXExtent = mAbs( frustum.getNearRight() - frustum.getNearLeft() );
+   const F32 frustumYExtent = mAbs( frustum.getNearTop() - frustum.getNearBottom() );
 
    // Now, normalize the screen-space pixel coordinates to lie within the screen-centered
    // -1 to 1 coordinate space that is used for the frustum planes.

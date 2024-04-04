@@ -374,7 +374,7 @@ void Portal::_traverseConnectedZoneSpaces( SceneTraversalState* state )
    // the viewpoint which doesn't make sense; so, skip the portal.
 
    const Point3F& viewPos = cameraState.getViewPosition();
-   const F32 viewPosDistToPortal = mFabs( getPortalPlane().distToPlane( viewPos ) );
+   const F32 viewPosDistToPortal = mAbs( getPortalPlane().distToPlane( viewPos ) );
    if( !mIsZero( viewPosDistToPortal ) && getSideRelativeToPortalPlane( viewPos ) != currentZoneSide )
       return;
 
