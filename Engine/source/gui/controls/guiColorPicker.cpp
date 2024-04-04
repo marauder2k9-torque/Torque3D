@@ -511,7 +511,7 @@ Point2I GuiColorPickerCtrl::findColor(const LinearColorF & color, const Point2I&
          curColor = (LinearColorF)tmp;
 
          //Evaluate how close the color is to our desired color
-         val = mFabs(color.red - curColor.red) + mFabs(color.green - curColor.green) + mFabs(color.blue - curColor.blue);
+         val = mAbs(color.red - curColor.red) + mAbs(color.green - curColor.green) + mAbs(color.blue - curColor.blue);
 
          if (!closestSet)
          {

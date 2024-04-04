@@ -127,7 +127,7 @@ namespace {
       S32 index = -1;
 
       for(U32 i = 0; i < 3; i++)
-         if(mFabs(pNormal[i]) >= mFabs(max))
+         if(mAbs(pNormal[i]) >= mAbs(max))
          {
             max = pNormal[i];
             index = i*2;
@@ -241,7 +241,7 @@ namespace {
 
       F32 a = mFmod(val, snap);
 
-      if(mFabs(a) > (snap / 2))
+      if(mAbs(a) > (snap / 2))
          val < 0.f ? val -= snap : val += snap;
 
       return(val - a);

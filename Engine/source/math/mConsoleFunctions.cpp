@@ -174,7 +174,7 @@ DefineEngineFunction( mAbs, F32, ( F32 v ),,
     "@returns Absolute value of specified value."
     "@ingroup Math" )
 {
-   return mFabs( v );
+   return mAbs( v );
 }
 
 DefineEngineFunction( mFMod, F32, ( F32 v, F32 d ),,

@@ -84,16 +84,16 @@ bool afxTriBoxOverlap2D(const Point3F& boxcenter, const Point3F& boxhalfsize, co
 
    /* Bullet 3:  */
    /*  test the 3 tests first */
-   F32 fex = mFabs(e0.x);
-   F32 fey = mFabs(e0.y);
+   F32 fex = mAbs(e0.x);
+   F32 fey = mAbs(e0.y);
    AXISTEST_Z12(e0.y, e0.x, fey, fex);
 
-   fex = mFabs(e1.x);
-   fey = mFabs(e1.y);
+   fex = mAbs(e1.x);
+   fey = mAbs(e1.y);
    AXISTEST_Z0(e1.y, e1.x, fey, fex);
 
-   fex = mFabs(e2.x);
-   fey = mFabs(e2.y);
+   fex = mAbs(e2.x);
+   fey = mAbs(e2.y);
    AXISTEST_Z12(e2.y, e2.x, fey, fex);
 
    /* Bullet 1: */

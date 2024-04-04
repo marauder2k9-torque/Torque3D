@@ -433,7 +433,7 @@ bool WheeledVehicleData::mirrorWheel(Wheel* we)
 {
    we->opposite = -1;
    for (Wheel* wp = wheel; wp != we; wp++)
-      if (mFabs(wp->pos.y - we->pos.y) < 0.5) 
+      if (mAbs(wp->pos.y - we->pos.y) < 0.5) 
       {
          we->pos.x = -wp->pos.x;
          we->pos.y = wp->pos.y;
@@ -843,7 +843,7 @@ void WheeledVehicle::advanceTime(F32 dt)
    // Update the steering animation: sequence time 0 is full right,
    // and time 0.5 is straight ahead.
    if (mSteeringThread) {
-      F32 t = (mSteering.x * mFabs(mSteering.x)) / mDataBlock->maxSteeringAngle;
+      F32 t = (mSteering.x * mAbs(mSteering.x)) / mDataBlock->maxSteeringAngle;
       mShapeInstance->setPos(mSteeringThread,0.5 - t * 0.5);
    }
 
@@ -878,7 +878,7 @@ void WheeledVehicle::updateForces(F32 dt)
    currMatrix.getColumn(2,&bz);
 
    // Steering angles from current steering wheel position
-   F32 quadraticSteering = -(mSteering.x * mFabs(mSteering.x));
+   F32 quadraticSteering = -(mSteering.x * mAbs(mSteering.x));
    F32 cosSteering,sinSteering;
    mSinCos(quadraticSteering, sinSteering, cosSteering);
 
@@ -1010,14 +1010,14 @@ void WheeledVehicle::updateForces(F32 dt)
          // Longitudinal tire deformation force
          F32 ddy = (wheel->avel * wheel->tire->radius - yVelocity) -
             wheel->tire->longitudinalRelaxation *
-            mFabs(wheel->avel) * wheel->Dy;
+            mAbs(wheel->avel) * wheel->Dy;
          wheel->Dy += ddy * dt;
          Fy = (wheel->tire->longitudinalForce * wheel->Dy +
             wheel->tire->longitudinalDamping * ddy);
 
          // Lateral tire deformation force
          F32 ddx = xVelocity - wheel->tire->lateralRelaxation *
-            mFabs(wheel->avel) * wheel->Dx;
+            mAbs(wheel->avel) * wheel->Dx;
          wheel->Dx += ddx * dt;
          F32 Fx = -(wheel->tire->lateralForce * wheel->Dx +
             wheel->tire->lateralDamping * ddx);
@@ -1065,9 +1065,9 @@ void WheeledVehicle::updateForces(F32 dt)
 
          // Relax the tire deformation
          wheel->Dy += (-wheel->tire->longitudinalRelaxation *
-                       mFabs(wheel->avel) * wheel->Dy) * dt;
+                       mAbs(wheel->avel) * wheel->Dy) * dt;
          wheel->Dx += (-wheel->tire->lateralRelaxation *
-                       mFabs(wheel->avel) * wheel->Dx) * dt;
+                       mAbs(wheel->avel) * wheel->Dx) * dt;
       }
 
       // Adjust the wheel's angular velocity based on engine torque
@@ -1075,8 +1075,8 @@ void WheeledVehicle::updateForces(F32 dt)
       if (wheel->powered) 
       {
          F32 maxAvel = mDataBlock->maxWheelSpeed / wheel->tire->radius;
-         wheel->torqueScale = (mFabs(wheel->avel) > maxAvel) ? 0 :
-            1 - (mFabs(wheel->avel) / maxAvel);
+         wheel->torqueScale = (mAbs(wheel->avel) > maxAvel) ? 0 :
+            1 - (mAbs(wheel->avel) / maxAvel);
       }
       else
          wheel->torqueScale = 0;
@@ -1086,7 +1086,7 @@ void WheeledVehicle::updateForces(F32 dt)
       // Adjust the wheel's angular velocity based on brake torque.
       // This is done after avel update to make sure we come to a
       // complete stop.
-      if (brakeVel > mFabs(wheel->avel))
+      if (brakeVel > mAbs(wheel->avel))
          wheel->avel = 0;
       else
          if (wheel->avel > 0)

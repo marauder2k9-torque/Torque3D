@@ -108,8 +108,8 @@ struct SceneRayHelper
       inline bool canUseSimpleCase() const
       {
          return (
-            (mFabs(mNormalStart.x - mNormalEnd.x) < SceneContainer::csmTotalAxisBinSize && mMinX == mMaxX) ||
-            (mFabs(mNormalStart.y - mNormalEnd.y) < SceneContainer::csmTotalAxisBinSize && mMinY == mMaxY));
+            (mAbs(mNormalStart.x - mNormalEnd.x) < SceneContainer::csmTotalAxisBinSize && mMinX == mMaxX) ||
+            (mAbs(mNormalStart.y - mNormalEnd.y) < SceneContainer::csmTotalAxisBinSize && mMinY == mMaxY));
       }
    };
 

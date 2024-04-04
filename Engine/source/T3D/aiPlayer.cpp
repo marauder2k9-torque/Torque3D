@@ -478,7 +478,7 @@ bool AIPlayer::getAIMove(Move *movePtr)
             F32 vertDist = mAimLocation.z - location.z;
             F32 horzDist = mSqrt(xDiff * xDiff + yDiff * yDiff);
             F32 newPitch = mAtan2( horzDist, vertDist ) - ( M_PI_F / 2.0f );
-            if (mFabs(newPitch) > 0.01f) 
+            if (mAbs(newPitch) > 0.01f) 
             {
                Point3F headRotation = getHeadRotation();
                movePtr->pitch = newPitch - headRotation.x;
@@ -500,7 +500,7 @@ bool AIPlayer::getAIMove(Move *movePtr)
       F32 yDiff = mMoveDestination.y - location.y;
 
       // Check if we should mMove, or if we are 'close enough'
-      if (mFabs(xDiff) < mMoveTolerance && mFabs(yDiff) < mMoveTolerance) 
+      if (mAbs(xDiff) < mMoveTolerance && mAbs(yDiff) < mMoveTolerance) 
       {
          mMoveState = ModeStop;
          onReachDestination();
@@ -514,15 +514,15 @@ bool AIPlayer::getAIMove(Move *movePtr)
             if (mIsZero(yDiff))
                movePtr->x = (location.x > mMoveDestination.x) ? -1.0f : 1.0f;
             else
-               if (mFabs(xDiff) > mFabs(yDiff)) 
+               if (mAbs(xDiff) > mAbs(yDiff)) 
                {
-                  F32 value = mFabs(yDiff / xDiff);
+                  F32 value = mAbs(yDiff / xDiff);
                   movePtr->y = (location.y > mMoveDestination.y) ? -value : value;
                   movePtr->x = (location.x > mMoveDestination.x) ? -1.0f : 1.0f;
                }
                else 
                {
-                  F32 value = mFabs(xDiff / yDiff);
+                  F32 value = mAbs(xDiff / yDiff);
                   movePtr->x = (location.x > mMoveDestination.x) ? -value : value;
                   movePtr->y = (location.y > mMoveDestination.y) ? -1.0f : 1.0f;
                }

@@ -1060,7 +1060,7 @@ void TerrainEditor::getGridInfos(const GridPoint & gPoint, Vector<GridInfo>& inf
             Point3F testWorldPt;
             gridToWorld(gPos, testWorldPt, mTerrainBlocks[i]);
 
-            if (mFabs( wPos.z - testWorldPt.z ) > 4.0f )
+            if (mAbs( wPos.z - testWorldPt.z ) > 4.0f )
                continue;
          }
 

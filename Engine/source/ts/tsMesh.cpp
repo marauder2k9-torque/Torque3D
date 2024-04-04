@@ -682,8 +682,8 @@ bool TSMesh::castRay( S32 frame, const Point3F & start, const Point3F & end, Ray
 
       // find intersection (time) with this plane...
       // F32 time = dot1 / (dot1-dot2);
-      F32 num = mFabs( dot1 );
-      F32 den = mFabs( dot1 - dot2 );
+      F32 num = mAbs( dot1 );
+      F32 den = mAbs( dot1 - dot2 );
 
       // the following block of code is an optimized version...
       // this can be commented out and the following block of code used instead
@@ -931,7 +931,7 @@ bool TSMesh::addToHull( U32 idx0, U32 idx1, U32 idx2 )
    F32 k = mDot( normal, mVertexData.getBase(idx0).vert() );
    for ( S32 i = 0; i < mPlaneNormals.size(); i++ )
    {
-      if ( mDot(mPlaneNormals[i], normal ) > 0.99f && mFabs( k- mPlaneConstants[i] ) < 0.01f )
+      if ( mDot(mPlaneNormals[i], normal ) > 0.99f && mAbs( k- mPlaneConstants[i] ) < 0.01f )
          return false;          // this is a repeat...
    }
    // new plane, add it to the list...
@@ -2985,7 +2985,7 @@ inline void TSMesh::findTangent( U32 index1,
 
    F32 denom = (s1 * t2 - s2 * t1);
 
-   if( mFabs( denom ) < 0.0001f )
+   if( mAbs( denom ) < 0.0001f )
    {
 	   // handle degenerate triangles from strips
 	   if (denom<0) denom = -0.0001f;

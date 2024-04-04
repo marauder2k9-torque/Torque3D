@@ -771,7 +771,7 @@ void DepthSortList::depthPartition(const Point3F * sourceVerts, U32 numVerts, Ve
       }
 
       // project all the new verts onto the cutter's plane
-      AssertFatal(mFabs(cutter.plane.y)>=MIN_Y_DOT,"DepthSortList::depthPartition - below MIN_Y_DOT.");
+      AssertFatal(mAbs(cutter.plane.y)>=MIN_Y_DOT,"DepthSortList::depthPartition - below MIN_Y_DOT.");
       F32 invY = -1.0f / cutter.plane.y;
       for (j=startVert; j<partitionVerts.size(); j++)
          partitionVerts[j].y = invY * (cutter.plane.d + cutter.plane.x * partitionVerts[j].x + cutter.plane.z * partitionVerts[j].z);

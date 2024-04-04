@@ -396,7 +396,7 @@ bool SceneCullingState::createCullingVolume( const Point3F* vertices, U32 numVer
 
          // Compute the cosine of the angle between the two plane normals.
 
-         const F32 cosAngle = mFabs( mDot( currentPlane, lastPlane ) );
+         const F32 cosAngle = mAbs( mDot( currentPlane, lastPlane ) );
 
          // The planes meet at increasingly steep angles the more they point
          // in opposite directions, i.e the closer the angle of their normals
@@ -431,14 +431,14 @@ bool SceneCullingState::createCullingVolume( const Point3F* vertices, U32 numVer
    const Point3F wsPolyBoundsExtents = wsPolyBounds.getExtents();
    
    F32 widthEstimate =
-      getMax( mFabs( wsPolyBoundsExtents.x * cameraRight.x ),
-         getMax( mFabs( wsPolyBoundsExtents.y * cameraRight.y ),
-                 mFabs( wsPolyBoundsExtents.z * cameraRight.z ) ) );
+      getMax( mAbs( wsPolyBoundsExtents.x * cameraRight.x ),
+         getMax( mAbs( wsPolyBoundsExtents.y * cameraRight.y ),
+                 mAbs( wsPolyBoundsExtents.z * cameraRight.z ) ) );
 
    F32 heightEstimate =
-      getMax( mFabs( wsPolyBoundsExtents.x * cameraUp.x ),
-         getMax( mFabs( wsPolyBoundsExtents.y * cameraUp.y ),
-                 mFabs( wsPolyBoundsExtents.z * cameraUp.z ) ) );
+      getMax( mAbs( wsPolyBoundsExtents.x * cameraUp.x ),
+         getMax( mAbs( wsPolyBoundsExtents.y * cameraUp.y ),
+                 mAbs( wsPolyBoundsExtents.z * cameraUp.z ) ) );
 
    // If the current camera is a perspective one, divide the two estimates
    // by the distance of the nearest bounding box vertex to the camera

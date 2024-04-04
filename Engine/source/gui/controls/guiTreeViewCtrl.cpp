@@ -3236,7 +3236,7 @@ void GuiTreeViewCtrl::onMouseDragged(const GuiEvent &event)
    // if the user moves the mouse a little while clicking, he/she does not
    // accidentally trigger a drag.
       
-   if( mFabs( ( mMouseDownPoint - event.mousePoint ).len() ) <= 4.f )
+   if( mAbs( ( mMouseDownPoint - event.mousePoint ).len() ) <= 4.f )
       return;
       
    Point2I pt = globalToLocalCoord(event.mousePoint);

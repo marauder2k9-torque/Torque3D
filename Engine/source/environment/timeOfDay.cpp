@@ -326,7 +326,7 @@ void TimeOfDay::_updatePosition()
 {
    mPrevElevation = mNextElevation;
 
-   if ( mFabs( mAzimuthOverride ) )
+   if ( mAbs( mAzimuthOverride ) )
    {
       mElevation = mDegToRad( mTimeOfDay * 360.0f );
       mAzimuth = mAzimuthOverride;
@@ -431,7 +431,7 @@ void TimeOfDay::_getSunColor( LinearColorF *outColor ) const
 			      div = two->elevation - one->elevation;
 			
          //catch bad input divide by zero
-         if ( mFabs( div ) < 0.01f )
+         if ( mAbs( div ) < 0.01f )
             div = 0.01f;
 			
 			      phase = (ele - one->elevation) / div;

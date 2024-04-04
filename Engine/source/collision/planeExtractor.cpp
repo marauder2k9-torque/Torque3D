@@ -117,7 +117,7 @@ void PlaneExtractorPolyList::end()
    PlaneF &plane = mPlaneList->last();
    PlaneF *ptr = mPlaneList->begin();
    for (; ptr != &plane; ptr++)
-      if (mFabs(ptr->d - plane.d) < DistanceEpsilon &&
+      if (mAbs(ptr->d - plane.d) < DistanceEpsilon &&
             mDot(*ptr,plane) > NormalEpsilon) {
          mPlaneList->decrement();
          return;

@@ -2811,38 +2811,38 @@ void Player::updateMove(const Move* move)
       {
          if ( mSwimming )
             moveSpeed = getMax(mDataBlock->maxUnderwaterForwardSpeed * move->y,
-                               mDataBlock->maxUnderwaterSideSpeed * mFabs(move->x));
+                               mDataBlock->maxUnderwaterSideSpeed * mAbs(move->x));
          else if ( mPose == PronePose )
             moveSpeed = getMax(mDataBlock->maxProneForwardSpeed * move->y,
-                               mDataBlock->maxProneSideSpeed * mFabs(move->x));
+                               mDataBlock->maxProneSideSpeed * mAbs(move->x));
          else if ( mPose == CrouchPose )
             moveSpeed = getMax(mDataBlock->maxCrouchForwardSpeed * move->y,
-                               mDataBlock->maxCrouchSideSpeed * mFabs(move->x));
+                               mDataBlock->maxCrouchSideSpeed * mAbs(move->x));
          else if ( mPose == SprintPose )
             moveSpeed = getMax(mDataBlock->maxSprintForwardSpeed * move->y,
-                               mDataBlock->maxSprintSideSpeed * mFabs(move->x));
+                               mDataBlock->maxSprintSideSpeed * mAbs(move->x));
 
          else // StandPose
             moveSpeed = getMax(mDataBlock->maxForwardSpeed * move->y,
-                               mDataBlock->maxSideSpeed * mFabs(move->x));
+                               mDataBlock->maxSideSpeed * mAbs(move->x));
       }
       else
       {
          if ( mSwimming )
-            moveSpeed = getMax(mDataBlock->maxUnderwaterBackwardSpeed * mFabs(move->y),
-                               mDataBlock->maxUnderwaterSideSpeed * mFabs(move->x));
+            moveSpeed = getMax(mDataBlock->maxUnderwaterBackwardSpeed * mAbs(move->y),
+                               mDataBlock->maxUnderwaterSideSpeed * mAbs(move->x));
          else if ( mPose == PronePose )
-            moveSpeed = getMax(mDataBlock->maxProneBackwardSpeed * mFabs(move->y),
-                               mDataBlock->maxProneSideSpeed * mFabs(move->x));
+            moveSpeed = getMax(mDataBlock->maxProneBackwardSpeed * mAbs(move->y),
+                               mDataBlock->maxProneSideSpeed * mAbs(move->x));
          else if ( mPose == CrouchPose )
-            moveSpeed = getMax(mDataBlock->maxCrouchBackwardSpeed * mFabs(move->y),
-                               mDataBlock->maxCrouchSideSpeed * mFabs(move->x));         
+            moveSpeed = getMax(mDataBlock->maxCrouchBackwardSpeed * mAbs(move->y),
+                               mDataBlock->maxCrouchSideSpeed * mAbs(move->x));         
          else if ( mPose == SprintPose )
-            moveSpeed = getMax(mDataBlock->maxSprintBackwardSpeed * mFabs(move->y),
-                               mDataBlock->maxSprintSideSpeed * mFabs(move->x));         
+            moveSpeed = getMax(mDataBlock->maxSprintBackwardSpeed * mAbs(move->y),
+                               mDataBlock->maxSprintSideSpeed * mAbs(move->x));         
          else // StandPose
-            moveSpeed = getMax(mDataBlock->maxBackwardSpeed * mFabs(move->y),
-                               mDataBlock->maxSideSpeed * mFabs(move->x));
+            moveSpeed = getMax(mDataBlock->maxBackwardSpeed * mAbs(move->y),
+                               mDataBlock->maxSideSpeed * mAbs(move->x));
       }
 
       // Cancel any script driven animations if we are going to move.
@@ -3703,7 +3703,7 @@ MatrixF * Player::Death::fallToGround(F32 dt, const Point3F& loc, F32 curZ, F32 
       for (S32 i = 0; i < 3; i++)
          accel(*cur++, *des++, adjust * 0.25f);
 
-      if (mFabs(height) < 2.2f && !normal.isZero() && desNormal.z > 0.01f)
+      if (mAbs(height) < 2.2f && !normal.isZero() && desNormal.z > 0.01f)
       {
          VectorF  upY(0.0f, 1.0f, 0.0f), ahead;
          VectorF  sideVec;
@@ -4033,7 +4033,7 @@ void Player::updateActionThread()
       if (anim.velocityScale && anim.speed) {
          VectorF vel;
          mWorldToObj.mulV(mVelocity,&vel);
-         scale = mFabs(mDot(vel, anim.dir) / anim.speed);
+         scale = mAbs(mDot(vel, anim.dir) / anim.speed);
 
          if (scale > mDataBlock->maxTimeScale)
             scale = mDataBlock->maxTimeScale;
@@ -4855,9 +4855,9 @@ Point3F Player::_move( const F32 travelTime, Collision *outCol )
       }
       Point3F distance = end - start;
 
-      if (mFabs(distance.x) < mScaledBox.len_x() &&
-          mFabs(distance.y) < mScaledBox.len_y() &&
-          mFabs(distance.z) < mScaledBox.len_z())
+      if (mAbs(distance.x) < mScaledBox.len_x() &&
+          mAbs(distance.y) < mScaledBox.len_y() &&
+          mAbs(distance.z) < mScaledBox.len_z())
       {
          // We can potentially early out of this.  If there are no polys in the clipped polylist at our
          //  end position, then we can bail, and just set start = end;
@@ -4978,9 +4978,9 @@ Point3F Player::_move( const F32 travelTime, Collision *outCol )
             for (U32 c = 0; c < collisionList.getCount(); c++) 
             {
                const Collision& cp = collisionList[c];
-               // if (mFabs(mDot(cp.normal,VectorF(0,0,1))) < sVerticalStepDot)
+               // if (mAbs(mDot(cp.normal,VectorF(0,0,1))) < sVerticalStepDot)
                //    Dot with (0,0,1) just extracts Z component [lh]-
-               if (mFabs(cp.normal.z) < sVerticalStepDot)
+               if (mAbs(cp.normal.z) < sVerticalStepDot)
                {
                   stepped = step(&start,&maxStep,time);
                   break;
@@ -6512,7 +6512,7 @@ void Player::unpackUpdate(NetConnection *con, BitStream *stream)
 			mDelta.rotOffset = rot - mDelta.rot;
 
             // Ignore small rotation differences
-            if (mFabs(mDelta.rotOffset.z) < 0.001f)
+            if (mAbs(mDelta.rotOffset.z) < 0.001f)
                mDelta.rotOffset.z = 0;
 
             // Wrap rotation to +/-PI

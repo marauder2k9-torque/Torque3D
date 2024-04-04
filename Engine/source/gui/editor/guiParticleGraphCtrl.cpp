@@ -304,7 +304,7 @@ S32 GuiParticleGraphCtrl::addPlotPoint(S32 plotID, Point2F v, bool setAdded)
 
    for(S32 i = 0; i < mPlots[plotID].mGraphData.size(); i++)
    {         
-      if(mFabs(v.x - mPlots[plotID].mGraphData[i].x) < 0.001)
+      if(mAbs(v.x - mPlots[plotID].mGraphData[i].x) < 0.001)
       {
          if(mAutoRemove == true)
          {
@@ -480,7 +480,7 @@ S32 GuiParticleGraphCtrl::getPlotIndex(S32 plotID, F32 x, F32 y)
 
       //
       //if((x == compareX) && (y == compareY))
-      if((mFabs(x - compareX) < 0.001) && (mFabs(y - compareY) < 0.001))
+      if((mAbs(x - compareX) < 0.001) && (mAbs(y - compareY) < 0.001))
          return i;
    }
 

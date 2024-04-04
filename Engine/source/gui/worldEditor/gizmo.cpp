@@ -983,7 +983,7 @@ void Gizmo::on3DMouseDragged( const Gui3DMouseEvent & event )
          // Which needs to always be positive, this is a 'scale' transformation
          // not really a 'vector' transformation.
          //for ( U32 i = 0; i < 3; i++ )
-         //   axis[i] = mFabs(axis[i]);
+         //   axis[i] = mAbs(axis[i]);
 
          //axis.normalizeSafe();
 

@@ -89,8 +89,8 @@ public:
 };
 
 // a couple simple utility methods
-inline F32 QuatIsEqual(F32 a,F32 b,F32 epsilon = 0.0001f) { return mFabs(a-b) < epsilon; }
-inline F32 QuatIsZero(F32 a,F32 epsilon = 0.0001f) { return mFabs(a) < epsilon; }
+inline F32 QuatIsEqual(F32 a,F32 b,F32 epsilon = 0.0001f) { return mAbs(a-b) < epsilon; }
+inline F32 QuatIsZero(F32 a,F32 epsilon = 0.0001f) { return mAbs(a) < epsilon; }
 
 //----------------------------------------------------------------------------
 // quaternion implementation:

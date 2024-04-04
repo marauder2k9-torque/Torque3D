@@ -515,8 +515,8 @@ inline F32 Point2F::lenSquared() const
 
 inline bool Point2F::equal( const Point2F &compare ) const
 {
-   return( ( mFabs( x - compare.x ) < POINT_EPSILON ) &&
-           ( mFabs( y - compare.y ) < POINT_EPSILON ) );
+   return( ( mAbs( x - compare.x ) < POINT_EPSILON ) &&
+           ( mAbs( y - compare.y ) < POINT_EPSILON ) );
 }
 
 

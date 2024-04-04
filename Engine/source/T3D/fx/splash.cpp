@@ -571,7 +571,7 @@ SplashRing Splash::createRing()
    Point3F ejectionAxis( 0.0, 0.0, 1.0 );
 
    Point3F axisx;
-   if (mFabs(ejectionAxis.z) < 0.999f)
+   if (mAbs(ejectionAxis.z) < 0.999f)
       mCross(ejectionAxis, Point3F(0, 0, 1), &axisx);
    else
       mCross(ejectionAxis, Point3F(0, 1, 0), &axisx);

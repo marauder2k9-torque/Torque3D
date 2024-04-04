@@ -166,7 +166,7 @@ void VideoCapture::capture()
    {
       // If the frame position is closer to the next frame position 
       // than the previous one capture it
-      if ( mFabs(framePosition - mNextFramePosition) < mFabs(mCapturedFramePos - mNextFramePosition) )
+      if ( mAbs(framePosition - mNextFramePosition) < mAbs(mCapturedFramePos - mNextFramePosition) )
       {
          mFrameGrabber->captureBackBuffer();      
          mCapturedFramePos  = framePosition;

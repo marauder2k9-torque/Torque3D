@@ -337,7 +337,7 @@ F32 TSThread::getDuration()
 
 F32 TSThread::getScaledDuration()
 {
-   return getDuration() / mFabs(timeScale);
+   return getDuration() / mAbs(timeScale);
 }
 
 F32 TSThread::getTimeScale()
@@ -352,7 +352,7 @@ void TSThread::setTimeScale(F32 ts)
 
 void TSThread::advancePos(F32 delta)
 {
-   if (mFabs(delta)>0.00001f)
+   if (mAbs(delta)>0.00001f)
    {
       // make dirty what this thread changes
       U32 dirtyFlags = getSequence()->dirtyFlags | (transitionData.inTransition ? TSShapeInstance::TransformDirty : 0);

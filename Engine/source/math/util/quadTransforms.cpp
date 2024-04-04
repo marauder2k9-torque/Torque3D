@@ -34,9 +34,9 @@ BiQuadToSqr::BiQuadToSqr(  const Point2F &p00,
    m_kC = p01 - p00;   // height
    m_kD = p11 + p00 - p10 - p01; // diagonal dist
 
-   if(mFabs(m_kD.x) < POINT_EPSILON)    
+   if(mAbs(m_kD.x) < POINT_EPSILON)    
       m_kD.x = 0.f;
-   if(mFabs(m_kD.y) < POINT_EPSILON) 
+   if(mAbs(m_kD.y) < POINT_EPSILON) 
       m_kD.y = 0.f;  
 
    m_fBC = mDotPerp( m_kB, m_kC );
@@ -56,12 +56,12 @@ Point2F BiQuadToSqr::transform( const Point2F &p ) const
    F32 fK1 = m_fBC*m_fBC + fAC*m_fBD - fAB*m_fCD;
    F32 fK2 = m_fBC*m_fBD;
 
-   if (mFabs(fK2) > POINT_EPSILON)
+   if (mAbs(fK2) > POINT_EPSILON)
    {
       // s-equation is quadratic
       F32 fInv = 0.5f/fK2;
       F32 fDiscr = fK1*fK1 - 4.0f*fK0*fK2;
-      F32 fRoot = mSqrt( mFabs(fDiscr) );
+      F32 fRoot = mSqrt( mAbs(fDiscr) );
 
       Point2F kResult0( 0, 0 );
       kResult0.x = (-fK1 - fRoot)*fInv;

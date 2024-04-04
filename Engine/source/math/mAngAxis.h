@@ -97,7 +97,7 @@ inline AngAxisF& AngAxisF::set( const Point3F & _axis, F32 _angle )
 
 inline bool AngAxisF::operator ==( const AngAxisF & c ) const
 {
-   return mFabs(angle-c.angle) < 0.0001f && (axis == c.axis);
+   return mAbs(angle-c.angle) < 0.0001f && (axis == c.axis);
 }
 
 inline bool AngAxisF::operator !=( const AngAxisF & c ) const

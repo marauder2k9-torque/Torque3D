@@ -164,7 +164,7 @@ void WindowInputGenerator::handleMouseMove( WindowId did, U32 modifier, S32 x, S
    }
 
    // If X axis changed, generate a relative event
-   if(mFabs(cursDelta.x) > 0.1)
+   if(mAbs(cursDelta.x) > 0.1)
    {
       event.objInst    = SI_XAXIS;
       event.action     = SI_MOVE;
@@ -173,7 +173,7 @@ void WindowInputGenerator::handleMouseMove( WindowId did, U32 modifier, S32 x, S
    }
 
    // If Y axis changed, generate a relative event
-   if(mFabs(cursDelta.y) > 0.1)
+   if(mAbs(cursDelta.y) > 0.1)
    {
       event.objInst    = SI_YAXIS;
       event.action     = SI_MOVE;

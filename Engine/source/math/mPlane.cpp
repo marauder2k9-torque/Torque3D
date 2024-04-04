@@ -53,7 +53,7 @@ bool PlaneF::intersect( const PlaneF& plane, Point3F& outLinePt, VectorF& outLin
 
 bool PlaneF::isParallelTo( const PlaneF& plane, F32 epsilon ) const
 {
-   F32 val = 1.0f - mFabs( mDot( *this, plane ) );
+   F32 val = 1.0f - mAbs( mDot( *this, plane ) );
    return ( val > - epsilon ) && ( val < epsilon );
 }
 

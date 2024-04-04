@@ -306,7 +306,7 @@ F32 AnimData::invertParamCubic(F32 param, F32 x0, F32 x1, F32 x2, F32 x3) const
       F64 e = (b + c)*0.5f;
       F64 f = (d + e)*0.5f;
 
-      if (mFabs(f - param) < INVERTPARAMCUBIC_TOL)
+      if (mAbs(f - param) < INVERTPARAMCUBIC_TOL)
          break;
 
       if (f < param) {

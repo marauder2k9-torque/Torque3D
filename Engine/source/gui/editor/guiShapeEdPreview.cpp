@@ -1125,7 +1125,7 @@ void GuiShapeEdPreview::on3DMouseWheelUp(const Gui3DMouseEvent& event)
    {
       // Use shift and ctrl to increase speed
       F32 mod = ( event.modifier & SI_SHIFT ) ? ( ( event.modifier & SI_CTRL ) ? 4.0 : 1.0 ) : 0.25f;
-      mOrbitDist -= mFabs(event.fval) * mZoomSpeed * mod;
+      mOrbitDist -= mAbs(event.fval) * mZoomSpeed * mod;
    }
 }
 
@@ -1135,7 +1135,7 @@ void GuiShapeEdPreview::on3DMouseWheelDown(const Gui3DMouseEvent& event)
    {
       // Use shift and ctrl to increase speed
       F32 mod = ( event.modifier & SI_SHIFT ) ? ( ( event.modifier & SI_CTRL ) ? 4.0 : 1.0 ) : 0.25f;
-      mOrbitDist += mFabs(event.fval) * mZoomSpeed * mod;
+      mOrbitDist += mAbs(event.fval) * mZoomSpeed * mod;
    }
 }
 

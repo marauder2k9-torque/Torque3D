@@ -1476,7 +1476,7 @@ bool ActionMap::processAction(const InputEventInfo* pEvent)
       }
 
       if( pNode->flags & Node::NonLinear )
-         value = ( value < 0.f ? -1.f : 1.f ) * mPow( mFabs( value ), CONST_E );
+         value = ( value < 0.f ? -1.f : 1.f ) * mPow( mAbs( value ), CONST_E );
 
       // Ok, we're all set up, call the function.
       if(pNode->flags & Node::BindCmd)
@@ -1639,7 +1639,7 @@ bool ActionMap::processAction(const InputEventInfo* pEvent)
          }
 
          if( pNode->flags & Node::NonLinear )
-            value = ( value < 0.f ? -1.f : 1.f ) * mPow( mFabs( value ), CONST_E );
+            value = ( value < 0.f ? -1.f : 1.f ) * mPow( mAbs( value ), CONST_E );
 
          // Ok, we're all set up, call the function.
          argv[0] = pNode->consoleFunction;
@@ -1924,7 +1924,7 @@ void ActionMap::fireBreakEvent( U32 i, F32 fValue )
    }
 
    if( smBreakTable[i].flags & Node::NonLinear )
-      value = ( value < 0.f ? -1.f : 1.f ) * mPow( mFabs( value ), CONST_E );
+      value = ( value < 0.f ? -1.f : 1.f ) * mPow( mAbs( value ), CONST_E );
 
    // Ok, we're all set up, call the function.
    if(smBreakTable[i].consoleFunction)

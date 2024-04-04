@@ -327,7 +327,7 @@ inline F32 PlaneF::distToPlane( const Point3F& cp ) const
 inline PlaneF::Side PlaneF::whichSide(const Point3F& cp) const
 {
    F32 dist = distToPlane(cp);
-   if (dist >= 0.005f)                 // if (mFabs(dist) < 0.005f)
+   if (dist >= 0.005f)                 // if (mAbs(dist) < 0.005f)
       return Front;                    //    return On;
    else if (dist <= -0.005f)           // else if (dist > 0.0f)
       return Back;                     //    return Front;
@@ -384,9 +384,9 @@ inline PlaneF::Side PlaneF::whichSide( const OrientedBox3F& obb ) const
    // See "3D Game Engine Design" chapter 4.3.2.
 
    Point3F mObbHalf = obb.getHalfExtents();
-   const F32 r = mObbHalf.x * mFabs( mDot( obb.getAxis( 0 ), *this ) ) +
-                 mObbHalf.y * mFabs( mDot( obb.getAxis( 1 ), *this ) ) +
-                 mObbHalf.z * mFabs( mDot( obb.getAxis( 2 ), *this ) );
+   const F32 r = mObbHalf.x * mAbs( mDot( obb.getAxis( 0 ), *this ) ) +
+                 mObbHalf.y * mAbs( mDot( obb.getAxis( 1 ), *this ) ) +
+                 mObbHalf.z * mAbs( mDot( obb.getAxis( 2 ), *this ) );
 
    const F32 dist = distToPlane( obb.getCenter() );
    if( dist > r )
@@ -406,9 +406,9 @@ inline PlaneF::Side PlaneF::whichSideBox(const Point3F& center,
 {
    F32 baseDist = distToPlane(center);
 
-   F32 compDist = mFabs(mDot(axisx, *this)) +
-      mFabs(mDot(axisy, *this)) +
-      mFabs(mDot(axisz, *this));
+   F32 compDist = mAbs(mDot(axisx, *this)) +
+      mAbs(mDot(axisy, *this)) +
+      mAbs(mDot(axisz, *this));
 
    if (baseDist >= compDist)
       return Front;
@@ -668,7 +668,7 @@ inline F64 PlaneD::distToPlane( const Point3D& cp ) const
 inline PlaneD::Side PlaneD::whichSide(const Point3D& cp) const
 {
    F64 dist = distToPlane(cp);
-   if (dist >= 0.005f)                 // if (mFabs(dist) < 0.005f)
+   if (dist >= 0.005f)                 // if (mAbs(dist) < 0.005f)
       return Front;                    //    return On;
    else if (dist <= -0.005f)           // else if (dist > 0.0f)
       return Back;                     //    return Front;
@@ -778,9 +778,9 @@ inline PlaneD::Side PlaneD::whichSideBox(const Point3D& center,
 {
    F64 baseDist = distToPlane(center);
 
-   F64 compDist = mFabs(mDot(axisx, *this)) +
-                  mFabs(mDot(axisy, *this)) +
-                  mFabs(mDot(axisz, *this));
+   F64 compDist = mAbs(mDot(axisx, *this)) +
+                  mAbs(mDot(axisy, *this)) +
+                  mAbs(mDot(axisz, *this));
 
    // Intersects
    if (baseDist >= compDist)
@@ -790,7 +790,7 @@ inline PlaneD::Side PlaneD::whichSideBox(const Point3D& center,
    else
       return On;
 
-//   if (compDist > mFabs(baseDist))
+//   if (compDist > mAbs(baseDist))
 //      return On;
 //   else
 //      return baseDist < 0.0 ? Back : Front;

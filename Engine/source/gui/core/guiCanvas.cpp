@@ -600,7 +600,7 @@ void GuiCanvas::cursorNudge(F32 x, F32 y)
    Point2F cursDelta(x, y);
 
    // If X axis changed, generate a relative event
-   if(mFabs(cursDelta.x) > 0.1)
+   if(mAbs(cursDelta.x) > 0.1)
    {
       inputEvent.objInst    = SI_XAXIS;
       inputEvent.action     = SI_MOVE;
@@ -609,7 +609,7 @@ void GuiCanvas::cursorNudge(F32 x, F32 y)
    }
 
    // If Y axis changed, generate a relative event
-   if(mFabs(cursDelta.y) > 0.1)
+   if(mAbs(cursDelta.y) > 0.1)
    {
       inputEvent.objInst    = SI_YAXIS;
       inputEvent.action     = SI_MOVE;
@@ -1062,7 +1062,7 @@ bool GuiCanvas::processGamepadEvent(InputEventInfo &inputEvent)
    }
    else if (inputEvent.objType == SI_AXIS)
    {
-      F32 incomingValue = mFabs(inputEvent.fValue);
+      F32 incomingValue = mAbs(inputEvent.fValue);
       static const F32 DEAD_ZONE = 0.5f;
       static const F32 MIN_CLICK_TIME = 500.0f;
       static const F32 MAX_CLICK_TIME = 1000.0f;

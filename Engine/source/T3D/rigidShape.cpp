@@ -1294,7 +1294,7 @@ bool RigidShape::resolveCollision(Rigid&  ns,CollisionList& cList, F32 dt)
          F32 vn = mDot(v, c.normal);
 
          // Only interested in velocities greater than sContactTol,
-         if (mFabs(vn) > mDataBlock->contactTol)
+         if (mAbs(vn) > mDataBlock->contactTol)
          {
 
             // Apply impulses to the rigid body to keep it from
@@ -1324,7 +1324,7 @@ bool RigidShape::resolveCollision(Rigid&  ns,CollisionList& cList, F32 dt)
             Point3F t;
             // Penetration force. This is actually a spring which
             // will seperate the body from the collision surface.
-            F32 zi = 2 * mFabs(mRigid.getZeroImpulse(r, c.normal) / dt);
+            F32 zi = 2 * mAbs(mRigid.getZeroImpulse(r, c.normal) / dt);
             F32 s = mMax((F32)((mDataBlock->collisionTol - c.distance) * zi - ((vn / 2.0) * zi)),0.0f);
             Point3F f = c.normal * s;
 
@@ -1710,7 +1710,7 @@ bool RigidShape::collidingWithWater( Point3F &waterHeight )
 {
    Point3F curPos = getPosition();
 
-   F32 height = mFabs( mObjBox.maxExtents.z - mObjBox.minExtents.z );
+   F32 height = mAbs( mObjBox.maxExtents.z - mObjBox.minExtents.z );
 
    RayInfo rInfo;
    if( gClientContainer.castRay( curPos + Point3F(0.0, 0.0, height), curPos, WaterObjectType, &rInfo) )

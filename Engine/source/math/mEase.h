@@ -329,7 +329,7 @@ inline F32 mEaseInElastic(F32 t, F32 b, F32 c, F32 d, F32 a, F32 p)
       p=d*.3f;
 
 	F32 s;
-	if (a < mFabs(c))
+	if (a < mAbs(c))
 	{
 	   a=c; 
       s=p/4;
@@ -354,7 +354,7 @@ inline F32 mEaseOutElastic(F32 t, F32 b, F32 c, F32 d, F32 a, F32 p)
       p=d*.3f;
 
 	F32 s;
-	if (a < mFabs(c))
+	if (a < mAbs(c))
 	{
 	   a=c; 
       s=p/4;
@@ -378,7 +378,7 @@ inline F32 mEaseInOutElastic(F32 t, F32 b, F32 c, F32 d, F32 a, F32 p)
       p=d*(.3f*1.5f);
 
 	F32 s;
-	if (a < mFabs(c))
+	if (a < mAbs(c))
 	{
 	   a=c; 
       s=p/4;

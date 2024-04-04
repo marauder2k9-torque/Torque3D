@@ -148,9 +148,9 @@ S32 QSORT_CALLBACK cmpQuadPointTheta( const void *p1, const void *p2 )
    const Point4F *pnt1 = (const Point4F*)p1;
    const Point4F *pnt2 = (const Point4F*)p2;
 
-   if ( mFabs( pnt1->w ) > mFabs( pnt2->w ) )
+   if ( mAbs( pnt1->w ) > mAbs( pnt2->w ) )
       return 1;
-   else if ( mFabs( pnt1->w ) < mFabs( pnt2->w ) )
+   else if ( mAbs( pnt1->w ) < mAbs( pnt2->w ) )
       return -1;
    else
       return 0;
@@ -429,11 +429,11 @@ bool DecalManager::clipDecal( DecalInstance *decal, Vector<Point3F> *edgeVerts, 
       decal->mVerts[i].normal = mClipper.mNormalList[i];
       decal->mVerts[i].normal.normalize();
 
-      if( mFabs( decal->mVerts[i].normal.z ) > 0.8f ) 
+      if( mAbs( decal->mVerts[i].normal.z ) > 0.8f ) 
          mCross( decal->mVerts[i].normal, Point3F( 1.0f, 0.0f, 0.0f ), &vecX );
-      else if ( mFabs( decal->mVerts[i].normal.x ) > 0.8f )
+      else if ( mAbs( decal->mVerts[i].normal.x ) > 0.8f )
          mCross( decal->mVerts[i].normal, Point3F( 0.0f, 1.0f, 0.0f ), &vecX );
-      else if ( mFabs( decal->mVerts[i].normal.y ) > 0.8f )
+      else if ( mAbs( decal->mVerts[i].normal.y ) > 0.8f )
          mCross( decal->mVerts[i].normal, Point3F( 0.0f, 0.0f, 1.0f ), &vecX );
    
       decal->mVerts[i].tangent = mCross( decal->mVerts[i].normal, vecX );
@@ -1732,7 +1732,7 @@ DefineEngineFunction( decalManagerEditDecal, bool, ( S32 decalID, Point3F pos, P
    if ( pos.equal(decalInstance->mPosition) &&
         normal.equal(decalInstance->mNormal) &&
         tangent.equal(decalInstance->mTangent) &&
-        mFabs( decalInstance->mSize - (decalInstance->mDataBlock->size * decalScale) ) < POINT_EPSILON )
+        mAbs( decalInstance->mSize - (decalInstance->mDataBlock->size * decalScale) ) < POINT_EPSILON )
            return true;
 
    decalInstance->mPosition = pos;

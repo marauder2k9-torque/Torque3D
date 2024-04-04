@@ -236,16 +236,6 @@ inline F32 mCeil(const F32 val)
    return (F32) ceil(val);
 }
 
-inline F32 mFabs(const F32 val)
-{
-   return (F32) fabs(val);
-}
-
-inline F64 mFabs(const F64 val)
-{
-   return fabs(val);
-}
-
 inline F32 mFmod(const F32 val, const F32 mod)
 {
    return fmod(val, mod);
@@ -478,7 +468,7 @@ inline F32 mCatmullrom(F32 t, F32 p0, F32 p1, F32 p2, F32 p3)
 }
 
 
-inline F64 mFabsD(const F64 val)
+inline F64 mAbsD(const F64 val)
 {
    return (F64) fabs(val);
 }

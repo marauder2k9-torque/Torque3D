@@ -35,7 +35,7 @@ bool OrientedBox3F::isContained( const Point3F& point ) const
    for( U32 i = 0; i < 3; ++ i )
    {
       F32 coeff = mDot( distToCenter, getAxis( i ) );
-      if( mFabs( coeff ) > getHalfExtents()[ i ] )
+      if( mAbs( coeff ) > getHalfExtents()[ i ] )
          return false;
    }
 
