@@ -407,8 +407,8 @@ bool DecalManager::clipDecal( DecalInstance *decal, Vector<Point3F> *edgeVerts, 
       projMat.mulP( vertPoint );
 
       // Clamp the point to be within the quad.
-      vertPoint.x = mClampF( vertPoint.x, -decalHalfSize.x, decalHalfSize.x );
-      vertPoint.y = mClampF( vertPoint.y, -decalHalfSize.y, decalHalfSize.y );
+      vertPoint.x = mClamp( vertPoint.x, -decalHalfSize.x, decalHalfSize.x );
+      vertPoint.y = mClamp( vertPoint.y, -decalHalfSize.y, decalHalfSize.y );
 
       // Get our UV.
       uv = quadToSquare.transform( Point2F( vertPoint.x, vertPoint.y ) );
@@ -1108,7 +1108,7 @@ void DecalManager::prepRenderImage( SceneRenderState* state )
             if ( pixelSize < ddata->fadeStartPixelSize )
             {
                const F32 range = ddata->fadeStartPixelSize - ddata->fadeEndPixelSize;
-               alpha = 1.0f - mClampF( ( ddata->fadeStartPixelSize - pixelSize ) / range, 0.0f, 1.0f );
+               alpha = 1.0f - mClamp( ( ddata->fadeStartPixelSize - pixelSize ) / range, 0.0f, 1.0f );
             }
 
             alpha *= dinst->mVisibility;

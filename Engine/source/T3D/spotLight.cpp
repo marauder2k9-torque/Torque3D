@@ -189,7 +189,7 @@ void SpotLight::setScale( const VectorF &scale )
    // Use the average of the x and z to get a radius.  This
    // is the best method i've found to make the manipulation
    // from the WorldEditor gizmo to feel right.
-   F32 radius = mClampF( ( scale.x + scale.z ) * 0.5f, 0.05f, mRange );
+   F32 radius = mClamp( ( scale.x + scale.z ) * 0.5f, 0.05f, mRange );
    mOuterConeAngle = mRadToDeg( mAsin( radius / mRange ) ) * 2.0f;
 
    // Make sure the inner angle is less than the outer.

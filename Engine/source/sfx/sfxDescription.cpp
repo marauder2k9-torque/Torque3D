@@ -475,7 +475,7 @@ bool SFXDescription::onAdd()
 void SFXDescription::validate()
 {
    // Validate the data we'll be passing to the audio layer.
-   mVolume = mClampF( mVolume, 0, 1 );
+   mVolume = mClamp( mVolume, 0.f, 1.f );
    
    if( mPitch <= 0.0f )
       mPitch = 1.0f;
@@ -491,9 +491,9 @@ void SFXDescription::validate()
    if( mMaxDistance <= mMinDistance )
       mMaxDistance = mMinDistance + 0.01f;
 
-   mConeInsideAngle     = mClamp( mConeInsideAngle, 0, 360 );
-   mConeOutsideAngle    = mClamp( mConeOutsideAngle, mConeInsideAngle, 360 );
-   mConeOutsideVolume   = mClampF( mConeOutsideVolume, 0, 1 );
+   mConeInsideAngle     = mClamp( mConeInsideAngle, 0u, 360u );
+   mConeOutsideAngle    = mClamp( mConeOutsideAngle, mConeInsideAngle, 360u );
+   mConeOutsideVolume   = mClamp( mConeOutsideVolume, 0.f, 1.f );
    
    if( !mIs3D )
       mUseReverb = false;

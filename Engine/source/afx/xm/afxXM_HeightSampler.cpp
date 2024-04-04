@@ -136,7 +136,7 @@ void afxXM_HeightSampler::updateParams(F32 dt, F32 elapsed, afxXM_Params& params
   
   F32 range = 0.5f;
   F32 height = (base_pos.z > params.pos.z) ? (base_pos.z - params.pos.z) : 0.0f;
-  F32 factor = mClampF(1.0f - (height/range), 0.0f, 1.0f);
+  F32 factor = mClamp(1.0f - (height/range), 0.0f, 1.0f);
 
   //Con::printf("SET height=%g liveScaleFactor=%g", height, factor);
   fx_wrapper->setField("liveScaleFactor", avar("%g", factor));

@@ -311,7 +311,7 @@ bool LightFlareData::_testVisibility(const SceneRenderState *state, LightFlareSt
       flareState->fullPixelQuery.getLastStatus( false, NULL, &fullPixels );
       
       if ( status == GFXOcclusionQuery::NotOccluded && fullPixels != 0 )
-         *outOcclusionFade = mClampF( (F32)pixels / (F32)fullPixels, 0.0f, 1.0f );
+         *outOcclusionFade = mClamp( (F32)pixels / (F32)fullPixels, 0.0f, 1.0f );
 
         if( !flareState->occlusionQuery.isWaiting() )
         {

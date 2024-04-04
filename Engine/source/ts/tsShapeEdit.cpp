@@ -101,7 +101,7 @@ void TSShape::updateSmallestVisibleDL()
       {
          F32 curSize = details[dl].size;
          F32 nextSize = dl == 0 ? 2.0f * curSize : details[dl - 1].size;
-         intraDL = mClampF( nextSize - curSize > 0.01f ? (pixelSize - curSize) / (nextSize - curSize) : 1.0f, 0, 1 );
+         intraDL = mClamp( nextSize - curSize > 0.01f ? (pixelSize - curSize) / (nextSize - curSize) : 1.0f, 0.0f, 1.0f );
       }
 
       mDetailLevelLookup[l].set( dl, intraDL );

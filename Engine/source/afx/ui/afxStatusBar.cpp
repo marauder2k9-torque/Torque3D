@@ -94,7 +94,7 @@ afxStatusBar::afxStatusBar()
 
 void afxStatusBar::setFraction(F32 frac)
 {
-  fraction = mClampF(frac, 0.0f, 1.0f);
+  fraction = mClamp(frac, 0.0f, 1.0f);
 }
 
 void afxStatusBar::setShape(ShapeBase* s) 

@@ -1219,7 +1219,7 @@ void Precipitation::destroySplash(Raindrop *drop)
 //--------------------------------------------------------------------------
 void Precipitation::setPercentage(F32 pct)
 {
-   mPercentage = mClampF(pct, 0, 1);
+   mPercentage = mClamp(pct, 0.f, 1.f);
    mStormData.valid = false;
 
    if (isServerObject()) 
@@ -1236,7 +1236,7 @@ void Precipitation::modifyStorm(F32 pct, U32 ms)
       return;
    }
 
-   pct = mClampF(pct, 0, 1);
+   pct = mClamp(pct, 0.f, 1.f);
    mStormData.endPct = pct;
    mStormData.totalTime = ms;
 

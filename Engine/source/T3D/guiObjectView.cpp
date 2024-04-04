@@ -585,7 +585,7 @@ void GuiObjectView::renderWorld( const RectI& updateRect )
 void GuiObjectView::setOrbitDistance( F32 distance )
 {
    // Make sure the orbit distance is within the acceptable range
-   mOrbitDist = mClampF( distance, mMinOrbitDist, mMaxOrbitDist );
+   mOrbitDist = mClamp( distance, mMinOrbitDist, mMaxOrbitDist );
 }
 
 //------------------------------------------------------------------------------

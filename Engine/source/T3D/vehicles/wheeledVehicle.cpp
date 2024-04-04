@@ -722,7 +722,7 @@ S32 WheeledVehicle::getWheelCount()
 void WheeledVehicle::setWheelSteering(S32 wheel,F32 steering)
 {
    AssertFatal(wheel >= 0 && wheel < WheeledVehicleData::MaxWheels,"Wheel index out of bounds");
-   mWheel[wheel].steering = mClampF(steering,-1,1);
+   mWheel[wheel].steering = mClamp(steering,-1.0f,1.0f);
    setMaskBits(WheelMask);
 }
 

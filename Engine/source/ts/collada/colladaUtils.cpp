@@ -324,7 +324,7 @@ F32 AnimData::invertParamCubic(F32 param, F32 x0, F32 x1, F32 x2, F32 x3) const
       iterations++;
    }
 
-   return mClampF((u+v)*0.5f, 0.0f, 1.0f);
+   return mClamp((u+v)*0.5f, 0.0f, 1.0f);
 }
 
 /// Get the interpolated value at time 't'
@@ -345,7 +345,7 @@ void AnimData::interpValue(F32 t, U32 offset, double* value) const
    // clamp time to valid range
    F32 curveStart = input.getFloatValue(0);
    F32 curveEnd = input.getFloatValue(input.size()-1);
-   t = mClampF(t, curveStart, curveEnd);
+   t = mClamp(t, curveStart, curveEnd);
 
    // find the index of the input keyframe BEFORE 't'
    S32 index;
@@ -455,7 +455,7 @@ void AnimData::interpValue(F32 t, U32 offset, double* value) const
    }
    else {
       // default to LINEAR interpolation
-      F32 s = mClampF((t - v0.x) / (v3.x - v0.x), 0.0f, 1.0f);
+      F32 s = mClamp((t - v0.x) / (v3.x - v0.x), 0.0f, 1.0f);
       *value = v0.y + (v3.y - v0.y) * s;
    }
 }
@@ -471,7 +471,7 @@ void AnimData::interpValue(F32 t, U32 offset, const char** value) const
       // clamp time to valid range
       F32 curveStart = input.getFloatValue(0);
       F32 curveEnd = input.getFloatValue(input.size()-1);
-      t = mClampF(t, curveStart, curveEnd);
+      t = mClamp(t, curveStart, curveEnd);
 
       // find the index of the input keyframe BEFORE 't'
       S32 index;

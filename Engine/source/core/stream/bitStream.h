@@ -377,7 +377,7 @@ inline S32 BitStream::readRangedS32( S32 min, S32 max )
 
 inline void BitStream::writeRangedF32( F32 value, F32 min, F32 max, U32 numBits )
 {
-   value = ( mClampF( value, min, max ) - min ) / ( max - min );
+   value = ( mClamp( value, min, max ) - min ) / ( max - min );
    writeInt( (S32)mFloor(value * F32( (1 << numBits) - 1 )), numBits );
 }
 

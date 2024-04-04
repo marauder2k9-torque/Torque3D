@@ -120,7 +120,7 @@ void LightQuery::_scoreLights()
          F32 distSq = radiusSq - lenSq;
          
          if ( distSq > 0.0f )
-            dist = mClampF( distSq / ( 1000.0f * 1000.0f ), 0.0f, 1.0f );
+            dist = mClamp( distSq / ( 1000.0f * 1000.0f ), 0.0f, 1.0f );
 
          // TODO: This culling is broken... it culls spotlights 
          // that are actually visible.

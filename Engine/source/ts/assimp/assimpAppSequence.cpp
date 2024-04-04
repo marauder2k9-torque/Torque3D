@@ -71,7 +71,7 @@ AssimpAppSequence::AssimpAppSequence(aiAnimation *a) :
    S32 fpsRequest = (S32)a->mTicksPerSecond;
    if (timeFactor == 0)
    {  // Timing specified in frames
-      fps = mClamp(fpsRequest, 5 /*TSShapeLoader::MinFrameRate*/, TSShapeLoader::MaxFrameRate);
+      fps = mClamp(fpsRequest, 5 /*TSShapeLoader::MinFrameRate*/, (S32)TSShapeLoader::MaxFrameRate);
       mTimeMultiplier = 1.0f / fps;
    }
    else

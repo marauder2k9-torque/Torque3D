@@ -240,7 +240,7 @@ void PathShape::advancePosition(S32 ms)
 
 void PathShape::setPosition(F32 pos)
 {
-   mPosition = mClampF(pos,mNodeBase,mNodeBase + mNodeCount - 1);
+   mPosition = mClamp(pos,(F32)mNodeBase,(F32)(mNodeBase + mNodeCount - 1));
    MatrixF mat;
    interpolateMat(mPosition,&mat);
    Parent::setTransform(mat);

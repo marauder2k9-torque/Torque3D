@@ -149,7 +149,7 @@ public:
    /// the percentage of the maximum designed cover to put down.
    /// It scales both rendering cost and placement CPU performance.
    /// Returns the actual value set.
-   static F32 setQualityScale( F32 scale ) { return smDensityScale = mClampF( scale, 0.0f, 1.0f ); }
+   static F32 setQualityScale( F32 scale ) { return smDensityScale = mClamp( scale, 0.0f, 1.0f ); }
 
    /// Returns the current quality scale... see above.
    static F32 getQualityScale() { return smDensityScale; }
@@ -157,7 +157,7 @@ public:
    /// Sets the global ground cover fade scalar which controls
    /// the percentage of the maximum designed distance to display cover.
    /// Returns the actual value set.
-   static F32 setFadeScale(F32 scale) { return smFadeScale = mClampF(scale, 0.0f, 1.0f); }
+   static F32 setFadeScale(F32 scale) { return smFadeScale = mClamp(scale, 0.0f, 1.0f); }
 
    /// Returns the current fade scale... see above.
    static F32 getFadeScale() { return smFadeScale; }

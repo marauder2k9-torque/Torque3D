@@ -583,7 +583,7 @@ void blTerrainProxy::lightVector(LightInfo * light)
          }
 
          // Set the final lightmap color.
-         mLightmap[i++] += LinearColorF::WHITE * mClampF( 1.0f - shadowed, 0.0f, 1.0f );
+         mLightmap[i++] += LinearColorF::WHITE * mClamp( 1.0f - shadowed, 0.0f, 1.0f );
       }
    }
 }

@@ -431,7 +431,7 @@ void GuiMaterialPreview::renderWorld(const RectI &updateRect)
 // Make sure the orbit distance is within the acceptable range.
 void GuiMaterialPreview::setOrbitDistance(F32 distance)
 {
-   mOrbitDist = mClampF(distance, mMinOrbitDist, mMaxOrbitDist);
+   mOrbitDist = mClamp(distance, mMinOrbitDist, mMaxOrbitDist);
 }
 
 // This function is meant to be used with a button to put everything back to default settings.

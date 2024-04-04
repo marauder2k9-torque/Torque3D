@@ -884,7 +884,7 @@ void PhysicsShape::applyRadialImpulse( const Point3F &origin, F32 radius, F32 ma
    if ( dist == 0.0f )
       force *= magnitude;
    else
-      force *= mClampF( radius / dist, 0.0f, 1.0f ) * magnitude;   
+      force *= mClamp( radius / dist, 0.0f, 1.0f ) * magnitude;   
 
    mPhysicsRep->applyImpulse( origin, force );
 
@@ -967,7 +967,7 @@ void PhysicsShape::processTick( const Move *move )
    mRenderState[1] = mState;
    if ( doSmoothing )
    {
-      F32 correction = mClampF( errorDelta.len() / 20.0f, 0.1f, 0.9f );
+      F32 correction = mClamp( errorDelta.len() / 20.0f, 0.1f, 0.9f );
       mRenderState[1].position.interpolate( mState.position, mRenderState[0].position, correction );  
       mRenderState[1].orientation.interpolate( mState.orientation, mRenderState[0].orientation, correction );
    }

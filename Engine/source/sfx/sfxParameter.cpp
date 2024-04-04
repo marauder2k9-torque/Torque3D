@@ -244,7 +244,7 @@ void SFXParameter::setValue( F32 value )
    if( value == mValue )
       return;
       
-   mValue = mClampF( value, mRange.x, mRange.y );
+   mValue = mClamp( value, mRange.x, mRange.y );
    mEventSignal.trigger( this, SFXParameterEvent_ValueChanged );
 }
 
@@ -252,7 +252,7 @@ void SFXParameter::setValue( F32 value )
 
 void SFXParameter::setDefaultValue( F32 value )
 {
-   mDefaultValue = mClampF( value, mRange.x, mRange.y );
+   mDefaultValue = mClamp( value, mRange.x, mRange.y );
 }
 
 //-----------------------------------------------------------------------------
@@ -264,11 +264,11 @@ void SFXParameter::setRange( const Point2F& range )
       
    mRange = range;
    
-   F32 value = mClampF( mValue, mRange.x, mRange.y );
+   F32 value = mClamp( mValue, mRange.x, mRange.y );
    if( value != mValue )
       setValue( value );
       
-   mDefaultValue = mClampF( mDefaultValue, mRange.x, mRange.y );
+   mDefaultValue = mClamp( mDefaultValue, mRange.x, mRange.y );
 }
 
 //-----------------------------------------------------------------------------

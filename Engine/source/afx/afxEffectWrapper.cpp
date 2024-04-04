@@ -947,7 +947,7 @@ bool afxEffectWrapper::update(F32 dt)
   {
     if (mEW_timing.fade_in_time > 0 && mElapsed <= mFade_in_end)
     {
-      F32 t = mClampF((mElapsed - mEW_timing.delay)/ mEW_timing.fade_in_time, 0.0f, 1.0f);
+      F32 t = mClamp((mElapsed - mEW_timing.delay)/ mEW_timing.fade_in_time, 0.0f, 1.0f);
       mFade_value = afxEase::t(t, mEW_timing.fadein_ease.x, mEW_timing.fadein_ease.y);
       mDo_fades = true;
     }
@@ -957,7 +957,7 @@ bool afxEffectWrapper::update(F32 dt)
         mFade_value = 0.0f;
       else
       {
-        F32 t = mClampF(1.0f-(mElapsed - mFade_out_start)/ mEW_timing.fade_out_time, 0.0f, 1.0f);
+        F32 t = mClamp(1.0f-(mElapsed - mFade_out_start)/ mEW_timing.fade_out_time, 0.0f, 1.0f);
         mFade_value = afxEase::t(t, mEW_timing.fadeout_ease.x, mEW_timing.fadeout_ease.y);
       }
 	  mDo_fades = true;
@@ -977,7 +977,7 @@ bool afxEffectWrapper::update(F32 dt)
   if (mDatablock->vis_keys && mDatablock->vis_keys->numKeys() > 0)
   {
     F32 vis = mDatablock->vis_keys->evaluate(mElapsed - mEW_timing.delay);
-    mFade_value *= mClampF(vis, 0.0f, 1.0f);
+    mFade_value *= mClamp(vis, 0.0f, 1.0f);
 	mDo_fades = (mFade_value < 1.0f);
   }
 

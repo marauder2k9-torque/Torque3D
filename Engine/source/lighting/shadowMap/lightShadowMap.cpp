@@ -605,7 +605,7 @@ void ShadowMapParams::_validate()
 
    if ( mLight->getType() == LightInfo::Vector )
    {
-      numSplits = mClamp( numSplits, 1, 4 );
+      numSplits = mClamp( numSplits, 1u, 4u );
       
       // Adjust the shadow texture size for the PSSM 
       // based on the split count to keep the total
@@ -619,7 +619,7 @@ void ShadowMapParams::_validate()
       numSplits = 1;
 
    // Keep it in a valid range... less than 32 is dumb.
-   texSize = mClamp( texSize, 32, maxTexSize );
+   texSize = mClamp( texSize, 32u, maxTexSize );
    shadowDistance = mClamp(shadowDistance, 25.0f, 10000.0f);
 }
 

@@ -736,8 +736,8 @@ LinearColorF GBitmap::sampleTexel(F32 u, F32 v, bool retAlpha) const
    // the uv based on a clamped 0 - 1...
    Point2F max((F32)(getWidth()-1), (F32)(getHeight()-1));
    Point2F posf;
-   posf.x = mClampF(((u) * max.x), 0.0f, max.x);
-   posf.y = mClampF(((v) * max.y), 0.0f, max.y);
+   posf.x = mClamp(((u) * max.x), 0.0f, max.x);
+   posf.y = mClamp(((v) * max.y), 0.0f, max.y);
    Point2I posi((S32)posf.x, (S32)posf.y);
 
    const U8 *buffer = getBits();

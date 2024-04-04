@@ -681,7 +681,7 @@ S32 TSShapeInstance::setDetailFromDistance( const SceneRenderState *state, F32 s
    smLastPixelSize = pixelSize;
 
    // Clamp it to an acceptable range for the lookup table.
-   U32 index = (U32)mClampF( pixelSize, 0, mShape->mDetailLevelLookup.size() - 1 );
+   U32 index = (U32)mClamp( pixelSize, 0.f, (F32)(mShape->mDetailLevelLookup.size() - 1.f ));
 
    // Check the lookup table for the detail and intra detail levels.
    mShape->mDetailLevelLookup[ index ].get( mCurrentDetailLevel, mCurrentIntraDetailLevel );

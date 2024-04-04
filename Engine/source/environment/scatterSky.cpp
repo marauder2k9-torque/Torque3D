@@ -241,14 +241,14 @@ void ScatterSky::_conformLights()
    F32 brightness;
 
    // Build the light direction from the azimuth and elevation.
-   F32 yaw = mDegToRad(mClampF(mSunAzimuth,0,359));
-   F32 pitch = mDegToRad(mClampF(mSunElevation,-360,+360));
+   F32 yaw = mDegToRad(mClamp(mSunAzimuth,0.f,359.f));
+   F32 pitch = mDegToRad(mClamp(mSunElevation,-360.f,360.f));
    MathUtils::getVectorFromAngles(lightDirection, yaw, pitch);
    lightDirection.normalize();
    mSunDir = -lightDirection;
 
-   yaw = mDegToRad(mClampF(mMoonAzimuth,0,359));
-   pitch = mDegToRad(mClampF(mMoonElevation,-360,+360));
+   yaw = mDegToRad(mClamp(mMoonAzimuth,0.f,359.f));
+   pitch = mDegToRad(mClamp(mMoonElevation,-360.f,360.f));
    MathUtils::getVectorFromAngles( mMoonLightDir, yaw, pitch );
    mMoonLightDir.normalize();
    mMoonLightDir = -mMoonLightDir;

@@ -223,12 +223,12 @@ bool ProjectedShadow::_updateDecal( const SceneRenderState *state )
 
       range = lights[i]->getRange().x;
       dist = ( (tmp.lenSquared()) / ((range * range) * 0.5f));
-      weight = mClampF( 1.0f - ( tmp.lenSquared() / (range * range)), 0.00001f, 1.0f );
+      weight = mClamp( 1.0f - ( tmp.lenSquared() / (range * range)), 0.00001f, 1.0f );
 
       if ( lights[i]->getType() == LightInfo::Vector )
          fade = getMax( fade, 1.0f );
       else
-         fade = getMax( fade, mClampF( 1.0f - dist, 0.00001f, 1.0f ) );
+         fade = getMax( fade, mClamp( 1.0f - dist, 0.00001f, 1.0f ) );
 
       lightDir += tmp * weight;
       lightCount++;
@@ -395,7 +395,7 @@ void ProjectedShadow::_calcScore( const SceneRenderState *state )
    F32 secs = mFloor( (F32)msSinceLastRender / 1000.0f );
    
    mScore = pct + secs;
-   mScore = mClampF( mScore, 0.0f, 2000.0f );
+   mScore = mClamp( mScore, 0.0f, 2000.0f );
 }
 
 void ProjectedShadow::update( const SceneRenderState *state )

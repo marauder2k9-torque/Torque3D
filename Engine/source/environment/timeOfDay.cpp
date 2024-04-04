@@ -383,7 +383,7 @@ void TimeOfDay::_getSunColor( LinearColorF *outColor ) const
 {
 	  const COLOR_TARGET *ct = NULL;
 
-   F32 ele = mClampF( M_2PI_F - mNextElevation, 0.0f, M_PI_F );
+   F32 ele = mClamp( M_2PI_F - mNextElevation, 0.0f, M_PI_F );
 	  F32 phase = -1.0f;
 	  F32 div;
 

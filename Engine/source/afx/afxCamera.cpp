@@ -758,7 +758,7 @@ void afxCamera::processTick(const Move* move)
     // UPDATE ORIENTATION //
 	  mDelta.rotVec = mRot;
     mObjToWorld.getColumn(3, &mDelta.posVec);
-    mRot.x = mClampF(mRot.x + move->pitch, -MaxPitch, MaxPitch);
+    mRot.x = mClamp(mRot.x + move->pitch, -MaxPitch, MaxPitch);
     mRot.z += move->yaw;
 
     // ORBIT MODE // 

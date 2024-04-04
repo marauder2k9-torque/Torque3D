@@ -216,7 +216,7 @@ void Noise2D::rigidMultiFractal(Vector<F32> *dst, Vector<F32> *sig, U32 size, U3
             F32 signal = (*sig)[index];
 
             // weight successive contributions by previous signal
-            F32 weight = mClampF(signal * gain, 0.0f, 1.0f);
+            F32 weight = mClamp(signal * gain, 0.0f, 1.0f);
 
             signal = mAbs(getValue( fx, fy, interval ));
 
@@ -344,8 +344,8 @@ bool Noise2D::erodeThermal(Vector<F32> *src, Vector<F32> *dst, F32 slope, F32 ma
    r.setSize( size * size );
    //dMemset( r.address(), 0, r.memSize() );
 
-   F32 conservation = 1.0f - mClampF(materialLoss, 0.0f,  100.0f)/100.0f;
-   slope            = mClampF(conservation, 0.0f, 89.0f);                  // clamp to 0-89 degrees
+   F32 conservation = 1.0f - mClamp(materialLoss, 0.0f,  100.0f)/100.0f;
+   slope            = mClamp(conservation, 0.0f, 89.0f);                  // clamp to 0-89 degrees
 
    F32 talusConst = mTan(mDegToRad(slope)) * squareSize; // in world units
    talusConst = talusConst * (fmax-fmin) / maxHeight;     // scale to current height units

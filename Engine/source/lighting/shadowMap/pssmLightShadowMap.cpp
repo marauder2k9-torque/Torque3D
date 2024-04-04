@@ -126,7 +126,7 @@ void PSSMLightShadowMap::_calcSplitPos(const Frustum& currFrustum)
       F32 step = (F32) i / (F32) mNumSplits;
       F32 logSplit = nearDist * mPow(farDist / nearDist, step);
       F32 linearSplit = nearDist + (farDist - nearDist) * step;
-      mSplitDist[i] = mLerp( linearSplit, logSplit, mClampF( mLogWeight, 0.0f, 1.0f ) );
+      mSplitDist[i] = mLerp( linearSplit, logSplit, mClamp( mLogWeight, 0.0f, 1.0f ) );
    }
 
    mSplitDist[0] = nearDist;

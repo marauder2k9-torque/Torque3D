@@ -70,7 +70,7 @@ F32 segmentSegmentNearest(const Point3F & p1, const Point3F & q1, const Point3F 
    if (a <= EPSILON)
    {
       s = 0.0f;
-      t = mClampF(f/e,0.0f,1.0f);
+      t = mClamp(f/e,0.0f,1.0f);
    }
    else
    {
@@ -78,26 +78,26 @@ F32 segmentSegmentNearest(const Point3F & p1, const Point3F & q1, const Point3F 
       if (e <= EPSILON)
       {
          t = 0.0f;
-         s = mClampF(-c/a,0.0f,1.0f);
+         s = mClamp(-c/a,0.0f,1.0f);
       }
       else
       {
          F32 b = mDot(d1,d2);
          F32 denom = a*e-b*b;
          if (denom != 0.0f)
-            s = mClampF((b*f-c*e)/denom,0.0f,1.0f);
+            s = mClamp((b*f-c*e)/denom,0.0f,1.0f);
          else
             s = 0.0f;
          F32 tnom = b*s+f;
          if (tnom < 0.0f)
          {
             t = 0.0f;
-            s = mClampF(-c/a,0.0f,1.0f);
+            s = mClamp(-c/a,0.0f,1.0f);
          }
          else if (tnom>e)
          {
             t = 1.0f;
-            s = mClampF((b-c)/a,0.0f,1.0f);
+            s = mClamp((b-c)/a,0.0f,1.0f);
          }
          else
             t = tnom/e;
@@ -1344,11 +1344,11 @@ bool reduceFrustum( const Frustum& frustum, const RectI& viewport, const RectF& 
    Point2F clampedMin;
    Point2F clampedMax;
 
-   clampedMin.x = mClampF( area.extent.x, ( F32 ) viewport.point.x, ( F32 ) viewport.point.x + viewport.extent.x );
-   clampedMin.y = mClampF( area.extent.y, ( F32 ) viewport.point.y, ( F32 ) viewport.point.y + viewport.extent.y );
+   clampedMin.x = mClamp( area.extent.x, ( F32 ) viewport.point.x, ( F32 ) viewport.point.x + viewport.extent.x );
+   clampedMin.y = mClamp( area.extent.y, ( F32 ) viewport.point.y, ( F32 ) viewport.point.y + viewport.extent.y );
 
-   clampedMax.x = mClampF( area.extent.x, ( F32 ) viewport.point.x, ( F32 ) viewport.point.x + viewport.extent.x );
-   clampedMax.y = mClampF( area.extent.y, ( F32 ) viewport.point.y, ( F32 ) viewport.point.y + viewport.extent.y );
+   clampedMax.x = mClamp( area.extent.x, ( F32 ) viewport.point.x, ( F32 ) viewport.point.x + viewport.extent.x );
+   clampedMax.y = mClamp( area.extent.y, ( F32 ) viewport.point.y, ( F32 ) viewport.point.y + viewport.extent.y );
 
    // If we have ended up without a visible region on the screen,
    // terminate now.

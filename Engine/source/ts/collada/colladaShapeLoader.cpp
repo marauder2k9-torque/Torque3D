@@ -260,7 +260,7 @@ void ColladaShapeLoader::enumerateScene()
       // Collada animations can be stored as sampled frames or true keyframes. For
       // sampled frames, use the same frame rate as the DAE file. For true keyframes,
       // resample at a fixed frame rate.
-      appSeq->fps = mClamp(1.0f / minFrameTime + 0.5f, TSShapeLoader::MinFrameRate, TSShapeLoader::MaxFrameRate);
+      appSeq->fps = mClamp(1.0 / minFrameTime + 0.5, TSShapeLoader::MinFrameRate, TSShapeLoader::MaxFrameRate);
    }
 
    // First grab all of the top-level nodes

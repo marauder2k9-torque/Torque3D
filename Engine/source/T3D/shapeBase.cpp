@@ -753,7 +753,7 @@ void ShapeBaseData::packData(BitStream* stream)
       stream->write(cameraMaxDist);
    if(stream->writeFlag(cameraMinDist != gShapeBaseDataProto.cameraMinDist))
       stream->write(cameraMinDist);
-   cameraDefaultFov = mClampF(cameraDefaultFov, cameraMinFov, cameraMaxFov);
+   cameraDefaultFov = mClamp(cameraDefaultFov, cameraMinFov, cameraMaxFov);
    if(stream->writeFlag(cameraDefaultFov != gShapeBaseDataProto.cameraDefaultFov))
       stream->write(cameraDefaultFov);
    if(stream->writeFlag(cameraMinFov != gShapeBaseDataProto.cameraMinFov))
@@ -1377,7 +1377,7 @@ void ShapeBase::processTick(const Move* move)
    {
       F32 store = mDamage;
       mDamage -= mRepairRate;
-      mDamage = mClampF(mDamage, 0.f, mDataBlock->maxDamage);
+      mDamage = mClamp(mDamage, 0.f, mDataBlock->maxDamage);
 
       if (mRepairReserve > mDamage)
          mRepairReserve = mDamage;
@@ -1625,7 +1625,7 @@ void ShapeBase::setCameraFov(F32 fov)
       fov = validateCameraFov_callback( fov );
    }
 
-   mCameraFov = mClampF(fov, mDataBlock->cameraMinFov, mDataBlock->cameraMaxFov);
+   mCameraFov = mClamp(fov, mDataBlock->cameraMinFov, mDataBlock->cameraMaxFov);
 }
 
 void ShapeBase::onCameraScopeQuery(NetConnection *cr, CameraScopeQuery * query)
@@ -1705,7 +1705,7 @@ void ShapeBase::setDamageLevel(F32 damage)
 {
    if (!mDataBlock->isInvincible) {
       F32 store = mDamage;
-      mDamage = mClampF(damage, 0.f, mDataBlock->maxDamage);
+      mDamage = mClamp(damage, 0.f, mDataBlock->maxDamage);
 
       if (store != mDamage) {
          updateDamageLevel();
@@ -3155,7 +3155,7 @@ U32 ShapeBase::packUpdate(NetConnection *con, U32 mask, BitStream *stream)
       return retMask;
 
    if (stream->writeFlag(mask & DamageMask)) {
-      stream->writeFloat(mClampF(mDamage / mDataBlock->maxDamage, 0.f, 1.f), DamageLevelBits);
+      stream->writeFloat(mClamp(mDamage / mDataBlock->maxDamage, 0.f, 1.f), DamageLevelBits);
       stream->writeInt(mDamageState,NumDamageStateBits);
       stream->writeNormalVector( damageDir, 8 );
    }
@@ -3264,7 +3264,7 @@ void ShapeBase::unpackUpdate(NetConnection *con, BitStream *stream)
       return;
 
    if (stream->readFlag()) {
-      mDamage = mClampF(stream->readFloat(DamageLevelBits) * mDataBlock->maxDamage, 0.f, mDataBlock->maxDamage);
+      mDamage = mClamp(stream->readFloat(DamageLevelBits) * mDataBlock->maxDamage, 0.f, mDataBlock->maxDamage);
       DamageState prevState = mDamageState;
       mDamageState = DamageState(stream->readInt(NumDamageStateBits));
       stream->readNormalVector( &damageDir, 8 );

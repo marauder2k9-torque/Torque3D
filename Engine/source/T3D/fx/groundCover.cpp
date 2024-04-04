@@ -1200,7 +1200,7 @@ GroundCoverCell* GroundCover::_generateCell( const Point2I& index,
          cp.set( rand.randF(), rand.randF() );
 
          // Prepare the clump info.
-         clumpExponent = mClampF( mPow( rand.randF(), mClumpCountExponent[type] ), 0.0f, 1.0f );
+         clumpExponent = mClamp( mPow( rand.randF(), mClumpCountExponent[type] ), 0.0f, 1.0f );
          if ( clumps <= 0 )
          {
             // We're starting a new clump.
@@ -1252,7 +1252,7 @@ GroundCoverCell* GroundCover::_generateCell( const Point2I& index,
 
          // The size is calculated using an exponent to control 
          // the frequency between min and max sizes.
-         sizeExponent = mClampF( mPow( rand.randF(), mSizeExponent[type] ), 0.0f, 1.0f );
+         sizeExponent = mClamp( mPow( rand.randF(), mSizeExponent[type] ), 0.0f, 1.0f );
          size = mSizeMin[type] + ( typeSizeRange * sizeExponent );
 
          // Generate a random z rotation.

@@ -825,7 +825,7 @@ bool GameConnection::setControlCameraFov(F32 fov)
       F32 newFov = 90.f;
 
       // allow shapebase to clamp fov to its datablock values
-      cObj->setCameraFov(mClampF(fov, MinCameraFov, MaxCameraFov));
+      cObj->setCameraFov(mClamp(fov, MinCameraFov, MaxCameraFov));
       newFov = cObj->getCameraFov();
 
       // server fov of client has 1degree resolution

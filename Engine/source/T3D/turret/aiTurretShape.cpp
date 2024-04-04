@@ -915,7 +915,7 @@ void AITurretShape::_trackTarget(F32 dt)
       {
          // This will clamp the new value to the rate regardless if it
          // is increasing or decreasing.
-         rot.z = mClampF(rot.z, mRot.z-rate, mRot.z+rate);
+         rot.z = mClamp(rot.z, mRot.z-rate, mRot.z+rate);
       }
    }
    if (mPitchRate > 0)
@@ -926,7 +926,7 @@ void AITurretShape::_trackTarget(F32 dt)
       {
          // This will clamp the new value to the rate regardless if it
          // is increasing or decreasing.
-         rot.x = mClampF(rot.x, mRot.x-rate, mRot.x+rate);
+         rot.x = mClamp(rot.x, mRot.x-rate, mRot.x+rate);
       }
    }
 

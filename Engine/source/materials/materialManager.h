@@ -107,7 +107,7 @@ public:
    U32 getLastUpdateTime() const { return mLastTime; }
    
    F32 getDampness() const { return mDampness; }
-   F32 getDampnessClamped() const { return mClampF(mDampness, 0.0, 1.0); }
+   F32 getDampnessClamped() const { return mClamp(mDampness, 0.0f, 1.0f); }
    void setDampness(F32 dampness) { mDampness = dampness; }
    /// Signal used to notify systems that 
    /// procedural shaders have been flushed.

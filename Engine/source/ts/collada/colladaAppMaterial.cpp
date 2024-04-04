@@ -124,7 +124,7 @@ ColladaAppMaterial::ColladaAppMaterial(const domMaterial *pMat)
       // already normalized.
       if (roughness <= 1.0f)
           roughness *= 128;
-      roughness = mClampF(roughness, 1.0f, 128.0f);
+      roughness = mClamp(roughness, 1.0f, 128.0f);
 
       // Set translucency
       if (transparency != 0.0f) {

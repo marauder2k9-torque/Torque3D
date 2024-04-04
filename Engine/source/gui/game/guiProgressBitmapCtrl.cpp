@@ -176,7 +176,7 @@ void GuiProgressBitmapCtrl::setScriptValue(const char *value)
       mProgress = dAtof(value);
 
    //validate the value
-   mProgress = mClampF(mProgress, 0.f, 1.f);
+   mProgress = mClamp(mProgress, 0.f, 1.f);
    setUpdate();
 }
 
@@ -187,7 +187,7 @@ void GuiProgressBitmapCtrl::onPreRender()
    const char * var = getVariable();
    if(var)
    {
-      F32 value = mClampF(dAtof(var), 0.f, 1.f);
+      F32 value = mClamp(dAtof(var), 0.f, 1.f);
       if(value != mProgress)
       {
          mProgress = value;

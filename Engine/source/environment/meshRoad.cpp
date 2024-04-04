@@ -3263,7 +3263,7 @@ void MeshRoad::setNode( const Point3F &pos, const F32 &width, const F32 &depth, 
 
 void MeshRoad::setNodeWidth( U32 idx, F32 meters )
 {
-   meters = mClampF( meters, MIN_NODE_WIDTH, MAX_NODE_WIDTH );
+   meters = mClamp( meters, MIN_NODE_WIDTH, MAX_NODE_WIDTH );
 
    if ( mNodes.size() - 1 < idx )
       return;
@@ -3284,7 +3284,7 @@ F32 MeshRoad::getNodeWidth( U32 idx )
 
 void MeshRoad::setNodeDepth( U32 idx, F32 meters )
 {
-   meters = mClampF( meters, MIN_NODE_DEPTH, MAX_NODE_DEPTH );
+   meters = mClamp( meters, MIN_NODE_DEPTH, MAX_NODE_DEPTH );
 
    if ( mNodes.size() - 1 < idx )
       return;

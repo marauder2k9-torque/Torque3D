@@ -2091,7 +2091,7 @@ void ParticleEmitter::setupBillboard( Particle *part,
    F32 sy, cy;
    mSinCos(spinAngle, sy, cy);
 
-   const F32 ambientLerp = mClampF( mDataBlock->ambientFactor, 0.0f, 1.0f );
+   const F32 ambientLerp = mClamp( mDataBlock->ambientFactor, 0.0f, 1.0f );
    LinearColorF partCol = mLerp( part->color, ( part->color * ambientColor ), ambientLerp );
 
    // fill four verts, use macro and unroll loop
@@ -2194,7 +2194,7 @@ void ParticleEmitter::setupOriented( Particle *part,
    Point3F start = part->pos - dir;
    Point3F end = part->pos + dir;
 
-   const F32 ambientLerp = mClampF( mDataBlock->ambientFactor, 0.0f, 1.0f );
+   const F32 ambientLerp = mClamp( mDataBlock->ambientFactor, 0.0f, 1.0f );
    LinearColorF partCol = mLerp( part->color, ( part->color * ambientColor ), ambientLerp );
    const ColorI color = partCol.toColorI();
    // Here we deal with UVs for animated particle (oriented)
@@ -2305,7 +2305,7 @@ void ParticleEmitter::setupAligned( const Particle *part,
    Point3F start = part->pos - right;
    Point3F end = part->pos + right;
 
-   const F32 ambientLerp = mClampF( mDataBlock->ambientFactor, 0.0f, 1.0f );
+   const F32 ambientLerp = mClamp( mDataBlock->ambientFactor, 0.0f, 1.0f );
    LinearColorF partCol = mLerp( part->color, ( part->color * ambientColor ), ambientLerp );
    const ColorI color = partCol.toColorI();
    // Here we deal with UVs for animated particle
@@ -2380,7 +2380,7 @@ void ParticleEmitter::setupRibbon(Particle *part,
    static int position;
    static F32 alphaMod, alphaModEnd;
 
-   const F32 ambientLerp = mClampF(mDataBlock->ambientFactor, 0.0f, 1.0f);
+   const F32 ambientLerp = mClamp(mDataBlock->ambientFactor, 0.0f, 1.0f);
    LinearColorF partCol = mLerp(part->color, (part->color * ambientColor), ambientLerp);
    if (part->currentAge > part->totalLifetime)
    {
