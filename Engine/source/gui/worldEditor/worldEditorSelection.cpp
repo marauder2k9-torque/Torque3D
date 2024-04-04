@@ -306,9 +306,9 @@ void WorldEditorSelection::offset( const Point3F& offset, F32 gridSnap )
       
       if( gridSnap != 0.f )
       {
-         wPos.x = mRoundF(wPos.x, gridSnap);
-         wPos.y = mRoundF(wPos.y, gridSnap);
-         wPos.z = mRoundF(wPos.z, gridSnap);
+         wPos.x = mRound(wPos.x, gridSnap);
+         wPos.y = mRound(wPos.y, gridSnap);
+         wPos.z = mRound(wPos.z, gridSnap);
       }
       
       mat.setColumn(3, wPos);

@@ -1390,25 +1390,25 @@ void GuiControl::parentResized(const RectI &oldParentRect, const RectI &newParen
       newPosition.x += deltaX;
    else if (mHorizSizing == horizResizeRelative && oldParentRect.extent.x != 0)
    {
-      S32 newLeft = mRoundToNearest( ( F32( newPosition.x ) / F32( oldParentRect.extent.x ) ) * F32( newParentRect.extent.x ) );
-      S32 newWidth = mRoundToNearest( ( F32( newExtent.x ) / F32( oldParentRect.extent.x ) ) * F32( newParentRect.extent.x ) );
+      S32 newLeft = mRound( ( F32( newPosition.x ) / F32( oldParentRect.extent.x ) ) * F32( newParentRect.extent.x ) );
+      S32 newWidth = mRound( ( F32( newExtent.x ) / F32( oldParentRect.extent.x ) ) * F32( newParentRect.extent.x ) );
 
       newPosition.x = newLeft;
       newExtent.x = newWidth;
    }
    else if (mHorizSizing == horizResizeAspectLeft && oldParentRect.extent.x != 0)
    {
-      S32 newLeft = mRoundToNearest((F32(newPosition.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x));
-      S32 newWidth = mRoundToNearest((F32(newExtent.x) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y));
+      S32 newLeft = mRound((F32(newPosition.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x));
+      S32 newWidth = mRound((F32(newExtent.x) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y));
 
       newPosition.x = newLeft;
       newExtent.x = newWidth;
    }
    else if (mHorizSizing == horizResizeAspectRight && oldParentRect.extent.x != 0)
    {
-      S32 newLeft = mRoundToNearest((F32(newPosition.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x));
-      S32 newWidth = mRoundToNearest((F32(newExtent.x) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y)); //origional aspect ratio corrected width
-      S32 rWidth = mRoundToNearest((F32(newExtent.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x)); //parent aspect ratio relative width
+      S32 newLeft = mRound((F32(newPosition.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x));
+      S32 newWidth = mRound((F32(newExtent.x) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y)); //origional aspect ratio corrected width
+      S32 rWidth = mRound((F32(newExtent.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x)); //parent aspect ratio relative width
 
       S32 offset = rWidth - newWidth; // account for change in relative width
       newLeft += offset;
@@ -1417,9 +1417,9 @@ void GuiControl::parentResized(const RectI &oldParentRect, const RectI &newParen
    }
    else if (mHorizSizing == horizResizeAspectCenter && oldParentRect.extent.x != 0)
    {
-      S32 newLeft = mRoundToNearest((F32(newPosition.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x));
-      S32 newWidth = mRoundToNearest((F32(newExtent.x) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y)); //origional aspect ratio corrected width
-      S32 rWidth = mRoundToNearest((F32(newExtent.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x)); //parent aspect ratio relative width
+      S32 newLeft = mRound((F32(newPosition.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x));
+      S32 newWidth = mRound((F32(newExtent.x) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y)); //origional aspect ratio corrected width
+      S32 rWidth = mRound((F32(newExtent.x) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x)); //parent aspect ratio relative width
 
       S32 offset = rWidth - newWidth; // account for change in relative width
       newLeft += offset/2;
@@ -1435,25 +1435,25 @@ void GuiControl::parentResized(const RectI &oldParentRect, const RectI &newParen
       newPosition.y += deltaY;
    else if(mVertSizing == vertResizeRelative && oldParentRect.extent.y != 0)
    {
-      S32 newTop = mRoundToNearest( ( F32( newPosition.y ) / F32( oldParentRect.extent.y ) ) * F32( newParentRect.extent.y ) );
-      S32 newHeight = mRoundToNearest( ( F32( newExtent.y ) / F32( oldParentRect.extent.y ) ) * F32( newParentRect.extent.y ) );
+      S32 newTop = mRound( ( F32( newPosition.y ) / F32( oldParentRect.extent.y ) ) * F32( newParentRect.extent.y ) );
+      S32 newHeight = mRound( ( F32( newExtent.y ) / F32( oldParentRect.extent.y ) ) * F32( newParentRect.extent.y ) );
 
       newPosition.y = newTop;
       newExtent.y = newHeight;
    }
    else if (mVertSizing == vertResizeAspectTop && oldParentRect.extent.y != 0)
    {
-      S32 newTop = mRoundToNearest((F32(newPosition.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y));
-      S32 newHeight = mRoundToNearest((F32(newExtent.y) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x));
+      S32 newTop = mRound((F32(newPosition.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y));
+      S32 newHeight = mRound((F32(newExtent.y) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x));
 
       newPosition.y = newTop;
       newExtent.y = newHeight;
    }
    else if (mVertSizing == vertResizeAspectBottom && oldParentRect.extent.y != 0)
    {
-      S32 newTop = mRoundToNearest((F32(newPosition.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y));
-      S32 newHeight = mRoundToNearest((F32(newExtent.y) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x)); //origional aspect ratio corrected hieght
-      S32 rHeight = mRoundToNearest((F32(newExtent.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y)); //parent aspect ratio relative hieght
+      S32 newTop = mRound((F32(newPosition.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y));
+      S32 newHeight = mRound((F32(newExtent.y) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x)); //origional aspect ratio corrected hieght
+      S32 rHeight = mRound((F32(newExtent.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y)); //parent aspect ratio relative hieght
 
       S32 offset = rHeight - newHeight; // account for change in relative hieght
       newTop += offset;
@@ -1462,9 +1462,9 @@ void GuiControl::parentResized(const RectI &oldParentRect, const RectI &newParen
    }
    else if (mVertSizing == vertResizeAspectCenter && oldParentRect.extent.y != 0)
    {
-      S32 newTop = mRoundToNearest((F32(newPosition.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y));
-      S32 newHeight = mRoundToNearest((F32(newExtent.y) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x)); //origional aspect ratio corrected hieght
-      S32 rHeight = mRoundToNearest((F32(newExtent.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y)); //parent aspect ratio relative hieght
+      S32 newTop = mRound((F32(newPosition.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y));
+      S32 newHeight = mRound((F32(newExtent.y) / F32(oldParentRect.extent.x)) * F32(newParentRect.extent.x)); //origional aspect ratio corrected hieght
+      S32 rHeight = mRound((F32(newExtent.y) / F32(oldParentRect.extent.y)) * F32(newParentRect.extent.y)); //parent aspect ratio relative hieght
 
       S32 offset = rHeight - newHeight; // account for change in relative hieght
       newTop += offset / 2;

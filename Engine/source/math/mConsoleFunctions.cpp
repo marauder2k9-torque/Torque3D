@@ -111,7 +111,7 @@ DefineEngineFunction(mRoundF, F32, (F32 v, F32 step), ,
    "@return The rounded value as a F32."
    "@ingroup Math")
 {
-   return mRoundF(v, step);
+   return mRound(v, step);
 }
 
 DefineEngineFunction(mRoundDelta, S32, (F32 v, S32 d), (0.0, 1),

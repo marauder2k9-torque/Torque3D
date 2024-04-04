@@ -862,7 +862,7 @@ inline Point2D Point2D::operator-() const
 
 inline F64 Point2D::len() const
 {
-   return mSqrtD(x*x + y*y);
+   return mSqrt(x*x + y*y);
 }
 
 inline void Point2D::normalize()
