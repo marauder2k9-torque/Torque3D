@@ -256,18 +256,13 @@ inline T mClamp(T val, T low, T high)
 {
    return mMax(mMin(val, high), low);
 }
-
-
-//inline bool mIsEqual( F32 a, F32 b, const F32 epsilon = __EQUAL_CONST_F )
-//{
-//   F32 diff = a - b;
-//   return diff > -epsilon && diff < epsilon;
-//}
-
-inline S32 mRound(const F32 val)
-{  
-   return (S32)floor(val + 0.5f);  
-}  
+//---------------------------------------
+// Round
+template<typename T>
+inline T mRound(const T val)
+{
+   return static_cast<T>(mFloor(val + static_cast<T>(0.5)));
+}
       
 inline F32 mRound(const F32 val, const S32 n)  
 {  
@@ -275,11 +270,7 @@ inline F32 mRound(const F32 val, const S32 n)
       
    return mFloor((val*place)+0.5)/place;  
 }  
-
-inline F32 mRoundToNearest( const F32 val )
-{
-   return mFloor( val + .5f );
-}
+//---------------------------------------
 
 inline S32 mWrap(S32 val, S32 low, S32 high)
 {
