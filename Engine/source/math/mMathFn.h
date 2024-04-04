@@ -305,6 +305,22 @@ inline T mSquared(T val)
    return val * val;
 }
 
+inline F32 mSqrt(const F32 val)
+{
+   return (F32) sqrt(val);
+}
+
+inline F64 mSqrt(const F64 val)
+{
+   return (F64) sqrt(val);
+}
+//---------------------------------------
+
+inline S32 mWrap(S32 val, S32 low, S32 high)
+{
+   return val * val;
+}
+
 // fast math routines from Doom3 SDK
 inline F32 mInvSqrt(F32 x)
 {

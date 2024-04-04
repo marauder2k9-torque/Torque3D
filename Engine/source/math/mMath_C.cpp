@@ -97,7 +97,7 @@ static void m_point2F_normalize_f_C(F32 *p, F32 val)
 //--------------------------------------
 static void m_point2D_normalize_C(F64 *p)
 {
-   F64 factor = 1.0f / mSqrtD(p[0]*p[0] + p[1]*p[1] );
+   F64 factor = 1.0f / mSqrt(p[0]*p[0] + p[1]*p[1] );
    p[0] *= factor;
    p[1] *= factor;
 }
@@ -105,7 +105,7 @@ static void m_point2D_normalize_C(F64 *p)
 //--------------------------------------
 static void m_point2D_normalize_f_C(F64 *p, F64 val)
 {
-   F64 factor = val / mSqrtD(p[0]*p[0] + p[1]*p[1] );
+   F64 factor = val / mSqrt(p[0]*p[0] + p[1]*p[1] );
    p[0] *= factor;
    p[1] *= factor;
 }
@@ -113,7 +113,7 @@ static void m_point2D_normalize_f_C(F64 *p, F64 val)
 //--------------------------------------
 static void m_point3D_normalize_f_C(F64 *p, F64 val)
 {
-   F64 factor = val / mSqrtD(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
+   F64 factor = val / mSqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2]);
    p[0] *= factor;
    p[1] *= factor;
    p[2] *= factor;
@@ -169,7 +169,7 @@ static void m_point3F_interpolate_C(const F32 *from, const F32 *to, F32 factor, 
 //--------------------------------------
 static void m_point3D_normalize_C(F64 *p)
 {
-   F64 factor = 1.0f / mSqrtD(p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
+   F64 factor = 1.0f / mSqrt(p[0]*p[0] + p[1]*p[1] + p[2]*p[2] );
    p[0] *= factor;
    p[1] *= factor;
    p[2] *= factor;
