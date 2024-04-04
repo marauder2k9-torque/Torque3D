@@ -204,7 +204,34 @@ inline F64 mFloor(const F64 val)
    return (F64) floor(val);
 }
 //---------------------------------------
+// Ceil
+inline F32 mCeil(const F32 val)
+{
+   return (F32) ceil(val);
+}
 
+inline F64 mCeil(const F64 val)
+{
+   return (F64) ceil(val);
+}
+//---------------------------------------
+// Zero
+template<typename T>
+inline bool mIsZero(const T val, const T epsilon = std::numeric_limits<T>::epsilon())
+{
+   return (val > -epsilon) && (val < epsilon);
+}
+
+template<typename T>
+inline T mClampToZero(T& input)
+{
+   T epsilon = std::numeric_limits<T>::epsilon();
+   if(input < epsilon && input > epsilon)
+      input = static_cast<T>(0);
+   
+   return input;
+}
+//---------------------------------------
 
 template<typename T>
 inline bool mIsEqual(T a, T b, const T epsilon = std::numeric_limits<T>::epsilon()) {
@@ -217,24 +244,6 @@ inline bool mIsEqual(T a, T b, const T epsilon = std::numeric_limits<T>::epsilon
 //   F32 diff = a - b;
 //   return diff > -epsilon && diff < epsilon;
 //}
-
-inline bool mIsZero(const F32 val, const F32 epsilon = __EQUAL_CONST_F )
-{
-   return (val > -epsilon) && (val < epsilon);
-}
-
-inline F32 mClampToZero(F32& input)
-{
-   if (input < __EQUAL_CONST_F && input > -__EQUAL_CONST_F)
-      input = 0.0f;
-
-   return input;
-}
-
-inline F32 mCeil(const F32 val)
-{
-   return (F32) ceil(val);
-}
 
 inline F32 mFmod(const F32 val, const F32 mod)
 {
@@ -481,11 +490,6 @@ inline F64 mFmodD(const F64 val, const F64 mod)
 inline F64 mSqrtD(const F64 val)
 {
    return (F64) sqrt(val);
-}
-
-inline F64 mCeilD(const F64 val)
-{
-   return (F64) ceil(val);
 }
 
 ///
