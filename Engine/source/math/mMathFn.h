@@ -271,6 +271,23 @@ inline F32 mRound(const F32 val, const S32 n)
    return mFloor((val*place)+0.5)/place;  
 }  
 //---------------------------------------
+// Square
+template<typename T>
+inline T mSquared(T val)
+{
+   return val * val;
+}
+
+inline F32 mSqrt(const F32 val)
+{
+   return (F32) sqrt(val);
+}
+
+inline F64 mSqrt(const F64 val)
+{
+   return (F64) sqrt(val);
+}
+//---------------------------------------
 
 inline S32 mWrap(S32 val, S32 low, S32 high)
 {
@@ -354,16 +371,6 @@ inline void mSinCos(const F32 angle, F32 &s, F32 &c)
 inline F32 mTanh(const F32 angle)
 {
    return (F32) tanh(angle);
-}
-
-inline F32 mSqrt(const F32 val)
-{
-   return (F32) sqrt(val);
-}
-
-inline F64 mSqrt(const F64 val)
-{
-   return (F64) sqrt(val);
 }
 
 inline F32 mPow(const F32 x, const F32 y)
@@ -451,17 +458,6 @@ inline F32 mCatmullrom(F32 t, F32 p0, F32 p1, F32 p2, F32 p3)
    return m_catmullrom(t, p0, p1, p2, p3);
 }
 
-
-inline F64 mAbsD(const F64 val)
-{
-   return (F64) fabs(val);
-}
-
-inline F64 mSqrtD(const F64 val)
-{
-   return (F64) sqrt(val);
-}
-
 ///
 template< typename A, typename B >
 inline A mAlignToMultiple( A val, B mul )
@@ -506,28 +502,5 @@ inline bool mIsInf_F( const F32 x )
 {
    return ( x == std::numeric_limits< F32 >::infinity() );
 }
-
-inline F32 mSign( const F32 n )
-{
-   if ( n > 0.0f )
-      return 1.0f;
-   if ( n < 0.0f )
-      return -1.0f;
-
-   return 0.0f;
-}
-
-/// Returns the input value squared.
-inline F32 mSquared( F32 n )
-{
-   return n * n;
-}
-
-/// @copydoc mSquaredF
-inline F64 mSquared( F64 n )
-{
-   return n * n;
-}
-
 
 #endif //_MMATHFN_H_
