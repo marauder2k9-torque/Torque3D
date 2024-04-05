@@ -965,7 +965,7 @@ void GFXD3D11Shader::_getShaderConstants( ID3D11ShaderReflection* refTable,
                // set the bind point to the same as the const buffer.
                varDesc.bindPoint = desc.bindPoint;
                varDesc.offset = shaderVarDesc.StartOffset;
-               varDesc.arraySize = mMax(shaderTypeDesc.Elements, 1);
+               varDesc.arraySize = mMax(shaderTypeDesc.Elements, 1u);
                varDesc.size = shaderVarDesc.Size;
                varDesc.shaderStage = shaderStage;
                varDesc.samplerReg = -1;
