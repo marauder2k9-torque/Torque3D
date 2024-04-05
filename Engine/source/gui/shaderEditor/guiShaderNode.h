@@ -137,6 +137,7 @@ public:
    Vector<NodeOutput*> mOutputNodes;
 
    GuiShaderNode();
+   GuiShaderNode(String name);
 
    bool onWake() override;
    void onSleep() override;

@@ -283,7 +283,7 @@ void guiAnimBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
 
       srcRegion.set(offsetSRC, modifiedSRC);
 
-      GFX->getDrawUtil()->drawBitmapStretchSR(texture, updateRect, srcRegion, GFXBitmapFlip_None, GFXTextureFilterLinear, false);
+      GFX->getDrawUtil()->drawBitmapStretchSR(mBitmap, updateRect, srcRegion, GFXBitmapFlip_None, GFXTextureFilterLinear, false);
    }
 
    if (mProfile->mBorder || !mBitmap)

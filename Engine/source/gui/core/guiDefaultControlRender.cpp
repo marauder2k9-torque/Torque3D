@@ -253,10 +253,7 @@ void renderFilledBorder( const RectI &bounds, GuiControlProfile *profile )
 void renderFilledBorder( const RectI &bounds, const ColorI &borderColor, const ColorI &fillColor, U32 thickness )
 {
    RectI fillBounds = bounds;
-   fillBounds.inset( thickness, thickness );
-
-   GFX->getDrawUtil()->drawRectFill( bounds, borderColor ); 
-   GFX->getDrawUtil()->drawRectFill( fillBounds, fillColor );
+   GFX->getDrawUtil()->drawRectFill(bounds, fillColor, thickness, borderColor);
 }
 
 //  Render out the sizable bitmap borders based on a multiplier into the bitmap array

@@ -396,10 +396,9 @@ void GuiGameListMenuCtrl::onRenderKeybindOption(Row* row, Point2I currentOffset)
 
    if (row->mBitmapTex.isValid())
    {
-      GFXTextureObject* texture = row->mBitmapTex;
       RectI rect(button, buttonSize);
       drawer->clearBitmapModulation();
-      drawer->drawBitmapStretch(texture, rect, GFXBitmapFlip_None, GFXTextureFilterLinear, false);
+      drawer->drawBitmapStretch(row->mBitmapTex, rect, GFXBitmapFlip_None, GFXTextureFilterLinear, false);
    }
 
    //drawer->drawRectFill(button, ColorI::BLUE);

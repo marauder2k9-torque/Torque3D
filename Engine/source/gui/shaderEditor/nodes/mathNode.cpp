@@ -36,7 +36,7 @@ ConsoleDocClass(MathAddNode,
 );
 
 MathAddNode::MathAddNode()
-   : GuiShaderNode()
+   : GuiShaderNode("MathAddNode")
 {
    mNodeType = NodeTypes::MathOperation;
 
@@ -45,5 +45,6 @@ MathAddNode::MathAddNode()
 
    mOutputNodes.push_back(new NodeOutput("Result", DataDimensions::Dynamic));
 
-   mTitle = "Math Node";
+   mTitle = "A + B";
+
 }

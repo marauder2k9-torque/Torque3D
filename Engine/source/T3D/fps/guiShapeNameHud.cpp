@@ -301,18 +301,15 @@ void GuiShapeNameHud::drawName(Point2I offset, const char *name, F32 opacity)
 
    GFXDrawUtil* drawUtil = GFX->getDrawUtil();
 
-   // Background fill first
-   if (mShowLabelFill)
-      drawUtil->drawRectFill(RectI(offset, extent), mLabelFillColor.toColorI());
+   // draw rect if we want labelfill or label frame
+   if (mShowLabelFill || mShowLabelFrame)
+      drawUtil->drawRectFill(RectI(offset, extent), mShowLabelFill ? mLabelFillColor.toColorI() : ColorI::ZERO,
+                              mShowLabelFrame ? 1.0f : 0.0f, mLabelFrameColor.toColorI());
 
    // Deal with opacity and draw.
    mTextColor.alpha = opacity;
    drawUtil->setBitmapModulation(mTextColor.toColorI());
    drawUtil->drawText(mProfile->mFont, offset + mLabelPadding, name);
    drawUtil->clearBitmapModulation();
-
-   // Border last
-   if (mShowLabelFrame)
-      drawUtil->drawRect(RectI(offset, extent), mLabelFrameColor.toColorI());
 }
 

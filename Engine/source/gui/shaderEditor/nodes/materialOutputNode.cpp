@@ -35,7 +35,7 @@ ConsoleDocClass(BRDFOutputNode,
 );
 
 BRDFOutputNode::BRDFOutputNode()
-   : GuiShaderNode()
+   : GuiShaderNode("BRDFNode")
 {
    mNodeType = NodeTypes::Output;
 

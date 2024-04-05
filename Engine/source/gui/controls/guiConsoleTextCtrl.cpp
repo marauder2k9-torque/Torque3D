@@ -135,12 +135,10 @@ void GuiConsoleTextCtrl::onRender( Point2I offset, const RectI &updateRect )
    RectI ctrlRect( offset, getExtent() );
 
    // if opaque, fill the update rect with the fill color
-   if ( mProfile->mOpaque )
+   if ( mProfile->mOpaque && mProfile->mBorder == 0)
       GFX->getDrawUtil()->drawRectFill( ctrlRect, mProfile->mFillColor );
-
-   // if there's a border, draw the border
-   if ( mProfile->mBorder )
-      renderBorder( ctrlRect, mProfile );
+   else
+      GFX->getDrawUtil()->drawRectFill(ctrlRect, mProfile->mFillColor, mProfile->mBorderThickness, mProfile->mBorderColor);
 
    // If we have text to render.
    if ( mResult.isNotEmpty() )

@@ -121,7 +121,7 @@ void GuiRenderTargetVizCtrl::onRender(Point2I      offset,
    NamedTexTarget* namedTarget = NamedTexTarget::find(mTargetName);
    if (namedTarget)
    {
-      GFXTextureObject* theTex = namedTarget->getTexture(0);
+      GFXTexHandle theTex = namedTarget->getTexture(0);
       RectI viewport = namedTarget->getViewport();
 
       drawer->drawBitmapStretchSR(theTex, boundsRect, viewport);

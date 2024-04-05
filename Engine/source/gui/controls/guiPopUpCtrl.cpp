@@ -1071,8 +1071,7 @@ void GuiPopUpMenuCtrl::onRender( Point2I offset, const RectI &updateRect )
       {
          Point2I coloredboxsize( 15, 10 );
          RectI boxBounds( offset.x + mProfile->mTextOffset.x, offset.y + ( (getHeight() - coloredboxsize.y ) / 2 ), coloredboxsize.x, coloredboxsize.y );
-         drawUtil->drawRectFill(boxBounds, boxColor);
-         drawUtil->drawRect(boxBounds, ColorI(0,0,0));
+         drawUtil->drawRectFill(boxBounds, boxColor, 1.0f, ColorI(0, 0, 0));
 
          localStart.x += coloredboxsize.x + mProfile->mTextOffset.x;
       }

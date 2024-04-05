@@ -768,14 +768,10 @@ void GuiEditCtrl::onRender(Point2I offset, const RectI &updateRect)
       getDragRect(b);
       b.point += offset;
       
-      // Draw outline.
-      
-      drawer->drawRect( b, ColorI( 100, 100, 100, 128 ) );
       
       // Draw fill.
-      
       b.inset( 1, 1 );
-      drawer->drawRectFill( b, ColorI( 150, 150, 150, 128 ) );
+      drawer->drawRectFill( b, ColorI( 150, 150, 150, 128 ), 1.0f, ColorI(100, 100, 100, 128));
    }
 
    // Draw grid.
@@ -934,9 +930,7 @@ void GuiEditCtrl::drawNuts(RectI &box, ColorI &outlineColor, ColorI &nutColor)
 void GuiEditCtrl::drawNut(const Point2I &nut, ColorI &outlineColor, ColorI &nutColor)
 {
    RectI r( nut.x, nut.y, NUT_SIZE * 2, NUT_SIZE * 2 );
-   GFX->getDrawUtil()->drawRect( r, outlineColor );
-   r.inset( 1, 1 );
-   GFX->getDrawUtil()->drawRectFill( r, nutColor );
+   GFX->getDrawUtil()->drawRectFill( r, nutColor , 1.0f, outlineColor);
 }
 
 //=============================================================================

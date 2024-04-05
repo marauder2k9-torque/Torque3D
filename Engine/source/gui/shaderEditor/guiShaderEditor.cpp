@@ -301,12 +301,8 @@ void GuiShaderEditor::onRender(Point2I offset, const RectI& updateRect)
          getDragRect(b);
          b.point += offset;
 
-         // Draw outline.
-         drawer->drawRect(b, ColorI(100, 100, 100, 128));
-
-         // Draw fill.
-         b.inset(1, 1);
-         drawer->drawRectFill(b, ColorI(150, 150, 150, 128));
+         // Draw outline rect with outline
+         drawer->drawRectFill(b, ColorI(150, 150, 150, 128), 1.0f, ColorI(100, 100, 100, 128));
       }
    }
 }
@@ -787,7 +783,7 @@ GuiShaderNode* GuiShaderEditor::findHitNode(const Point2I& pt)
 bool GuiShaderEditor::findHitSocket(const Point2I& pt)
 {
    Point2I parentOffset = localToGlobalCoord(getPosition()) + mViewOffset;
-   Point2I offsetPoint = pt + localToGlobalCoord(getPosition());
+   Point2I offsetPoint = pt + localToGlobalCoord(getPosition()) + mViewOffset;
 
    for (GuiShaderNode* node : mCurrNodes)
    {
@@ -831,7 +827,7 @@ bool GuiShaderEditor::findHitSocket(const Point2I& pt)
 U32 GuiShaderEditor::finishConnection(const Point2I& pt)
 {
    Point2I parentOffset = localToGlobalCoord(getPosition()) + mViewOffset;
-   Point2I offsetPoint = pt + localToGlobalCoord(getPosition());
+   Point2I offsetPoint = pt + localToGlobalCoord(getPosition()) + mViewOffset;
 
    for (GuiShaderNode* node : mCurrNodes)
    {

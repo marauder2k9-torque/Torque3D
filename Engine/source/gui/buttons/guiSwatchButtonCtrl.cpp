@@ -107,10 +107,7 @@ void GuiSwatchButtonCtrl::onRender( Point2I offset, const RectI &updateRect )
       drawer->drawBitmapStretch( mGrid, renderRect );
 
    // Draw swatch color as fill...
-   drawer->drawRectFill(renderRect, mSwatchColor.toColorI());
-
-   // Draw any borders...
-   drawer->drawRect( renderRect, borderColor );
+   drawer->drawRectFill(renderRect, mSwatchColor.toColorI(), 1.0f, borderColor);
 }
 
 //-----------------------------------------------------------------------------

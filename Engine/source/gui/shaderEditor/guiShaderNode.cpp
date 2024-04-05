@@ -52,6 +52,32 @@ GuiShaderNode::GuiShaderNode()
    setExtent(180, 35);
 
    mPrevNodeSize = -1;
+   this->assignName(Sim::getUniqueName("ShaderNode"));
+}
+
+GuiShaderNode::GuiShaderNode(String name)
+{
+   VECTOR_SET_ASSOCIATION(mInputNodes);
+   VECTOR_SET_ASSOCIATION(mOutputNodes);
+
+   mTitle = "Default Node";
+   mSelected = false;
+   mNodeType = NodeTypes::Default;
+
+
+   GuiControlProfile* profile = NULL;
+   if (Sim::findObject("GuiShaderEditorProfile", profile))
+      setControlProfile(profile);
+
+   // fixed extent for all nodes, only height should be changed
+   setExtent(180, 35);
+
+   mPrevNodeSize = -1;
+
+   // all nodes require a unique name.
+   // shader vars/functions use this name in the output
+   // shader.
+   this->assignName(Sim::getUniqueName(name));
 }
 
 bool GuiShaderNode::onWake()

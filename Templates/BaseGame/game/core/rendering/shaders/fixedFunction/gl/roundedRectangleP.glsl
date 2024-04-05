@@ -46,50 +46,26 @@ void main()
 {  
     vec2 p = gl_FragCoord.xy;
     
-    float halfBorder = borderSize * 0.5; 
     vec2 halfSize = sizeUni * 0.5;
     p -= rectCenter; 
 
-    // Calculate signed distance field for rounded rectangle 
-    vec4 fromColor = borderCol;
     // alpha
     vec4 toColor = vec4(0.0, 0.0, 0.0, 0.0);
 
     float cornerRadius = radius;
+    float borderFinalSize = borderSize;
 
-    // if ((p.y < 0.0 && p.x < 0.0) || // top left corner
-    //     (p.y < 0.0 && p.x > 0.0) || // top right corner
-    //     (p.y > 0.0 && p.x > 0.0) || // bottom right corner.  
-    //     (p.y > 0.0 && p.x < 0.0))  // bottom left corner
-    // {
-    //     cornerRadius = radius;   
-    // } 
-
-    if(cornerRadius > 0.0 || halfBorder > 0.0)
+    if(cornerRadius > 0.0 || borderSize > 0.0)
     {
-        float sdf = RoundedRectSDF(p, halfSize, cornerRadius - halfBorder);
+        float sdf = RoundedRectSDF(p, halfSize, cornerRadius);
 
-        if(halfBorder > 0.0)
-        {
-            if(sdf < 0.0)
-            {
-                // if ((p.y >= -halfSize.y - radius + halfBorder && p.y <= -halfSize.y + radius - halfBorder)  ||  // top border
-                //     (p.y >= halfSize.y - radius + halfBorder && p.y <= halfSize.y + radius - halfBorder)    ||  // bottom border
-                //     (p.x >= -halfSize.x - radius + halfBorder && p.x <= -halfSize.x + radius - halfBorder)  ||  // left border
-                //     (p.x >= halfSize.x - radius + halfBorder && p.x <= halfSize.x + radius - halfBorder) ) {    // right border
-                    
-                // }
-                toColor = color;
-                sdf = abs(sdf) / borderSize;
-            } 
-            
-        } 
-        else{
-            fromColor = color; 
-        }  
+        float borderSoftening = clamp(borderFinalSize *0.5, 0.0, 2.0);
+        float edgeSoftening = clamp(radius * 0.5, 0.0, 2.0);
 
-        float alpha = smoothstep(-1.0, 1.0, sdf); 
-        OUT_col = mix(fromColor, toColor, alpha);
+        float alpha = 1.0 - smoothstep(0.0, edgeSoftening, sdf); 
+        float borderAlpha = 1.0 - smoothstep(borderFinalSize - borderSoftening, borderFinalSize, abs(sdf));
+
+        OUT_col = mix(toColor, mix(IN.color, borderCol, borderAlpha), alpha);
     }
     else
     {

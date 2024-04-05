@@ -32,31 +32,25 @@ uniform vec4 borderCol;
 
 float circle(vec2 p, vec2 center, float r)
 {
-    return length(p - center);
+    return length(p - center) - r;
 }
  
 void main()
 {   
-    float dist = circle(gl_FragCoord.xy, rectCenter, radius);
+    float borderFinalSize = borderSize;
+    float circleRadius = radius;
+
+    float dist = circle(gl_FragCoord.xy, rectCenter, circleRadius);
     
-    vec4 fromColor = borderCol;
     vec4 toColor = vec4(0.0, 0.0, 0.0, 0.0);
 
-    if(dist < radius)
-    {
-        dist = abs(dist) - radius;
-        
-        if(dist < (radius - (borderSize)))
-        {
-            toColor = color;
-            dist = abs(dist) - (borderSize);
-        }
+    float edgeSoftening = clamp(circleRadius *0.5, 0.0, 0.5);
+    float borderSoftening = clamp(borderFinalSize *0.5, 0.0, 2.0);
 
-        float blend = smoothstep(0.0, 1.0, dist);
-        OUT_col = mix(fromColor, toColor, blend);
-    }
-    
+    float alpha = 1.0 - smoothstep(0.0, edgeSoftening, distance); 
+    float borderAlpha = 1.0 - smoothstep(borderFinalSize - borderSoftening, borderFinalSize, abs(distance));
     dist = abs(dist) - radius; 
     float blend = smoothstep(0.0, 1.0, dist);
-    OUT_col = mix(fromColor, toColor, blend);
+
+    OUT_col = mix(toColor, mix(color, borderCol, borderAlpha), alpha);
 }

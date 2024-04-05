@@ -428,8 +428,7 @@ void CreatorTree::onRenderCell(Point2I offset, Point2I cell, bool, bool)
    if( node->isGroup() ) 
    { 
       // If we need a box...
-      drawer->drawRectFill( boxStart, boxEnd, mProfile->mFillColor ); // Box background
-      drawer->drawRect( boxStart, boxEnd, mProfile->mFontColor );     // Border
+      drawer->drawRectFill( boxStart, boxEnd, mProfile->mFillColor, 1.0f, mProfile->mFontColor); // Box background
 
       // Cross line
       drawer->drawLine( boxStart.x + 2, boxStart.y + 4, boxStart.x + 7, boxStart.y + 4, mProfile->mFontColor );
