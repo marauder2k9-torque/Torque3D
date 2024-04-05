@@ -283,7 +283,7 @@ Var* TerrainFeatHLSL::_getDetailIdStrengthParallax()
       detailInfo->arraySize = getProcessIndex();
    }
 
-   detailInfo->arraySize = mMax(detailInfo->arraySize, getProcessIndex() + 1);
+   detailInfo->arraySize = mMax(detailInfo->arraySize, getProcessIndex() + 1u);
 
    return detailInfo;
 }
@@ -302,7 +302,7 @@ Var* TerrainFeatHLSL::_getMacroIdStrengthParallax()
       detailInfo->constSortPos = cspPotentialPrimitive;
    }
 
-   detailInfo->arraySize = mMax(detailInfo->arraySize, getProcessIndex() + 1);
+   detailInfo->arraySize = mMax(detailInfo->arraySize, getProcessIndex() + 1u);
 
    return detailInfo;
 }
@@ -519,7 +519,7 @@ void TerrainDetailMapFeatHLSL::processVert(  Vector<ShaderComponent*> &component
       detScaleAndFade->constSortPos = cspPotentialPrimitive;
    }
 
-   detScaleAndFade->arraySize = mMax(detScaleAndFade->arraySize, detailIndex + 1);
+   detScaleAndFade->arraySize = mMax(detScaleAndFade->arraySize, detailIndex + 1u);
 
    // Done here to keep array indexes aligned
    Var* macroScaleAndFade = (Var*)LangElement::find("macroScaleAndFade");
@@ -532,7 +532,7 @@ void TerrainDetailMapFeatHLSL::processVert(  Vector<ShaderComponent*> &component
       macroScaleAndFade->constSortPos = cspPotentialPrimitive;
    }
 
-   macroScaleAndFade->arraySize = mMax(macroScaleAndFade->arraySize, detailIndex + 1);
+   macroScaleAndFade->arraySize = mMax(macroScaleAndFade->arraySize, detailIndex + 1u);
 
    // Setup the detail coord.
    //
@@ -800,7 +800,7 @@ void TerrainMacroMapFeatHLSL::processVert(  Vector<ShaderComponent*> &componentL
       macroScaleAndFade->constSortPos = cspPotentialPrimitive;
    }
 
-   macroScaleAndFade->arraySize = mMax(macroScaleAndFade->arraySize, detailIndex + 1);
+   macroScaleAndFade->arraySize = mMax(macroScaleAndFade->arraySize, detailIndex + 1u);
 
    // Setup the detail coord.
    meta->addStatement( new GenOp( "   @.xyz = @ * @.xyx;\r\n", outTex, inTex, new IndexOp(macroScaleAndFade, detailIndex)) );
