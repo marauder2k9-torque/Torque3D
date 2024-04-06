@@ -631,10 +631,10 @@ void Material::updateTimeBasedParams()
       for (U32 i = 0; i < MAX_STAGES; i++)
       {
          mScrollOffset[i] += mScrollDir[i] * mScrollSpeed[i] * dt;
-         mScrollOffset[i].x = mWrapF(mScrollOffset[i].x, 0.0, 1.0);
-         mScrollOffset[i].y = mWrapF(mScrollOffset[i].y, 0.0, 1.0);
-         mRotPos[i] = mWrapF((mRotPos[i] + (mRotSpeed[i] * dt)), 0.0, 360.0);
-         mWavePos[i] = mWrapF((mWavePos[i] + (mWaveFreq[i] * dt)), 0.0, 1.0);
+         mScrollOffset[i].x = mWrap(mScrollOffset[i].x, 0.0f, 1.0f);
+         mScrollOffset[i].y = mWrap(mScrollOffset[i].y, 0.0f, 1.0f);
+         mRotPos[i] = mWrap((mRotPos[i] + (mRotSpeed[i] * dt)), 0.0f, 360.0f);
+         mWavePos[i] = mWrap((mWavePos[i] + (mWaveFreq[i] * dt)), 0.0f, 1.0f);
       }
       mLastUpdateTime = lastTime;
    }
