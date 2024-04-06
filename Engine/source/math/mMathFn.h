@@ -148,6 +148,11 @@ inline void m_matF_x_vectorF(const F32 *m, const F32 *v, F32 *vresult)
 //--------------------------------------
 // Inlines
 // Absolute values
+template <typename T>
+inline T mAbs(T val){
+   return static_cast<T>(val >= static_cast<T>(0) ? val : -val);
+}
+
 inline F32 mAbs(const F32 val){
    return (F32) fabs(val);
 }
@@ -161,7 +166,7 @@ inline S32 mAbs(const S32 val){
 }
 
 inline S64 mAbs(const S64 val){
-   return labs(val);
+   return _abs64(val);
 }
 //---------------------------------------
 // Sign
@@ -213,6 +218,13 @@ inline F32 mCeil(const F32 val)
 inline F64 mCeil(const F64 val)
 {
    return (F64) ceil(val);
+}
+//---------------------------------------
+// trunc
+template <typename T>
+inline T mTrunc(T val)
+{
+   return static_cast<T>(val < static_cast<T>(0)) ? mCeil(val) : mFloor(val);
 }
 //---------------------------------------
 // Zero
@@ -299,19 +311,189 @@ inline F64 mSqrt(const F64 val)
    return (F64) sqrt(val);
 }
 //---------------------------------------
-
-inline S32 mWrap(S32 val, S32 low, S32 high)
+// Wrap
+template <typename T>
+inline T mWrap(T val, T low, T high)
 {
-	int len = high - low;
-	return low + (val >= 0 ? val % len : -val % len ? len - (-val % len) : 0);
+   T len = high - low;
+   T res = val;
 
+   while (res < low)
+      res += len;
+
+   while (res > high)
+      res -= len;
+
+   return res;
+}
+//---------------------------------------
+// Power
+inline F32 mPow(const F32 x, const F32 y)
+{
+   return (F32)pow(x, y);
 }
 
-inline F32 mWrapF(F32 val, F32 low, F32 high)
+inline F64 mPow(const F64 x, const F64 y)
 {
-	F32 t = fmod(val - low, high - low);
-	return t < 0 ? t + high : t + low;
+   return (F64)pow(x, y);
 }
+//---------------------------------------
+// Logarithmic
+inline F32 mLog(const F32 val)
+{
+   return (F32)log(val);
+}
+
+inline F64 mLog(const F64 val)
+{
+   return (F64)log(val);
+}
+
+inline F32 mLog2(const F32 val)
+{
+   return (F32)log2(val);
+}
+
+inline F64 mLog2(const F64 val)
+{
+   return (F64)log2(val);
+}
+//---------------------------------------
+// Exp
+inline F32 mExp(const F32 val)
+{
+   return (F32)exp(val);
+}
+
+inline F64 mExp(const F64 val)
+{
+   return (F64)exp(val);
+}
+//---------------------------------------
+// ANGLE FUNCTIONS
+//---------------------------------------
+// Sin
+inline F32 mSin(const F32 angle)
+{
+   return (F32)sin(angle);
+}
+
+inline F64 mSin(const F64 angle)
+{
+   return (F64)sin(angle);
+}
+//---------------------------------------
+// Cos
+inline F32 mCos(const F32 angle)
+{
+   return (F32)cos(angle);
+}
+
+inline F64 mCos(const F64 angle)
+{
+   return (F64)cos(angle);
+}
+//---------------------------------------
+// Tan
+inline F32 mTan(const F32 angle)
+{
+   return (F32)tan(angle);
+}
+
+inline F64 mTan(const F64 angle)
+{
+   return (F64)tan(angle);
+}
+//---------------------------------------
+// Acos
+inline F32 mAcos(const F32 val)
+{
+   return (F32)acos(val);
+}
+
+inline F64 mAcos(const F64 val)
+{
+   return (F64)acos(val);
+}
+//---------------------------------------
+// Atan
+inline F32 mAtan(const F32 x)
+{
+   return (F32)atan(x);
+}
+
+inline F64 mAtan(const F64 x)
+{
+   return (F64)atan(x);
+}
+//---------------------------------------
+// Asin
+inline F32 mAsin(const F32 val)
+{
+   return (F32)asin(val);
+}
+
+inline F64 mAsin(const F64 val)
+{
+   return (F64)asin(val);
+}
+//---------------------------------------
+// ATan2
+inline F32 mAtan2(const F32 y, const F32 x)
+{
+   return (F32)atan2(y, x);
+}
+
+inline F64 mAtan2(const F64 x, const F64 y)
+{
+   return (F64)atan2(x, y);
+}
+//---------------------------------------
+// Tanh
+inline F32 mTanh(const F32 angle)
+{
+   return (F32)tanh(angle);
+}
+
+inline F64 mTanh(const F64 angle)
+{
+   return (F64)tanh(angle);
+}
+//---------------------------------------
+// SinCos
+inline void mSinCos(const F32 angle, F32& s, F32& c)
+{
+   s = mSin(angle);
+   c = mCos(angle);
+}
+
+inline void mSinCos(const F64 angle, F64& s, F64& c)
+{
+   s = mSin(angle);
+   c = mCos(angle);
+}
+//---------------------------------------
+// Rad/Deg conversion
+inline F32 mDegToRad(F32 d)
+{
+   return((d * M_PI_F) / 180.0f);
+}
+
+inline F32 mRadToDeg(F32 r)
+{
+   return((r * 180.0f) / M_PI_F);
+}
+
+inline F64 mDegToRad(F64 d)
+{
+   return (d * M_PI) / 180.0;
+}
+
+inline F64 mRadToDeg(F64 r)
+{
+   return (r * 180.0) / M_PI;
+}
+//---------------------------------------
 
 /// Template function for doing a linear interpolation between any two
 /// types which implement operators for scalar multiply and addition.
@@ -339,133 +521,6 @@ inline U32 mMulDiv(S32 a, S32 b, U32 c)
    return m_mulDivU32(a, b, c);
 }
 
-inline F32 mSin(const F32 angle)
-{
-   return (F32) sin(angle);
-}
-
-inline F32 mCos(const F32 angle)
-{
-   return (F32) cos(angle);
-}
-
-inline F32 mTan(const F32 angle)
-{
-   return (F32) tan(angle);
-}
-
-inline F32 mAsin(const F32 val)
-{
-   return (F32) asin(val);
-}
-
-inline F32 mAcos(const F32 val)
-{
-   return (F32) acos(val);
-}
-
-inline F32 mAtan( const F32 x )
-{
-   return (F32) atan( x );
-}
-
-inline F32 mAtan2(const F32 y, const F32 x)
-{
-   return (F32)atan2(y, x);
-}
-
-inline void mSinCos(const F32 angle, F32 &s, F32 &c)
-{
-   s = mSin(angle);
-   c = mCos(angle);
-}
-
-inline F32 mTanh(const F32 angle)
-{
-   return (F32) tanh(angle);
-}
-
-inline F32 mPow(const F32 x, const F32 y)
-{
-   return (F32) pow(x, y);
-}
-
-inline F32 mLog(const F32 val)
-{
-   return (F32) log(val);
-}
-
-inline F32 mLog2(const F32 val)
-{
-   return (F32) log2(val);
-}
-
-inline F32 mExp(const F32 val)
-{
-   return (F32) exp(val);
-}
-
-inline F64 mSin(const F64 angle)
-{
-   return (F64) sin(angle);
-}
-
-inline F64 mCos(const F64 angle)
-{
-   return (F64) cos(angle);
-}
-
-inline F64 mTan(const F64 angle)
-{
-   return (F64) tan(angle);
-}
-
-inline F64 mAsin(const F64 val)
-{
-   return (F64) asin(val);
-}
-
-inline F64 mAcos(const F64 val)
-{
-   return (F64) acos(val);
-}
-
-inline F64 mAtan( const F64 x )
-{
-   return (F64) atan( x );
-}
-
-inline F64 mAtan2(const F64 x, const F64 y)
-{
-   return (F64) atan2(x, y);
-}
-
-inline void mSinCos(const F64 angle, F64 &s, F64 &c)
-{
-   s = mSin(angle);
-   c = mCos(angle);
-}
-
-inline F64 mTanh(const F64 angle)
-{
-   return (F64) tanh(angle);
-}
-
-inline F64 mPow(const F64 x, const F64 y)
-{
-   return (F64) pow(x, y);
-}
-
-inline F64 mLog(const F64 val)
-{
-   return (F64) log(val);
-}
-
-inline F64 mLog2(const F64 val)
-{
-   return (F64) log2(val);
-}
-
 inline F32 mCatmullrom(F32 t, F32 p0, F32 p1, F32 p2, F32 p3)
 {
    return m_catmullrom(t, p0, p1, p2, p3);
@@ -477,27 +532,6 @@ inline A mAlignToMultiple( A val, B mul )
 {
    A rem = val % mul;
    return ( rem ? val + mul - rem : val );
-}
-
-//--------------------------------------
-inline F32 mDegToRad(F32 d)
-{
-   return((d * M_PI_F) / 180.0f);
-}
-
-inline F32 mRadToDeg(F32 r)
-{
-   return((r * 180.0f) / M_PI_F);
-}
-
-inline F64 mDegToRad(F64 d)
-{
-   return (d * M_PI) / 180.0;
-}
-
-inline F64 mRadToDeg(F64 r)
-{
-   return (r * 180.0) / M_PI;
 }
 
 //------------------------------------------------------------------------------

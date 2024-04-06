@@ -307,7 +307,7 @@ DefineEngineFunction(mWrapF, F32, (F32 v, F32 min, F32 max), ,
 	"@returns The specified value wrapped to the specified bounds."
 	"@ingroup Math")
 {
-	return mWrapF(v, min, max);
+	return mWrap(v, min, max);
 }
 
 DefineEngineFunction(mWrap, S32, (S32 v, S32 min, S32 max), ,
