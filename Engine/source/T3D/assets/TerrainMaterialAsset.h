@@ -89,7 +89,7 @@ public:
    static void initPersistFields();
    void copyTo(SimObject* object) override;
 
-   U32 load();
+   U32 load() override;
 
    StringTableEntry getMaterialDefinitionName() { return mMatDefinitionName; }
    SimObjectPtr<TerrainMaterial> getMaterialDefinition() { return mMaterialDefinition; }

@@ -151,7 +151,7 @@ public:
    static U32 getAssetById(StringTableEntry assetId, AssetPtr<ImageAsset>* imageAsset);
    static U32 getAssetById(String assetId, AssetPtr<ImageAsset>* imageAsset) { return getAssetById(assetId.c_str(), imageAsset); };
 
-   U32 load();
+   U32 load() override;
 
 protected:
    void            initializeAsset(void) override;

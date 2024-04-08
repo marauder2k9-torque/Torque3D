@@ -132,7 +132,7 @@ public:
    /// Declare Console Object.
    DECLARE_CONOBJECT(ShapeAsset);
 
-   U32 load();
+   U32 load() override;
 
    TSShape* getShape() { return mShape; }
 

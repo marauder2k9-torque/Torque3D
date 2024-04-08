@@ -156,7 +156,7 @@ public:
    DECLARE_CONOBJECT(SoundAsset);
 
    static bool _setSoundFile(void* object, const char* index, const char* data);
-   U32 load();
+   U32 load() override;
    inline StringTableEntry getSoundPath(const U32 slotId = 0) const { return mSoundPath[slotId]; };
    SFXProfile* getSfxProfile(const U32 slotId = 0) { return &mSFXProfile[slotId]; }
    SFXPlayList* getSfxPlaylist() { return &mPlaylist; }
