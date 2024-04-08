@@ -268,8 +268,7 @@ if (stream->writeFlag(m##name##Asset[index].notNull()))\
 #define UNPACK_SHAPE_ASSET_ARRAY(netconn, name, index) \
 if (stream->readFlag())\
 {\
-   m##name##AssetId[index] = StringTable->insert(netconn->unpackNetStringHandleU(stream).getString());\
-   set##name(m##name##AssetId[index], index);\
+   set##name(netconn->unpackNetStringHandleU(stream).getString(), index);\
 }\
 
 //network send - datablock
