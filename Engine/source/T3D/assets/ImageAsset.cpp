@@ -318,8 +318,6 @@ void ImageAsset::_onResourceChanged(const Torque::Path& path)
       return;
 
    refreshAsset();
-
-   onAssetRefresh();
 }
 
 void ImageAsset::setImageFileName(const char* pScriptFile)

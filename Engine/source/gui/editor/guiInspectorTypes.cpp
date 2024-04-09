@@ -1797,15 +1797,15 @@ void GuiInspectorType2DValue::constructEditControlChildren(GuiControl* retCtrl, 
 
    mCtrlX->setDataField(StringTable->insert("profile"), NULL, "GuiInspectorTextEditProfile");
    mCtrlX->setDataField(StringTable->insert("tooltipprofile"), NULL, "GuiToolTipProfile");
-   mCtrlX->setDataField(StringTable->insert("format"), NULL, "%.7f");
+   mCtrlX->setDataField(StringTable->insert("format"), NULL, "%g");
    mCtrlX->setDataField(StringTable->insert("range"), NULL, "-1e+32 1e+32");
-   mCtrlX->setDataField(StringTable->insert("increment"), NULL, "0.1");
+   mCtrlX->setDataField(StringTable->insert("increment"), NULL, "0.0001");
 
    mCtrlY->setDataField(StringTable->insert("profile"), NULL, "GuiInspectorTextEditProfile");
    mCtrlY->setDataField(StringTable->insert("tooltipprofile"), NULL, "GuiToolTipProfile");
-   mCtrlY->setDataField(StringTable->insert("format"), NULL, "%.7f");
+   mCtrlY->setDataField(StringTable->insert("format"), NULL, "%g");
    mCtrlY->setDataField(StringTable->insert("range"), NULL, "-1e+32 1e+32");
-   mCtrlY->setDataField(StringTable->insert("increment"), NULL, "0.1");
+   mCtrlY->setDataField(StringTable->insert("increment"), NULL, "0.0001");
 
    mLabelX->setDataField(StringTable->insert("profile"), NULL, "ToolsGuiXDimensionText");
    mLabelY->setDataField(StringTable->insert("profile"), NULL, "ToolsGuiYDimensionText");
@@ -1940,9 +1940,9 @@ void GuiInspectorType3DValue::constructEditControlChildren(GuiControl* retCtrl, 
 
    mCtrlZ->setDataField(StringTable->insert("profile"), NULL, "GuiInspectorTextEditProfile");
    mCtrlZ->setDataField(StringTable->insert("tooltipprofile"), NULL, "GuiToolTipProfile");
-   mCtrlZ->setDataField(StringTable->insert("format"), NULL, "%.7f");
+   mCtrlZ->setDataField(StringTable->insert("format"), NULL, "%g");
    mCtrlZ->setDataField(StringTable->insert("range"), NULL, "-1e+32 1e+32");
-   mCtrlZ->setDataField(StringTable->insert("increment"), NULL, "0.1");
+   mCtrlZ->setDataField(StringTable->insert("increment"), NULL, "0.0001");
 
    mLabelZ->setDataField(StringTable->insert("profile"), NULL, "ToolsGuiZDimensionText");
 
@@ -2394,15 +2394,15 @@ void GuiInspectorTypeMatrixRotation::constructEditControlChildren(GuiControl* re
 
    mCtrlX->setField("AltCommand", angleInput.c_str());
    mCtrlX->setField("Validate", angleInput.c_str());
-   mCtrlX->setDataField(StringTable->insert("format"), NULL, "%.6f");
+   mCtrlX->setDataField(StringTable->insert("format"), NULL, "%g");
 
    mCtrlY->setField("AltCommand", angleInput.c_str());
    mCtrlY->setField("Validate", angleInput.c_str());
-   mCtrlY->setDataField(StringTable->insert("format"), NULL, "%.6f");
+   mCtrlY->setDataField(StringTable->insert("format"), NULL, "%g");
 
    mCtrlZ->setField("AltCommand", angleInput.c_str());
    mCtrlZ->setField("Validate", angleInput.c_str());
-   mCtrlZ->setDataField(StringTable->insert("format"), NULL, "%.6f");
+   mCtrlZ->setDataField(StringTable->insert("format"), NULL, "%g");
 }
 
 void GuiInspectorTypeMatrixRotation::updateValue()
@@ -2424,19 +2424,19 @@ void GuiInspectorTypeMatrixRotation::updateValue()
       if (elementCount > 0)
       {
          char szBuffer[64];
-         dSprintf(szBuffer, 64, "%.6f", eulAng.x);
+         dSprintf(szBuffer, 64, "%g", eulAng.x);
          mCtrlX->setText(szBuffer);
       }
       if (elementCount > 1)
       {
          char szBuffer[64];
-         dSprintf(szBuffer, 64, "%.6f", eulAng.y);
+         dSprintf(szBuffer, 64, "%g", eulAng.y);
          mCtrlY->setText(szBuffer);
       }
       if (elementCount > 2)
       {
          char szBuffer[64];
-         dSprintf(szBuffer, 64, "%.6f", eulAng.z);
+         dSprintf(szBuffer, 64, "%g", eulAng.z);
          mCtrlZ->setText(szBuffer);
       }
 
@@ -2506,7 +2506,7 @@ void GuiInspectorTypeMatrixRotation::updateData()
 
 StringTableEntry GuiInspectorTypeMatrixRotation::getValue()
 {
-   String angBuffer = String::ToString("%.6f %.6f %.6f %.6f", angAx.axis.x, angAx.axis.y, angAx.axis.z, angAx.angle);
+   String angBuffer = String::ToString("%g %g %g %g", angAx.axis.x, angAx.axis.y, angAx.axis.z, angAx.angle);
    return StringTable->insert(angBuffer.c_str());
 }
 
