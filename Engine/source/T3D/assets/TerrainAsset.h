@@ -82,7 +82,7 @@ public:
 
    inline Resource<TerrainFile> getTerrainResource(void) const { return mTerrainFile; };
 
-   U32 load();
+   U32 load() override;
 
    static bool getAssetByFilename(StringTableEntry fileName, AssetPtr<TerrainAsset>* shapeAsset);
    static StringTableEntry getAssetIdByFilename(StringTableEntry fileName);

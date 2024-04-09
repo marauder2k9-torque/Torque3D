@@ -111,7 +111,7 @@ public:
    void                    setBakedSceneFile(const char* pBakedSceneFile);
    inline StringTableEntry getBakedSceneFile(void) const { return mBakedSceneFile; };
 
-   SimObjectId load();
+   U32 load() override { return Ok; };
 
 protected:
    static bool setLevelFile(void *obj, const char *index, const char *data) { static_cast<LevelAsset*>(obj)->setLevelFile(data); return false; }
