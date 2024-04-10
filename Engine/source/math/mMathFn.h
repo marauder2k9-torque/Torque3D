@@ -341,17 +341,6 @@ inline T mWrap(T val, T low, T high)
 
    return res;
 }
-
-// fast math routines from Doom3 SDK
-inline F32 mInvSqrt(F32 x)
-{
-   F32 xhalf = 0.5f * x;
-   S32 i = *(S32*)&x;            // get bits for floating value
-   i = 0x5f3759df - (i >> 1);    // gives initial guess
-   x = *(F32*)&i;                // convert bits back to float
-   x = x * (1.5f - xhalf * x*x); // Newton step
-   return x;
-}
 //---------------------------------------
 // Power
 inline F32 mPow(const F32 x, const F32 y)
@@ -520,75 +509,6 @@ inline F64 mRadToDeg(F64 r)
    return (r * 180.0) / M_PI;
 }
 //---------------------------------------
-
-inline F32 mSqrt(const F32 val)
-{
-   return (F32) sqrt(val);
-}
-
-inline F64 mSqrt(const F64 val)
-{
-   return (F64) sqrt(val);
-}
-//---------------------------------------
-// Wrap
-template <typename T>
-inline T mWrap(T val, T low, T high)
-{
-   T len = high - low;
-   T res = val;
-
-   while (res < low)
-      res += len;
-
-   while (res > high)
-      res -= len;
-
-   return res;
-}
-//---------------------------------------
-// Power
-inline F32 mPow(const F32 x, const F32 y)
-{
-   return (F32)pow(x, y);
-}
-
-inline F64 mPow(const F64 x, const F64 y)
-{
-   return (F64)pow(x, y);
-}
-//---------------------------------------
-// Logarithmic
-inline F32 mLog(const F32 val)
-{
-   return (F32)log(val);
-}
-
-inline F64 mLog(const F64 val)
-{
-   return (F64)log(val);
-}
-
-inline F32 mLog2(const F32 val)
-{
-   return (F32)log2(val);
-}
-
-inline F64 mLog2(const F64 val)
-{
-   return (F64)log2(val);
-}
-//---------------------------------------
-// Exp
-inline F32 mExp(const F32 val)
-{
-   return (F32)exp(val);
-}
-
-inline F64 mExp(const F64 val)
-{
-   return (F64)exp(val);
-}
 
 /// Template function for doing a linear interpolation between any two
 /// types which implement operators for scalar multiply and addition.
