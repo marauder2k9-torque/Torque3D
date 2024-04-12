@@ -323,10 +323,10 @@ inline F32 mInvSqrt(F32 x)
    x = x * (1.5f - xhalf * x*x); // Newton step
    return x;
 }
-
-inline F32 mSqrt(const F32 val)
+template <typename T>
+inline T mSqrt(T fVal)
 {
-   return (F32) sqrt(val);
+   return static_cast<T>(sqrt((F32)fVal));
 }
 
 inline F64 mSqrt(const F64 val)
@@ -484,7 +484,7 @@ inline F64 mAsin(F64 val)
    if(val < -1.0)
       return M_2PI;
    
-   if(vale > 1.0)
+   if(val > 1.0)
       return -M_2PI;
    
    return (F64)asin(val);
