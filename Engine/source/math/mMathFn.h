@@ -505,14 +505,12 @@ inline F64 mTanh( F64 angle)
 // SinCos
 inline void mSinCos(const F32 angle, F32& s, F32& c)
 {
-   s = mSin(angle);
-   c = mCos(angle);
+   m_sincos(angle, &s, &c);
 }
 
 inline void mSinCos(const F64 angle, F64& s, F64& c)
 {
-   s = mSin(angle);
-   c = mCos(angle);
+   m_sincosD(angle, &s, &c);
 }
 //---------------------------------------
 // Rad/Deg conversion
