@@ -199,12 +199,14 @@ inline T mMin(const T a, const T b)
 }
 //---------------------------------------
 // Floor
-inline F32 mFloor(const F32 val)
+template <typename T>
+inline T mFloor(T val);
+inline F32 mFloor( F32 val)
 {
    return (F32) floor(val);
 }
 
-inline F64 mFloor(const F64 val)
+inline F64 mFloor( F64 val)
 {
    return (F64) floor(val);
 }
@@ -245,6 +247,11 @@ inline T mClampToZero(T& input)
 }
 //---------------------------------------
 // FMOD
+template<typename T>
+inline T mFmod(T a, T b)
+{
+   return (a % b + b) % b;
+}
 inline F32 mFmod(const F32 val, const F32 mod)
 {
    return fmod(val, mod);
@@ -330,16 +337,8 @@ inline F64 mSqrt(const F64 val)
 template <typename T>
 inline T mWrap(T val, T low, T high)
 {
-   T len = high - low;
-   T res = val;
-
-   while (res < low)
-      res += len;
-
-   while (res > high)
-      res -= len;
-
-   return res;
+   T range = high - low + 1; // adding 1 to include high...
+   return low + mFmod((val - low), range);
 }
 //---------------------------------------
 // Power
@@ -388,89 +387,117 @@ inline F64 mExp(const F64 val)
 // ANGLE FUNCTIONS
 //---------------------------------------
 // Sin
-inline F32 mSin(const F32 angle)
+template <typename T>
+inline T mSin(T angle);
+inline F32 mSin( F32 angle)
 {
    return (F32)sin(angle);
 }
 
-inline F64 mSin(const F64 angle)
+inline F64 mSin( F64 angle)
 {
    return (F64)sin(angle);
 }
 //---------------------------------------
 // Cos
-inline F32 mCos(const F32 angle)
+template <typename T>
+inline T mCos(T angle);
+inline F32 mCos( F32 angle)
 {
    return (F32)cos(angle);
 }
 
-inline F64 mCos(const F64 angle)
+inline F64 mCos( F64 angle)
 {
    return (F64)cos(angle);
 }
 //---------------------------------------
 // Tan
-inline F32 mTan(const F32 angle)
+template <typename T>
+inline T mTan(T angle);
+inline F32 mTan(F32 angle)
 {
    return (F32)tan(angle);
 }
 
-inline F64 mTan(const F64 angle)
+inline F64 mTan(F64 angle)
 {
    return (F64)tan(angle);
 }
 //---------------------------------------
 // Acos
-inline F32 mAcos(const F32 val)
+template <typename T>
+inline T mAcos(T val);
+inline F32 mAcos(F32 val)
 {
+   if(val < -1.0f)
+      return M_PI_F;
+   
    return (F32)acos(val);
 }
 
-inline F64 mAcos(const F64 val)
+inline F64 mAcos(F64 val)
 {
+   if(val < -1.0)
+      return M_PI;
+   
    return (F64)acos(val);
 }
 //---------------------------------------
 // Atan
-inline F32 mAtan(const F32 x)
+template <typename T>
+inline T mAtan(T x);
+inline F32 mAtan( F32 x)
 {
    return (F32)atan(x);
 }
 
-inline F64 mAtan(const F64 x)
+inline F64 mAtan( F64 x)
 {
    return (F64)atan(x);
 }
 //---------------------------------------
 // Asin
-inline F32 mAsin(const F32 val)
+template <typename T>
+inline T mAsin(T val);
+inline F32 mAsin(F32 val)
 {
+   if(val < -1.0f)
+      return M_2PI_F;
+   
    return (F32)asin(val);
 }
 
-inline F64 mAsin(const F64 val)
+inline F64 mAsin(F64 val)
 {
+   if(val < -1.0)
+      return M_2PI;
+   
    return (F64)asin(val);
 }
 //---------------------------------------
 // ATan2
-inline F32 mAtan2(const F32 y, const F32 x)
+template <typename T>
+inline T mAtan2(T y, T x);
+inline F32 mAtan2( F32 y,  F32 x)
 {
    return (F32)atan2(y, x);
 }
 
-inline F64 mAtan2(const F64 x, const F64 y)
+inline F64 mAtan2( F64 x,  F64 y)
 {
    return (F64)atan2(x, y);
 }
 //---------------------------------------
 // Tanh
-inline F32 mTanh(const F32 angle)
+template <typename T>
+inline T mTanh(T angle);
+inline F32 mTanh( F32 angle)
 {
    return (F32)tanh(angle);
 }
 
-inline F64 mTanh(const F64 angle)
+inline F64 mTanh( F64 angle)
 {
    return (F64)tanh(angle);
 }
