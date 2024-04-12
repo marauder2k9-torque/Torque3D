@@ -306,6 +306,7 @@ inline F32 mRound(const F32 val, const F32 step)
  }
 //---------------------------------------
 // Square
+/// returns val squared
 template<typename T>
 inline T mSquared(T val)
 {
@@ -334,6 +335,7 @@ inline F64 mSqrt(const F64 val)
 }
 //---------------------------------------
 // Wrap
+/// Returns the wrap of val between low and high
 template <typename T>
 inline T mWrap(T val, T low, T high)
 {
@@ -426,6 +428,9 @@ inline F64 mTan(F64 angle)
 }
 //---------------------------------------
 // Acos
+/// Returns the arc cos of the input val
+/// if val = 1 -PI is returned
+/// if val = -1 PI is returned
 template <typename T>
 inline T mAcos(T val);
 inline F32 mAcos(F32 val)
@@ -458,12 +463,18 @@ inline F64 mAtan( F64 x)
 }
 //---------------------------------------
 // Asin
+/// Returns arc sin of the value input
+/// if value = -1 2PI is returned
+/// if value = 1 -2PI is returned
 template <typename T>
 inline T mAsin(T val);
 inline F32 mAsin(F32 val)
 {
    if(val < -1.0f)
       return M_2PI_F;
+   
+   if(val > 1.0f)
+      return -M_2PI_F;
    
    return (F32)asin(val);
 }
@@ -472,6 +483,9 @@ inline F64 mAsin(F64 val)
 {
    if(val < -1.0)
       return M_2PI;
+   
+   if(vale > 1.0)
+      return -M_2PI;
    
    return (F64)asin(val);
 }
