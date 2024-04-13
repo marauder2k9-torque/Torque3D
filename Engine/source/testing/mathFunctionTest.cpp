@@ -188,3 +188,121 @@ TEST(MathFunctionTest, WRAP)
    }
 
 }
+
+/// <summary>
+/// Test for mCeil
+/// </summary>
+TEST(MathFunctionTest, CEIL)
+{
+   // F32
+   F32 fVal = mCeil(3.324f);
+   EXPECT_TRUE(mIsEqual(fVal, 4.000f, 0.0001f)) << "F32 mceil test returned unexpected value";
+
+   fVal = mCeil(4.324f);
+   EXPECT_TRUE(mIsEqual(fVal, 5.000f, 0.0001f)) << "F32 mceil test returned unexpected value";
+
+   fVal = mCeil(2.324f);
+   EXPECT_TRUE(mIsEqual(fVal, 3.000f, 0.0001f)) << "F32 mceil test returned unexpected value";
+
+   // F64
+   F64 dVal = mCeil(3.324);
+   EXPECT_EQ(dVal, 4.0) << "F64 mceil test returned unexpected value";
+
+   dVal = mCeil(4.324);
+   EXPECT_EQ(dVal, 5.0) << "F64 mceil test returned unexpected value";
+
+   dVal = mCeil(2.324);
+   EXPECT_EQ(dVal, 3.0) << "F64 mceil test returned unexpected value";
+}
+
+/// <summary>
+/// Test for mFloor
+/// </summary>
+TEST(MathFunctionTest, FLOOR)
+{
+   // F32
+   F32 fVal = mFloor(3.324f);
+   EXPECT_TRUE(mIsEqual(fVal, 3.000f, 0.0001f)) << "F32 mceil test returned unexpected value";
+
+   fVal = mFloor(4.324f);
+   EXPECT_TRUE(mIsEqual(fVal, 4.000f, 0.0001f)) << "F32 mceil test returned unexpected value";
+
+   fVal = mFloor(2.324f);
+   EXPECT_TRUE(mIsEqual(fVal, 2.000f, 0.0001f)) << "F32 mceil test returned unexpected value";
+
+   // F64
+   F64 dVal = mFloor(3.324);
+   EXPECT_EQ(dVal, 3.0) << "F64 mceil test returned unexpected value";
+
+   dVal = mFloor(4.324);
+   EXPECT_EQ(dVal, 4.0) << "F64 mceil test returned unexpected value";
+
+   dVal = mFloor(2.324);
+   EXPECT_EQ(dVal, 2.0) << "F64 mceil test returned unexpected value";
+}
+
+/// <summary>
+/// Test for mTrunc
+/// </summary>
+TEST(MathFunctionTest, TRUNC)
+{
+   // F32
+   F32 fVal = mTrunc(-3.324f);
+   EXPECT_TRUE(mIsEqual(fVal, -3.000f, 0.0001f)) << "F32 mTrunc test returned unexpected value";
+
+   fVal = mTrunc(-2.324f);
+   EXPECT_TRUE(mIsEqual(fVal, -2.000f, 0.0001f)) << "F32 mTrunc test returned unexpected value";
+
+   fVal = mTrunc(2.324f);
+   EXPECT_TRUE(mIsEqual(fVal, 2.000f, 0.0001f)) << "F32 mTrunc test returned unexpected value";
+
+   fVal = mTrunc(3.324f);
+   EXPECT_TRUE(mIsEqual(fVal, 3.000f, 0.0001f)) << "F32 mTrunc test returned unexpected value";
+
+   // F64
+   F64 dVal = mTrunc(-3.324);
+   EXPECT_EQ(dVal, -3.0) << "F64 mTrunc test returned unexpected value";
+
+   dVal = mTrunc(-2.324);
+   EXPECT_EQ(dVal, -2.0) << "F64 mTrunc test returned unexpected value";
+
+   dVal = mTrunc(2.324);
+   EXPECT_EQ(dVal, 2.0) << "F64 mTrunc test returned unexpected value";
+
+   dVal = mTrunc(3.324);
+   EXPECT_EQ(dVal, 3.0) << "F64 mTrunc test returned unexpected value";
+
+}
+
+/// <summary>
+/// Test for mIsZero
+/// </summary>
+TEST(MathFunctionTest, ISZERO)
+{
+   // F32
+   F32 fVal = 0.00001f;
+   EXPECT_TRUE(mIsZero(fVal, 0.0001f)) << "F32 mTrunc test returned unexpected value";
+
+   fVal = 0.001f;
+   EXPECT_FALSE(mIsZero(fVal, 0.0001f)) << "F32 mTrunc test returned unexpected value";
+
+   fVal = 0.0f;
+   EXPECT_TRUE(mIsZero(fVal, 0.0001f)) << "F32 mTrunc test returned unexpected value";
+
+   fVal = 0.1f;
+   EXPECT_FALSE(mIsZero(fVal, 0.0001f)) << "F32 mTrunc test returned unexpected value";
+
+   // F64
+   F64 dVal = 0.0;
+   EXPECT_TRUE(mIsZero(dVal)) << "F32 mTrunc test returned unexpected value";
+
+   dVal = 0.001;
+   EXPECT_FALSE(mIsZero(dVal)) << "F32 mTrunc test returned unexpected value";
+
+   dVal = 0.0000001;
+   EXPECT_FALSE(mIsZero(dVal)) << "F32 mTrunc test returned unexpected value";
+
+   dVal = 0.1;
+   EXPECT_FALSE(mIsZero(dVal)) << "F32 mTrunc test returned unexpected value";
+}
+
