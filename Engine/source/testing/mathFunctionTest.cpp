@@ -294,15 +294,15 @@ TEST(MathFunctionTest, ISZERO)
 
    // F64
    F64 dVal = 0.0;
-   EXPECT_TRUE(mIsZero(dVal)) << "F32 mTrunc test returned unexpected value";
+   EXPECT_TRUE(mIsZero(dVal)) << "F64 mTrunc test returned unexpected value";
 
    dVal = 0.001;
-   EXPECT_FALSE(mIsZero(dVal)) << "F32 mTrunc test returned unexpected value";
+   EXPECT_FALSE(mIsZero(dVal)) << "F64 mTrunc test returned unexpected value";
 
    dVal = 0.0000001;
-   EXPECT_FALSE(mIsZero(dVal)) << "F32 mTrunc test returned unexpected value";
+   EXPECT_FALSE(mIsZero(dVal)) << "F64 mTrunc test returned unexpected value";
 
    dVal = 0.1;
-   EXPECT_FALSE(mIsZero(dVal)) << "F32 mTrunc test returned unexpected value";
+   EXPECT_FALSE(mIsZero(dVal)) << "F64 mTrunc test returned unexpected value";
 }
 
