@@ -2535,20 +2535,20 @@ function EWorldEditor::onControlDropped( %this, %payload, %position )
    {
       if(%assetType $= "Datablock")
       {
-         %buildCommand = AssetBrowser @ ".on" @ %assetType @ "EditorDropped(" @ %asset @ ",\"" @ %position @ "\");";
+         %buildCommand = AssetBrowser @ ".on" @ %assetType @ "EditorDropped(" @ %asset @ ",\"" @ %pos @ "\");";
       }
       else if(%assetType $= "Prefab")
       {
-         %buildCommand = AssetBrowser @ ".on" @ %assetType @ "EditorDropped(\"" @ %module @ "/" @ %asset @ "\",\"" @ %position @ "\");";
+         %buildCommand = AssetBrowser @ ".on" @ %assetType @ "EditorDropped(\"" @ %module @ "/" @ %asset @ "\",\"" @ %pos @ "\");";
       }
       else if(%assetType $= "Creator")
       {
-         %buildCommand = AssetBrowser @ ".on" @ %assetType @ "EditorDropped(" @ %module @ ",\"" @ %position @ "\");";
+         %buildCommand = AssetBrowser @ ".on" @ %assetType @ "EditorDropped(" @ %module @ ",\"" @ %pos @ "\");";
       }
       else
       {
          %assetDef = AssetDatabase.acquireAsset(%module @ ":" @ %asset);
-         %buildCommand = AssetBrowser @ ".on" @ %assetType @ "EditorDropped(" @ %assetDef @ ",\"" @ %position @ "\");";
+         %buildCommand = AssetBrowser @ ".on" @ %assetType @ "EditorDropped(" @ %assetDef @ ",\"" @ %pos @ "\");";
       }
       eval(%buildCommand);
       
