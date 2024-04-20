@@ -170,7 +170,7 @@ if (TORQUE_OPENGL)
 endif (TORQUE_OPENGL)
 
 # Handle Materials
-torqueAddSourceDirectories("materials")
+torqueAddSourceDirectories("materials" "materials/tshade")
 
 # Handle collision
 torqueAddSourceDirectories("collision")
