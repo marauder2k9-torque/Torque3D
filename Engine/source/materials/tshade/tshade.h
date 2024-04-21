@@ -73,35 +73,34 @@ extern int tshade_debug;
     rwIF = 266,                    /* rwIF  */
     rwELSE = 267,                  /* rwELSE  */
     rwDISCARD = 268,               /* rwDISCARD  */
-    END_INCLUDE = 269,             /* END_INCLUDE  */
-    OP_EQ = 270,                   /* OP_EQ  */
-    OP_NEQ = 271,                  /* OP_NEQ  */
-    OP_AND = 272,                  /* OP_AND  */
-    OP_OR = 273,                   /* OP_OR  */
-    OP_LE = 274,                   /* OP_LE  */
-    OP_GE = 275,                   /* OP_GE  */
-    INT_NUM = 276,                 /* INT_NUM  */
-    FLOAT_NUM = 277,               /* FLOAT_NUM  */
-    VAR_IDENT = 278,               /* VAR_IDENT  */
-    STR_VAL = 279,                 /* STR_VAL  */
-    TYPE_IDENT = 280,              /* TYPE_IDENT  */
-    tSTRUCT = 281,                 /* tSTRUCT  */
-    tUNIFORM = 282,                /* tUNIFORM  */
-    tCBUFFER = 283,                /* tCBUFFER  */
-    tSHADERDECLARE = 284,          /* tSHADERDECLARE  */
-    tFLOAT_TYPE = 285,             /* tFLOAT_TYPE  */
-    tINT_TYPE = 286,               /* tINT_TYPE  */
-    tBOOL_TYPE = 287,              /* tBOOL_TYPE  */
-    tUINT_TYPE = 288,              /* tUINT_TYPE  */
-    tFVEC2_TYPE = 289,             /* tFVEC2_TYPE  */
-    tFVEC3_TYPE = 290,             /* tFVEC3_TYPE  */
-    tFVEC4_TYPE = 291,             /* tFVEC4_TYPE  */
-    tIVEC2_TYPE = 292,             /* tIVEC2_TYPE  */
-    tIVEC3_TYPE = 293,             /* tIVEC3_TYPE  */
-    tIVEC4_TYPE = 294,             /* tIVEC4_TYPE  */
-    tBVEC2_TYPE = 295,             /* tBVEC2_TYPE  */
-    tBVEC3_TYPE = 296,             /* tBVEC3_TYPE  */
-    tBVEC4_TYPE = 297              /* tBVEC4_TYPE  */
+    OP_EQ = 269,                   /* OP_EQ  */
+    OP_NEQ = 270,                  /* OP_NEQ  */
+    OP_AND = 271,                  /* OP_AND  */
+    OP_OR = 272,                   /* OP_OR  */
+    OP_LE = 273,                   /* OP_LE  */
+    OP_GE = 274,                   /* OP_GE  */
+    INT_NUM = 275,                 /* INT_NUM  */
+    FLOAT_NUM = 276,               /* FLOAT_NUM  */
+    VAR_IDENT = 277,               /* VAR_IDENT  */
+    STR_VAL = 278,                 /* STR_VAL  */
+    TYPE_IDENT = 279,              /* TYPE_IDENT  */
+    tSTRUCT = 280,                 /* tSTRUCT  */
+    tUNIFORM = 281,                /* tUNIFORM  */
+    tCBUFFER = 282,                /* tCBUFFER  */
+    tSHADERDECLARE = 283,          /* tSHADERDECLARE  */
+    tFLOAT_TYPE = 284,             /* tFLOAT_TYPE  */
+    tINT_TYPE = 285,               /* tINT_TYPE  */
+    tBOOL_TYPE = 286,              /* tBOOL_TYPE  */
+    tUINT_TYPE = 287,              /* tUINT_TYPE  */
+    tFVEC2_TYPE = 288,             /* tFVEC2_TYPE  */
+    tFVEC3_TYPE = 289,             /* tFVEC3_TYPE  */
+    tFVEC4_TYPE = 290,             /* tFVEC4_TYPE  */
+    tIVEC2_TYPE = 291,             /* tIVEC2_TYPE  */
+    tIVEC3_TYPE = 292,             /* tIVEC3_TYPE  */
+    tIVEC4_TYPE = 293,             /* tIVEC4_TYPE  */
+    tBVEC2_TYPE = 294,             /* tBVEC2_TYPE  */
+    tBVEC3_TYPE = 295,             /* tBVEC3_TYPE  */
+    tBVEC4_TYPE = 296              /* tBVEC4_TYPE  */
   };
   typedef enum tshade_tokentype tshade_token_kind_t;
 #endif
@@ -119,7 +118,7 @@ union TSHADE_STYPE
   int intVal;
   const char* strVal;
 
-#line 123 "tshade.h"
+#line 122 "tshade.h"
 
 };
 typedef union TSHADE_STYPE TSHADE_STYPE;

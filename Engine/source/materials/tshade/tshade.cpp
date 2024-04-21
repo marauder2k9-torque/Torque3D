@@ -153,38 +153,37 @@ enum yysymbol_kind_t
   YYSYMBOL_rwIF = 33,                      /* rwIF  */
   YYSYMBOL_rwELSE = 34,                    /* rwELSE  */
   YYSYMBOL_rwDISCARD = 35,                 /* rwDISCARD  */
-  YYSYMBOL_END_INCLUDE = 36,               /* END_INCLUDE  */
-  YYSYMBOL_OP_EQ = 37,                     /* OP_EQ  */
-  YYSYMBOL_OP_NEQ = 38,                    /* OP_NEQ  */
-  YYSYMBOL_OP_AND = 39,                    /* OP_AND  */
-  YYSYMBOL_OP_OR = 40,                     /* OP_OR  */
-  YYSYMBOL_OP_LE = 41,                     /* OP_LE  */
-  YYSYMBOL_OP_GE = 42,                     /* OP_GE  */
-  YYSYMBOL_INT_NUM = 43,                   /* INT_NUM  */
-  YYSYMBOL_FLOAT_NUM = 44,                 /* FLOAT_NUM  */
-  YYSYMBOL_VAR_IDENT = 45,                 /* VAR_IDENT  */
-  YYSYMBOL_STR_VAL = 46,                   /* STR_VAL  */
-  YYSYMBOL_TYPE_IDENT = 47,                /* TYPE_IDENT  */
-  YYSYMBOL_tSTRUCT = 48,                   /* tSTRUCT  */
-  YYSYMBOL_tUNIFORM = 49,                  /* tUNIFORM  */
-  YYSYMBOL_tCBUFFER = 50,                  /* tCBUFFER  */
-  YYSYMBOL_tSHADERDECLARE = 51,            /* tSHADERDECLARE  */
-  YYSYMBOL_tFLOAT_TYPE = 52,               /* tFLOAT_TYPE  */
-  YYSYMBOL_tINT_TYPE = 53,                 /* tINT_TYPE  */
-  YYSYMBOL_tBOOL_TYPE = 54,                /* tBOOL_TYPE  */
-  YYSYMBOL_tUINT_TYPE = 55,                /* tUINT_TYPE  */
-  YYSYMBOL_tFVEC2_TYPE = 56,               /* tFVEC2_TYPE  */
-  YYSYMBOL_tFVEC3_TYPE = 57,               /* tFVEC3_TYPE  */
-  YYSYMBOL_tFVEC4_TYPE = 58,               /* tFVEC4_TYPE  */
-  YYSYMBOL_tIVEC2_TYPE = 59,               /* tIVEC2_TYPE  */
-  YYSYMBOL_tIVEC3_TYPE = 60,               /* tIVEC3_TYPE  */
-  YYSYMBOL_tIVEC4_TYPE = 61,               /* tIVEC4_TYPE  */
-  YYSYMBOL_tBVEC2_TYPE = 62,               /* tBVEC2_TYPE  */
-  YYSYMBOL_tBVEC3_TYPE = 63,               /* tBVEC3_TYPE  */
-  YYSYMBOL_tBVEC4_TYPE = 64,               /* tBVEC4_TYPE  */
-  YYSYMBOL_YYACCEPT = 65,                  /* $accept  */
-  YYSYMBOL_program = 66,                   /* program  */
-  YYSYMBOL_program_globals = 67            /* program_globals  */
+  YYSYMBOL_OP_EQ = 36,                     /* OP_EQ  */
+  YYSYMBOL_OP_NEQ = 37,                    /* OP_NEQ  */
+  YYSYMBOL_OP_AND = 38,                    /* OP_AND  */
+  YYSYMBOL_OP_OR = 39,                     /* OP_OR  */
+  YYSYMBOL_OP_LE = 40,                     /* OP_LE  */
+  YYSYMBOL_OP_GE = 41,                     /* OP_GE  */
+  YYSYMBOL_INT_NUM = 42,                   /* INT_NUM  */
+  YYSYMBOL_FLOAT_NUM = 43,                 /* FLOAT_NUM  */
+  YYSYMBOL_VAR_IDENT = 44,                 /* VAR_IDENT  */
+  YYSYMBOL_STR_VAL = 45,                   /* STR_VAL  */
+  YYSYMBOL_TYPE_IDENT = 46,                /* TYPE_IDENT  */
+  YYSYMBOL_tSTRUCT = 47,                   /* tSTRUCT  */
+  YYSYMBOL_tUNIFORM = 48,                  /* tUNIFORM  */
+  YYSYMBOL_tCBUFFER = 49,                  /* tCBUFFER  */
+  YYSYMBOL_tSHADERDECLARE = 50,            /* tSHADERDECLARE  */
+  YYSYMBOL_tFLOAT_TYPE = 51,               /* tFLOAT_TYPE  */
+  YYSYMBOL_tINT_TYPE = 52,                 /* tINT_TYPE  */
+  YYSYMBOL_tBOOL_TYPE = 53,                /* tBOOL_TYPE  */
+  YYSYMBOL_tUINT_TYPE = 54,                /* tUINT_TYPE  */
+  YYSYMBOL_tFVEC2_TYPE = 55,               /* tFVEC2_TYPE  */
+  YYSYMBOL_tFVEC3_TYPE = 56,               /* tFVEC3_TYPE  */
+  YYSYMBOL_tFVEC4_TYPE = 57,               /* tFVEC4_TYPE  */
+  YYSYMBOL_tIVEC2_TYPE = 58,               /* tIVEC2_TYPE  */
+  YYSYMBOL_tIVEC3_TYPE = 59,               /* tIVEC3_TYPE  */
+  YYSYMBOL_tIVEC4_TYPE = 60,               /* tIVEC4_TYPE  */
+  YYSYMBOL_tBVEC2_TYPE = 61,               /* tBVEC2_TYPE  */
+  YYSYMBOL_tBVEC3_TYPE = 62,               /* tBVEC3_TYPE  */
+  YYSYMBOL_tBVEC4_TYPE = 63,               /* tBVEC4_TYPE  */
+  YYSYMBOL_YYACCEPT = 64,                  /* $accept  */
+  YYSYMBOL_program = 65,                   /* program  */
+  YYSYMBOL_program_globals = 66            /* program_globals  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -515,7 +514,7 @@ union yyalloc
 #define YYLAST   3
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  65
+#define YYNTOKENS  64
 /* YYNNTS -- Number of nonterminals.  */
 #define YYNNTS  3
 /* YYNRULES -- Number of rules.  */
@@ -524,7 +523,7 @@ union yyalloc
 #define YYNSTATES  7
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   297
+#define YYMAXUTOK   296
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -567,14 +566,14 @@ static const yytype_int8 yytranslate[] =
       27,    28,    29,    30,    31,    32,    33,    34,    35,    36,
       37,    38,    39,    40,    41,    42,    43,    44,    45,    46,
       47,    48,    49,    50,    51,    52,    53,    54,    55,    56,
-      57,    58,    59,    60,    61,    62,    63,    64
+      57,    58,    59,    60,    61,    62,    63
 };
 
 #if TSHADE_DEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    69,    69,    73
+       0,    67,    67,    71
 };
 #endif
 
@@ -594,9 +593,9 @@ static const char *const yytname[] =
   "'/'", "'<'", "'>'", "'='", "'.'", "'|'", "'&'", "'%'", "'('", "')'",
   "','", "':'", "';'", "'{'", "'}'", "'^'", "'~'", "'!'", "'@'",
   "rwSWITCH", "rwCASE", "rwDEFAULT", "rwWHILE", "rwDO", "rwFOR", "rwBREAK",
-  "rwCONTINUE", "rwIF", "rwELSE", "rwDISCARD", "END_INCLUDE", "OP_EQ",
-  "OP_NEQ", "OP_AND", "OP_OR", "OP_LE", "OP_GE", "INT_NUM", "FLOAT_NUM",
-  "VAR_IDENT", "STR_VAL", "TYPE_IDENT", "tSTRUCT", "tUNIFORM", "tCBUFFER",
+  "rwCONTINUE", "rwIF", "rwELSE", "rwDISCARD", "OP_EQ", "OP_NEQ", "OP_AND",
+  "OP_OR", "OP_LE", "OP_GE", "INT_NUM", "FLOAT_NUM", "VAR_IDENT",
+  "STR_VAL", "TYPE_IDENT", "tSTRUCT", "tUNIFORM", "tCBUFFER",
   "tSHADERDECLARE", "tFLOAT_TYPE", "tINT_TYPE", "tBOOL_TYPE", "tUINT_TYPE",
   "tFVEC2_TYPE", "tFVEC3_TYPE", "tFVEC4_TYPE", "tIVEC2_TYPE",
   "tIVEC3_TYPE", "tIVEC4_TYPE", "tBVEC2_TYPE", "tBVEC3_TYPE",
@@ -610,7 +609,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-52)
+#define YYPACT_NINF (-51)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -624,7 +623,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -51,   -45,     2,   -52,   -15,   -52,   -52
+     -50,   -44,     2,   -51,   -15,   -51,   -51
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -638,7 +637,7 @@ static const yytype_int8 yydefact[] =
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -52,   -52,   -52
+     -51,   -51,   -51
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
@@ -657,20 +656,20 @@ static const yytype_int8 yytable[] =
 
 static const yytype_int8 yycheck[] =
 {
-      51,    46,     0,    18
+      50,    45,     0,    18
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    51,    66,    67,    46,     0,    18
+       0,    50,    65,    66,    45,     0,    18
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    65,    66,    67
+       0,    64,    65,    66
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
@@ -1150,19 +1149,19 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: program_globals  */
-#line 70 "tshade.y"
+#line 68 "tshade.y"
     { (yyval.node) = nullptr; }
-#line 1156 "tshade.cpp"
+#line 1155 "tshade.cpp"
     break;
 
   case 3: /* program_globals: tSHADERDECLARE STR_VAL ';'  */
-#line 74 "tshade.y"
+#line 72 "tshade.y"
     {(yyval.node) = nullptr; shadeAst->shaderName = (yyvsp[-1].strVal);}
-#line 1162 "tshade.cpp"
+#line 1161 "tshade.cpp"
     break;
 
 
-#line 1166 "tshade.cpp"
+#line 1165 "tshade.cpp"
 
       default: break;
     }
@@ -1355,7 +1354,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 76 "tshade.y"
+#line 74 "tshade.y"
 
 
 void yyerror (yyscan_t yyscanner, const char* msg){

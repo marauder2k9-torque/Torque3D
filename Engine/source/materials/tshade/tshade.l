@@ -28,7 +28,6 @@ HEXDIGIT [a-fA-F0-9]
 IDTAIL   [A-Za-z0-9_]
 VAR      {LETTER}{IDTAIL}*
 
-%x INCLUDE
 %x COMMENT
 
 %%
@@ -86,27 +85,6 @@ VAR      {LETTER}{IDTAIL}*
 {INTEGER}         { yylval->intVal = dAtoi(yytext); return INT_NUM; }
 {FLOAT}           { yylval->fVal = dAtof(yytext); return FLOAT_NUM; }
 \"[^\"\n]*\"      { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
-
-^"#"[\t]*include[ \t]*\[\"<] { BEGIN(INCLUDE); }
-<INCLUDE>[^ \t\n">]+  { /* Handle include files.*/
-  {
-    int c;
-    while((c= tshade_input()) && c != '\n');
-  }
-
-  if(!newfile(yytext))
-    yyterminate();
-
-  BEGIN(INITIAL);
-}
-<INCLUDE>(.|\n) {}
-<<EOF>> {
-  yypop_buffer_state(yyscanner);
-  if(!YY_CURRENT_BUFFER)
-    yyterminate();
-
-    return END_INCLUDE;
-}
 
 "/*"          { BEGIN(COMMENT); }
 <COMMENT>(.|\n) {

@@ -38,8 +38,6 @@
 %token rwSWITCH rwCASE rwDEFAULT rwWHILE rwDO 
 %token rwFOR rwBREAK rwCONTINUE rwIF rwELSE rwDISCARD
 
-%token END_INCLUDE
-
 // Conditional OPS.
 %token OP_EQ OP_NEQ OP_AND OP_OR OP_LE OP_GE
 
