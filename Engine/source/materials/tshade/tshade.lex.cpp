@@ -557,6 +557,9 @@ void yyfree ( void * , yyscan_t yyscanner );
 #define YY_AT_BOL() (YY_CURRENT_BUFFER_LVALUE->yy_at_bol)
 
 /* Begin user sect3 */
+
+#define tshade_wrap(yyscanner) (/*CONSTCOND*/1)
+#define YY_SKIP_YYWRAP
 typedef flex_uint8_t YY_CHAR;
 
 typedef int yy_state_type;
@@ -791,7 +794,8 @@ static const flex_int32_t yy_rule_can_match_eol[75] =
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 #line 1 "tshade.l"
-#line 7 "tshade.l"
+#define YY_NO_INPUT 1
+#line 10 "tshade.l"
   #define YYLMAX 4096
   #define YY_NO_UNISTD_H
 
@@ -803,10 +807,9 @@ static const flex_int32_t yy_rule_can_match_eol[75] =
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
   #include "tshade.h"
+#line 810 "tshade.lex.cpp"
 
-#line 807 "tshade.lex.cpp"
-
-#line 809 "tshade.lex.cpp"
+#line 812 "tshade.lex.cpp"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -919,8 +922,6 @@ extern int yywrap ( yyscan_t yyscanner );
 #endif
 
 #ifndef YY_NO_UNPUT
-    
-    static void yyunput ( int c, char *buf_ptr  , yyscan_t yyscanner);
     
 #endif
 
@@ -1081,10 +1082,10 @@ YY_DECL
 		}
 
 	{
-#line 33 "tshade.l"
+#line 35 "tshade.l"
 
 
-#line 1087 "tshade.lex.cpp"
+#line 1088 "tshade.lex.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1151,190 +1152,190 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 35 "tshade.l"
+#line 37 "tshade.l"
 { }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 37 "tshade.l"
+#line 39 "tshade.l"
 ;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 38 "tshade.l"
+#line 40 "tshade.l"
 ;
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 39 "tshade.l"
+#line 41 "tshade.l"
 ;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 41 "tshade.l"
+#line 43 "tshade.l"
 {return rwIF;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 42 "tshade.l"
+#line 44 "tshade.l"
 {return rwELSE;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 43 "tshade.l"
+#line 45 "tshade.l"
 {return rwWHILE;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 44 "tshade.l"
+#line 46 "tshade.l"
 {return rwDO;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 45 "tshade.l"
+#line 47 "tshade.l"
 {return rwBREAK;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 46 "tshade.l"
+#line 48 "tshade.l"
 {return rwFOR;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 47 "tshade.l"
+#line 49 "tshade.l"
 {return rwSWITCH;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 48 "tshade.l"
+#line 50 "tshade.l"
 {return rwCASE;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 49 "tshade.l"
+#line 51 "tshade.l"
 {return rwDEFAULT;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 50 "tshade.l"
+#line 52 "tshade.l"
 {return rwCONTINUE;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 51 "tshade.l"
+#line 53 "tshade.l"
 {return rwDISCARD;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 53 "tshade.l"
+#line 55 "tshade.l"
 {return OP_EQ;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 54 "tshade.l"
+#line 56 "tshade.l"
 {return OP_NEQ;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 55 "tshade.l"
+#line 57 "tshade.l"
 {return OP_AND;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 56 "tshade.l"
+#line 58 "tshade.l"
 {return OP_OR;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 57 "tshade.l"
+#line 59 "tshade.l"
 {return OP_LE;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 58 "tshade.l"
+#line 60 "tshade.l"
 {return OP_GE;}
 	YY_BREAK
 case 22:
-#line 61 "tshade.l"
-case 23:
-#line 62 "tshade.l"
-case 24:
 #line 63 "tshade.l"
-case 25:
+case 23:
 #line 64 "tshade.l"
-case 26:
+case 24:
 #line 65 "tshade.l"
-case 27:
+case 25:
 #line 66 "tshade.l"
-case 28:
+case 26:
 #line 67 "tshade.l"
-case 29:
+case 27:
 #line 68 "tshade.l"
-case 30:
+case 28:
 #line 69 "tshade.l"
-case 31:
+case 29:
 #line 70 "tshade.l"
-case 32:
+case 30:
 #line 71 "tshade.l"
-case 33:
+case 31:
 #line 72 "tshade.l"
-case 34:
+case 32:
 #line 73 "tshade.l"
-case 35:
+case 33:
 #line 74 "tshade.l"
-case 36:
+case 34:
 #line 75 "tshade.l"
-case 37:
+case 35:
 #line 76 "tshade.l"
-case 38:
+case 36:
 #line 77 "tshade.l"
-case 39:
+case 37:
 #line 78 "tshade.l"
-case 40:
+case 38:
 #line 79 "tshade.l"
-case 41:
+case 39:
 #line 80 "tshade.l"
-case 42:
+case 40:
 #line 81 "tshade.l"
-case 43:
+case 41:
 #line 82 "tshade.l"
-case 44:
+case 42:
 #line 83 "tshade.l"
+case 43:
+#line 84 "tshade.l"
+case 44:
+#line 85 "tshade.l"
 case 45:
 YY_RULE_SETUP
-#line 83 "tshade.l"
+#line 85 "tshade.l"
 { return *yytext; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 84 "tshade.l"
+#line 86 "tshade.l"
 { S32 val = 0; dSscanf(yytext, "%x", &val); yylval->intVal = val; return INT_NUM; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 85 "tshade.l"
+#line 87 "tshade.l"
 { yylval->intVal = dAtoi(yytext); return INT_NUM; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 86 "tshade.l"
+#line 88 "tshade.l"
 { yylval->fVal = dAtof(yytext); return FLOAT_NUM; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 87 "tshade.l"
+#line 89 "tshade.l"
 { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 89 "tshade.l"
+#line 91 "tshade.l"
 { BEGIN(COMMENT); }
 	YY_BREAK
 case 51:
 /* rule 51 can match eol */
 YY_RULE_SETUP
-#line 90 "tshade.l"
+#line 92 "tshade.l"
 {
 /*  skip comments , after this point shader specific lexer rules.
     We need a case for each type both hlsl/glsl explicitly as we use these enums
@@ -1343,102 +1344,102 @@ YY_RULE_SETUP
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 96 "tshade.l"
+#line 98 "tshade.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 98 "tshade.l"
+#line 100 "tshade.l"
 { return tSHADERDECLARE; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 99 "tshade.l"
+#line 101 "tshade.l"
 { return tSTRUCT; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 100 "tshade.l"
+#line 102 "tshade.l"
 { return tUNIFORM; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 101 "tshade.l"
+#line 103 "tshade.l"
 { return tCBUFFER; }
 	YY_BREAK
 case 57:
-#line 104 "tshade.l"
+#line 106 "tshade.l"
 case 58:
 YY_RULE_SETUP
-#line 104 "tshade.l"
+#line 106 "tshade.l"
 {return tFVEC2_TYPE; }
 	YY_BREAK
 case 59:
-#line 106 "tshade.l"
+#line 108 "tshade.l"
 case 60:
 YY_RULE_SETUP
-#line 106 "tshade.l"
+#line 108 "tshade.l"
 {return tFVEC3_TYPE; }
 	YY_BREAK
 case 61:
-#line 108 "tshade.l"
+#line 110 "tshade.l"
 case 62:
 YY_RULE_SETUP
-#line 108 "tshade.l"
+#line 110 "tshade.l"
 {return tFVEC4_TYPE; }
 	YY_BREAK
 case 63:
-#line 111 "tshade.l"
+#line 113 "tshade.l"
 case 64:
 YY_RULE_SETUP
-#line 111 "tshade.l"
+#line 113 "tshade.l"
 {return tIVEC2_TYPE; }
 	YY_BREAK
 case 65:
-#line 113 "tshade.l"
+#line 115 "tshade.l"
 case 66:
 YY_RULE_SETUP
-#line 113 "tshade.l"
+#line 115 "tshade.l"
 {return tIVEC3_TYPE; }
 	YY_BREAK
 case 67:
-#line 115 "tshade.l"
+#line 117 "tshade.l"
 case 68:
 YY_RULE_SETUP
-#line 115 "tshade.l"
+#line 117 "tshade.l"
 {return tIVEC4_TYPE; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 117 "tshade.l"
+#line 119 "tshade.l"
 { return tFLOAT_TYPE; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 118 "tshade.l"
+#line 120 "tshade.l"
 { return tINT_TYPE; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 119 "tshade.l"
+#line 121 "tshade.l"
 { return tUINT_TYPE; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 120 "tshade.l"
+#line 122 "tshade.l"
 { return tBOOL_TYPE; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 122 "tshade.l"
+#line 124 "tshade.l"
 {yylval->strVal = StringTable->insert(yytext); return VAR_IDENT;}
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 124 "tshade.l"
+#line 126 "tshade.l"
 ECHO;
 	YY_BREAK
-#line 1441 "tshade.lex.cpp"
+#line 1442 "tshade.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -1779,48 +1780,6 @@ static int yy_get_next_buffer (yyscan_t yyscanner)
 }
 
 #ifndef YY_NO_UNPUT
-
-    static void yyunput (int c, char * yy_bp , yyscan_t yyscanner)
-{
-	char *yy_cp;
-    struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
-
-    yy_cp = yyg->yy_c_buf_p;
-
-	/* undo effects of setting up yytext */
-	*yy_cp = yyg->yy_hold_char;
-
-	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-		{ /* need to shift things up to make room */
-		/* +2 for EOB chars. */
-		int number_to_move = yyg->yy_n_chars + 2;
-		char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
-					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
-		char *source =
-				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
-
-		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
-			*--dest = *--source;
-
-		yy_cp += (int) (dest - source);
-		yy_bp += (int) (dest - source);
-		YY_CURRENT_BUFFER_LVALUE->yy_n_chars =
-			yyg->yy_n_chars = (int) YY_CURRENT_BUFFER_LVALUE->yy_buf_size;
-
-		if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-			YY_FATAL_ERROR( "flex scanner push-back overflow" );
-		}
-
-	*--yy_cp = (char) c;
-
-    if ( c == '\n' ){
-        --yylineno;
-    }
-
-	yyg->yytext_ptr = yy_bp;
-	yyg->yy_hold_char = *yy_cp;
-	yyg->yy_c_buf_p = yy_cp;
-}
 
 #endif
 
@@ -2632,13 +2591,8 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 124 "tshade.l"
+#line 126 "tshade.l"
 
-
-int yywrap(yyscan_t yyscanner)
-{
-	return 1;
-}
 
 bool TShadeParse(const char* code, tshadeAst* shadeAst)
 {

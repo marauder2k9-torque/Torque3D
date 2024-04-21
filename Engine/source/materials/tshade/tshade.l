@@ -1,6 +1,9 @@
 %option reentrant bison-bridge
 %option never-interactive
 %option yylineno
+%option nounput
+%option noinput
+%option noyywrap
 %option prefix="tshade_"
 
 %{
@@ -15,7 +18,6 @@
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
   #include "tshade.h"
-
 %}
 
 DIGIT    [0-9]
@@ -122,11 +124,6 @@ VAR      {LETTER}{IDTAIL}*
 {VAR}       {yylval->strVal = StringTable->insert(yytext); return VAR_IDENT;}
 
 %%
-
-int yywrap(yyscan_t yyscanner)
-{
-	return 1;
-}
 
 bool TShadeParse(const char* code, tshadeAst* shadeAst)
 {

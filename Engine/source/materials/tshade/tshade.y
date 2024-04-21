@@ -1,3 +1,4 @@
+%define api.header.include {"tshade.h"}
 %define api.pure full
 %define api.prefix {tshade_}
 
@@ -9,16 +10,19 @@
   #include <stdlib.h>
   #include <stdio.h>
   #include "platform/platform.h"
+  #include "console/console.h"
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
 
   #define nil 0
 
   typedef void* yyscan_t;
-  void yyerror (yyscan_t yyscanner, const char* msg);
-  void yyerror (yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg);
-  extern int yylex(YYSTYPE *yylval_param, yyscan_t yyscanner);
+  void yyerror(yyscan_t yyscanner, const char* msg);
+  void yyerror(yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg);
+  #define YY_DECL int yylex(union YYSTYPE *, yyscan_t)
+  YY_DECL;
 
+  extern int yylineno;
 %} 
 
 %union{
@@ -73,10 +77,10 @@ program_globals
 
 %%
 
-void yyerror (yyscan_t yyscanner, const char* msg){
-    fprintf(stderr, "%s\n", msg);
+void yyerror(yyscan_t yyscanner, const char* msg){
+    Con::errorf("TorqueShader ERROR: %s Line: %d", msg, yylineno);
 }
 
-void yyerror (yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg) {
+void yyerror(yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg) {
 	yyerror(yyscanner, msg);
 }

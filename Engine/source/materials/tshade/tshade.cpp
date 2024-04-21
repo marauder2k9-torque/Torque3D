@@ -73,23 +73,26 @@
 #define yynerrs         tshade_nerrs
 
 /* First part of user prologue.  */
-#line 8 "tshade.y"
+#line 9 "tshade.y"
 
   #include <stdlib.h>
   #include <stdio.h>
   #include "platform/platform.h"
+  #include "console/console.h"
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
 
   #define nil 0
 
   typedef void* yyscan_t;
-  void yyerror (yyscan_t yyscanner, const char* msg);
-  void yyerror (yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg);
-  extern int yylex(YYSTYPE *yylval_param, yyscan_t yyscanner);
+  void yyerror(yyscan_t yyscanner, const char* msg);
+  void yyerror(yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg);
+  #define YY_DECL int yylex(union YYSTYPE *, yyscan_t)
+  YY_DECL;
 
+  extern int yylineno;
 
-#line 93 "tshade.cpp"
+#line 96 "tshade.cpp"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -573,7 +576,7 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    67,    67,    71
+       0,    71,    71,    75
 };
 #endif
 
@@ -1149,19 +1152,19 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: program_globals  */
-#line 68 "tshade.y"
+#line 72 "tshade.y"
     { (yyval.node) = nullptr; }
-#line 1155 "tshade.cpp"
+#line 1158 "tshade.cpp"
     break;
 
   case 3: /* program_globals: tSHADERDECLARE STR_VAL ';'  */
-#line 72 "tshade.y"
+#line 76 "tshade.y"
     {(yyval.node) = nullptr; shadeAst->shaderName = (yyvsp[-1].strVal);}
-#line 1161 "tshade.cpp"
+#line 1164 "tshade.cpp"
     break;
 
 
-#line 1165 "tshade.cpp"
+#line 1168 "tshade.cpp"
 
       default: break;
     }
@@ -1354,13 +1357,13 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 74 "tshade.y"
+#line 78 "tshade.y"
 
 
-void yyerror (yyscan_t yyscanner, const char* msg){
-    fprintf(stderr, "%s\n", msg);
+void yyerror(yyscan_t yyscanner, const char* msg){
+    Con::errorf("TorqueShader ERROR: %s Line: %d", msg, yylineno);
 }
 
-void yyerror (yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg) {
+void yyerror(yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg) {
 	yyerror(yyscanner, msg);
 }
