@@ -88,19 +88,24 @@ extern int tshade_debug;
     tUNIFORM = 281,                /* tUNIFORM  */
     tCBUFFER = 282,                /* tCBUFFER  */
     tSHADERDECLARE = 283,          /* tSHADERDECLARE  */
-    tFLOAT_TYPE = 284,             /* tFLOAT_TYPE  */
-    tINT_TYPE = 285,               /* tINT_TYPE  */
-    tBOOL_TYPE = 286,              /* tBOOL_TYPE  */
-    tUINT_TYPE = 287,              /* tUINT_TYPE  */
-    tFVEC2_TYPE = 288,             /* tFVEC2_TYPE  */
-    tFVEC3_TYPE = 289,             /* tFVEC3_TYPE  */
-    tFVEC4_TYPE = 290,             /* tFVEC4_TYPE  */
-    tIVEC2_TYPE = 291,             /* tIVEC2_TYPE  */
-    tIVEC3_TYPE = 292,             /* tIVEC3_TYPE  */
-    tIVEC4_TYPE = 293,             /* tIVEC4_TYPE  */
-    tBVEC2_TYPE = 294,             /* tBVEC2_TYPE  */
-    tBVEC3_TYPE = 295,             /* tBVEC3_TYPE  */
-    tBVEC4_TYPE = 296              /* tBVEC4_TYPE  */
+    tVSSHADER = 284,               /* tVSSHADER  */
+    tFLOAT_TYPE = 285,             /* tFLOAT_TYPE  */
+    tINT_TYPE = 286,               /* tINT_TYPE  */
+    tBOOL_TYPE = 287,              /* tBOOL_TYPE  */
+    tUINT_TYPE = 288,              /* tUINT_TYPE  */
+    tFVEC2_TYPE = 289,             /* tFVEC2_TYPE  */
+    tFVEC3_TYPE = 290,             /* tFVEC3_TYPE  */
+    tFVEC4_TYPE = 291,             /* tFVEC4_TYPE  */
+    tIVEC2_TYPE = 292,             /* tIVEC2_TYPE  */
+    tIVEC3_TYPE = 293,             /* tIVEC3_TYPE  */
+    tIVEC4_TYPE = 294,             /* tIVEC4_TYPE  */
+    tBVEC2_TYPE = 295,             /* tBVEC2_TYPE  */
+    tBVEC3_TYPE = 296,             /* tBVEC3_TYPE  */
+    tBVEC4_TYPE = 297,             /* tBVEC4_TYPE  */
+    tMAT4_TYPE = 298,              /* tMAT4_TYPE  */
+    tMAT43_TYPE = 299,             /* tMAT43_TYPE  */
+    tMAT34_TYPE = 300,             /* tMAT34_TYPE  */
+    tMAT3_TYPE = 301               /* tMAT3_TYPE  */
   };
   typedef enum tshade_tokentype tshade_token_kind_t;
 #endif
@@ -118,7 +123,7 @@ union TSHADE_STYPE
   int intVal;
   const char* strVal;
 
-#line 122 "tshade.h"
+#line 127 "tshade.h"
 
 };
 typedef union TSHADE_STYPE TSHADE_STYPE;

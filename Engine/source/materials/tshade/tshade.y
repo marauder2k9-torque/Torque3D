@@ -53,6 +53,9 @@
 // shader specific keywords
 %token tSTRUCT tUNIFORM tCBUFFER tSHADERDECLARE
 
+// shader stages
+%token tVSSHADER
+
 // shader scalar types
 %token tFLOAT_TYPE tINT_TYPE tBOOL_TYPE tUINT_TYPE
 
@@ -61,7 +64,10 @@
 %token tIVEC2_TYPE tIVEC3_TYPE tIVEC4_TYPE
 %token tBVEC2_TYPE tBVEC3_TYPE tBVEC4_TYPE
 
-%type <node> program program_globals
+// shader matrix types
+%token tMAT4_TYPE tMAT43_TYPE tMAT34_TYPE tMAT3_TYPE
+
+%type <node> program program_globals var_decl
 
 %start program
 
@@ -70,10 +76,38 @@
 program 
   : program_globals 
     { $$ = nullptr; }
+  ;
 
 program_globals 
   : tSHADERDECLARE STR_VAL ';' 
     {$$ = nullptr; shadeAst->shaderName = $2;}
+  | var_decl
+   {$$ = nullptr; shadeAst->mGlobalVars.push_back($1); }
+  ;
+
+var_decl
+  : var_type VAR_IDENT {$$ = nullptr; }
+  ;
+
+var_type
+  : tMAT34_TYPE
+  | tMAT43_TYPE
+  | tMAT3_TYPE
+  | tMAT4_TYPE
+  | tFVEC2_TYPE
+  | tFVEC3_TYPE
+  | tFVEC4_TYPE
+  | tIVEC2_TYPE
+  | tIVEC3_TYPE
+  | tIVEC4_TYPE
+  | tBVEC2_TYPE
+  | tBVEC3_TYPE
+  | tBVEC4_TYPE
+  | tFLOAT_TYPE
+  | tINT_TYPE
+  | tUINT_TYPE
+  | tBOOL_TYPE
+  ;
 
 %%
 

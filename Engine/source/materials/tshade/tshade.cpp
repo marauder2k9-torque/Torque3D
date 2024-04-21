@@ -171,22 +171,29 @@ enum yysymbol_kind_t
   YYSYMBOL_tUNIFORM = 48,                  /* tUNIFORM  */
   YYSYMBOL_tCBUFFER = 49,                  /* tCBUFFER  */
   YYSYMBOL_tSHADERDECLARE = 50,            /* tSHADERDECLARE  */
-  YYSYMBOL_tFLOAT_TYPE = 51,               /* tFLOAT_TYPE  */
-  YYSYMBOL_tINT_TYPE = 52,                 /* tINT_TYPE  */
-  YYSYMBOL_tBOOL_TYPE = 53,                /* tBOOL_TYPE  */
-  YYSYMBOL_tUINT_TYPE = 54,                /* tUINT_TYPE  */
-  YYSYMBOL_tFVEC2_TYPE = 55,               /* tFVEC2_TYPE  */
-  YYSYMBOL_tFVEC3_TYPE = 56,               /* tFVEC3_TYPE  */
-  YYSYMBOL_tFVEC4_TYPE = 57,               /* tFVEC4_TYPE  */
-  YYSYMBOL_tIVEC2_TYPE = 58,               /* tIVEC2_TYPE  */
-  YYSYMBOL_tIVEC3_TYPE = 59,               /* tIVEC3_TYPE  */
-  YYSYMBOL_tIVEC4_TYPE = 60,               /* tIVEC4_TYPE  */
-  YYSYMBOL_tBVEC2_TYPE = 61,               /* tBVEC2_TYPE  */
-  YYSYMBOL_tBVEC3_TYPE = 62,               /* tBVEC3_TYPE  */
-  YYSYMBOL_tBVEC4_TYPE = 63,               /* tBVEC4_TYPE  */
-  YYSYMBOL_YYACCEPT = 64,                  /* $accept  */
-  YYSYMBOL_program = 65,                   /* program  */
-  YYSYMBOL_program_globals = 66            /* program_globals  */
+  YYSYMBOL_tVSSHADER = 51,                 /* tVSSHADER  */
+  YYSYMBOL_tFLOAT_TYPE = 52,               /* tFLOAT_TYPE  */
+  YYSYMBOL_tINT_TYPE = 53,                 /* tINT_TYPE  */
+  YYSYMBOL_tBOOL_TYPE = 54,                /* tBOOL_TYPE  */
+  YYSYMBOL_tUINT_TYPE = 55,                /* tUINT_TYPE  */
+  YYSYMBOL_tFVEC2_TYPE = 56,               /* tFVEC2_TYPE  */
+  YYSYMBOL_tFVEC3_TYPE = 57,               /* tFVEC3_TYPE  */
+  YYSYMBOL_tFVEC4_TYPE = 58,               /* tFVEC4_TYPE  */
+  YYSYMBOL_tIVEC2_TYPE = 59,               /* tIVEC2_TYPE  */
+  YYSYMBOL_tIVEC3_TYPE = 60,               /* tIVEC3_TYPE  */
+  YYSYMBOL_tIVEC4_TYPE = 61,               /* tIVEC4_TYPE  */
+  YYSYMBOL_tBVEC2_TYPE = 62,               /* tBVEC2_TYPE  */
+  YYSYMBOL_tBVEC3_TYPE = 63,               /* tBVEC3_TYPE  */
+  YYSYMBOL_tBVEC4_TYPE = 64,               /* tBVEC4_TYPE  */
+  YYSYMBOL_tMAT4_TYPE = 65,                /* tMAT4_TYPE  */
+  YYSYMBOL_tMAT43_TYPE = 66,               /* tMAT43_TYPE  */
+  YYSYMBOL_tMAT34_TYPE = 67,               /* tMAT34_TYPE  */
+  YYSYMBOL_tMAT3_TYPE = 68,                /* tMAT3_TYPE  */
+  YYSYMBOL_YYACCEPT = 69,                  /* $accept  */
+  YYSYMBOL_program = 70,                   /* program  */
+  YYSYMBOL_program_globals = 71,           /* program_globals  */
+  YYSYMBOL_var_decl = 72,                  /* var_decl  */
+  YYSYMBOL_var_type = 73                   /* var_type  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -512,21 +519,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  5
+#define YYFINAL  24
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   3
+#define YYLAST   21
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  64
+#define YYNTOKENS  69
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  3
+#define YYNNTS  5
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  3
+#define YYNRULES  22
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  7
+#define YYNSTATES  27
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   296
+#define YYMAXUTOK   301
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -569,14 +576,17 @@ static const yytype_int8 yytranslate[] =
       27,    28,    29,    30,    31,    32,    33,    34,    35,    36,
       37,    38,    39,    40,    41,    42,    43,    44,    45,    46,
       47,    48,    49,    50,    51,    52,    53,    54,    55,    56,
-      57,    58,    59,    60,    61,    62,    63
+      57,    58,    59,    60,    61,    62,    63,    64,    65,    66,
+      67,    68
 };
 
 #if TSHADE_DEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    71,    71,    75
+       0,    77,    77,    82,    84,    89,    93,    94,    95,    96,
+      97,    98,    99,   100,   101,   102,   103,   104,   105,   106,
+     107,   108,   109
 };
 #endif
 
@@ -599,10 +609,11 @@ static const char *const yytname[] =
   "rwCONTINUE", "rwIF", "rwELSE", "rwDISCARD", "OP_EQ", "OP_NEQ", "OP_AND",
   "OP_OR", "OP_LE", "OP_GE", "INT_NUM", "FLOAT_NUM", "VAR_IDENT",
   "STR_VAL", "TYPE_IDENT", "tSTRUCT", "tUNIFORM", "tCBUFFER",
-  "tSHADERDECLARE", "tFLOAT_TYPE", "tINT_TYPE", "tBOOL_TYPE", "tUINT_TYPE",
-  "tFVEC2_TYPE", "tFVEC3_TYPE", "tFVEC4_TYPE", "tIVEC2_TYPE",
+  "tSHADERDECLARE", "tVSSHADER", "tFLOAT_TYPE", "tINT_TYPE", "tBOOL_TYPE",
+  "tUINT_TYPE", "tFVEC2_TYPE", "tFVEC3_TYPE", "tFVEC4_TYPE", "tIVEC2_TYPE",
   "tIVEC3_TYPE", "tIVEC4_TYPE", "tBVEC2_TYPE", "tBVEC3_TYPE",
-  "tBVEC4_TYPE", "$accept", "program", "program_globals", YY_NULLPTR
+  "tBVEC4_TYPE", "tMAT4_TYPE", "tMAT43_TYPE", "tMAT34_TYPE", "tMAT3_TYPE",
+  "$accept", "program", "program_globals", "var_decl", "var_type", YY_NULLPTR
 };
 
 static const char *
@@ -626,7 +637,9 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-     -50,   -44,     2,   -51,   -15,   -51,   -51
+     -50,   -44,   -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,
+     -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,    19,
+     -51,   -51,   -24,     3,   -51,   -51,   -51
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -634,19 +647,21 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     2,     0,     1,     3
+       0,     0,    19,    20,    22,    21,    10,    11,    12,    13,
+      14,    15,    16,    17,    18,     9,     7,     6,     8,     0,
+       2,     4,     0,     0,     1,     5,     3
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -51,   -51,   -51
+     -51,   -51,   -51,   -51,   -51
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     2,     3
+       0,    19,    20,    21,    22
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -654,31 +669,41 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       1,     4,     5,     6
+       1,    23,     2,     3,     4,     5,     6,     7,     8,     9,
+      10,    11,    12,    13,    14,    15,    16,    17,    18,    24,
+      25,    26
 };
 
 static const yytype_int8 yycheck[] =
 {
-      50,    45,     0,    18
+      50,    45,    52,    53,    54,    55,    56,    57,    58,    59,
+      60,    61,    62,    63,    64,    65,    66,    67,    68,     0,
+      44,    18
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    50,    65,    66,    45,     0,    18
+       0,    50,    52,    53,    54,    55,    56,    57,    58,    59,
+      60,    61,    62,    63,    64,    65,    66,    67,    68,    70,
+      71,    72,    73,    45,     0,    44,    18
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    64,    65,    66
+       0,    69,    70,    71,    71,    72,    73,    73,    73,    73,
+      73,    73,    73,    73,    73,    73,    73,    73,    73,    73,
+      73,    73,    73
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     3
+       0,     2,     1,     3,     1,     2,     1,     1,     1,     1,
+       1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
+       1,     1,     1
 };
 
 
@@ -1152,19 +1177,31 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: program_globals  */
-#line 72 "tshade.y"
+#line 78 "tshade.y"
     { (yyval.node) = nullptr; }
-#line 1158 "tshade.cpp"
+#line 1183 "tshade.cpp"
     break;
 
   case 3: /* program_globals: tSHADERDECLARE STR_VAL ';'  */
-#line 76 "tshade.y"
+#line 83 "tshade.y"
     {(yyval.node) = nullptr; shadeAst->shaderName = (yyvsp[-1].strVal);}
-#line 1164 "tshade.cpp"
+#line 1189 "tshade.cpp"
+    break;
+
+  case 4: /* program_globals: var_decl  */
+#line 85 "tshade.y"
+   {(yyval.node) = nullptr; shadeAst->mGlobalVars.push_back((yyvsp[0].node)); }
+#line 1195 "tshade.cpp"
+    break;
+
+  case 5: /* var_decl: var_type VAR_IDENT  */
+#line 89 "tshade.y"
+                       {(yyval.node) = nullptr; }
+#line 1201 "tshade.cpp"
     break;
 
 
-#line 1168 "tshade.cpp"
+#line 1205 "tshade.cpp"
 
       default: break;
     }
@@ -1357,7 +1394,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 78 "tshade.y"
+#line 112 "tshade.y"
 
 
 void yyerror(yyscan_t yyscanner, const char* msg){

@@ -86,35 +86,57 @@ VAR      {LETTER}{IDTAIL}*
 0[xX]{HEXDIGIT}+  { S32 val = 0; dSscanf(yytext, "%x", &val); yylval->intVal = val; return INT_NUM; }
 {INTEGER}         { yylval->intVal = dAtoi(yytext); return INT_NUM; }
 {FLOAT}           { yylval->fVal = dAtof(yytext); return FLOAT_NUM; }
-\"[^\"\n]*\"      { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
+\"(\\.|[^\\"\n\r])*\" { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
 
-"/*"          { BEGIN(COMMENT); }
+"/*"            { BEGIN(COMMENT); }
 <COMMENT>(.|\n) {
 /*  skip comments , after this point shader specific lexer rules.
     We need a case for each type both hlsl/glsl explicitly as we use these enums
     in the ast's to decide which type a var is. */ 
 }
 
-<COMMENT>"*/" { BEGIN(INITIAL); }
+<COMMENT>"*/"   { BEGIN(INITIAL); }
 
-"TorqueShader" { return tSHADERDECLARE; }
-"struct"    { return tSTRUCT; }
-"uniform"   { return tUNIFORM; }
-"cbuffer"   { return tCBUFFER; }
+"TorqueShader"  { return tSHADERDECLARE; }
+"struct"        { return tSTRUCT; }
+"uniform"       { return tUNIFORM; }
+"cbuffer"       { return tCBUFFER; }
+"VertexShader"  { return tVSSHADER; }
+
+"mat3x4"  |
+"float3x4"  { return tMAT34_TYPE; } 
+
+"mat4x3"  |
+"float4x3"  { return tMAT43_TYPE; } 
+
+"mat3"    |
+"mat3x3"  |
+"float3x3"  { return tMAT3_TYPE; } 
+
+"mat4"    |
+"mat4x4"  |
+"float4x4"  { return tMAT4_TYPE; } 
 
 "float2" |
-"vec2"      {return tFVEC2_TYPE; }
+"vec2"      { return tFVEC2_TYPE; }
 "float3" |
-"vec3"      {return tFVEC3_TYPE; }
+"vec3"      { return tFVEC3_TYPE; }
 "float4" |
-"vec4"      {return tFVEC4_TYPE; }
+"vec4"      { return tFVEC4_TYPE; }
 
 "int2" |
-"ivec2"      {return tIVEC2_TYPE; }
+"ivec2"      { return tIVEC2_TYPE; }
 "int3" |
-"ivec3"      {return tIVEC3_TYPE; }
+"ivec3"      { return tIVEC3_TYPE; }
 "int4" |
-"ivec4"      {return tIVEC4_TYPE; }
+"ivec4"      { return tIVEC4_TYPE; }
+
+"bool2" |
+"bvec2"      { return tBVEC2_TYPE; }
+"bool3" |
+"bvec3"      { return tBVEC3_TYPE; }
+"bool4" |
+"bvec4"      { return tBVEC4_TYPE; }
 
 "float"     { return tFLOAT_TYPE; }
 "int"       { return tINT_TYPE; }

@@ -43,10 +43,27 @@ public:
 
 };
 
+struct tstageNode : tshadeNode
+{
+   tstageNode(tshadeNode* node) {
+      rootNode = node;
+   }
+   tshadeNode* rootNode;
+};
+
 
 struct tshadeAst
 {
    StringTableEntry shaderName;
+
+   // global vars, could be uniforms/structs etc.
+   Vector<tshadeNode*> mGlobalVars;
+
+   tstageNode* mVertStage;
+   tstageNode* mPixStage;
+   tstageNode* mGeoStage;
+   tstageNode* mComputeStage;
+
 };
 
 #endif // !_TSHADEAST_H_
