@@ -28,6 +28,8 @@
 #include "platform/types.h"
 #endif
 
+#define YYSTYPE TSHADE_STYPE
+
 class SimObject;
 class SimGroup;
 
@@ -37,13 +39,14 @@ public:
    tshadeNode();
    virtual ~tshadeNode();
 
+   
 
 };
 
 
 struct tshadeAst
 {
-
+   StringTableEntry shaderName;
 };
 
 #endif // !_TSHADEAST_H_

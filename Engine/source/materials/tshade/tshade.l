@@ -1,5 +1,7 @@
 %option reentrant bison-bridge
+%option never-interactive
 %option yylineno
+%option prefix="tshade_"
 
 %{
   #define YYLMAX 4096
@@ -13,24 +15,6 @@
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
   #include "tshade.h"
-
-  template< typename T >
-  struct Token
-  {
-    T value;
-    S32 lineNumber;
-  };
-
-  // Can't have ctors in structs used in unions, so we have this.
-  template< typename T >
-  inline Token< T > MakeToken( T value, U32 lineNumber )
-  {
-    Token< T > result;
-    result.value = value;
-    result.lineNumber = lineNumber;
-    return result;
-  }
-
 
 %}
 
@@ -97,29 +81,25 @@ VAR      {LETTER}{IDTAIL}*
 "%" |
 "^" |
 "~" |
-"="               { yylval->intVal = MakeToken< int >( yytext, yylineno ); return *yytext; }
+"="               { return *yytext; }
 0[xX]{HEXDIGIT}+  { S32 val = 0; dSscanf(yytext, "%x", &val); yylval->intVal = val; return INT_NUM; }
 {INTEGER}         { yylval->intVal = dAtoi(yytext); return INT_NUM; }
 {FLOAT}           { yylval->fVal = dAtof(yytext); return FLOAT_NUM; }
+\"[^\"\n]*\"      { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
 
-^"#"[\t]*include[ \t]*\[\"<] {BEGIN(INCLUDE); }
+^"#"[\t]*include[ \t]*\[\"<] { BEGIN(INCLUDE); }
 <INCLUDE>[^ \t\n">]+  { /* Handle include files.*/
   {
     int c;
-    while((c= input()) && c != '\n');
+    while((c= tshade_input()) && c != '\n');
   }
-  yylineno++;
+
   if(!newfile(yytext))
     yyterminate();
 
   BEGIN(INITIAL);
 }
 <INCLUDE>(.|\n) {}
-
-"/*"          {BEGIN(COMMENT);}
-<COMMENT>(.|\n) {/* skip comments , after this point shader specific lexer rules*/ }
-<COMMENT>"*/" {BEGIN(INITIAL);}
-
 <<EOF>> {
   yypop_buffer_state(yyscanner);
   if(!YY_CURRENT_BUFFER)
@@ -128,9 +108,38 @@ VAR      {LETTER}{IDTAIL}*
     return END_INCLUDE;
 }
 
-"struct"    {return tSTRUCT;}
-"uniform"   {return tUNIFORM;}
-"cbuffer"   {return tCBUFFER;}
+"/*"          { BEGIN(COMMENT); }
+<COMMENT>(.|\n) {
+/*  skip comments , after this point shader specific lexer rules.
+    We need a case for each type both hlsl/glsl explicitly as we use these enums
+    in the ast's to decide which type a var is. */ 
+}
+
+<COMMENT>"*/" { BEGIN(INITIAL); }
+
+"TorqueShader" { return tSHADERDECLARE; }
+"struct"    { return tSTRUCT; }
+"uniform"   { return tUNIFORM; }
+"cbuffer"   { return tCBUFFER; }
+
+"float2" |
+"vec2"      {return tFVEC2_TYPE; }
+"float3" |
+"vec3"      {return tFVEC3_TYPE; }
+"float4" |
+"vec4"      {return tFVEC4_TYPE; }
+
+"int2" |
+"ivec2"      {return tIVEC2_TYPE; }
+"int3" |
+"ivec3"      {return tIVEC3_TYPE; }
+"int4" |
+"ivec4"      {return tIVEC4_TYPE; }
+
+"float"     { return tFLOAT_TYPE; }
+"int"       { return tINT_TYPE; }
+"uint"      { return tUINT_TYPE; }
+"bool"      { return tBOOL_TYPE; }
 
 {VAR}       {yylval->strVal = StringTable->insert(yytext); return VAR_IDENT;}
 
@@ -149,7 +158,7 @@ bool TShadeParse(const char* code, tshadeAst* shadeAst)
   yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
   yy_scan_string(code, yyscanner);
 
-  bool ret = yyparse(yyscanner, shadeAst);
+  bool ret = tshade_parse(yyscanner, shadeAst);
   yylex_destroy(yyscanner);
   return ret;
 }
