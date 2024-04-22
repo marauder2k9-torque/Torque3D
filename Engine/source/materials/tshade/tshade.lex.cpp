@@ -827,7 +827,7 @@ static const flex_int32_t yy_rule_can_match_eol[92] =
   #include <stdio.h>
   #include "platform/platform.h"
   #include "core/stringTable.h"
-  #include "console/console.h"                                                
+  #include "console/console.h"
   #include "console/dynamicTypes.h"
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
@@ -1198,169 +1198,169 @@ YY_RULE_SETUP
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 43 "tshade.l"
+#line 42 "tshade.l"
 {return rwIF;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 44 "tshade.l"
+#line 43 "tshade.l"
 {return rwELSE;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 45 "tshade.l"
+#line 44 "tshade.l"
 {return rwWHILE;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 46 "tshade.l"
+#line 45 "tshade.l"
 {return rwDO;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 47 "tshade.l"
+#line 46 "tshade.l"
 {return rwBREAK;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 48 "tshade.l"
+#line 47 "tshade.l"
 {return rwFOR;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 49 "tshade.l"
+#line 48 "tshade.l"
 {return rwSWITCH;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 50 "tshade.l"
+#line 49 "tshade.l"
 {return rwCASE;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 51 "tshade.l"
+#line 50 "tshade.l"
 {return rwDEFAULT;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 52 "tshade.l"
+#line 51 "tshade.l"
 {return rwCONTINUE;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 53 "tshade.l"
+#line 52 "tshade.l"
 {return rwDISCARD;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 55 "tshade.l"
+#line 54 "tshade.l"
 {return OP_EQ;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 56 "tshade.l"
+#line 55 "tshade.l"
 {return OP_NEQ;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 57 "tshade.l"
+#line 56 "tshade.l"
 {return OP_AND;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 58 "tshade.l"
+#line 57 "tshade.l"
 {return OP_OR;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 59 "tshade.l"
+#line 58 "tshade.l"
 {return OP_LE;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 60 "tshade.l"
+#line 59 "tshade.l"
 {return OP_GE;}
 	YY_BREAK
 case 22:
-#line 63 "tshade.l"
+#line 62 "tshade.l"
 case 23:
-#line 64 "tshade.l"
+#line 63 "tshade.l"
 case 24:
-#line 65 "tshade.l"
+#line 64 "tshade.l"
 case 25:
-#line 66 "tshade.l"
+#line 65 "tshade.l"
 case 26:
-#line 67 "tshade.l"
+#line 66 "tshade.l"
 case 27:
-#line 68 "tshade.l"
+#line 67 "tshade.l"
 case 28:
-#line 69 "tshade.l"
+#line 68 "tshade.l"
 case 29:
-#line 70 "tshade.l"
+#line 69 "tshade.l"
 case 30:
-#line 71 "tshade.l"
+#line 70 "tshade.l"
 case 31:
-#line 72 "tshade.l"
+#line 71 "tshade.l"
 case 32:
-#line 73 "tshade.l"
+#line 72 "tshade.l"
 case 33:
-#line 74 "tshade.l"
+#line 73 "tshade.l"
 case 34:
-#line 75 "tshade.l"
+#line 74 "tshade.l"
 case 35:
-#line 76 "tshade.l"
+#line 75 "tshade.l"
 case 36:
-#line 77 "tshade.l"
+#line 76 "tshade.l"
 case 37:
-#line 78 "tshade.l"
+#line 77 "tshade.l"
 case 38:
-#line 79 "tshade.l"
+#line 78 "tshade.l"
 case 39:
-#line 80 "tshade.l"
+#line 79 "tshade.l"
 case 40:
-#line 81 "tshade.l"
+#line 80 "tshade.l"
 case 41:
-#line 82 "tshade.l"
+#line 81 "tshade.l"
 case 42:
-#line 83 "tshade.l"
+#line 82 "tshade.l"
 case 43:
-#line 84 "tshade.l"
+#line 83 "tshade.l"
 case 44:
-#line 85 "tshade.l"
+#line 84 "tshade.l"
 case 45:
 YY_RULE_SETUP
-#line 85 "tshade.l"
+#line 84 "tshade.l"
 { return *yytext; }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 86 "tshade.l"
+#line 85 "tshade.l"
 { S32 val = 0; dSscanf(yytext, "%x", &val); yylval->intVal = val; return INT_NUM; }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 87 "tshade.l"
+#line 86 "tshade.l"
 { yylval->intVal = dAtoi(yytext); return INT_NUM; }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 88 "tshade.l"
+#line 87 "tshade.l"
 { yylval->fVal = dAtof(yytext); return FLOAT_NUM; }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 89 "tshade.l"
+#line 88 "tshade.l"
 { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 91 "tshade.l"
+#line 90 "tshade.l"
 { BEGIN(COMMENT); }
 	YY_BREAK
 case 51:
 /* rule 51 can match eol */
 YY_RULE_SETUP
-#line 92 "tshade.l"
+#line 91 "tshade.l"
 {
 /*  skip comments , after this point shader specific lexer rules.
     We need a case for each type both hlsl/glsl explicitly as we use these enums
@@ -1369,157 +1369,157 @@ YY_RULE_SETUP
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 98 "tshade.l"
+#line 97 "tshade.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 100 "tshade.l"
+#line 99 "tshade.l"
 { return tSHADERDECLARE; }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 101 "tshade.l"
+#line 100 "tshade.l"
 { return tSTRUCT; }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 102 "tshade.l"
+#line 101 "tshade.l"
 { return tUNIFORM; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 103 "tshade.l"
+#line 102 "tshade.l"
 { return tCBUFFER; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 104 "tshade.l"
-{return tVSSHADER; }
+#line 103 "tshade.l"
+{ return tVSSHADER; }
 	YY_BREAK
 case 58:
-#line 107 "tshade.l"
+#line 106 "tshade.l"
 case 59:
 YY_RULE_SETUP
-#line 107 "tshade.l"
+#line 106 "tshade.l"
 { return tMAT34_TYPE; } 
 	YY_BREAK
 case 60:
-#line 110 "tshade.l"
+#line 109 "tshade.l"
 case 61:
 YY_RULE_SETUP
-#line 110 "tshade.l"
+#line 109 "tshade.l"
 { return tMAT43_TYPE; } 
 	YY_BREAK
 case 62:
-#line 113 "tshade.l"
+#line 112 "tshade.l"
 case 63:
-#line 114 "tshade.l"
+#line 113 "tshade.l"
 case 64:
 YY_RULE_SETUP
-#line 114 "tshade.l"
+#line 113 "tshade.l"
 { return tMAT3_TYPE; } 
 	YY_BREAK
 case 65:
-#line 117 "tshade.l"
+#line 116 "tshade.l"
 case 66:
-#line 118 "tshade.l"
+#line 117 "tshade.l"
 case 67:
 YY_RULE_SETUP
-#line 118 "tshade.l"
+#line 117 "tshade.l"
 { return tMAT4_TYPE; } 
 	YY_BREAK
 case 68:
-#line 121 "tshade.l"
+#line 120 "tshade.l"
 case 69:
 YY_RULE_SETUP
-#line 121 "tshade.l"
-{return tFVEC2_TYPE; }
+#line 120 "tshade.l"
+{ return tFVEC2_TYPE; }
 	YY_BREAK
 case 70:
-#line 123 "tshade.l"
+#line 122 "tshade.l"
 case 71:
 YY_RULE_SETUP
-#line 123 "tshade.l"
-{return tFVEC3_TYPE; }
+#line 122 "tshade.l"
+{ return tFVEC3_TYPE; }
 	YY_BREAK
 case 72:
-#line 125 "tshade.l"
+#line 124 "tshade.l"
 case 73:
 YY_RULE_SETUP
-#line 125 "tshade.l"
-{return tFVEC4_TYPE; }
+#line 124 "tshade.l"
+{ return tFVEC4_TYPE; }
 	YY_BREAK
 case 74:
-#line 128 "tshade.l"
+#line 127 "tshade.l"
 case 75:
 YY_RULE_SETUP
-#line 128 "tshade.l"
-{return tIVEC2_TYPE; }
+#line 127 "tshade.l"
+{ return tIVEC2_TYPE; }
 	YY_BREAK
 case 76:
-#line 130 "tshade.l"
+#line 129 "tshade.l"
 case 77:
 YY_RULE_SETUP
-#line 130 "tshade.l"
-{return tIVEC3_TYPE; }
+#line 129 "tshade.l"
+{ return tIVEC3_TYPE; }
 	YY_BREAK
 case 78:
-#line 132 "tshade.l"
+#line 131 "tshade.l"
 case 79:
 YY_RULE_SETUP
-#line 132 "tshade.l"
-{return tIVEC4_TYPE; }
+#line 131 "tshade.l"
+{ return tIVEC4_TYPE; }
 	YY_BREAK
 case 80:
-#line 135 "tshade.l"
+#line 134 "tshade.l"
 case 81:
 YY_RULE_SETUP
-#line 135 "tshade.l"
-{return tBVEC2_TYPE; }
+#line 134 "tshade.l"
+{ return tBVEC2_TYPE; }
 	YY_BREAK
 case 82:
-#line 137 "tshade.l"
+#line 136 "tshade.l"
 case 83:
 YY_RULE_SETUP
-#line 137 "tshade.l"
-{return tBVEC3_TYPE; }
+#line 136 "tshade.l"
+{ return tBVEC3_TYPE; }
 	YY_BREAK
 case 84:
-#line 139 "tshade.l"
+#line 138 "tshade.l"
 case 85:
 YY_RULE_SETUP
-#line 139 "tshade.l"
-{return tBVEC4_TYPE; }
+#line 138 "tshade.l"
+{ return tBVEC4_TYPE; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 141 "tshade.l"
+#line 140 "tshade.l"
 { return tFLOAT_TYPE; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 142 "tshade.l"
+#line 141 "tshade.l"
 { return tINT_TYPE; }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 143 "tshade.l"
+#line 142 "tshade.l"
 { return tUINT_TYPE; }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 144 "tshade.l"
+#line 143 "tshade.l"
 { return tBOOL_TYPE; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 146 "tshade.l"
-{yylval->strVal = StringTable->insert(yytext); return VAR_IDENT;}
+#line 145 "tshade.l"
+{ yylval->strVal = StringTable->insert(yytext); return VAR_IDENT; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 148 "tshade.l"
+#line 147 "tshade.l"
 ECHO;
 	YY_BREAK
 #line 1525 "tshade.lex.cpp"
@@ -2674,7 +2674,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 148 "tshade.l"
+#line 147 "tshade.l"
 
 
 bool TShadeParse(const char* code, tshadeAst* shadeAst)

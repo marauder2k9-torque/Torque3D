@@ -13,7 +13,7 @@
   #include <stdio.h>
   #include "platform/platform.h"
   #include "core/stringTable.h"
-  #include "console/console.h"                                                
+  #include "console/console.h"
   #include "console/dynamicTypes.h"
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
@@ -39,7 +39,6 @@ VAR      {LETTER}{IDTAIL}*
 "//"[^\n\r]* ;
 [\r] ;
 [\n] ;
-
 "if"        {return rwIF;}
 "else"      {return rwELSE;}
 "while"     {return rwWHILE;}
@@ -143,7 +142,7 @@ VAR      {LETTER}{IDTAIL}*
 "uint"      { return tUINT_TYPE; }
 "bool"      { return tBOOL_TYPE; }
 
-{VAR}       {yylval->strVal = StringTable->insert(yytext); return VAR_IDENT;}
+{VAR}       { yylval->strVal = StringTable->insert(yytext); return VAR_IDENT; }
 
 %%
 

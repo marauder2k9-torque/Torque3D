@@ -38,9 +38,6 @@ struct tshadeNode
 public:
    tshadeNode();
    virtual ~tshadeNode();
-
-   
-
 };
 
 struct tstageNode : tshadeNode

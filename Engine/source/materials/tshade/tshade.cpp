@@ -521,7 +521,7 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  24
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   21
+#define YYLAST   22
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  69
@@ -530,7 +530,7 @@ union yyalloc
 /* YYNRULES -- Number of rules.  */
 #define YYNRULES  22
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  27
+#define YYNSTATES  28
 
 /* YYMAXUTOK -- Last valid token kind.  */
 #define YYMAXUTOK   301
@@ -584,9 +584,9 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    77,    77,    82,    84,    89,    93,    94,    95,    96,
-      97,    98,    99,   100,   101,   102,   103,   104,   105,   106,
-     107,   108,   109
+       0,    78,    78,    83,    85,    90,    95,    97,    99,   101,
+     103,   105,   107,   109,   111,   113,   115,   117,   119,   121,
+     123,   125,   127
 };
 #endif
 
@@ -639,7 +639,7 @@ static const yytype_int8 yypact[] =
 {
      -50,   -44,   -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,
      -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,    19,
-     -51,   -51,   -24,     3,   -51,   -51,   -51
+     -51,   -51,   -24,     3,   -51,     4,   -51,   -51
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -649,7 +649,7 @@ static const yytype_int8 yydefact[] =
 {
        0,     0,    19,    20,    22,    21,    10,    11,    12,    13,
       14,    15,    16,    17,    18,     9,     7,     6,     8,     0,
-       2,     4,     0,     0,     1,     5,     3
+       2,     4,     0,     0,     1,     0,     3,     5
 };
 
 /* YYPGOTO[NTERM-NUM].  */
@@ -671,14 +671,14 @@ static const yytype_int8 yytable[] =
 {
        1,    23,     2,     3,     4,     5,     6,     7,     8,     9,
       10,    11,    12,    13,    14,    15,    16,    17,    18,    24,
-      25,    26
+      25,    26,    27
 };
 
 static const yytype_int8 yycheck[] =
 {
       50,    45,    52,    53,    54,    55,    56,    57,    58,    59,
       60,    61,    62,    63,    64,    65,    66,    67,    68,     0,
-      44,    18
+      44,    18,    18
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
@@ -687,7 +687,7 @@ static const yytype_int8 yystos[] =
 {
        0,    50,    52,    53,    54,    55,    56,    57,    58,    59,
       60,    61,    62,    63,    64,    65,    66,    67,    68,    70,
-      71,    72,    73,    45,     0,    44,    18
+      71,    72,    73,    45,     0,    44,    18,    18
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
@@ -701,7 +701,7 @@ static const yytype_int8 yyr1[] =
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     3,     1,     2,     1,     1,     1,     1,
+       0,     2,     1,     3,     1,     3,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
        1,     1,     1
 };
@@ -1177,31 +1177,133 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: program_globals  */
-#line 78 "tshade.y"
+#line 79 "tshade.y"
     { (yyval.node) = nullptr; }
 #line 1183 "tshade.cpp"
     break;
 
   case 3: /* program_globals: tSHADERDECLARE STR_VAL ';'  */
-#line 83 "tshade.y"
+#line 84 "tshade.y"
     {(yyval.node) = nullptr; shadeAst->shaderName = (yyvsp[-1].strVal);}
 #line 1189 "tshade.cpp"
     break;
 
   case 4: /* program_globals: var_decl  */
-#line 85 "tshade.y"
-   {(yyval.node) = nullptr; shadeAst->mGlobalVars.push_back((yyvsp[0].node)); }
+#line 86 "tshade.y"
+    {(yyval.node) = nullptr; shadeAst->mGlobalVars.push_back((yyvsp[0].node)); }
 #line 1195 "tshade.cpp"
     break;
 
-  case 5: /* var_decl: var_type VAR_IDENT  */
-#line 89 "tshade.y"
-                       {(yyval.node) = nullptr; }
+  case 5: /* var_decl: var_type VAR_IDENT ';'  */
+#line 91 "tshade.y"
+    {}
 #line 1201 "tshade.cpp"
     break;
 
+  case 6: /* var_type: tMAT34_TYPE  */
+#line 96 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tMAT34_TYPE;}
+#line 1207 "tshade.cpp"
+    break;
 
-#line 1205 "tshade.cpp"
+  case 7: /* var_type: tMAT43_TYPE  */
+#line 98 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tMAT43_TYPE;}
+#line 1213 "tshade.cpp"
+    break;
+
+  case 8: /* var_type: tMAT3_TYPE  */
+#line 100 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tMAT3_TYPE;}
+#line 1219 "tshade.cpp"
+    break;
+
+  case 9: /* var_type: tMAT4_TYPE  */
+#line 102 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tMAT4_TYPE;}
+#line 1225 "tshade.cpp"
+    break;
+
+  case 10: /* var_type: tFVEC2_TYPE  */
+#line 104 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tFVEC2_TYPE;}
+#line 1231 "tshade.cpp"
+    break;
+
+  case 11: /* var_type: tFVEC3_TYPE  */
+#line 106 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tFVEC3_TYPE;}
+#line 1237 "tshade.cpp"
+    break;
+
+  case 12: /* var_type: tFVEC4_TYPE  */
+#line 108 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tFVEC4_TYPE;}
+#line 1243 "tshade.cpp"
+    break;
+
+  case 13: /* var_type: tIVEC2_TYPE  */
+#line 110 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tIVEC2_TYPE;}
+#line 1249 "tshade.cpp"
+    break;
+
+  case 14: /* var_type: tIVEC3_TYPE  */
+#line 112 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tIVEC3_TYPE;}
+#line 1255 "tshade.cpp"
+    break;
+
+  case 15: /* var_type: tIVEC4_TYPE  */
+#line 114 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tIVEC4_TYPE;}
+#line 1261 "tshade.cpp"
+    break;
+
+  case 16: /* var_type: tBVEC2_TYPE  */
+#line 116 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tBVEC2_TYPE;}
+#line 1267 "tshade.cpp"
+    break;
+
+  case 17: /* var_type: tBVEC3_TYPE  */
+#line 118 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tBVEC3_TYPE;}
+#line 1273 "tshade.cpp"
+    break;
+
+  case 18: /* var_type: tBVEC4_TYPE  */
+#line 120 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tBVEC4_TYPE;}
+#line 1279 "tshade.cpp"
+    break;
+
+  case 19: /* var_type: tFLOAT_TYPE  */
+#line 122 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tFLOAT_TYPE;}
+#line 1285 "tshade.cpp"
+    break;
+
+  case 20: /* var_type: tINT_TYPE  */
+#line 124 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tINT_TYPE;}
+#line 1291 "tshade.cpp"
+    break;
+
+  case 21: /* var_type: tUINT_TYPE  */
+#line 126 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tUINT_TYPE;}
+#line 1297 "tshade.cpp"
+    break;
+
+  case 22: /* var_type: tBOOL_TYPE  */
+#line 128 "tshade.y"
+    {(yyval.intVal) = tshade_tokentype::tBOOL_TYPE;}
+#line 1303 "tshade.cpp"
+    break;
+
+
+#line 1307 "tshade.cpp"
 
       default: break;
     }
@@ -1394,7 +1496,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 112 "tshade.y"
+#line 131 "tshade.y"
 
 
 void yyerror(yyscan_t yyscanner, const char* msg){

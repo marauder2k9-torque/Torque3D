@@ -35,10 +35,10 @@
 }
 
 // Language agnostic tokens.
-// flow control keyword tokens
 %token '+' '-' '*' '/' '<' '>' '=' '.' '|' '&' '%'
 %token '(' ')' ',' ':' ';' '{' '}' '^' '~' '!' '@'
 
+// flow control keyword tokens
 %token rwSWITCH rwCASE rwDEFAULT rwWHILE rwDO 
 %token rwFOR rwBREAK rwCONTINUE rwIF rwELSE rwDISCARD
 
@@ -68,6 +68,7 @@
 %token tMAT4_TYPE tMAT43_TYPE tMAT34_TYPE tMAT3_TYPE
 
 %type <node> program program_globals var_decl
+%type <intVal> var_type
 
 %start program
 
@@ -82,31 +83,49 @@ program_globals
   : tSHADERDECLARE STR_VAL ';' 
     {$$ = nullptr; shadeAst->shaderName = $2;}
   | var_decl
-   {$$ = nullptr; shadeAst->mGlobalVars.push_back($1); }
+    {$$ = nullptr; shadeAst->mGlobalVars.push_back($1); }
   ;
 
 var_decl
-  : var_type VAR_IDENT {$$ = nullptr; }
+  : var_type VAR_IDENT ';'
+    {}
   ;
 
 var_type
-  : tMAT34_TYPE
+  : tMAT34_TYPE 
+    {$$ = tshade_tokentype::tMAT34_TYPE;}
   | tMAT43_TYPE
+    {$$ = tshade_tokentype::tMAT43_TYPE;}
   | tMAT3_TYPE
+    {$$ = tshade_tokentype::tMAT3_TYPE;}
   | tMAT4_TYPE
+    {$$ = tshade_tokentype::tMAT4_TYPE;}
   | tFVEC2_TYPE
+    {$$ = tshade_tokentype::tFVEC2_TYPE;}
   | tFVEC3_TYPE
+    {$$ = tshade_tokentype::tFVEC3_TYPE;}
   | tFVEC4_TYPE
+    {$$ = tshade_tokentype::tFVEC4_TYPE;}
   | tIVEC2_TYPE
+    {$$ = tshade_tokentype::tIVEC2_TYPE;}
   | tIVEC3_TYPE
+    {$$ = tshade_tokentype::tIVEC3_TYPE;}
   | tIVEC4_TYPE
+    {$$ = tshade_tokentype::tIVEC4_TYPE;}
   | tBVEC2_TYPE
+    {$$ = tshade_tokentype::tBVEC2_TYPE;}
   | tBVEC3_TYPE
+    {$$ = tshade_tokentype::tBVEC3_TYPE;}
   | tBVEC4_TYPE
+    {$$ = tshade_tokentype::tBVEC4_TYPE;}
   | tFLOAT_TYPE
+    {$$ = tshade_tokentype::tFLOAT_TYPE;}
   | tINT_TYPE
+    {$$ = tshade_tokentype::tINT_TYPE;}
   | tUINT_TYPE
+    {$$ = tshade_tokentype::tUINT_TYPE;}
   | tBOOL_TYPE
+    {$$ = tshade_tokentype::tBOOL_TYPE;}
   ;
 
 %%
