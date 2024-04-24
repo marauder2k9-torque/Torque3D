@@ -41,9 +41,20 @@
 // flow control keyword tokens
 %token rwSWITCH rwCASE rwDEFAULT rwWHILE rwDO 
 %token rwFOR rwBREAK rwCONTINUE rwIF rwELSE rwDISCARD
+%token rwVOID rwSTATIC rwIN rwOUT rwINOUT rwTYPEDEF
+%token rwTRUE rwFALSE
 
 // Conditional OPS.
 %token OP_EQ OP_NEQ OP_AND OP_OR OP_LE OP_GE
+
+// Assignment OPS.
+// incremental assignment.
+%token OP_PLUSPLUS OP_MINUSMINUS
+%token OP_PLUS_ASS OP_MINUS_ASS OP_MUL_ASS OP_DIV_ASS OP_MOD_ASS
+%token OP_AND_ASS OP_OR_ASS OP_XOR_ASS OP_BIT_LEFT_ASS OP_BIT_RIGHT_ASS
+
+// bitshift OPS.
+%token OP_BIT_LEFT OP_BIT_RIGHT
 
 %token <intVal> INT_NUM
 %token <fVal> FLOAT_NUM
@@ -54,7 +65,7 @@
 %token tSTRUCT tUNIFORM tCBUFFER tSHADERDECLARE
 
 // shader stages
-%token tVSSHADER
+%token tVSSHADER tPSSHADER tGSSHADER tCSSHADER tDSSHADER tHSSHADER
 
 // shader scalar types
 %token tFLOAT_TYPE tINT_TYPE tBOOL_TYPE tUINT_TYPE

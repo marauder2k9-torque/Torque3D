@@ -29,6 +29,7 @@ SPACE    [ \t\v\f]
 HEXDIGIT [a-fA-F0-9]
 IDTAIL   [A-Za-z0-9_]
 VAR      {LETTER}{IDTAIL}*
+NEWLINE  (\n)|(\r\n)
 
 %x COMMENT
 
@@ -36,28 +37,52 @@ VAR      {LETTER}{IDTAIL}*
 
 {SPACE}+ { }
 
-"//"[^\n\r]* ;
-[\r] ;
-[\n] ;
-"if"        {return rwIF;}
-"else"      {return rwELSE;}
-"while"     {return rwWHILE;}
-"do"        {return rwDO;}
-"break"     {return rwBREAK;}
-"for"       {return rwFOR;}
-"switch"    {return rwSWITCH;}
-"case"      {return rwCASE;}
-"default"   {return rwDEFAULT;}
-"continue"  {return rwCONTINUE;}
-"discard"   {return rwDISCARD;}
+"//"[^\n\r]* ;  
 
-"=="        {return OP_EQ;}
-"!="        {return OP_NEQ;}
-"&&"        {return OP_AND;}
-"||"        {return OP_OR;}
-"<="        {return OP_LE;}
-">="        {return OP_GE;}
+"if"        { return rwIF;        }
+"else"      { return rwELSE;      }
+"while"     { return rwWHILE;     }
+"do"        { return rwDO;        }
+"break"     { return rwBREAK;     }
+"for"       { return rwFOR;       }
+"switch"    { return rwSWITCH;    }
+"case"      { return rwCASE;      }
+"default"   { return rwDEFAULT;   }
+"continue"  { return rwCONTINUE;  }
+"discard"   { return rwDISCARD;   }
+"void"      { return rwVOID;      }
+"static"    { return rwSTATIC;    }
+"in"        { return rwIN;        }
+"out"       { return rwOUT;       }
+"inout"     { return rwINOUT;     }
+"typedef"   { return rwTYPEDEF;   }
+"true"      { return rwTRUE;      }
+"false"     { return rwFALSE;     }
 
+"=="        { return OP_EQ;       }
+"!="        { return OP_NEQ;      }
+"&&"        { return OP_AND;      }
+"||"        { return OP_OR;       }
+"<="        { return OP_LE;       }
+">="        { return OP_GE;       }
+
+"++"        { return OP_PLUSPLUS; }
+"--"        { return OP_MINUSMINUS; }
+
+"+="        { return OP_PLUS_ASS; }
+"-="        { return OP_MINUS_ASS; }
+"*="        { return OP_MUL_ASS; }
+"/="        { return OP_DIV_ASS; }
+"%="        { return OP_MOD_ASS; }
+
+"&="        { return OP_AND_ASS; }
+"|="        { return OP_OR_ASS; }
+"^="        { return OP_XOR_ASS; }
+"<<="       { return OP_BIT_LEFT_ASS; }
+">>="       { return OP_BIT_RIGHT_ASS; }
+"<<"        { return OP_BIT_LEFT; }
+">>"        { return OP_BIT_RIGHT; }
+ 
 "?" |
 "[" |
 "]" |
@@ -100,7 +125,12 @@ VAR      {LETTER}{IDTAIL}*
 "struct"        { return tSTRUCT; }
 "uniform"       { return tUNIFORM; }
 "cbuffer"       { return tCBUFFER; }
-"VertexShader"  { return tVSSHADER; }
+"VertexShader"   { return tVSSHADER; } 
+"PixelShader"    { return tPSSHADER; }  
+"GeometryShader" { return tGSSHADER; } 
+"ComputeShader"  { return tCSSHADER; }  
+"DomainShader"   { return tDSSHADER; } 
+"HullShader"     { return tHSSHADER; } 
 
 "mat3x4"  |
 "float3x4"  { return tMAT34_TYPE; } 
@@ -143,6 +173,7 @@ VAR      {LETTER}{IDTAIL}*
 "bool"      { return tBOOL_TYPE; }
 
 {VAR}       { yylval->strVal = StringTable->insert(yytext); return VAR_IDENT; }
+{NEWLINE}   {}
 
 %%
 
