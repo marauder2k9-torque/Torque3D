@@ -97,7 +97,7 @@ public:
 
    virtual void unregisterReflector();
    virtual F32 calcScore( const ReflectParams &params );
-   virtual void updateReflection( const ReflectParams &params ) {}
+   virtual void updateReflection( const ReflectParams &params, Point3F explicitPostion = Point3F::Max) {}
 
    GFXOcclusionQuery* getOcclusionQuery() const { return mOcclusionQuery; }
 
@@ -151,7 +151,7 @@ public:
                            ReflectorDesc *inDesc );
 
    void unregisterReflector() override;
-   virtual void updateReflection( const ReflectParams &params, Point3F explicitPostion = Point3F::Max);
+   void updateReflection( const ReflectParams &params, Point3F explicitPostion = Point3F::Max) override;
 
    GFXCubemap* getCubemap() const { return mCubemap; }
 
@@ -174,7 +174,7 @@ protected:
       U32 faceIdx;
       CubeReflector *cube;
 
-      void updateReflection( const ReflectParams &params ) override { cube->updateFace( params, faceIdx ); } 
+      void updateReflection( const ReflectParams &params, Point3F explicitPostion = Point3F::Max) override { cube->updateFace( params, faceIdx ); }
       F32 calcScore( const ReflectParams &params ) override;
    };
 
@@ -201,7 +201,7 @@ public:
                            ReflectorDesc *inDesc );
 
    F32 calcScore( const ReflectParams &params ) override;
-   void updateReflection( const ReflectParams &params ) override; 
+   void updateReflection( const ReflectParams &params, Point3F explicitPostion = Point3F::Max) override;
 
    /// Set up the GFX matrices
    void setGFXMatrices( const MatrixF &camTrans );

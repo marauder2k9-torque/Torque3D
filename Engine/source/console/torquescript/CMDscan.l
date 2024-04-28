@@ -9,7 +9,7 @@
 #include "platform/platform.h"
 #include "core/stringTable.h"
 #include "console/console.h"
-#include "console/compiler.h"
+#include "console/torquescript/compiler.h"
 #include "console/dynamicTypes.h"
 #include "core/strings/stringFunctions.h"
 
@@ -30,7 +30,7 @@ inline Token< T > MakeToken( T value, U32 lineNumber )
    return result;
 }
 
-#include "console/cmdgram.h"
+#include "console/torquescript/CMDgram.h"
 
 // HACK: C++17 and beyond can't use register keyword
 #define register

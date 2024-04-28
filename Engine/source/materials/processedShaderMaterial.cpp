@@ -329,7 +329,8 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    if (String::compare(LIGHTMGR->getId(), "BLM") == 0)
    {
       fd.features.addFeature(MFT_ForwardShading);
-      fd.features.addFeature(MFT_ReflectionProbes);
+      if (!mMaterial->mDynamicCubemap)
+         fd.features.addFeature(MFT_ReflectionProbes);
    }
 
    // Disabling the InterlacedDeferred feature for now. It is not ready for prime-time
@@ -357,7 +358,8 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    if (mMaterial->isTranslucent())
    {
       fd.features.addFeature(MFT_RTLighting);
-      fd.features.addFeature(MFT_ReflectionProbes);
+      if (!mMaterial->mDynamicCubemap)
+         fd.features.addFeature(MFT_ReflectionProbes);
    }
 
    if ( mMaterial->mAnimFlags[stageNum] )
@@ -369,7 +371,7 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    // cubemaps only available on stage 0 for now - bramage   
    if ( stageNum < 1 && mMaterial->isTranslucent() &&
          (  (  mMaterial->mCubemapData && mMaterial->mCubemapData->mCubemap ) ||
-               mMaterial->mDynamicCubemap ) && !features.hasFeature(MFT_ReflectionProbes))
+               mMaterial->mDynamicCubemap ) /*&& !features.hasFeature(MFT_ReflectionProbes) */ )
    {
        fd.features.addFeature( MFT_CubeMap );
    }

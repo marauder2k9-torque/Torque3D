@@ -162,6 +162,7 @@ public:
    void initStatic( GFXTexHandle *faces ) override { };
    void initStatic( DDSFile *dds ) override { };
    void initDynamic( U32 texSize, GFXFormat faceFormat = GFXFormatR8G8B8A8, U32 mipLevels = 0) override { };
+   void generateMipMaps() override {}
    U32 getSize() const override { return 0; }
    GFXFormat getFormat() const override { return GFXFormatR8G8B8A8; }
 

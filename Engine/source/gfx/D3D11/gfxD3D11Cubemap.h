@@ -37,6 +37,7 @@ public:
    void initStatic( GFXTexHandle *faces ) override;
    void initStatic( DDSFile *dds ) override;
    void initDynamic( U32 texSize, GFXFormat faceFormat = GFXFormatR8G8B8A8, U32 mipLevels = 0) override;
+   void generateMipMaps() override;
    void setToTexUnit( U32 tuNum ) override;
    U32 getSize() const override { return mTexSize; }
    GFXFormat getFormat() const override { return mFaceFormat; }
@@ -52,7 +53,7 @@ public:
 
    // Get functions
    ID3D11ShaderResourceView* getSRView();
-   ID3D11RenderTargetView* getRTView(U32 faceIdx, U32 mipIndex=0);
+   ID3D11RenderTargetView* getRTView(U32 faceIdx);
    ID3D11DepthStencilView* getDSView();
    ID3D11Texture2D* get2DTex();
 
@@ -63,7 +64,7 @@ private:
 
    ID3D11Texture2D* mTexture;
    ID3D11ShaderResourceView* mSRView; // for shader resource input
-   ID3D11RenderTargetView* mRTView[CubeFaces][MaxMipMaps]; // for render targets, 6 faces of the cubemap
+   ID3D11RenderTargetView* mRTView[CubeFaces]; // for render targets, 6 faces of the cubemap
    ID3D11DepthStencilView* mDSView; //render target view for depth stencil
 
    bool mAutoGenMips;

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "console/console.h"
-#include "console/compiler.h"
+#include "console/torquescript/compiler.h"
 #include "console/consoleInternal.h"
 #include "core/strings/stringFunctions.h"
 
@@ -166,7 +166,7 @@ decl_list
    :
       { $$ = nil; }
    | decl_list decl
-      { if(!gStatementList) { gStatementList = $2; } else { gStatementList->append($2); } }
+      { if(!Script::gStatementList) { Script::gStatementList = $2; } else { Script::gStatementList->append($2); } }
    ;
 
 decl

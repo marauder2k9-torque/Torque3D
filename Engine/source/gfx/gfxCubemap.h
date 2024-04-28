@@ -70,6 +70,7 @@ public:
    /// Returns the size of the faces.
    virtual U32 getSize() const = 0;
 
+   virtual void generateMipMaps() = 0;
    /// Returns the face texture format.
    virtual GFXFormat getFormat() const = 0;
 

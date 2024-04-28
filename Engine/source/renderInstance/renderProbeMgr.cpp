@@ -618,9 +618,10 @@ void RenderProbeMgr::bakeProbe(ReflectionProbe* probe)
       clientProbe->mPrefilterMap->mCubemap->initDynamic(resolution, reflectFormat);
 
       GFXTextureTargetRef renderTarget = GFX->allocRenderToTextureTarget(false);
+      clientProbe->mPrefilterMap->mCubemap = cubeRefl.getCubemap();
 
       IBLUtilities::GenerateIrradianceMap(renderTarget, cubeRefl.getCubemap(), clientProbe->mIrridianceMap->mCubemap);
-      IBLUtilities::GeneratePrefilterMap(renderTarget, cubeRefl.getCubemap(), prefilterMipLevels, clientProbe->mPrefilterMap->mCubemap);
+      //IBLUtilities::GeneratePrefilterMap(renderTarget, cubeRefl.getCubemap(), prefilterMipLevels, clientProbe->mPrefilterMap->mCubemap);
 
       U32 endMSTime = Platform::getRealMilliseconds();
       F32 diffTime = F32(endMSTime - startMSTime);

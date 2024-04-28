@@ -16,7 +16,7 @@ jobs:
     build-linux:
         if: github.repository == 'TorqueGameEngines/Torque3D'
         name: ${{matrix.config.name}}
-        runs-on: macos-latest
+        runs-on: macos-13
         strategy:
             fail-fast: false
             matrix:
@@ -46,7 +46,7 @@ jobs:
                 cmake --version
 
             - name: Configure, Build & Install
-              uses: threeal/cmake-action@v1.2.0
+              uses: threeal/cmake-action@v1.3.0
               with:
                 source-dir: ${{github.workspace}}
                 build-dir: ${{github.workspace}}/build
@@ -66,3 +66,4 @@ jobs:
               uses: ./.github/actions/upload-artifact
               with:
                 name: torque3dMacOSXCLANGUnitTest
+                path: "${{github.workspace}}/My Projects/Torque3D/game/test_detail.xml"
