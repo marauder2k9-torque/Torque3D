@@ -422,8 +422,27 @@ extern FILE *yyin, *yyout;
 #define EOB_ACT_END_OF_FILE 1
 #define EOB_ACT_LAST_MATCH 2
     
-    #define YY_LESS_LINENO(n)
-    #define YY_LINENO_REWIND_TO(ptr)
+    /* Note: We specifically omit the test for yy_rule_can_match_eol because it requires
+     *       access to the local variable yy_act. Since yyless() is a macro, it would break
+     *       existing scanners that call yyless() from OUTSIDE yylex.
+     *       One obvious solution it to make yy_act a global. I tried that, and saw
+     *       a 5% performance hit in a non-yylineno scanner, because yy_act is
+     *       normally declared as a register variable-- so it is not worth it.
+     */
+    #define  YY_LESS_LINENO(n) \
+            do { \
+                int yyl;\
+                for ( yyl = n; yyl < yyleng; ++yyl )\
+                    if ( yytext[yyl] == '\n' )\
+                        --yylineno;\
+            }while(0)
+    #define YY_LINENO_REWIND_TO(dst) \
+            do {\
+                const char *p;\
+                for ( p = yy_cp-1; p >= (dst); --p)\
+                    if ( *p == '\n' )\
+                        --yylineno;\
+            }while(0)
     
 /* Return all but the first "n" matched characters back to the input stream. */
 #define yyless(n) \
@@ -620,33 +639,33 @@ struct yy_trans_info
 	flex_int32_t yy_verify;
 	flex_int32_t yy_nxt;
 	};
-static const flex_int16_t yy_accept[224] =
+static const flex_int16_t yy_accept[225] =
     {   0,
         0,    0,   95,   93,    1,    5,    4,   51,   93,   93,
        58,   57,   93,   41,   42,   45,   43,   56,   44,   50,
        46,   90,   90,   52,   53,   47,   61,   48,   38,   36,
        88,   88,   88,   88,   39,   40,   59,   88,   88,   88,
        88,   88,   88,   88,   88,   88,   88,   88,   88,   88,
-       88,   54,   49,   55,   60,    1,    0,    9,    0,    6,
-        0,    0,   17,   87,   25,   12,   26,    0,    7,    0,
-       23,   16,   21,   15,   22,   31,   91,   37,    3,   24,
-        0,   90,    0,    0,   14,   19,   11,    8,   10,   20,
-       88,   33,   88,   88,   27,   88,   88,   88,   88,   88,
+       88,   54,   49,   55,   60,    1,    5,    0,    9,    0,
+        6,    0,    0,   17,   87,   25,   12,   26,    0,    7,
+        0,   23,   16,   21,   15,   22,   31,   91,   37,    3,
+       24,    0,   90,    0,    0,   14,   19,   11,    8,   10,
+       20,   88,   33,   88,   88,   27,   88,   88,   88,   88,
 
-       88,   69,   88,   88,   88,   88,   70,   62,   88,   88,
-       63,   88,   88,   88,   88,   88,   88,   28,   13,   18,
-       92,   87,    0,   32,    3,    3,   91,    0,   91,   89,
-       29,   30,   35,   34,   88,   88,   88,   88,   88,   88,
-       88,   88,   73,   88,   88,   76,   88,   88,   88,   88,
-       88,   88,   92,    0,    3,    2,   88,   88,   79,   88,
-       88,   88,   66,   88,   88,   88,   88,   88,   88,   88,
-       88,   85,   88,    3,    0,   88,   64,   88,   88,   88,
-       86,   88,   88,   88,   88,   88,   88,   88,   68,    0,
-       67,   88,   88,   88,   88,   88,   88,   88,   65,   88,
+       88,   88,   69,   88,   88,   88,   88,   70,   62,   88,
+       88,   63,   88,   88,   88,   88,   88,   88,   28,   13,
+       18,   92,   87,    0,   32,    3,    3,   91,    0,   91,
+       89,   29,   30,   35,   34,   88,   88,   88,   88,   88,
+       88,   88,   88,   73,   88,   88,   76,   88,   88,   88,
+       88,   88,   88,   92,    0,    3,    2,   88,   88,   79,
+       88,   88,   88,   66,   88,   88,   88,   88,   88,   88,
+       88,   88,   85,   88,    3,    0,   88,   64,   88,   88,
+       88,   86,   88,   88,   88,   88,   88,   88,   88,   68,
+        0,   67,   88,   88,   88,   88,   88,   88,   88,   65,
 
-       81,    0,   88,   88,   82,   72,   88,   88,   83,   88,
-       80,    0,   74,   88,   71,   75,   88,   88,    0,   78,
-       84,   77,    0
+       88,   81,    0,   88,   88,   82,   72,   88,   88,   83,
+       88,   80,    0,   74,   88,   71,   75,   88,   88,    0,
+       78,   84,   77,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -683,76 +702,76 @@ static const YY_CHAR yy_ec[256] =
 
 static const YY_CHAR yy_meta[68] =
     {   0,
-        1,    1,    2,    2,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    1,    1,    1,    3,    4,    4,
-        5,    1,    1,    6,    1,    1,    1,    4,    4,    4,
-        4,    4,    7,    7,    7,    7,    7,    7,    7,    1,
-        1,    1,    1,    4,    4,    4,    4,    4,    4,    7,
-        7,    7,    7,    7,    7,    7,    7,    7,    7,    7,
-        7,    7,    7,    1,    1,    1,    1
+        1,    1,    2,    3,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    1,    1,    1,    4,    5,    5,
+        6,    1,    1,    7,    1,    1,    1,    5,    5,    5,
+        5,    5,    8,    8,    8,    8,    8,    8,    8,    1,
+        1,    1,    1,    5,    5,    5,    5,    5,    5,    8,
+        8,    8,    8,    8,    8,    8,    8,    8,    8,    8,
+        8,    8,    8,    1,    1,    1,    1
     } ;
 
-static const flex_int16_t yy_base[237] =
+static const flex_int16_t yy_base[239] =
     {   0,
-        0,    0,  337,  338,  334,  338,  338,   61,   63,   51,
-       53,   65,   66,  338,  338,  311,   64,  338,   66,   60,
-       68,   76,   80,  313,  338,   60,  309,   77,  338,  338,
-        0,  298,  295,  302,  338,  338,  305,  268,  268,   54,
-       61,  272,   59,   38,   62,  266,  280,  275,   62,  263,
-      270,  338,   89,  338,  338,  318,  295,  338,  111,  338,
-      314,  100,  338,  296,  338,  338,  338,  112,  338,  312,
-      338,  338,  338,  290,  338,  338,  107,  338,  296,  338,
-      110,  114,  121,    0,  338,  289,  338,  338,  338,  288,
-        0,    0,  281,  281,  338,  249,  260,  247,  250,  244,
+        0,    0,  348,  349,  345,    0,  349,   61,   63,   51,
+       53,   65,   66,  349,  349,  322,   64,  349,   66,   60,
+       68,   76,   80,  324,  349,   60,  320,   77,  349,  349,
+        0,  309,  306,  313,  349,  349,  316,  279,  279,   54,
+       61,  283,   59,   38,   62,  277,  291,  286,   62,  274,
+      281,  349,   89,  349,  349,  329,    0,  306,  349,  111,
+      349,  325,  100,  349,  307,  349,  349,  349,  112,  349,
+      323,  349,  349,  349,  301,  349,  349,  107,  349,  307,
+      349,  110,  114,  121,    0,  349,  300,  349,  349,  349,
+      299,    0,    0,  292,  292,  349,  260,  271,  258,  261,
 
-      255,    0,  243,  248,  242,  244,    0,    0,  244,  235,
-        0,  251,  235,  239,  242,  231,  240,  338,  338,  338,
-      270,  269,  268,  338,    0,  139,  119,  125,  128,    0,
-      338,  338,    0,    0,  240,  243,  238,  224,  240,  239,
-      234,  221,  232,  233,  230,    0,  224,  214,  225,  213,
-      225,  218,  250,  249,  146,  152,  210,  215,    0,  215,
-      221,  203,    0,  216,  219,  201,  201,  216,  200,  204,
-      211,    0,  208,  155,  237,  193,    0,  197,  198,  197,
-        0,  204,  197,  190,  197,  190,  197,  193,    0,  225,
-        0,  180,  184,  179,  177,  153,  158,  151,    0,  134,
+      255,  266,    0,  254,  259,  253,  255,    0,    0,  255,
+      246,    0,  262,  246,  250,  253,  242,  251,  349,  349,
+      349,  281,  280,  279,  349,    0,  139,  119,  125,  128,
+        0,  349,  349,    0,    0,  251,  254,  249,  235,  251,
+      250,  245,  232,  243,  244,  241,    0,  235,  225,  236,
+      224,  236,  229,  261,  260,  146,  152,  221,  226,    0,
+      226,  232,  214,    0,  227,  230,  212,  212,  227,  211,
+      215,  222,    0,  219,  155,  248,  204,    0,  208,  209,
+      208,    0,  215,  208,  201,  208,  201,  208,  204,    0,
+      224,    0,  159,  156,  151,  158,  148,  160,  153,    0,
 
-      187,  157,  143,  144,    0,  176,  123,  126,    0,  112,
-      338,  160,    0,  115,  338,    0,   88,   76,  162,    0,
-        0,    0,  338,  170,  174,  181,  185,  189,  193,  200,
-      119,  204,  211,  218,  225,  232
+      139,  186,  157,  144,  142,    0,  174,  124,  126,    0,
+      112,  349,  160,    0,  115,  349,    0,   88,   76,  162,
+        0,    0,    0,  349,  170,  178,  182,  190,  194,  198,
+      202,  210,  118,  214,  222,  230,  238,  246
     } ;
 
-static const flex_int16_t yy_def[237] =
+static const flex_int16_t yy_def[239] =
     {   0,
-      223,    1,  223,  223,  223,  223,  223,  223,  224,  225,
-      225,  223,  226,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      227,  227,  227,  227,  223,  223,  223,  227,  227,  227,
-      227,  227,  227,  227,  227,  227,  227,  227,  227,  227,
-      227,  223,  223,  223,  223,  223,  223,  223,  224,  223,
-      224,  228,  223,  229,  223,  223,  223,  226,  223,  226,
-      223,  223,  223,  223,  223,  223,  223,  223,  230,  223,
-      223,  223,  223,  231,  223,  223,  223,  223,  223,  223,
-      227,  227,  227,  227,  223,  227,  227,  227,  227,  227,
+      224,    1,  224,  224,  224,  225,  224,  224,  226,  227,
+      227,  224,  228,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      229,  229,  229,  229,  224,  224,  224,  229,  229,  229,
+      229,  229,  229,  229,  229,  229,  229,  229,  229,  229,
+      229,  224,  224,  224,  224,  224,  225,  224,  224,  226,
+      224,  226,  230,  224,  231,  224,  224,  224,  228,  224,
+      228,  224,  224,  224,  224,  224,  224,  224,  224,  232,
+      224,  224,  224,  224,  233,  224,  224,  224,  224,  224,
+      224,  229,  229,  229,  229,  224,  229,  229,  229,  229,
 
-      227,  227,  227,  227,  227,  227,  227,  227,  227,  227,
-      227,  227,  227,  227,  227,  227,  227,  223,  223,  223,
-      232,  229,  229,  223,  230,  233,  223,  223,  223,  231,
-      223,  223,  227,  227,  227,  227,  227,  227,  227,  227,
-      227,  227,  227,  227,  227,  227,  227,  227,  227,  227,
-      227,  227,  232,  232,  234,  223,  227,  227,  227,  227,
-      227,  227,  227,  227,  227,  227,  227,  227,  227,  227,
-      227,  227,  227,  234,  223,  227,  227,  227,  227,  227,
-      227,  227,  227,  227,  227,  227,  227,  227,  227,  223,
-      227,  227,  227,  227,  227,  227,  227,  227,  227,  227,
+      229,  229,  229,  229,  229,  229,  229,  229,  229,  229,
+      229,  229,  229,  229,  229,  229,  229,  229,  224,  224,
+      224,  234,  231,  231,  224,  232,  235,  224,  224,  224,
+      233,  224,  224,  229,  229,  229,  229,  229,  229,  229,
+      229,  229,  229,  229,  229,  229,  229,  229,  229,  229,
+      229,  229,  229,  234,  234,  236,  224,  229,  229,  229,
+      229,  229,  229,  229,  229,  229,  229,  229,  229,  229,
+      229,  229,  229,  229,  236,  224,  229,  229,  229,  229,
+      229,  229,  229,  229,  229,  229,  229,  229,  229,  229,
+      224,  229,  229,  229,  229,  229,  229,  229,  229,  229,
 
-      227,  235,  227,  227,  227,  227,  227,  227,  227,  227,
-      223,  236,  227,  227,  223,  227,  227,  227,  236,  227,
-      227,  227,    0,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223
+      229,  229,  237,  229,  229,  229,  229,  229,  229,  229,
+      229,  224,  238,  229,  229,  224,  229,  229,  229,  238,
+      229,  229,  229,    0,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224
     } ;
 
-static const flex_int16_t yy_nxt[406] =
+static const flex_int16_t yy_nxt[417] =
     {   0,
         4,    5,    6,    7,    8,    9,   10,   11,   12,   13,
        14,   15,   16,   17,   18,   19,   20,   21,   22,   23,
@@ -760,48 +779,49 @@ static const flex_int16_t yy_nxt[406] =
        31,   31,   31,   31,   32,   31,   33,   34,   31,   35,
         4,   36,   37,   38,   39,   40,   41,   42,   43,   31,
        31,   44,   31,   31,   31,   45,   46,   47,   48,   49,
-       50,   31,   51,   52,   53,   54,   55,   57,   60,   62,
-       62,   62,   62,   66,   63,   69,   65,   72,   77,   77,
-       78,   74,   86,   87,   58,   79,  107,   73,   67,   75,
-       76,   80,   81,  108,   82,   82,   81,   98,   82,   82,
+       50,   31,   51,   52,   53,   54,   55,   58,   61,   63,
+       63,   63,   63,   67,   64,   70,   66,   73,   78,   78,
+       79,   75,   87,   88,   59,   80,  108,   74,   68,   76,
+       77,   81,   82,  109,   83,   83,   82,   99,   83,   83,
 
-       89,   90,  104,   61,  100,  109,   70,   83,  101,  110,
-       99,   83,  118,  114,   84,  105,   60,  102,   62,   62,
-      106,   69,  130,   83,  115,   77,   77,   83,  127,  127,
-       81,  222,   82,   82,  128,  221,  128,  127,  127,  129,
-      129,  156,  156,  129,  129,   83,  129,  129,  156,  156,
-       83,   61,   70,  119,  156,  156,  125,  156,  156,  156,
-      156,   83,  156,  156,  156,  156,   83,  220,  218,  175,
-       59,  217,   59,   59,   59,   59,   59,   64,  216,   64,
-       64,   68,  215,   68,   68,   68,   68,   68,   91,  214,
-      213,   91,  121,  211,  210,  121,  122,  122,  209,  122,
+       90,   91,  105,   62,  101,  110,   71,   84,  102,  111,
+      100,   84,  119,  115,   85,  106,   61,  103,   63,   63,
+      107,   70,  131,   84,  116,   78,   78,   84,  128,  128,
+       82,  223,   83,   83,  129,  222,  129,  128,  128,  130,
+      130,  157,  157,  130,  130,   84,  130,  130,  157,  157,
+       84,   62,   71,  120,  157,  157,  126,  157,  157,  157,
+      157,   84,  157,  157,  157,  157,   84,  221,  219,  176,
+       57,  218,   57,   57,   57,   57,   57,   57,   60,  217,
+      216,   60,   60,   60,   60,   60,   65,  215,   65,   65,
+       69,  214,  212,   69,   69,   69,   69,   69,   92,  211,
 
-      125,  208,  125,  125,  125,  125,  125,  153,  153,  207,
-      153,  155,  155,  155,  155,  155,  155,  155,  174,  174,
-      174,  174,  174,  174,  174,  212,  212,  206,  212,  212,
-      212,  212,  219,  219,  219,  219,  219,  219,  219,  205,
-      204,  203,  202,  201,  200,  199,  198,  197,  196,  195,
-      194,  193,  192,  191,  190,  189,  188,  187,  186,  185,
-      184,  183,  182,  181,  180,  179,  178,  177,  176,  154,
-      154,  173,  172,  171,  170,  169,  168,  167,  166,  165,
-      164,  163,  162,  161,  160,  159,  158,  157,  123,  123,
-      154,  152,  151,  150,  149,  148,  147,  146,  145,  144,
+      210,   92,  122,  209,  208,  122,  123,  123,  207,  123,
+      126,  206,  205,  126,  126,  126,  126,  126,  154,  154,
+      204,  154,  156,  156,  156,  156,  156,  156,  156,  156,
+      175,  175,  175,  175,  175,  175,  175,  175,  213,  213,
+      213,  203,  213,  213,  213,  213,  220,  220,  220,  220,
+      220,  220,  220,  220,  202,  201,  200,  199,  198,  197,
+      196,  195,  194,  193,  192,  191,  190,  189,  188,  187,
+      186,  185,  184,  183,  182,  181,  180,  179,  178,  177,
+      155,  155,  174,  173,  172,  171,  170,  169,  168,  167,
+      166,  165,  164,  163,  162,  161,  160,  159,  158,  124,
 
-      143,  142,  141,  140,  139,  138,  137,  136,  135,  134,
-      133,  132,  131,  126,  124,   68,  123,   59,  120,   56,
-      117,  116,  113,  112,  111,  103,   97,   96,   95,   94,
-       93,   92,   88,   85,   71,   56,  223,    3,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
+      124,  155,  153,  152,  151,  150,  149,  148,  147,  146,
+      145,  144,  143,  142,  141,  140,  139,  138,  137,  136,
+      135,  134,  133,  132,  127,  125,   69,  124,   60,  121,
+       56,  118,  117,  114,  113,  112,  104,   98,   97,   96,
+       95,   94,   93,   89,   86,   72,   56,  224,    3,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
 
-      223,  223,  223,  223,  223
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224
     } ;
 
-static const flex_int16_t yy_chk[406] =
+static const flex_int16_t yy_chk[417] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -815,40 +835,50 @@ static const flex_int16_t yy_chk[406] =
        19,   21,   22,   44,   22,   22,   23,   40,   23,   23,
 
        28,   28,   43,    9,   41,   45,   13,   22,   41,   45,
-       40,   23,   53,   49,   22,   43,   59,   41,   62,   62,
-       43,   68,  231,   22,   49,   77,   77,   23,   81,   81,
-       82,  218,   82,   82,   83,  217,   83,  127,  127,   83,
-       83,  126,  126,  128,  128,   82,  129,  129,  155,  155,
-      127,   59,   68,   53,  156,  156,  126,  174,  174,  202,
-      202,   82,  212,  212,  219,  219,  127,  214,  210,  156,
-      224,  208,  224,  224,  224,  224,  224,  225,  207,  225,
-      225,  226,  206,  226,  226,  226,  226,  226,  227,  204,
-      203,  227,  228,  201,  200,  228,  229,  229,  198,  229,
+       40,   23,   53,   49,   22,   43,   60,   41,   63,   63,
+       43,   69,  233,   22,   49,   78,   78,   23,   82,   82,
+       83,  219,   83,   83,   84,  218,   84,  128,  128,   84,
+       84,  127,  127,  129,  129,   83,  130,  130,  156,  156,
+      128,   60,   69,   53,  157,  157,  127,  175,  175,  203,
+      203,   83,  213,  213,  220,  220,  128,  215,  211,  157,
+      225,  209,  225,  225,  225,  225,  225,  225,  226,  208,
+      207,  226,  226,  226,  226,  226,  227,  205,  227,  227,
+      228,  204,  202,  228,  228,  228,  228,  228,  229,  201,
 
-      230,  197,  230,  230,  230,  230,  230,  232,  232,  196,
-      232,  233,  233,  233,  233,  233,  233,  233,  234,  234,
-      234,  234,  234,  234,  234,  235,  235,  195,  235,  235,
-      235,  235,  236,  236,  236,  236,  236,  236,  236,  194,
-      193,  192,  190,  188,  187,  186,  185,  184,  183,  182,
-      180,  179,  178,  176,  175,  173,  171,  170,  169,  168,
-      167,  166,  165,  164,  162,  161,  160,  158,  157,  154,
-      153,  152,  151,  150,  149,  148,  147,  145,  144,  143,
-      142,  141,  140,  139,  138,  137,  136,  135,  123,  122,
-      121,  117,  116,  115,  114,  113,  112,  110,  109,  106,
+      199,  229,  230,  198,  197,  230,  231,  231,  196,  231,
+      232,  195,  194,  232,  232,  232,  232,  232,  234,  234,
+      193,  234,  235,  235,  235,  235,  235,  235,  235,  235,
+      236,  236,  236,  236,  236,  236,  236,  236,  237,  237,
+      237,  191,  237,  237,  237,  237,  238,  238,  238,  238,
+      238,  238,  238,  238,  189,  188,  187,  186,  185,  184,
+      183,  181,  180,  179,  177,  176,  174,  172,  171,  170,
+      169,  168,  167,  166,  165,  163,  162,  161,  159,  158,
+      155,  154,  153,  152,  151,  150,  149,  148,  146,  145,
+      144,  143,  142,  141,  140,  139,  138,  137,  136,  124,
 
-      105,  104,  103,  101,  100,   99,   98,   97,   96,   94,
-       93,   90,   86,   79,   74,   70,   64,   61,   57,   56,
-       51,   50,   48,   47,   46,   42,   39,   38,   37,   34,
-       33,   32,   27,   24,   16,    5,    3,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
-      223,  223,  223,  223,  223,  223,  223,  223,  223,  223,
+      123,  122,  118,  117,  116,  115,  114,  113,  111,  110,
+      107,  106,  105,  104,  102,  101,  100,   99,   98,   97,
+       95,   94,   91,   87,   80,   75,   71,   65,   62,   58,
+       56,   51,   50,   48,   47,   46,   42,   39,   38,   37,
+       34,   33,   32,   27,   24,   16,    5,    3,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
 
-      223,  223,  223,  223,  223
+      224,  224,  224,  224,  224,  224,  224,  224,  224,  224,
+      224,  224,  224,  224,  224,  224
     } ;
+
+/* Table of booleans, true if rule could match eol. */
+static const flex_int32_t yy_rule_can_match_eol[95] =
+    {   0,
+0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
@@ -865,7 +895,7 @@ int yy_flex_debug = 0;
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
 #line 1 "CMDscan.l"
-#line 2 "CMDscan.l"
+#line 3 "CMDscan.l"
 
 // flex --nounput -o CMDscan.cpp -P CMD CMDscan.l
 
@@ -921,6 +951,8 @@ static int Sc_ScanIdent();
 #define FLEX_DEBUG 0
 #endif
 
+Vector<String> lines;
+
 // Install our own input code...
 #undef CMDgetc
 int CMDgetc();
@@ -929,7 +961,7 @@ int CMDgetc();
 #ifndef isatty
 inline int isatty(int) { return 0; }
 #endif
-
+static int yycolumn = 1;
 // Wrap our getc, so that lex doesn't try to do its own buffering/file IO.
 #define YY_INPUT(buf,result,max_size) \
    { \
@@ -938,16 +970,18 @@ inline int isatty(int) { return 0; }
             (c = CMDgetc()) != EOF && c != '\n'; ++n ) \
          buf[n] = (char) c; \
       if ( c == '\n' ) \
-         buf[n++] = (char) c; \
+         buf[n++] = (char) c; yycolumn = 1;\
       result = n; \
    }
 
-// General helper stuff.
-static int lineIndex;
+#define YY_USER_ACTION do { \
+    CMDlloc.first_line = CMDlloc.last_line = yylineno; \
+    CMDlloc.first_column = yycolumn; CMDlloc.last_column = yycolumn + yyleng - 1; \
+    yycolumn += yyleng; \
+    } while(0);
 
 // File state
 void CMDSetScanBuffer(const char *sb, const char *fn);
-const char * CMDgetFileLine(int &lineNumber);
 
 // Error reporting
 void CMDerror(const char * s, ...);
@@ -955,8 +989,8 @@ void CMDerror(const char * s, ...);
 // Reset the parser.
 void CMDrestart(FILE *in);
 
-#line 958 "CMDscan.cpp"
-#line 959 "CMDscan.cpp"
+#line 992 "CMDscan.cpp"
+#line 993 "CMDscan.cpp"
 
 #define INITIAL 0
 
@@ -1016,8 +1050,6 @@ extern int yywrap ( void );
 #endif
 
 #ifndef YY_NO_UNPUT
-    
-    static void yyunput ( int c, char *buf_ptr  );
     
 #endif
 
@@ -1173,11 +1205,11 @@ YY_DECL
 		}
 
 	{
-#line 108 "CMDscan.l"
+#line 113 "CMDscan.l"
 
-#line 110 "CMDscan.l"
+#line 115 "CMDscan.l"
          ;
-#line 1180 "CMDscan.cpp"
+#line 1212 "CMDscan.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1204,13 +1236,13 @@ yy_match:
 			while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 				{
 				yy_current_state = (int) yy_def[yy_current_state];
-				if ( yy_current_state >= 224 )
+				if ( yy_current_state >= 225 )
 					yy_c = yy_meta[yy_c];
 				}
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 338 );
+		while ( yy_base[yy_current_state] != 349 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -1222,6 +1254,16 @@ yy_find_action:
 			}
 
 		YY_DO_BEFORE_ACTION;
+
+		if ( yy_act != YY_END_OF_BUFFER && yy_rule_can_match_eol[yy_act] )
+			{
+			int yyl;
+			for ( yyl = 0; yyl < yyleng; ++yyl )
+				if ( yytext[yyl] == '\n' )
+					
+    yylineno++;
+;
+			}
 
 do_action:	/* This label is used only to access EOF actions. */
 
@@ -1236,189 +1278,195 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 111 "CMDscan.l"
+#line 116 "CMDscan.l"
 { }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 112 "CMDscan.l"
+#line 117 "CMDscan.l"
 { return(Sc_ScanDocBlock()); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 113 "CMDscan.l"
+#line 118 "CMDscan.l"
 ;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 114 "CMDscan.l"
+#line 119 "CMDscan.l"
 ;
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 115 "CMDscan.l"
-{lineIndex++;}
+#line 120 "CMDscan.l"
+{ yycolumn = 1;
+   lines.push_back(String::ToString("%s", yytext+1));
+   if (lines.size() > Con::getIntVariable("$scriptErrorLineCount", 10))
+      lines.erase(lines.begin());
+
+   yyless(1);
+}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 116 "CMDscan.l"
+#line 127 "CMDscan.l"
 { return(Sc_ScanString(STRATOM)); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 117 "CMDscan.l"
+#line 128 "CMDscan.l"
 { return(Sc_ScanString(TAGATOM)); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 118 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opEQ, lineIndex ); return opEQ; }
+#line 129 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opEQ, yylineno ); return opEQ; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 119 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opNE, lineIndex ); return opNE; }
+#line 130 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opNE, yylineno ); return opNE; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 120 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opGE, lineIndex ); return opGE; }
+#line 131 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opGE, yylineno ); return opGE; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 121 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opLE, lineIndex ); return opLE; }
+#line 132 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opLE, yylineno ); return opLE; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 122 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opAND, lineIndex ); return opAND; }
+#line 133 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opAND, yylineno ); return opAND; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 123 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opOR, lineIndex ); return opOR; }
+#line 134 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opOR, yylineno ); return opOR; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 124 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opCOLONCOLON, lineIndex ); return opCOLONCOLON; }
+#line 135 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opCOLONCOLON, yylineno ); return opCOLONCOLON; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 125 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opMINUSMINUS, lineIndex ); return opMINUSMINUS; }
+#line 136 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opMINUSMINUS, yylineno ); return opMINUSMINUS; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 126 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opPLUSPLUS, lineIndex ); return opPLUSPLUS; }
+#line 137 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opPLUSPLUS, yylineno ); return opPLUSPLUS; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 127 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opSTREQ, lineIndex ); return opSTREQ; }
+#line 138 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opSTREQ, yylineno ); return opSTREQ; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 128 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opSTRNE, lineIndex ); return opSTRNE; }
+#line 139 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opSTRNE, yylineno ); return opSTRNE; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 129 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opSHL, lineIndex ); return opSHL; }
+#line 140 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opSHL, yylineno ); return opSHL; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 130 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opSHR, lineIndex ); return opSHR; }
+#line 141 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opSHR, yylineno ); return opSHR; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 131 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opPLASN, lineIndex ); return opPLASN; }
+#line 142 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opPLASN, yylineno ); return opPLASN; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 132 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opMIASN, lineIndex ); return opMIASN; }
+#line 143 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opMIASN, yylineno ); return opMIASN; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 133 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opMLASN, lineIndex ); return opMLASN; }
+#line 144 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opMLASN, yylineno ); return opMLASN; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 134 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opDVASN, lineIndex ); return opDVASN; }
+#line 145 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opDVASN, yylineno ); return opDVASN; }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 135 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opMODASN, lineIndex ); return opMODASN; }
+#line 146 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opMODASN, yylineno ); return opMODASN; }
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 136 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opANDASN, lineIndex ); return opANDASN; }
+#line 147 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opANDASN, yylineno ); return opANDASN; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 137 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opXORASN, lineIndex ); return opXORASN; }
+#line 148 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opXORASN, yylineno ); return opXORASN; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 138 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opORASN, lineIndex ); return opORASN; }
+#line 149 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opORASN, yylineno ); return opORASN; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 139 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opSLASN, lineIndex ); return opSLASN; }
+#line 150 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opSLASN, yylineno ); return opSLASN; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 140 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opSRASN, lineIndex ); return opSRASN; }
+#line 151 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opSRASN, yylineno ); return opSRASN; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 141 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opINTNAME, lineIndex ); return opINTNAME; }
+#line 152 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opINTNAME, yylineno ); return opINTNAME; }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 142 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( opINTNAMER, lineIndex ); return opINTNAMER; }
+#line 153 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( opINTNAMER, yylineno ); return opINTNAMER; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 143 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( '\n', lineIndex ); return '@'; }
+#line 154 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( '\n', yylineno ); return '@'; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 144 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( '\t', lineIndex ); return '@'; }
+#line 155 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( '\t', yylineno ); return '@'; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 145 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( ' ', lineIndex ); return '@'; }
+#line 156 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( ' ', yylineno ); return '@'; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 146 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( 0, lineIndex ); return '@'; }
+#line 157 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( 0, yylineno ); return '@'; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 147 "CMDscan.l"
+#line 158 "CMDscan.l"
 { /* this comment stops syntax highlighting from getting messed up when editing the lexer in TextPad */
          int c = 0, l;
          for ( ; ; )
@@ -1433,10 +1481,6 @@ YY_RULE_SETUP
                break;
             }
 
-            // Increment line numbers.
-            else if ( c == '\n' )
-               lineIndex++;
-
             // Did we find the end of the comment?
             else if ( l == '*' && c == '/' )
                break;
@@ -1444,222 +1488,222 @@ YY_RULE_SETUP
       }
 	YY_BREAK
 case 38:
-#line 171 "CMDscan.l"
-case 39:
-#line 172 "CMDscan.l"
-case 40:
-#line 173 "CMDscan.l"
-case 41:
-#line 174 "CMDscan.l"
-case 42:
-#line 175 "CMDscan.l"
-case 43:
-#line 176 "CMDscan.l"
-case 44:
-#line 177 "CMDscan.l"
-case 45:
 #line 178 "CMDscan.l"
-case 46:
+case 39:
 #line 179 "CMDscan.l"
-case 47:
+case 40:
 #line 180 "CMDscan.l"
-case 48:
+case 41:
 #line 181 "CMDscan.l"
-case 49:
+case 42:
 #line 182 "CMDscan.l"
-case 50:
+case 43:
 #line 183 "CMDscan.l"
-case 51:
+case 44:
 #line 184 "CMDscan.l"
-case 52:
+case 45:
 #line 185 "CMDscan.l"
-case 53:
+case 46:
 #line 186 "CMDscan.l"
-case 54:
+case 47:
 #line 187 "CMDscan.l"
-case 55:
+case 48:
 #line 188 "CMDscan.l"
-case 56:
+case 49:
 #line 189 "CMDscan.l"
-case 57:
+case 50:
 #line 190 "CMDscan.l"
-case 58:
+case 51:
 #line 191 "CMDscan.l"
-case 59:
+case 52:
 #line 192 "CMDscan.l"
-case 60:
+case 53:
 #line 193 "CMDscan.l"
+case 54:
+#line 194 "CMDscan.l"
+case 55:
+#line 195 "CMDscan.l"
+case 56:
+#line 196 "CMDscan.l"
+case 57:
+#line 197 "CMDscan.l"
+case 58:
+#line 198 "CMDscan.l"
+case 59:
+#line 199 "CMDscan.l"
+case 60:
+#line 200 "CMDscan.l"
 case 61:
 YY_RULE_SETUP
-#line 193 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( CMDtext[ 0 ], lineIndex ); return CMDtext[ 0 ]; }
+#line 200 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( CMDtext[ 0 ], yylineno ); return CMDtext[ 0 ]; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 194 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwIN, lineIndex ); return(rwIN); }
+#line 201 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwIN, yylineno ); return(rwIN); }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 195 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwCASEOR, lineIndex ); return(rwCASEOR); }
+#line 202 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwCASEOR, yylineno ); return(rwCASEOR); }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 196 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwBREAK, lineIndex ); return(rwBREAK); }
+#line 203 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwBREAK, yylineno ); return(rwBREAK); }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 197 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwRETURN, lineIndex ); return(rwRETURN); }
+#line 204 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwRETURN, yylineno ); return(rwRETURN); }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 198 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwELSE, lineIndex ); return(rwELSE); }
+#line 205 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwELSE, yylineno ); return(rwELSE); }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 199 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwASSERT, lineIndex ); return(rwASSERT); }
+#line 206 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwASSERT, yylineno ); return(rwASSERT); }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 200 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwWHILE, lineIndex ); return(rwWHILE); }
+#line 207 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwWHILE, yylineno ); return(rwWHILE); }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 201 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwDO, lineIndex ); return(rwDO); }
+#line 208 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwDO, yylineno ); return(rwDO); }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 202 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwIF, lineIndex ); return(rwIF); }
+#line 209 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwIF, yylineno ); return(rwIF); }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 203 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwFOREACHSTR, lineIndex ); return(rwFOREACHSTR); }
+#line 210 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwFOREACHSTR, yylineno ); return(rwFOREACHSTR); }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 204 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwFOREACH, lineIndex ); return(rwFOREACH); }
+#line 211 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwFOREACH, yylineno ); return(rwFOREACH); }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 205 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwFOR, lineIndex ); return(rwFOR); }
+#line 212 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwFOR, yylineno ); return(rwFOR); }
 	YY_BREAK
 case 74:
 YY_RULE_SETUP
-#line 206 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwCONTINUE, lineIndex ); return(rwCONTINUE); }
+#line 213 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwCONTINUE, yylineno ); return(rwCONTINUE); }
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 207 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwDEFINE, lineIndex ); return(rwDEFINE); }
+#line 214 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwDEFINE, yylineno ); return(rwDEFINE); }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 208 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwDECLARE, lineIndex ); return(rwDECLARE); }
+#line 215 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwDECLARE, yylineno ); return(rwDECLARE); }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 209 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwDECLARESINGLETON, lineIndex ); return(rwDECLARESINGLETON); }
+#line 216 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwDECLARESINGLETON, yylineno ); return(rwDECLARESINGLETON); }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 210 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwDATABLOCK, lineIndex ); return(rwDATABLOCK); }
+#line 217 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwDATABLOCK, yylineno ); return(rwDATABLOCK); }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 211 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwCASE, lineIndex ); return(rwCASE); }
+#line 218 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwCASE, yylineno ); return(rwCASE); }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 212 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwSWITCHSTR, lineIndex ); return(rwSWITCHSTR); }
+#line 219 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwSWITCHSTR, yylineno ); return(rwSWITCHSTR); }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 213 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwSWITCH, lineIndex ); return(rwSWITCH); }
+#line 220 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwSWITCH, yylineno ); return(rwSWITCH); }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 214 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwDEFAULT, lineIndex ); return(rwDEFAULT); }
+#line 221 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwDEFAULT, yylineno ); return(rwDEFAULT); }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 215 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwPACKAGE, lineIndex ); return(rwPACKAGE); }
+#line 222 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwPACKAGE, yylineno ); return(rwPACKAGE); }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 216 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( rwNAMESPACE, lineIndex ); return(rwNAMESPACE); }
+#line 223 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( rwNAMESPACE, yylineno ); return(rwNAMESPACE); }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 217 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( 1, lineIndex ); return INTCONST; }
+#line 224 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( 1, yylineno ); return INTCONST; }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 218 "CMDscan.l"
-{ CMDlval.i = MakeToken< int >( 0, lineIndex ); return INTCONST; }
+#line 225 "CMDscan.l"
+{ CMDlval.i = MakeToken< int >( 0, yylineno ); return INTCONST; }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 219 "CMDscan.l"
+#line 226 "CMDscan.l"
 { return(Sc_ScanVar()); }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 221 "CMDscan.l"
+#line 228 "CMDscan.l"
 { return Sc_ScanIdent(); }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 222 "CMDscan.l"
+#line 229 "CMDscan.l"
 return(Sc_ScanHex());
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 223 "CMDscan.l"
-{ CMDtext[CMDleng] = 0; CMDlval.i = MakeToken< int >( dAtoi(CMDtext), lineIndex ); return INTCONST; }
+#line 230 "CMDscan.l"
+{ CMDtext[CMDleng] = 0; CMDlval.i = MakeToken< int >( dAtoi(CMDtext), yylineno ); return INTCONST; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 224 "CMDscan.l"
+#line 231 "CMDscan.l"
 return Sc_ScanNum();
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 225 "CMDscan.l"
+#line 232 "CMDscan.l"
 return(ILLEGAL_TOKEN);
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 226 "CMDscan.l"
+#line 233 "CMDscan.l"
 return(ILLEGAL_TOKEN);
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 227 "CMDscan.l"
+#line 234 "CMDscan.l"
 ECHO;
 	YY_BREAK
-#line 1662 "CMDscan.cpp"
+#line 1706 "CMDscan.cpp"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1956,7 +2000,7 @@ static int yy_get_next_buffer (void)
 		while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 			{
 			yy_current_state = (int) yy_def[yy_current_state];
-			if ( yy_current_state >= 224 )
+			if ( yy_current_state >= 225 )
 				yy_c = yy_meta[yy_c];
 			}
 		yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
@@ -1984,53 +2028,16 @@ static int yy_get_next_buffer (void)
 	while ( yy_chk[yy_base[yy_current_state] + yy_c] != yy_current_state )
 		{
 		yy_current_state = (int) yy_def[yy_current_state];
-		if ( yy_current_state >= 224 )
+		if ( yy_current_state >= 225 )
 			yy_c = yy_meta[yy_c];
 		}
 	yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
-	yy_is_jam = (yy_current_state == 223);
+	yy_is_jam = (yy_current_state == 224);
 
 		return yy_is_jam ? 0 : yy_current_state;
 }
 
 #ifndef YY_NO_UNPUT
-
-    static void yyunput (int c, char * yy_bp )
-{
-	char *yy_cp;
-    
-    yy_cp = (yy_c_buf_p);
-
-	/* undo effects of setting up yytext */
-	*yy_cp = (yy_hold_char);
-
-	if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-		{ /* need to shift things up to make room */
-		/* +2 for EOB chars. */
-		int number_to_move = (yy_n_chars) + 2;
-		char *dest = &YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[
-					YY_CURRENT_BUFFER_LVALUE->yy_buf_size + 2];
-		char *source =
-				&YY_CURRENT_BUFFER_LVALUE->yy_ch_buf[number_to_move];
-
-		while ( source > YY_CURRENT_BUFFER_LVALUE->yy_ch_buf )
-			*--dest = *--source;
-
-		yy_cp += (int) (dest - source);
-		yy_bp += (int) (dest - source);
-		YY_CURRENT_BUFFER_LVALUE->yy_n_chars =
-			(yy_n_chars) = (int) YY_CURRENT_BUFFER_LVALUE->yy_buf_size;
-
-		if ( yy_cp < YY_CURRENT_BUFFER_LVALUE->yy_ch_buf + 2 )
-			YY_FATAL_ERROR( "flex scanner push-back overflow" );
-		}
-
-	*--yy_cp = (char) c;
-
-	(yytext_ptr) = yy_bp;
-	(yy_hold_char) = *yy_cp;
-	(yy_c_buf_p) = yy_cp;
-}
 
 #endif
 
@@ -2103,6 +2110,11 @@ static int yy_get_next_buffer (void)
 	c = *(unsigned char *) (yy_c_buf_p);	/* cast for 8-bit char's */
 	*(yy_c_buf_p) = '\0';	/* preserve yytext */
 	(yy_hold_char) = *++(yy_c_buf_p);
+
+	if ( c == '\n' )
+		
+    yylineno++;
+;
 
 	return c;
 }
@@ -2570,6 +2582,9 @@ static int yy_init_globals (void)
      * This function is called from yylex_destroy(), so don't allocate here.
      */
 
+    /* We do not touch yylineno unless the option is enabled. */
+    yylineno =  1;
+    
     (yy_buffer_stack) = NULL;
     (yy_buffer_stack_top) = 0;
     (yy_buffer_stack_max) = 0;
@@ -2664,12 +2679,13 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 227 "CMDscan.l"
+#line 234 "CMDscan.l"
 
 
 static const char *scanBuffer;
 static const char *fileName;
 static int scanIndex;
+extern YYLTYPE CMDlloc;
 
 const char * CMDGetCurrentFile()
 {
@@ -2678,7 +2694,7 @@ const char * CMDGetCurrentFile()
 
 int CMDGetCurrentLine()
 {
-   return lineIndex;
+   return yylineno;
 }
 
 extern bool gConsoleSyntaxError;
@@ -2696,74 +2712,28 @@ void CMDerror(const char *format, ...)
 #else
    vsnprintf( tempBuf, BUFMAX, format, args );
 #endif
-    va_end(args);
+   va_end(args);
 
    if(fileName)
    {
-      Con::errorf(ConsoleLogEntry::Script, "%s Line: %d - %s", fileName, lineIndex, tempBuf);
-
-#ifndef NO_ADVANCED_ERROR_REPORT
-      // dhc - lineIndex is bogus.  let's try to add some sanity back in.
-      int i,j,n;
-      char c;
-      int linediv = 1;
-      // first, walk the buffer, trying to detect line ending type.
-      // this is imperfect, if inconsistant line endings exist...
-      for (i=0; i<scanIndex; i++)
-      {
-         c = scanBuffer[i];
-         if (c=='\r' && scanBuffer[i+1]=='\n') linediv = 2; // crlf detected
-         if (c=='\r' || c=='\n' || c==0) break; // enough for us to stop.
-      }
-      // grab some of the chars starting at the error location - lineending.
-      i = 1; j = 0; n = 1;
-      // find prev lineending
-      while (n<BUFMAX-8 && i<scanIndex) // cap at file start
-      {
-         c = scanBuffer[scanIndex-i];
-         if ((c=='\r' || c=='\n') && i>BUFMAX>>2) break; // at least get a little data
-         n++; i++;
-      }
-      // find next lineending
-      while (n<BUFMAX-8 && j<BUFMAX>>1) // cap at half-buf-size forward
-      {
-         c = scanBuffer[scanIndex+j];
-         if (c==0) break;
-         if ((c=='\r' || c=='\n') && j>BUFMAX>>2) break; // at least get a little data
-         n++; j++;
-      }
-      if (i) i--; // chop off extra linefeed.
-      if (j) j--; // chop off extra linefeed.
-      // build our little text block
-      if (i) dStrncpy(tempBuf,scanBuffer+scanIndex-i,i);
-      dStrncpy(tempBuf+i,"##", 2); // bracketing.
-      tempBuf[i+2] = scanBuffer[scanIndex]; // copy the halt character.
-      dStrncpy(tempBuf+i+3,"##", 2); // bracketing.
-      if (j) dStrncpy(tempBuf+i+5,scanBuffer+scanIndex+1,j); // +1 to go past current char.
-      tempBuf[i+j+5] = 0; // null terminate
-      for(n=0; n<i+j+5; n++) // convert CR to LF if alone...
-         if (tempBuf[n]=='\r' && tempBuf[n+1]!='\n') tempBuf[n] = '\n';
-      // write out to console the advanced error report
-      Con::warnf(ConsoleLogEntry::Script, ">>> Advanced script error report.  Line %d.", lineIndex);
-      Con::warnf(ConsoleLogEntry::Script, ">>> Some error context, with ## on sides of error halt:");
-      Con::errorf(ConsoleLogEntry::Script, "%s", tempBuf);
-      Con::warnf(ConsoleLogEntry::Script, ">>> Error report complete.\n");
-#endif
-
+      Con::errorf(ConsoleLogEntry::Script, "%s Line: %d - %s", fileName, yylineno, tempBuf);
       // Update the script-visible error buffer.
       const char *prevStr = Con::getVariable("$ScriptError");
       if (prevStr[0])
-         dSprintf(tempBuf, sizeof(tempBuf), "%s\n%s Line: %d - Syntax error.", prevStr, fileName, lineIndex);
+         dSprintf(tempBuf, sizeof(tempBuf), "%s\n%s Line: %d - Syntax error.", prevStr, fileName, yylineno);
       else
-         dSprintf(tempBuf, sizeof(tempBuf), "%s Line: %d - Syntax error.", fileName, lineIndex);
+         dSprintf(tempBuf, sizeof(tempBuf), "%s Line: %d - Syntax error.", fileName, yylineno);
       Con::setVariable("$ScriptError", tempBuf);
 
       // We also need to mark that we came up with a new error.
       static S32 sScriptErrorHash=1000;
       Con::setIntVariable("$ScriptErrorHash", sScriptErrorHash++);
+
    }
    else
+   {
       Con::errorf(ConsoleLogEntry::Script, tempBuf);
+   }
 }
 
 void CMDSetScanBuffer(const char *sb, const char *fn)
@@ -2771,7 +2741,6 @@ void CMDSetScanBuffer(const char *sb, const char *fn)
    scanBuffer = sb;
    fileName = fn;
    scanIndex = 0;
-   lineIndex = 1;
 }
 
 int CMDgetc()
@@ -2795,7 +2764,7 @@ static int Sc_ScanVar()
    CMDtext[CMDleng] = 0;
 
    // Make it a stringtable string!
-   CMDlval.s = MakeToken< StringTableEntry >( StringTable->insert(CMDtext), lineIndex );
+   CMDlval.s = MakeToken< StringTableEntry >( StringTable->insert(CMDtext), yylineno );
    return(VAR);
 }
 
@@ -2829,7 +2798,7 @@ static int Sc_ScanDocBlock()
 {
    S32 len = dStrlen(CMDtext);
    char* text = (char *) consoleAlloc(len + 1);
-   S32 line = lineIndex;
+   S32 line = yylineno;
 
    for( S32 i = 0, j = 0; j <= len; j++ )
    {
@@ -2841,9 +2810,6 @@ static int Sc_ScanDocBlock()
 
       if( CMDtext[j] == '\r' )
          continue;
-
-      if( CMDtext[j] == '\n' )
-         lineIndex++;
 
       text[i++] = CMDtext[j];
    }
@@ -2862,7 +2828,7 @@ static int Sc_ScanString(int ret)
    char* buffer = ( char* ) consoleAlloc( bufferLen );
    dStrcpy( buffer, CMDtext + 1, bufferLen );
 
-   CMDlval.str = MakeToken< char* >( buffer, lineIndex );
+   CMDlval.str = MakeToken< char* >( buffer, yylineno );
    return ret;
 }
 
@@ -2875,12 +2841,12 @@ static int Sc_ScanIdent()
    if((type = ConsoleBaseType::getTypeByName(CMDtext)) != NULL)
    {
       /* It's a type */
-      CMDlval.i = MakeToken< int >( type->getTypeID(), lineIndex );
+      CMDlval.i = MakeToken< int >( type->getTypeID(), yylineno );
       return TYPEIDENT;
    }
 
    /* It's an identifier */
-   CMDlval.s = MakeToken< StringTableEntry >( StringTable->insert(CMDtext), lineIndex );
+   CMDlval.s = MakeToken< StringTableEntry >( StringTable->insert(CMDtext), yylineno );
    return IDENT;
 }
 
@@ -3054,7 +3020,7 @@ bool collapseEscape(char *buf)
 static int Sc_ScanNum()
 {
    CMDtext[CMDleng] = 0;
-   CMDlval.f = MakeToken< double >( dAtof(CMDtext), lineIndex );
+   CMDlval.f = MakeToken< double >( dAtof(CMDtext), yylineno );
    return(FLTCONST);
 }
 
@@ -3062,7 +3028,7 @@ static int Sc_ScanHex()
 {
    S32 val = 0;
    dSscanf(CMDtext, "%x", &val);
-   CMDlval.i = MakeToken< int >( val, lineIndex );
+   CMDlval.i = MakeToken< int >( val, yylineno );
    return INTCONST;
 }
 

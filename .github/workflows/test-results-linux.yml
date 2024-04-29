@@ -35,5 +35,5 @@ jobs:
               uses: phoenix-actions/test-reporting@v14
               with:
                 name: ${{matrix.config.name}}
-                path: Linux/*.xml
+                path: "**/My Projects/Torque3D/game/test_detail.xml"
                 reporter: java-junit
