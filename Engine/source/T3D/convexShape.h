@@ -242,6 +242,7 @@ public:
    /// @{
 
       void renderFaceEdges( S32 faceid, const ColorI &color = ColorI::WHITE, F32 lineWidth = 1.0f );
+      void renderFaceVerts( S32 faceid, const ColorI &color = ColorI::WHITE);
 
    /// @}
 
