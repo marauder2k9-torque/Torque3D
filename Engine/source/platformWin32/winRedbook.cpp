@@ -24,6 +24,8 @@
 #include "platform/platformRedBook.h"
 #include "core/strings/unicode.h"
 #include "core/strings/stringFunctions.h"
+#include <windows.h>
+#include <mmsystem.h>
 
 class Win32RedBookDevice : public RedBookDevice
 {
