@@ -315,7 +315,7 @@ public:
    const char* getImposterSettings(S32 index);
    S32 addImposter(S32 size, S32 equatorSteps, S32 polarSteps, S32 dl, S32 dim, bool includePoles, F32 polarAngle);
    bool removeImposter();
-   bool addCollisionDetail(S32 size, const char* type, const char* target, S32 depth = 4, F32 merge = 30.0f, F32 concavity = 30.0f, S32 maxVerts = 32, F32 boxMaxError = 0, F32 sphereMaxError = 0, F32 capsuleMaxError = 0);
+   bool addCollisionDetail(S32 size, const char* type, const char* target, S32 depth = 4, F32 merge = 30.0f, S32 maxHull = 30, S32 maxVerts = 32, F32 boxMaxError = 0, F32 sphereMaxError = 0, F32 capsuleMaxError = 0);
    ///@}
 
    /// @name Sequences

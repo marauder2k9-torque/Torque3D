@@ -2935,6 +2935,10 @@ function ShapeEdColWindow::onWake( %this )
    %this-->colType.add( "18-DOP" );
    %this-->colType.add( "26-DOP" );
    %this-->colType.add( "Convex Hulls" );
+
+   %this-->fillMode.add("Flood fill");
+   %this-->fillMode.add("Surface only");
+   %this-->fillMode.add("Raycast Fill");
 }
 
 function ShapeEdColWindow::update_onShapeSelectionChanged( %this )
@@ -2949,6 +2953,8 @@ function ShapeEdColWindow::update_onShapeSelectionChanged( %this )
       %this-->colTarget.add( ShapeEditor.shape.getObjectName( %i ) );
 
    %this-->colTarget.setSelected( %this-->colTarget.findText( "Bounds" ), false );
+
+   %this-->fillMode.setSelected( %this-->fillMode.findText( "Flood fill" ), false );
 }
 
 function ShapeEdColWindow::update_onCollisionChanged( %this )

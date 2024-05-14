@@ -183,7 +183,7 @@ public:
    void fit26_DOP();
 
    // Convex Hulls
-   void fitConvexHulls( U32 depth, F32 mergeThreshold, F32 concavityThreshold, U32 maxHullVerts,
+   void fitConvexHulls( U32 depth, F32 mergeThreshold, U32 concavityThreshold, U32 maxHullVerts,
                         F32 boxMaxError, F32 sphereMaxError, F32 capsuleMaxError );
 };
 
@@ -691,17 +691,17 @@ void MeshFit::fitK_DOP( const Vector<Point3F>& planes )
 
 //---------------------------
 // Best-fit set of convex hulls
-void MeshFit::fitConvexHulls( U32 depth, F32 mergeThreshold, F32 concavityThreshold, U32 maxHullVerts,
+void MeshFit::fitConvexHulls( U32 depth,  F32 mergeThreshold, U32 concavityThreshold, U32 maxHullVerts,
                               F32 boxMaxError, F32 sphereMaxError, F32 capsuleMaxError )
 {
    VHACD::IVHACD::Parameters p;
    p.m_fillMode = VHACD::FillMode::FLOOD_FILL;
    p.m_maxNumVerticesPerCH = maxHullVerts;
    p.m_shrinkWrap = true;
-   p.m_maxRecursionDepth = 64;
-   p.m_minimumVolumePercentErrorAllowed = 10;
+   p.m_maxRecursionDepth = depth;
+   p.m_minimumVolumePercentErrorAllowed = mergeThreshold;
    p.m_resolution = 10000;
-   p.m_maxConvexHulls = depth;
+   p.m_maxConvexHulls = concavityThreshold;
 
    VHACD::IVHACD* iface = VHACD::CreateVHACD_ASYNC();
 
@@ -929,8 +929,8 @@ DefineTSShapeConstructorMethod( addPrimitive, bool, ( const char* meshName, cons
    return true;
 }}
 
-DefineTSShapeConstructorMethod( addCollisionDetail, bool, ( S32 size, const char* type, const char* target, S32 depth, F32 merge, F32 concavity, S32 maxVerts, F32 boxMaxError, F32 sphereMaxError, F32 capsuleMaxError ), ( 4, 30, 30, 32, 0, 0, 0 ),
-   ( size, type, target, depth, merge, concavity, maxVerts, boxMaxError, sphereMaxError, capsuleMaxError ), false,
+DefineTSShapeConstructorMethod( addCollisionDetail, bool, ( S32 size, const char* type, const char* target, S32 depth, F32 merge, S32 maxHulls, S32 maxVerts, F32 boxMaxError, F32 sphereMaxError, F32 capsuleMaxError ), ( 4, 30, 30, 32, 0, 0, 0 ),
+   ( size, type, target, depth, merge, maxHulls, maxVerts, boxMaxError, sphereMaxError, capsuleMaxError ), false,
    "Autofit a mesh primitive or set of convex hulls to the shape geometry. Hulls "
    "may optionally be converted to boxes, spheres and/or capsules based on their "
    "volume.\n"
@@ -942,7 +942,7 @@ DefineTSShapeConstructorMethod( addCollisionDetail, bool, ( S32 size, const char
       "whole shape), or the name of an object in the shape\n"
    "@param depth maximum split recursion depth (hulls only)\n"
    "@param merge volume % threshold used to merge hulls together (hulls only)\n"
-   "@param concavity volume % threshold used to detect concavity (hulls only)\n"
+   "@param maxHulls allowed to be generated maxHulls (hulls only)\n"
    "@param maxVerts maximum number of vertices per hull (hulls only)\n"
    "@param boxMaxError max % volume difference for a hull to be converted to a "
       "box (hulls only)\n"
@@ -984,7 +984,7 @@ DefineTSShapeConstructorMethod( addCollisionDetail, bool, ( S32 size, const char
       fit.fit26_DOP();
    else if ( !dStricmp( type, "convex hulls" ) )
    {
-      fit.fitConvexHulls( depth, merge, concavity, maxVerts,
+      fit.fitConvexHulls( depth, merge, maxHulls, maxVerts,
                            boxMaxError, sphereMaxError, capsuleMaxError );
    }
    else
