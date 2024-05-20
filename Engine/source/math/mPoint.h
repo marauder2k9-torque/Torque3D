@@ -26,9 +26,10 @@
 #include "math/mMathFn.h"
 #endif
 
-template<class TYPE, U32 size>
+template<typename TYPE, U32 size>
 class Point
 {
+   static_assert(size >= 2, "Just use float if you dont want 2 or more dimensions");
 public:
 
    TYPE dim[size];
@@ -87,13 +88,13 @@ public:
       }
    }
 
-   inline TYPE& operator [](const U32 i)
+   TYPE& operator [](const U32 i)
    {
       AssertFatal(i < size, "Out of bounds for point");
       return dim[i];
    }
 
-   inline const TYPE& operator [](const U32 i) const
+   const TYPE& operator [](const U32 i) const
    {
       AssertFatal(i < size, "Out of bounds for point");
       return dim[i];
@@ -130,7 +131,7 @@ public:
    Point<TYPE, size> operator-(const Point<TYPE, size>& other) const {
      Point<TYPE, size> result;
      for (U32 i = 0; i < size; ++i)
-         result.dim[i] = dim[i] - other.dim[i];
+         result[i] = dim[i] - other.dim[i];
      return result;
    }
    
@@ -143,7 +144,7 @@ public:
    Point<TYPE, size> operator*(TYPE scalar) const {
      Point<TYPE, size> result;
      for (U32 i = 0; i < size; ++i)
-         result.dim[i] = dim[i] * scalar;
+         result[i] = dim[i] * scalar;
      return result;
    }
    
@@ -157,7 +158,7 @@ public:
       Point<TYPE, size> result;
       // should we check for zero?
       for (U32 i = 0; i < size; ++i)
-         result.dim[i] = dim[i] / scalar;
+         result[i] = dim[i] / scalar;
       return result;
    }
    
@@ -178,6 +179,15 @@ public:
 
    bool operator!=(const Point<TYPE, size>& other) const {
         return !(*this == other);
+   }
+
+   // this will allow vec2 = vec3
+   template<U32 oSize>
+   typename std::enable_if<(oSize > size), Point<TYPE, size>&>::type operator=(const Point<TYPE, oSize>& other) {
+      for (U32 i = 0; i < size, ++i) {
+         dim[i] = other[i];
+      }
+      return *this;
    }
 
 };
