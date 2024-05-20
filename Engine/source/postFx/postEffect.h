@@ -164,6 +164,8 @@ protected:
    GFXShaderConstHandle *mMatCameraToScreenSC;
    GFXShaderConstHandle *mMatScreenToCameraSC;
 
+   GFXShaderConstHandle* mIsCapturingSC;
+
    bool mAllowReflectPass;
 
    /// If true update the shader.

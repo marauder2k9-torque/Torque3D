@@ -1922,9 +1922,9 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    Var* matinfo = (Var*) LangElement::find( getOutputTargetVarName(ShaderFeature::RenderTarget2) );
    Var *roughness = (Var*)LangElement::find("roughness");
    if (roughness) //try to grab roughness directly
-      texCube = new GenOp("textureLod(  @, @, min((1.0 - @)*@ + 1.0, @))", cubeMap, reflectVec, roughness, cubeMips, cubeMips);
+      texCube = new GenOp("textureLod(  @, @, min(@*@ + 1.0, @))", cubeMap, reflectVec, roughness, cubeMips, cubeMips);
    else if (glossColor) //failing that, try and find color data
-      texCube = new GenOp("textureLod( @, @, min((1.0 - @.b)*@ + 1.0, @))", cubeMap, reflectVec, glossColor, cubeMips, cubeMips);
+      texCube = new GenOp("textureLod( @, @, min(@.b*@ + 1.0, @))", cubeMap, reflectVec, glossColor, cubeMips, cubeMips);
    else //failing *that*, just draw the cubemap
       texCube = new GenOp("texture( @, @)", cubeMap, reflectVec);
       

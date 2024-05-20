@@ -35,7 +35,7 @@ struct Token
    T value;
    S32 lineNumber;
 };
-#include "cmdgram.h"
+#include "CMDgram.h"
 
 namespace Compiler
 {

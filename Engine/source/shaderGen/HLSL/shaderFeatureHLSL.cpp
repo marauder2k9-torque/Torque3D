@@ -1987,11 +1987,11 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
 
    if (roughness) //try to grab roughness directly
    {
-      texCube = new GenOp("@.SampleLevel( @, float3(@).rgb, min((1.0 - @)*@ + 1.0, @))", cubeMapTex, cubeMap, reflectVec, roughness, cubeMips, cubeMips);
+      texCube = new GenOp("@.SampleLevel( @, float3(@).rgb, min(@*@ + 1.0, @))", cubeMapTex, cubeMap, reflectVec, roughness, cubeMips, cubeMips);
    }
    else if (glossColor)//failing that, try and find color data
    {
-      texCube = new GenOp("@.SampleLevel( @, float3(@).rgb, min((1.0 - @.b)*@ + 1.0, @))", cubeMapTex, cubeMap, reflectVec, glossColor, cubeMips, cubeMips);
+      texCube = new GenOp("@.SampleLevel( @, float3(@).rgb, min(@.b*@ + 1.0, @))", cubeMapTex, cubeMap, reflectVec, glossColor, cubeMips, cubeMips);
    }
    else //failing *that*, just draw the cubemap
    {

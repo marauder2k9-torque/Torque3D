@@ -328,6 +328,7 @@ bool ProcessedCustomMaterial::setupPass( SceneRenderState *state, const SceneDat
 
    shaderConsts->setSafe(rpd->shaderHandles.mAccumTimeSC, MATMGR->getTotalTime());
    shaderConsts->setSafe(rpd->shaderHandles.mDampnessSC, MATMGR->getDampnessClamped());
+   shaderConsts->setSafe(rpd->shaderHandles.mIsCapturingSC, state ? (S32)state->isCapturing() : 0);
    
    return true;
 }

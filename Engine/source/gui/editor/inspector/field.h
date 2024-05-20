@@ -167,6 +167,8 @@ class GuiInspectorField : public GuiControl
       /// to perform their own verification.
       virtual bool verifyData( StringTableEntry data ) { return true; }
 
+      void setWordData(const S32& wordIndex, const char* data, bool callbacks);
+
       /// Set value of the field we are inspecting
       virtual void setData( const char* data, bool callbacks = true );
       

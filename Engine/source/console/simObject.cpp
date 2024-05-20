@@ -3072,6 +3072,13 @@ DefineEngineMethod( SimObject, setFieldValue, bool, ( const char* fieldName, con
 {
    char fieldNameBuffer[ 1024 ];
    char arrayIndexBuffer[ 64 ];
+
+   if( !fieldName || !fieldName[0] )
+   {
+      AssertFatal(false, "SimObject::setFieldValue - Invalid field name.");
+      Con::errorf( "SimObject::setFieldValue - Invalid field name." );
+      return false;
+   }
    
    // Parse out index if the field is given in the form of 'name[index]'.
    

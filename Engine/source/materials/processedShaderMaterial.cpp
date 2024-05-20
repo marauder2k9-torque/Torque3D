@@ -115,6 +115,8 @@ void ShaderConstHandles::init( GFXShader *shader, CustomMaterial* mat /*=NULL*/)
    // MFT_HardwareSkinning
    mNodeTransforms = shader->getShaderConstHandle( "$nodeTransforms" );
 
+   mIsCapturingSC = shader->getShaderConstHandle(ShaderGenVars::isCapturing);
+
    // Clear any existing texture handles.
    dMemset( mTexHandlesSC, 0, sizeof( mTexHandlesSC ) );
    if(mat)
@@ -327,7 +329,8 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    if (String::compare(LIGHTMGR->getId(), "BLM") == 0)
    {
       fd.features.addFeature(MFT_ForwardShading);
-      fd.features.addFeature(MFT_ReflectionProbes);
+      if (!mMaterial->mDynamicCubemap)
+         fd.features.addFeature(MFT_ReflectionProbes);
    }
 
    // Disabling the InterlacedDeferred feature for now. It is not ready for prime-time
@@ -355,7 +358,8 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    if (mMaterial->isTranslucent())
    {
       fd.features.addFeature(MFT_RTLighting);
-      fd.features.addFeature(MFT_ReflectionProbes);
+      if (!mMaterial->mDynamicCubemap)
+         fd.features.addFeature(MFT_ReflectionProbes);
    }
 
    if ( mMaterial->mAnimFlags[stageNum] )
@@ -367,7 +371,7 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    // cubemaps only available on stage 0 for now - bramage   
    if ( stageNum < 1 && mMaterial->isTranslucent() &&
          (  (  mMaterial->mCubemapData && mMaterial->mCubemapData->mCubemap ) ||
-               mMaterial->mDynamicCubemap ) && !features.hasFeature(MFT_ReflectionProbes))
+               mMaterial->mDynamicCubemap ) /*&& !features.hasFeature(MFT_ReflectionProbes) */ )
    {
        fd.features.addFeature( MFT_CubeMap );
    }
@@ -1093,6 +1097,8 @@ void ProcessedShaderMaterial::_setShaderConstants(SceneRenderState * state, cons
    shaderConsts->setSafe( handles->mAccumTimeSC, MATMGR->getTotalTime() );
 
    shaderConsts->setSafe(handles->mDampnessSC, MATMGR->getDampnessClamped());
+   shaderConsts->setSafe(handles->mIsCapturingSC, (S32)state->isCapturing());
+   
    // If the shader constants have not been lost then
    // they contain the content from a previous render pass.
    //
