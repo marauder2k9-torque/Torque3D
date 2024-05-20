@@ -23,7 +23,8 @@
 #ifndef _MMATHFN_H_
 #define _MMATHFN_H_
 
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include <stdlib.h>
 #include <limits>
 
