@@ -193,14 +193,14 @@ inline F32 mCeil(const F32 val)
    return (F32) ceil(val);
 }
 
-inline F32 mFabs(const F32 val)
-{
-   return (F32) fabs(val);
+template<typename T>
+inline typename std::enable_if<std::is_floating_point<T>::value, T>::type mFabs(const T val) {
+   return static_cast<T>(fabs(val));
 }
 
-inline F64 mFabs(const F64 val)
-{
-   return fabs(val);
+template<typename T>
+inline typename std::enable_if<std::is_integral<T>::value, T>::type mFabs(const T val) {
+   return static_cast<T>(abs(val));
 }
 
 inline F32 mFmod(const F32 val, const F32 mod)

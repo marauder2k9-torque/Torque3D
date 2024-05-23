@@ -112,7 +112,6 @@ public:
      return *this;
    }
 
-    
    Point<TYPE, size> operator+(const Point<TYPE, size>& other) const {
      Point<TYPE, size> result;
      for (U32 i = 0; i < size; ++i)
