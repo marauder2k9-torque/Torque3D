@@ -604,10 +604,10 @@ class GuiInspectorType2DValue : public GuiInspectorField
 private:
    typedef GuiInspectorField Parent;
 protected:
-   GuiTextEditSliderCtrl* mCtrlX;
+   GuiTextEditCtrl* mCtrlX;
    GuiControl* mLabelX;
    GuiControl* mContainerX;
-   GuiTextEditSliderCtrl* mCtrlY;
+   GuiTextEditCtrl* mCtrlY;
    GuiControl* mLabelY;
    GuiControl* mContainerY;
    GuiTextCtrl* mScriptValue;
@@ -634,7 +634,7 @@ class GuiInspectorType3DValue : public GuiInspectorType2DValue
 private:
    typedef GuiInspectorType2DValue Parent;
 protected:
-   GuiTextEditSliderCtrl* mCtrlZ;
+   GuiTextEditCtrl* mCtrlZ;
    GuiControl* mLabelZ;
    GuiControl* mContainerZ;
 

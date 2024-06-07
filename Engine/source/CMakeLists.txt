@@ -51,7 +51,7 @@ torqueAddSourceDirectories("app" "app/net")
 # Handle console
 torqueAddSourceDirectories("console")
 torqueAddSourceDirectories("console/torquescript")
-
+set(TORQUE_INCLUDE_DIRECTORIES ${TORQUE_INCLUDE_DIRECTORIES} "ts/vhacd")
 # Handle Platform
 torqueAddSourceDirectories("platform" "platform/threads" "platform/async"
                                   "platform/input" "platform/output")

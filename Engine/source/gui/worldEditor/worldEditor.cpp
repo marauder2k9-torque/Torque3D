@@ -1999,7 +1999,7 @@ void WorldEditor::on3DMouseMove(const Gui3DMouseEvent & event)
    if ( !mHitObject )
    {
       SceneObject *hitObj = NULL;
-      if ( collide(event, &hitObj) && !hitObj->isDeleted() && hitObj->isSelectionEnabled() && !objClassIgnored(hitObj) )
+      if ( collide(event, &hitObj) && hitObj && !hitObj->isDeleted() && hitObj->isSelectionEnabled() && !objClassIgnored(hitObj) )
       {
          mHitObject = hitObj;
       }
@@ -2060,7 +2060,7 @@ void WorldEditor::on3DMouseDown(const Gui3DMouseEvent & event)
    }   
 
    SceneObject *hitObj = NULL;
-   if ( collide( event, &hitObj ) && hitObj->isSelectionEnabled() && !objClassIgnored( hitObj ) )
+   if ( collide( event, &hitObj ) && hitObj && hitObj->isSelectionEnabled() && !objClassIgnored( hitObj ) )
    {
       mPossibleHitObject = hitObj;
       mNoMouseDrag = true;

@@ -57,15 +57,14 @@ bool SFXSndStream::_readHeader()
       bitsPerSample = 8;
       break;
    case SF_FORMAT_PCM_16:
-   case SF_FORMAT_VORBIS:
       bitsPerSample = 16;
       break;
+   case SF_FORMAT_VORBIS:
    case SF_FORMAT_PCM_24:
-      bitsPerSample = 24;
-      break;
    case SF_FORMAT_PCM_32:
    case SF_FORMAT_FLOAT:
-      bitsPerSample = 32;
+      bitsPerSample = 16;
+      sf_command(sndFile, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
       break;
    default:
       // missed, set it to 16 anyway.
@@ -105,13 +104,45 @@ void SFXSndStream::reset()
 
 U32 SFXSndStream::read(U8* buffer, U32 length)
 {
+   if (!sndFile)
+   {
+      Con::errorf("SFXSndStream - read: Called on uninitialized stream.");
+      return 0;
+   }
+
+   U32 framesToRead = length / mFormat.getBytesPerSample();
    U32 framesRead = 0;
 
-   framesRead = sf_readf_short(sndFile, (short*)buffer, sfinfo.frames);
-   if (framesRead != sfinfo.frames)
+   switch (sfinfo.format & SF_FORMAT_SUBMASK)
+   {
+   case SF_FORMAT_PCM_S8:
+   case SF_FORMAT_PCM_U8:
+      framesRead = sf_readf_int(sndFile, (int*)buffer, framesToRead);
+      break;
+   case SF_FORMAT_PCM_16:
+   case SF_FORMAT_VORBIS:
+   case SF_FORMAT_PCM_24:
+   case SF_FORMAT_PCM_32:
+   case SF_FORMAT_FLOAT:
+      framesRead = sf_readf_short(sndFile, (short*)buffer, framesToRead);
+      break;
+   default:
+      Con::errorf("SFXSndStream - read: Unsupported format.");
+      return 0;
+   }
+
+   if (framesRead != framesToRead)
    {
       Con::errorf("SFXSndStream - read: %s", sf_strerror(sndFile));
    }
+
+   // (convert to frames) - number of frames available < MAX_BUFFER? reset
+   if (((getPosition() / mFormat.getBytesPerSample()) - sfinfo.frames) < MAX_BUFFER)
+   {
+      // reset stream
+      setPosition(0);
+   }
+   
 
    return framesRead * mFormat.getBytesPerSample();
 }

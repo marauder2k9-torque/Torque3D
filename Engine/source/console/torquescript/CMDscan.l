@@ -291,6 +291,7 @@ void CMDSetScanBuffer(const char *sb, const char *fn)
    scanBuffer = sb;
    fileName = fn;
    scanIndex = 0;
+   yylineno = 1;
 }
 
 int CMDgetc()
