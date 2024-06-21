@@ -348,7 +348,6 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    //
    if (  features.hasFeature( MFT_UseInstancing ) &&
          mMaxStages == 1 &&
-         !mMaterial->mGlow[0] &&
          shaderVersion >= 3.0f )
       fd.features.addFeature( MFT_UseInstancing );
 
@@ -520,6 +519,9 @@ void ProcessedShaderMaterial::_determineFeatures(  U32 stageNum,
    if (  mMaterial->mVertColor[ stageNum ] &&
          mVertexFormat->hasColor() )
       fd.features.addFeature( MFT_DiffuseVertColor );
+   
+   if (mMaterial->mGlow[stageNum])
+      fd.features.addFeature(MFT_GlowMask);
 
    // Allow features to add themselves.
    for ( U32 i = 0; i < FEATUREMGR->getFeatureCount(); i++ )

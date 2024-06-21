@@ -555,11 +555,9 @@ public:
 class GlowMaskHLSL : public ShaderFeatureHLSL
 {
 public:
+
    void processPix(   Vector<ShaderComponent*> &componentList, 
                               const MaterialFeatureData &fd ) override;
-
-   Material::BlendOp getBlendOp() override { return Material::None; }
-
    String getName() override
    {
       return "Glow Mask";

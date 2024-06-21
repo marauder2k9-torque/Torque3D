@@ -263,7 +263,7 @@ class TheoraTexture : private IOutputStream< TheoraTextureFrame* >,
             
             ///
             AsyncState( const ThreadSafeRef< OggInputStream >& oggStream, bool looping = false );
-            
+            virtual ~AsyncState() {};
             /// Return the Theora decoder substream.
             OggTheoraDecoder* getTheora() const { return mTheoraDecoder; }
             
