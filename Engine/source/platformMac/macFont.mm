@@ -219,10 +219,10 @@ PlatformFont::CharInfo& OSXFont::getCharInfo(const UTF16 character) const
    }
    
    // Fetch glyph bounding box.
-   CTFontGetBoundingRectsForGlyphs( mFontRef, kCTFontHorizontalOrientation, &characterGlyph, &characterBounds, (CFIndex)1 );
+   CTFontGetBoundingRectsForGlyphs( mFontRef, kCTFontOrientationHorizontal, &characterGlyph, &characterBounds, (CFIndex)1 );
    
    // Fetch glyph advances.
-   CTFontGetAdvancesForGlyphs( mFontRef, kCTFontHorizontalOrientation, &characterGlyph, &characterAdvances, (CFIndex)1 );
+   CTFontGetAdvancesForGlyphs( mFontRef, kCTFontOrientationHorizontal, &characterGlyph, &characterAdvances, (CFIndex)1 );
    
    // Set character metrics,
    characterInfo.xOrigin = (S32)mRound( characterBounds.origin.x );

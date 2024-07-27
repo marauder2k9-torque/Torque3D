@@ -242,7 +242,7 @@ bool TCPObject::processArguments(S32 argc, ConsoleValue *argv)
       return true;
    else if(argc == 1)
    {
-      addToTable(NetSocket::fromHandle(argv[0].getInt()));
+      addToTable(NetSocket::fromHandle(safe_numeric_cast<S32>(argv[0].getInt())));
       return true;
    }
    return false;
@@ -466,7 +466,7 @@ DefineEngineMethod(TCPObject, send, void, (const char *data),,
       "%thisTCPObj.send(%data);\n"
    "@endtsexample\n")
 {
-   object->send( (const U8*)data, dStrlen(data) );
+   object->send( (const U8*)data, safe_numeric_cast<U32>(dStrlen(data)) );
 }
 
 DefineEngineMethod(TCPObject, sendFile, bool, (const char *fileName),, 

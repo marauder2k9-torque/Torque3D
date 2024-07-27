@@ -49,6 +49,7 @@
 
 #include <new>
 #include <typeinfo>
+#include <stdexcept>
 
 /// Global processor identifiers.
 ///
@@ -450,6 +451,29 @@ inline void destructInPlace(T* p)
    p->~T();
 }
 
+// safe cast for numeric types
+template<typename TARGET_TYPE, typename SOURCE>
+TARGET_TYPE safe_numeric_cast(SOURCE val)
+{
+   // we use numeric limits as we dont know if this is unsigned or signed.
+   if constexpr (std::is_integral<SOURCE>::value && std::is_integral<TARGET_TYPE>::value){
+      if(val > std::numeric_limits<TARGET_TYPE>::max() || val < std::numeric_limits<TARGET_TYPE>::min()){
+         throw std::overflow_error("Overflow of type cast! Target limits outside bounds of source type");
+      }
+   }else if(std::is_floating_point<SOURCE>::value && std::is_integral<TARGET_TYPE>::value){
+      if(val > static_cast<SOURCE>(std::numeric_limits<TARGET_TYPE>::max()) || val < static_cast<SOURCE>(std::numeric_limits<TARGET_TYPE>::min())){
+         throw std::overflow_error("Overflow of type cast! Target limits outside bounds of source type");
+      }
+   }else if(std::is_integral<SOURCE>::value && std::is_floating_point<TARGET_TYPE>::value){
+      // no overflow check required when going to float.
+   }
+   else if(std::is_floating_point<SOURCE>::value && std::is_floating_point<TARGET_TYPE>::value){
+      if(val > std::numeric_limits<TARGET_TYPE>::max() || val < -std::numeric_limits<TARGET_TYPE>::max()){
+         throw std::overflow_error("Overflow of type cast! Target limits outside bounds of source type");
+      }
+   }
+   
+}
 
 //------------------------------------------------------------------------------
 /// Memory functions

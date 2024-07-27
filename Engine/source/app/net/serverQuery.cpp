@@ -960,7 +960,7 @@ static void pushServerFavorites()
       server = Con::getVariable( buf );
       if ( server )
       {
-         sz = dStrcspn( server, "\t" );
+         sz = safe_numeric_cast<U32>(dStrcspn( server, "\t" ));
          if ( sz > 0 )
          {
             len = sz > 24 ? 24 : sz;

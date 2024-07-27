@@ -855,14 +855,14 @@ static bool recurseDumpDirectories(const char *basePath, const char *subPath, Ve
    // Iterate through and grab valid directories
    //////////////////////////////////////////////////////////////////////////
    
-   while (d = readdir(dip))
+   while ((d = readdir(dip)))
    {
       bool  isDir;
       isDir = false;
       if (d->d_type == DT_UNKNOWN)
       {
          char child [1024];
-         if ((Path[dStrlen(Path) - 1] == '/'))
+         if (Path[dStrlen(Path) - 1] == '/')
             dSprintf(child, 1024, "%s%s", Path, d->d_name);
          else
             dSprintf(child, 1024, "%s/%s", Path, d->d_name);

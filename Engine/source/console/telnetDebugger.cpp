@@ -864,7 +864,7 @@ void TelnetDebugger::evaluateExpression(const char *tag, S32 frame, const char *
    char* buffer = new char[ len ];
    dSprintf( buffer, len, format, evalBuffer );
    Con::EvalResult evalResult = Con::evaluate(buffer, frame);
-   delete buffer;
+   delete[] buffer;
 
    if (!evalResult.valid)
    {

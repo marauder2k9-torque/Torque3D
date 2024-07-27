@@ -52,7 +52,7 @@ static char scriptFilenameBuffer[1024];
 
 bool isInt(const char* str)
 {
-   int len = dStrlen(str);
+   int len = safe_numeric_cast<int>(dStrlen(str));
    if(len <= 0)
       return false;
 
@@ -88,7 +88,7 @@ bool isInt(const char* str)
 
 bool isFloat(const char* str, bool sciOk = false)
 {
-   int len = dStrlen(str);
+   int len = safe_numeric_cast<int>(dStrlen(str));
    if(len <= 0)
       return false;
 
@@ -367,7 +367,7 @@ DefineEngineFunction( strlen, S32, ( const char* str ),,
    "@return The length of the given string in bytes.\n"
    "@ingroup Strings" )
 {
-   return dStrlen( str );
+   return safe_numeric_cast<S32>(dStrlen( str ));
 }
 
 //-----------------------------------------------------------------------------
@@ -381,7 +381,7 @@ DefineEngineFunction( strlenskip, S32, ( const char* str, const char* first, con
 {
    const UTF8* pos = str;
    U32 size = 0;
-   U32 length = dStrlen(str);
+   U32 length = safe_numeric_cast<U32>(dStrlen(str));
    bool count = true;
 
    //loop through each character counting each character, skipping tags (anything with < followed by >)
@@ -420,7 +420,7 @@ DefineEngineFunction( strstr, S32, ( const char* string, const char* substring )
    if( !retpos )
       return -1;
       
-   return retpos - string;
+   return safe_numeric_cast<S32>(retpos - string);
 }
 
 //-----------------------------------------------------------------------------
@@ -436,8 +436,8 @@ DefineEngineFunction( strpos, S32, ( const char* haystack, const char* needle, S
    "@ingroup Strings" )
 {
    S32 start = offset;
-   U32 sublen = dStrlen( needle );
-   U32 strlen = dStrlen( haystack );
+   U32 sublen = safe_numeric_cast<U32>(dStrlen( needle ));
+   U32 strlen = safe_numeric_cast<U32>(dStrlen( haystack ));
    if(start < 0)
       return -1;
    if(sublen + start > strlen)
@@ -460,8 +460,8 @@ DefineEngineFunction( strposr, S32, ( const char* haystack, const char* needle, 
    "@endtsexample\n"
    "@ingroup Strings" )
 {
-   U32 sublen = dStrlen( needle );
-   U32 strlen = dStrlen( haystack );
+   U32 sublen = safe_numeric_cast<U32>(dStrlen( needle ));
+   U32 strlen = safe_numeric_cast<U32>(dStrlen( haystack ));
    S32 start = strlen - offset;
       
    if(start < 0 || start > strlen)
@@ -561,14 +561,14 @@ DefineEngineFunction( stripChars, const char*, ( const char* str, const char* ch
    "@endtsexample\n"
    "@ingroup Strings" )
 {
-   U64 len = dStrlen(str) + 1;
-   char* ret = Con::getReturnBuffer( len );
+   U64 len = safe_numeric_cast<U64>(dStrlen(str) + 1);
+   char* ret = Con::getReturnBuffer( (U32)len );
    dStrcpy( ret, str, len );
-   U32 pos = dStrcspn( ret, chars );
+   U32 pos = safe_numeric_cast<U32>(dStrcspn( ret, chars ));
    while ( pos < dStrlen( ret ) )
    {
       dStrcpy( ret + pos, ret + pos + 1, len - pos );
-      pos = dStrcspn( ret, chars );
+      pos = safe_numeric_cast<U32>(dStrcspn( ret, chars ));
    }
    return( ret );
 }

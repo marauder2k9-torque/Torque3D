@@ -144,7 +144,7 @@ bool BadWordFilter::addBadWord(const char *cword)
 
 bool BadWordFilter::setDefaultReplaceStr(const char *str)
 {
-   U32 len = dStrlen(str);
+   U32 len = safe_numeric_cast<U32>(dStrlen(str));
    if(len < 2 || len >= sizeof(defaultReplaceStr))
       return false;
    dStrcpy(defaultReplaceStr, str, 32);
@@ -158,7 +158,7 @@ void BadWordFilter::filterString(char *cstring, const char *replaceStr)
    U8 *string = (U8 *) cstring;
    U8 *starts[MaxBadwordLength];
    U8 *curStart = string;
-   U32 replaceLen = dStrlen(replaceStr);
+   U32 replaceLen = safe_numeric_cast<U32>(dStrlen(replaceStr));
    while(*curStart)
    {
       FilterTable *curFilterTable = filterTables[0];
@@ -287,7 +287,7 @@ DefineEngineFunction(filterString, const char *, (const char* baseString, const 
       replaceStr = gBadWordFilter->getDefaultReplaceStr();
 
    dsize_t retLen = dStrlen(baseString) + 1;
-   char *ret = Con::getReturnBuffer(retLen);
+   char *ret = Con::getReturnBuffer(safe_numeric_cast<U32>(retLen));
    dStrcpy(ret, baseString, retLen);
    gBadWordFilter->filterString(ret, replaceStr);
    return ret;

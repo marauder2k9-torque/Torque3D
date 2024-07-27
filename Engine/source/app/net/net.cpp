@@ -409,7 +409,7 @@ DefineEngineStringlyVariadicFunction( buildTaggedString, const char*, 2, 11, "(s
             const char *argStr = argv[argIndex];
             if (!argStr)
                goto done;
-            S32 strLength = dStrlen(argStr);
+            S32 strLength = safe_numeric_cast<S32>(dStrlen(argStr));
             if (strLength > strMaxLength)
                goto done;
             dStrcpy(strBufPtr, argStr, strMaxLength);

@@ -2824,6 +2824,7 @@ bool TSShapeConstructor::ChangeSet::addCmd_renameSequence(const TSShapeConstruct
                   if (namesEqual(cmd2.argv[0], newCmd.argv[0]))
                      cmd2.argv[0] = newCmd.argv[1];
                   break;
+                  default: break;
                }
             }
             return false;

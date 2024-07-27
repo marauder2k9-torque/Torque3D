@@ -171,7 +171,7 @@ SceneObject::~SceneObject()
 {
    AssertFatal(mContainer == NULL,
       "SceneObject::~SceneObject - Object still in container!");
-   AssertFatal( mZoneListHandle == NULL,
+   AssertFatal( mZoneListHandle == 0,
       "SceneObject::~SceneObject - Object still linked in reference lists!");
    AssertFatal( !mSceneObjectLinks,
       "SceneObject::~SceneObject() - object is still linked to SceneTrackers" );
