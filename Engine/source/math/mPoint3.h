@@ -1058,4 +1058,601 @@ inline Point3F mReflect( const Point3F &v, const Point3F &n )
 /// Returns a perpendicular vector to the unit length input vector.
 extern Point3F mPerp( const Point3F &normal );
 
+
+//------------------------------------------------------------------------------
+// Templated Point class.
+//------------------------------------------------------------------------------
+#pragma warning(push) // nameless struct warning.
+#pragma warning(disable: 4201)
+template<typename DATA_TYPE, U32 size>
+class PointT {
+public:
+
+   // union for conformity with previous classes accessing xyzw,
+   // when this class replaces the old points, remove this and
+   // access dimensions with x y z w functions below. using this
+   // union means everything has the same size as a point4
+
+   union {
+      struct {
+         DATA_TYPE x;
+         DATA_TYPE y;
+         DATA_TYPE z;
+         DATA_TYPE w;
+      };
+
+      DATA_TYPE data[size];
+   };
+   
+
+   static_assert(size >= 2, "PointT must have a size of at least 2, otherwise just use scalar.");
+
+   // ------ Setters and initializers ------
+   explicit PointT() {
+      std::fill(data, data + size, DATA_TYPE(0));
+   }
+
+   explicit PointT(DATA_TYPE scalar) {
+      std::fill(data, data + size, DATA_TYPE(scalar));
+   }
+
+   // Copy constructor
+   PointT(const PointT& p){
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] = p.data[i];
+      }
+   }
+
+   template<typename... Args>
+   PointT(Args... args) {
+      AssertFatal(sizeof...(args) <= size, "Number of arguments must not exceed the size of the point.");
+      DATA_TYPE values[] = { static_cast<DATA_TYPE>(args)... };
+
+      U32 count = mMin(sizeof...(args), size);
+      for (U32 i = 0; i < count; i++)
+      {
+         data[i] = values[i];
+      }
+
+      if (size > count)
+      {
+         std::fill(data + count, data + size, DATA_TYPE(0));
+      }
+
+   }
+
+   template<U32 bSize>
+   explicit PointT(const PointT<DATA_TYPE, bSize>& p) {
+      AssertFatal(bSize >= 2, "Cannot initialize with a point with size less than 2.");
+
+      U32 min_size = mMin(size, bSize);
+      for (U32 i = 0; i < min_size; i++)
+      {
+         data[i] = p.data[i];
+      }
+
+      if (size > bSize) {
+         std::fill(data + bSize, data + size, DATA_TYPE(0));
+      }
+      
+   }
+
+   // following set functions are pretty much the same as the above constructors.
+   void set(DATA_TYPE scalar) {
+      std::fill(data, data + size, DATA_TYPE(scalar));
+   }
+
+   template<typename... Args>
+   void set(Args... args) {
+      AssertFatal(sizeof...(args) <= size, "Number of arguments must not exceed the size of the point.");
+      DATA_TYPE values[] = { static_cast<DATA_TYPE>(args)... };
+
+      U32 count = mMin(sizeof...(args), size);
+      for (U32 i = 0; i < count; i++)
+      {
+         data[i] = values[i];
+      }
+
+      if (size > count)
+      {
+         std::fill(data + count, data + size, DATA_TYPE(0));
+      }
+   }
+
+   void set(const PointT& p) {
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] = p.data[i];
+      }
+   }
+
+   template<U32 bSize>
+   void set(const PointT<DATA_TYPE, bSize>& p) {
+      AssertFatal(bSize >= 2, "Cannot initialize with a point with size less than 2.");
+
+      U32 min_size = mMin(size, bSize);
+      for (U32 i = 0; i < min_size; i++)
+      {
+         data[i] = p.data[i];
+      }
+
+      if (size > bSize) {
+         std::fill(data + bSize, data + size, DATA_TYPE(0));
+      }
+   }
+
+   void zero() {
+      std::fill(data, data + size, DATA_TYPE(0));
+   }
+
+   template<U32 bSize>
+   void setMin(const PointT<DATA_TYPE, bSize>& p) {
+      AssertFatal(bSize >= 2, "Cannot initialize with a point with size less than 2.");
+
+      U32 min_size = mMin(size, bSize);
+      for (U32 i = 0; i < min_size; i++)
+      {
+         data[i] = p.data[i] < data[i] ? p.data[i] : data[i];
+      }
+   }
+
+   template<U32 bSize>
+   void setMax(const PointT<DATA_TYPE, bSize>& p) {
+      AssertFatal(bSize >= 2, "Cannot initialize with a point with size less than 2.");
+
+      U32 min_size = mMin(size, bSize);
+      for (U32 i = 0; i < min_size; i++)
+      {
+         data[i] = p.data[i] > data[i] ? p.data[i] : data[i];
+      }
+   }
+
+   // Mathematical mutators
+
+   void interpolate(const PointT& _from, const PointT& _to, DATA_TYPE _factor) {
+      // should maybe check _factor is a float type?
+      DATA_TYPE inverse = DATA_TYPE(1) - _factor;
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] = inverse * _from[i] + _factor * _to[i];
+      }
+   }
+
+   void neg() {
+      for (U32 i = 0; i < size; i++) {
+         data[i] = -data[i];
+      }
+   }
+
+   void normalize() {
+      DATA_TYPE fac = DATA_TYPE(1) / std::sqrt(lenSquared());
+      *this *= fac;
+   }
+
+   void normalizeSafe() {
+      DATA_TYPE mag = magnitudeSafe();
+
+      if (mag > std::numeric_limits<DATA_TYPE>::epsilon())
+      {
+         DATA_TYPE fac = DATA_TYPE(1) / mag;
+         *this *= fac;
+      }
+
+   }
+
+   void normalize(DATA_TYPE val) {
+      DATA_TYPE fac = val / std::sqrt(lenSquared());
+      *this *= fac;
+   }
+
+   void convolve(const PointT& rhs) {
+      for (U32 i = 0; i < size; i++) {
+         data[i] *= rhs.data[i];
+      }
+   }
+
+   void convolveInverse(const PointT& rhs) {
+      for (U32 i = 0; i < size; i++) {
+         data[i] /= rhs.data[i];
+      }
+   }
+
+   // ------ Getters ------
+
+   bool isZero() const {
+      for (U32 i = 0; i < size; i++)
+      {
+         if (data[i] != DATA_TYPE(0))
+            return false;
+      }
+
+      return true;
+   }
+
+   bool isUnitLength() const {
+      return (std::abs(DATA_TYPE(1) - lenSquared()) < std::numeric_limits<DATA_TYPE>::epsilon());
+   }
+
+   DATA_TYPE len() const {
+      DATA_TYPE temp = lenSquared();
+
+      return temp > DATA_TYPE(0) ? std::sqrt(temp) : DATA_TYPE(0);
+   }
+
+   DATA_TYPE lenSquared() const {
+      DATA_TYPE val = DATA_TYPE();
+
+      for(U32 i = 0; i < size; i++)
+      {
+         val += data[i] * data[i];
+      }
+      return val;
+   }
+
+   DATA_TYPE magnitudeSafe() const
+   {
+      if (isZero())
+      {
+         return DATA_TYPE(0);
+      }
+      else
+      {
+         return len();
+      }
+   }
+
+   bool equal(const PointT& compare, DATA_TYPE epsilon = std::numeric_limits<DATA_TYPE>::epsilon()) const {
+      for (U32 i = 0; i < size; i++)
+      {
+         if (std::abs(data[i] - compare.data[i]) > epsilon)
+            return false;
+      }
+
+      return true;
+   }
+
+
+   U32 getLeastComponentIndex() const {
+      U32 leastId = 0;
+      DATA_TYPE least_val = data[0];
+
+      for (U32 i = 0; i < size; i++)
+      {
+         if (data[i] < least_val)
+         {
+            least_val = data[i];
+            leastId = i;
+         }
+      }
+
+      return leastId;
+   }
+
+   U32 getGreatestComponentIndex() const {
+      U32 maxId = 0;
+      DATA_TYPE max_val = data[0];
+
+      for (U32 i = 0; i < size; i++)
+      {
+         if (data[i] > max_val)
+         {
+            max_val = data[i];
+            maxId = i;
+         }
+      }
+
+      return maxId;
+   }
+
+   DATA_TYPE least() const {
+      DATA_TYPE least_val = data[0];
+
+      for (U32 i = 0; i < size; i++)
+      {
+         if (data[i] < least_val)
+         {
+            least_val = data[i];
+         }
+      }
+
+      return least_val;
+   }
+
+   DATA_TYPE most() const {
+      DATA_TYPE max_val = data[0];
+
+      for (U32 i = 0; i < size; i++)
+      {
+         if (data[i] > max_val)
+         {
+            max_val = data[i];
+         }
+      }
+
+      return max_val;
+   }
+
+   // Vector functions not found in original point
+
+   DATA_TYPE dot(const PointT& rhs) const {
+      DATA_TYPE res = DATA_TYPE(0);
+
+      for (U32 i = 0; i < size; i++)
+      {
+         res += data[i] * rhs.data[i];
+      }
+
+      return res;
+   }
+
+   PointT cross(const PointT& rhs) const {
+      AssertFatal(size == 3, "Cross product is only for 3d points");
+
+      return PointT(
+         data[1] * rhs.data[2] - data[2] * rhs.data[1],
+         data[2] * rhs.data[0] - data[0] * rhs.data[2],
+         data[0] * rhs.data[1] - data[1] * rhs.data[0]
+      );
+   }
+
+   DATA_TYPE distance(const PointT& rhs) const {
+      DATA_TYPE sum = DATA_TYPE(0);
+      for (U32 i = 0; i < size; i++) {
+         DATA_TYPE diff = data[i] - rhs.data[i];
+         sum += diff * diff;
+      }
+      return std::sqrt(sum);
+   }
+
+   PointT reflect(const PointT& normal) {
+      AssertFatal(size >= 2, "Reflect requires at least 2 dimensions");
+
+      DATA_TYPE dot = this->dot(normal);
+
+      PointT res;
+      for (U32 i = 0; i < size; i++)
+      {
+         res.data[i] = data[i] - 2 * dot * normal.data[i];
+      }
+
+      return res;
+   }
+
+   DATA_TYPE angle(const PointT& rhs) const {
+      DATA_TYPE dotProd = dot(rhs);
+      DATA_TYPE mags = magnitudeSafe() * rhs.magnitudeSafe();
+
+      return std::acos(dotProd / mags);
+   }
+
+   PointT projectTo(const PointT& rhs) const {
+      DATA_TYPE scalar = dot(rhs) / rhs.dot(rhs);
+   }
+
+   PointT clampMagnitude(DATA_TYPE maxMagnitude) const {
+      DATA_TYPE mag = magnitudeSafe();
+
+      if (mag > maxMagnitude)
+      {
+         return normalize() * maxMagnitude;
+      }
+
+      return *this;
+   }
+   
+   // ------ Operators ------
+   // for now all operators expect same size points for rhs
+   // Comparison operators
+   bool operator==(const PointT& rhs) const {
+      for (U32 i = 0; i < size; i++)
+      {
+         if (data[i] != rhs.data[i])
+            return false;
+      }
+
+      return true;
+   }
+   bool operator!=(const PointT& rhs) const {
+      return !(*this == rhs);
+   }
+
+   // Arithmetic w/ other points
+   PointT operator+(const PointT& rhs) const {
+      PointT result;
+      for (U32 i = 0; i < size; i++)
+      {
+         result.data[i] = data[i] + rhs.data[i];
+      }
+      return result;
+   }
+
+   PointT operator-(const PointT& rhs) const {
+      PointT result;
+      for (U32 i = 0; i < size; i++)
+      {
+         result.data[i] = data[i] - rhs.data[i];
+      }
+      return result;
+   }
+
+   PointT& operator+=(const PointT& rhs) {
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] += rhs.data[i];
+      }
+      return *this;
+
+   }
+
+   PointT& operator-=(const PointT& rhs) {
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] -= rhs.data[i];
+      }
+      return *this;
+
+   }
+
+   // Arithmetic w/ scalars
+   PointT operator*(F32 scalar) const {
+      PointT result;
+      for (U32 i = 0; i < size; i++)
+      {
+         result.data[i] = data[i] * scalar;
+      }
+      return result;
+   }
+
+   PointT operator/(F32 scalar) const {
+      AssertFatal(scalar != DATA_TYPE(0), "Error, div by zero attempted");
+
+      PointT result;
+      for (U32 i = 0; i < size; i++)
+      {
+         result.data[i] = data[i] / scalar;
+      }
+      return result;
+   }
+
+   PointT& operator*=(F32 scalar) {
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] *= scalar;
+      }
+      return *this;
+
+   }
+   PointT& operator/=(F32 scalar) {
+      AssertFatal(scalar != DATA_TYPE(0), "Error, div by zero attempted");
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] /= scalar;
+      }
+      return *this;
+
+   }
+
+   PointT operator*(const PointT& rhs) const {
+      PointT result;
+      for (U32 i = 0; i < size; i++)
+      {
+         result.data[i] = data[i] * rhs.data[i];
+      }
+      return result;
+   }
+
+   PointT& operator*=(const PointT& rhs) {
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] *= rhs.data[i];
+      }
+      return *this;
+
+   }
+
+   PointT operator/(const PointT& rhs) const {
+      PointT result;
+      for (U32 i = 0; i < size; i++)
+      {
+         if (data[i] == DATA_TYPE(0) || rhs.data[i] == DATA_TYPE(0))
+            continue;
+
+         result.data[i] = data[i] / rhs.data[i];
+      }
+      return result;
+   }
+
+   PointT& operator/=(const PointT& rhs) {
+      for (U32 i = 0; i < size; i++)
+      {
+         if (data[i] == DATA_TYPE(0) || rhs.data[i] == DATA_TYPE(0))
+            continue;
+
+         data[i] /= rhs.data[i];
+      }
+
+      return *this;
+   }
+
+   // Unary operators
+   PointT operator-() const {
+      PointT result;
+      for (std::size_t i = 0; i < size; ++i) {
+         result.data[i] = -data[i];
+      }
+      return result;
+   }
+
+   // same size but different type.
+   template<typename O_TYPE>
+   PointT& operator=(const PointT<O_TYPE, size>& rhs) {
+      for (U32 i = 0; i < size; i++)
+      {
+         data[i] = static_cast<DATA_TYPE>(rhs.data[i]);
+      }
+   }
+
+   operator DATA_TYPE* () { return (data); }
+   operator const DATA_TYPE* () const { return (DATA_TYPE*)(data); }
+
+   // Uncomment and replace union when template replaces other classes.
+   //// Accessors for x, y, z, w components, putting these in operators.
+   //DATA_TYPE& x() {
+   //   // not sure if needed since we have a hard set minimum of 2.
+   //   AssertFatal(size >= 2, "No X component in point.");
+   //   return data[0];
+   //}
+
+   //const DATA_TYPE& x() const {
+   //   // not sure if needed since we have a hard set minimum of 2.
+   //   AssertFatal(size >= 2, "No X component in point.");
+   //   return data[0];
+   //}
+
+   //DATA_TYPE& y() {
+   //   // not sure if needed since we have a hard set minimum of 2.
+   //   AssertFatal(size >= 2, "No Y component in point.");
+   //   return data[1];
+   //}
+
+   //const DATA_TYPE& y() const {
+   //   // not sure if needed since we have a hard set minimum of 2.
+   //   AssertFatal(size >= 2, "No Y component in point.");
+   //   return data[1];
+   //}
+
+   //DATA_TYPE& z() {
+   //   AssertFatal(size >= 3, "No Z component in point.");
+   //   return data[2];
+   //}
+
+   //const DATA_TYPE& z() const {
+   //   AssertFatal(size >= 3, "No Z component in point.");
+   //   return data[2];
+   //}
+
+   //DATA_TYPE& w() {
+   //   AssertFatal(size >= 4, "No W component in point.");
+   //   return data[3];
+   //}
+
+   //const DATA_TYPE& w() const {
+   //   AssertFatal(size >= 4, "No W component in point.");
+   //   return data[3];
+   //}
+   
+   // ------ Static constants ------
+   const static PointT One;
+   const static PointT Zero;
+   const static PointT Max;
+   const static PointT Min;
+   const static PointT UnitX;
+   const static PointT UnitY;
+   const static PointT UnitZ;
+};
+
+#pragma warning(pop)
+
+
 #endif // _MPOINT3_H_
