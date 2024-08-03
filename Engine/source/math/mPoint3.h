@@ -1657,7 +1657,7 @@ template<typename DATA_TYPE, U32 size>
 const PointT<DATA_TYPE, size> PointT<DATA_TYPE, size>::One = [] {
    PointT<DATA_TYPE, size> p;
    for (U32 i = 0; i < size; ++i)
-      p.coords[i] = static_cast<DATA_TYPE>(1);
+      p.data[i] = static_cast<DATA_TYPE>(1);
    return p;
 }();
 
@@ -1665,7 +1665,7 @@ template<typename DATA_TYPE, U32 size>
 const PointT<DATA_TYPE, size> PointT<DATA_TYPE, size>::Zero = [] {
    PointT<DATA_TYPE, size> p;
    for (U32 i = 0; i < size; ++i)
-      p.coords[i] = static_cast<DATA_TYPE>(0);
+      p.data[i] = static_cast<DATA_TYPE>(0);
    return p;
 }();
 
@@ -1673,7 +1673,7 @@ template<typename DATA_TYPE, U32 size>
 const PointT<DATA_TYPE, size> PointT<DATA_TYPE, size>::Max = [] {
    PointT<DATA_TYPE, size> p;
    for (U32 i = 0; i < size; ++i)
-      p.coords[i] = std::numeric_limits<DATA_TYPE>::max();
+      p.data[i] = std::numeric_limits<DATA_TYPE>::max();
    return p;
 }();
 
@@ -1681,37 +1681,37 @@ template<typename DATA_TYPE, U32 size>
 const PointT<DATA_TYPE, size> PointT<DATA_TYPE, size>::Min = [] {
    PointT<DATA_TYPE, size> p;
    for (U32 i = 0; i < size; ++i)
-      p.coords[i] = std::numeric_limits<DATA_TYPE>::lowest();
+      p.data[i] = std::numeric_limits<DATA_TYPE>::lowest();
    return p;
 }();
 
 template<typename DATA_TYPE, U32 size>
 const PointT<DATA_TYPE, size> PointT<DATA_TYPE, size>::UnitX = [] {
    PointT<DATA_TYPE, size> p;
-   if constexpr (size >= 1) p.coords[0] = static_cast<DATA_TYPE>(1);
+   if constexpr (size >= 1) p.data[0] = static_cast<DATA_TYPE>(1);
    for (U32 i = 1; i < size; ++i)
-      p.coords[i] = static_cast<DATA_TYPE>(0);
+      p.data[i] = static_cast<DATA_TYPE>(0);
    return p;
 }();
 
 template<typename DATA_TYPE, U32 size>
 const PointT<DATA_TYPE, size> PointT<DATA_TYPE, size>::UnitY = [] {
    PointT<DATA_TYPE, size> p;
-   if constexpr (size >= 1) p.coords[0] = static_cast<DATA_TYPE>(0);
-   if constexpr (size >= 2) p.coords[1] = static_cast<DATA_TYPE>(1);
+   if constexpr (size >= 1) p.data[0] = static_cast<DATA_TYPE>(0);
+   if constexpr (size >= 2) p.data[1] = static_cast<DATA_TYPE>(1);
    for (U32 i = 2; i < size; ++i)
-      p.coords[i] = static_cast<DATA_TYPE>(0);
+      p.data[i] = static_cast<DATA_TYPE>(0);
    return p;
 }();
 
 template<typename DATA_TYPE, U32 size>
 const PointT<DATA_TYPE, size> PointT<DATA_TYPE, size>::UnitZ = [] {
    PointT<DATA_TYPE, size> p;
-   if constexpr (size >= 1) p.coords[0] = static_cast<DATA_TYPE>(0);
-   if constexpr (size >= 2) p.coords[1] = static_cast<DATA_TYPE>(0);
-   if constexpr (size >= 3) p.coords[2] = static_cast<DATA_TYPE>(1);
+   if constexpr (size >= 1) p.data[0] = static_cast<DATA_TYPE>(0);
+   if constexpr (size >= 2) p.data[1] = static_cast<DATA_TYPE>(0);
+   if constexpr (size >= 3) p.data[2] = static_cast<DATA_TYPE>(1);
    for (U32 i = 3; i < size; ++i)
-      p.coords[i] = static_cast<DATA_TYPE>(0);
+      p.data[i] = static_cast<DATA_TYPE>(0);
    return p;
 }();
 
