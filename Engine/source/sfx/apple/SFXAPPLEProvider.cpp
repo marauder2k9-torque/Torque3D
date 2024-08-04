@@ -28,6 +28,9 @@
 
 #include "sfx/apple/sfxAPPLEDevice.h"
 
+#include <CoreAudio/CoreAudio.h>
+#include <CoreFoundation/CoreFoundation.h>
+
 class SFXAPPLEProvider : public SFXProvider
 {
 public:
@@ -38,6 +41,8 @@ public:
    
 protected:
    void init() override;
+   String getDefaultDeviceName();
+   
 public:
    SFXDevice *createDevice(const String& deviceName, bool useHardware, S32 maxBuffers) override;
 };
@@ -61,12 +66,52 @@ MODULE_BEGIN(SFXAPPLE)
 
 MODULE_END;
 
+String SFXAPPLEProvider::getDefaultDeviceName(){
+   AudioDeviceID devid = kAudioObjectUnknown;
+   
+   U32 size = sizeof(devid);
+   AudioObjectPropertyAddress addr = {
+      kAudioHardwarePropertyDefaultOutputDevice,
+      kAudioObjectPropertyScopeGlobal,
+      kAudioObjectPropertyElementMaster
+   };
+   
+   OSStatus status = AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, NULL, &size, &devid);
+   if(status != noErr)
+   {
+      Con::errorf("SFXAppleProvider: Could not find default device!");
+      return String::EmptyString;
+   }
+   
+   CFStringRef devName = NULL;
+   size = sizeof(devName);
+   AudioObjectPropertyAddress nameAddress = {
+      kAudioDevicePropertyDeviceNameCFString,
+      kAudioObjectPropertyScopeGlobal,
+      kAudioObjectPropertyElementMaster
+   };
+   
+   status = AudioObjectGetPropertyData(devid, &nameAddress, 0, NULL, &size, &devName);
+   if(status != noErr)
+   {
+      Con::errorf("SFXAppleProvider: Could not find default device!");
+      return String::EmptyString;
+   }
+   
+   char name[256];
+   CFStringGetCString(devName, name, sizeof(name), kCFStringEncodingUTF8);
+   
+   return String::ToString(name);
+}
+
 void SFXAPPLEProvider::init()
 {
+   String deviceName = getDefaultDeviceName();
+   
    SFXDeviceInfo* info = new SFXDeviceInfo;
    
-   info->internalName = "AppleDevice";
-   info->name = "AppleDevice";
+   info->internalName = deviceName;
+   info->name = deviceName;
    
    mDeviceInfo.push_back(info);
    

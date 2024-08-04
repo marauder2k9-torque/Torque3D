@@ -58,11 +58,11 @@ SFXAPPLEBuffer::SFXAPPLEBuffer(const ThreadSafeRef<SFXStream> &stream, SFXDescri
 {
    this->mAVBuffer = new AVAudioBuffer();
    
-   SFXFormat* format = stream->getFormat();
+   const SFXFormat format = stream->getFormat();
    
    
    
-   mAVBuffer->format = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:format->getSamplesPerSecond() channels:format->getChannels()];
+   mAVBuffer->format = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:format.getSamplesPerSecond() channels:format.getChannels()];
    
    U32 sampleCount = stream->getSampleCount();
    
@@ -71,14 +71,14 @@ SFXAPPLEBuffer::SFXAPPLEBuffer(const ThreadSafeRef<SFXStream> &stream, SFXDescri
 
 
 void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num) {
-   <#code#>;
+
 }
 
 void SFXAPPLEBuffer::_flush() {
-   <#code#>;
+
 }
 
-SFXAPPLEBuffer::~SFXAPPLEBuffer() noexcept { 
+SFXAPPLEBuffer::~SFXAPPLEBuffer() { 
    delete mAVBuffer;
 }
 
