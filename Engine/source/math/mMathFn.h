@@ -26,6 +26,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <limits>
+#include <algorithm>
 
 #ifndef _MCONSTANTS_H_
 #include "math/mConstants.h"
