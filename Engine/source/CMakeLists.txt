@@ -80,6 +80,9 @@ if(TORQUE_SFX_OPENAL AND NOT TORQUE_DEDICATED)
         torqueAddSourceDirectories("sfx/openal/mac")
     endif()
 endif()
+if(APPLE)
+  torqueAddSourceDirectories("sfx/apple")
+endif()
 # Handle GFX
 torqueAddSourceDirectories("gfx" "gfx/Null" "gfx/test" "gfx/bitmap" "gfx/bitmap/loaders" "gfx/bitmap/loaders/ies"
                              "gfx/util" "gfx/video" "gfx/sim" )

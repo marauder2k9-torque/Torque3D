@@ -223,8 +223,17 @@ function sfxCompareProvider( %providerA, %providerB )
    switch$( %providerA )
    {
       case "OpenAL":
-            return 1;
+            if($platfom $= "macos" && %providerB $= "Apple")
+               return -1;
+            else
+               return 1;
       
+      case "Apple":
+            if($platform !$= "macos")
+               return 0;
+            else
+               return 1;
+
       // choose XAudio over DirectSound
       case "XAudio":
          if( %providerB $= "OpenAL" )

@@ -37,7 +37,7 @@ dALIGN_BEGIN
 
 class MatrixSet
 {
-   typedef Delegate<const MatrixF &()> MatrixEvalDelegate;
+   typedef DelegateDef<const MatrixF &()> MatrixEvalDelegate;
    enum _Transforms
    {
       ObjectToWorld = 0,   // World

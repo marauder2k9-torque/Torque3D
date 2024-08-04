@@ -20,33 +20,42 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "platform/platform.h"
-#include "T3D/physics/physicsObject.h"
+#ifndef _SFXAPPLEDEVICE_H_
+#define _SFXAPPLEDEVICE_H_
 
-#include "console/simEvents.h"
-#include "console/simSet.h"
+#ifndef _SFXDEVICE_H_
+#include "sfx/sfxDevice.h"
+#endif 
 
+#ifndef _SFXPROVIDER_H_
+#include "sfx/sfxProvider.h"
+#endif
 
-PhysicsObject::PhysicsObject()
-   : mQueuedEvent( InvalidEventId )
+class SFXAPPLEDevice : public SFXDevice
 {
-}
+public:
+   typedef SFXDevice Parent;
+   
+   SFXAPPLEDevice( SFXProvider* provider,
+                   String name,
+                   bool useHardware,
+                   S32 maxBuffers);
+   
+   virtual ~SFXAPPLEDevice();
+   
+   SFXBuffer* createBuffer(const ThreadSafeRef<SFXStream>& stream, SFXDescription* desc) override;
+   SFXVoice* createVoice(bool is3D, SFXBuffer* buffer) override;
+   void setListener(U32 index, const SFXListenerProperties& listener) override;
+   void setDistanceModel(SFXDistanceModel model) override;
+   void setDopplerFactor(F32 fac) override;
+   void setRolloffFactor(F32 fac) override;
+   
+   void resetReverb() override {}
+   
+private:
+   struct AVAudio;
+   AVAudio* mAVAudio;
+};
 
-PhysicsObject::~PhysicsObject()
-{
-   if ( mQueuedEvent != InvalidEventId )
-      Sim::cancelEvent( mQueuedEvent );
-}
+#endif /* _SFXAPPLEDEVICE_H_ */
 
-void PhysicsObject::queueCallback( U32 ms, DelegateDef<void()> callback )
-{
-   // Cancel any existing event we may have pending.
-   if ( mQueuedEvent != InvalidEventId )
-      Sim::cancelEvent( mQueuedEvent );
-
-   // Fire off a new event.
-   SimDelegateEvent *event_ = new SimDelegateEvent();
-   event_->mCallback = callback;
-   event_->mEventId = &mQueuedEvent;
-   mQueuedEvent = Sim::postEvent( Sim::getRootGroup(), event_, Sim::getCurrentTime() + ms );
-}

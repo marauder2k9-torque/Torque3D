@@ -25,13 +25,13 @@
 
 #include "core/util/FastDelegate.h"
 
-/// @def Delegate
+/// @def DelegateDef
 /// The macro which abstracts the details of the delegate implementation.
-#define Delegate fastdelegate::FastDelegate
+#define DelegateDef fastdelegate::FastDelegate
 
 /// @typedef DelegateMemento
 /// An opaque structure which can hold an arbitary delegate.
-/// @see Delegate
+/// @see DelegateDef
 typedef fastdelegate::DelegateMemento DelegateMemento;
 
 
@@ -41,17 +41,18 @@ class DelegateRemapper : public DelegateMemento
 public:
    DelegateRemapper() : mOffset(0) {}
 
-   void set(T * t, const DelegateMemento & memento)
+   void set(T* t, const DelegateMemento& memento)
    {
       SetMementoFrom(memento);
       if (m_pthis)
          mOffset = ((int)m_pthis) - ((int)t);
    }
 
-   void rethis(T * t)
+   void rethis(T* t)
    {
       if (m_pthis)
-         m_pthis = (fastdelegate::detail::GenericClass *)(mOffset + (int)t);
+         m_pthis = reinterpret_cast<fastdelegate::detail::GenericClass*>(
+             reinterpret_cast<uintptr_t>(t) + mOffset);
    }
 
 protected:

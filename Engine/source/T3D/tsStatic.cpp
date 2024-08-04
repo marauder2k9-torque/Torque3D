@@ -903,7 +903,7 @@ void TSStatic::onScaleChanged()
       // by a few milliseconds so that we're not rebuilding
       // during an active scale drag operation.
       if (gEditingMission)
-         mPhysicsRep->queueCallback(500, Delegate<void()>(this, &TSStatic::_updatePhysics));
+         mPhysicsRep->queueCallback(500, DelegateDef<void()>(this, &TSStatic::_updatePhysics));
       else
          _updatePhysics();
    }

@@ -85,7 +85,7 @@ public:
 
    /// The delegate used to override the getTexture method.
    /// @see getTexture
-   typedef Delegate<GFXTextureObject*(U32)> TexDelegate;
+   typedef DelegateDef<GFXTextureObject*(U32)> TexDelegate;
 
    /// 
    /// @see getTexture

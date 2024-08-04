@@ -67,7 +67,7 @@ public:
 
 
 ///
-typedef Delegate< void( ProcessedMaterial *mat,
+typedef DelegateDef< void( ProcessedMaterial *mat,
                         U32 stageNum,
                         MaterialFeatureData &fd, 
                         const FeatureSet &features) > MatFeaturesDelegate;

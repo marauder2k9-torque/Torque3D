@@ -21,32 +21,60 @@
 //-----------------------------------------------------------------------------
 
 #include "platform/platform.h"
-#include "T3D/physics/physicsObject.h"
 
-#include "console/simEvents.h"
-#include "console/simSet.h"
+#include "sfx/sfxProvider.h"
+#include "console/console.h"
+#include "core/module.h"
 
+#include "sfx/apple/sfxAPPLEDevice.h"
 
-PhysicsObject::PhysicsObject()
-   : mQueuedEvent( InvalidEventId )
+class SFXAPPLEProvider : public SFXProvider
 {
+public:
+   SFXAPPLEProvider() : SFXProvider( "Apple" )
+   {}
+   
+   virtual ~SFXAPPLEProvider() {}
+   
+protected:
+   void init() override;
+public:
+   SFXDevice *createDevice(const String& deviceName, bool useHardware, S32 maxBuffers) override;
+};
+
+MODULE_BEGIN(SFXAPPLE)
+
+   MODULE_INIT_BEFORE( SFX )
+   MODULE_SHUTDOWN_AFTER( SFX )
+
+   SFXAPPLEProvider* mProvider = NULL;
+   
+   MODULE_INIT
+   {
+      mProvider = new SFXAPPLEProvider;
+   }
+
+   MODULE_SHUTDOWN
+   {
+      delete mProvider;
+   }
+
+MODULE_END;
+
+void SFXAPPLEProvider::init()
+{
+   SFXDeviceInfo* info = new SFXDeviceInfo;
+   
+   info->internalName = "AppleDevice";
+   info->name = "AppleDevice";
+   
+   mDeviceInfo.push_back(info);
+   
+   regProvider(this);
 }
 
-PhysicsObject::~PhysicsObject()
+SFXDevice *SFXAPPLEProvider::createDevice(const String &deviceName, bool useHardware, int maxBuffers)
 {
-   if ( mQueuedEvent != InvalidEventId )
-      Sim::cancelEvent( mQueuedEvent );
-}
-
-void PhysicsObject::queueCallback( U32 ms, DelegateDef<void()> callback )
-{
-   // Cancel any existing event we may have pending.
-   if ( mQueuedEvent != InvalidEventId )
-      Sim::cancelEvent( mQueuedEvent );
-
-   // Fire off a new event.
-   SimDelegateEvent *event_ = new SimDelegateEvent();
-   event_->mCallback = callback;
-   event_->mEventId = &mQueuedEvent;
-   mQueuedEvent = Sim::postEvent( Sim::getRootGroup(), event_, Sim::getCurrentTime() + ms );
+   SFXDeviceInfo* info = _findDeviceInfo(deviceName);
+   return new SFXAPPLEDevice(this, info->internalName, useHardware, maxBuffers);
 }

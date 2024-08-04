@@ -64,7 +64,7 @@ public:
    virtual Box3F getWorldBounds() = 0;
 
    /// 
-   void queueCallback( U32 ms, Delegate<void()> callback );
+   void queueCallback( U32 ms, DelegateDef<void()> callback );
 
    const PhysicsUserData& getUserData() const { return mUserData; }
 

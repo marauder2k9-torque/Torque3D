@@ -143,13 +143,13 @@ public:
    void process(SimObject *object) override;
 };
 
-/// General purpose SimEvent which calls a Delegate<void()> callback.
+/// General purpose SimEvent which calls a DelegateDef<void()> callback.
 class SimDelegateEvent : public SimEvent
 {
 public:
 
    U32 *mEventId;
-   Delegate<void()> mCallback;
+   DelegateDef<void()> mCallback;
 
    void process( SimObject* ) override
    {
