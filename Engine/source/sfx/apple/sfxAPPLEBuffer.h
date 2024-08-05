@@ -20,56 +20,36 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+#ifndef sfxAPPLEBuffer_hpp
+#define sfxAPPLEBuffer_hpp
+
+#ifndef _SFXAPPLEDEVICE_H_
 #include "sfx/apple/sfxAPPLEDevice.h"
+#endif
 
-SFXAPPLEDevice::SFXAPPLEDevice(SFXProvider *provider, String name, bool useHardware, S32 maxBuffers)
-: Parent(name, provider, useHardware, maxBuffers)
+class SFXAPPLEBuffer : public SFXBuffer
 {
-   audioEngine = [[AVAudioEngine alloc] init];
-   listenerNode = [[AVAudioEnvironmentNode alloc] init];
+public:
+   typedef SFXBuffer Parent;
    
-   listenerNode.listenerVectorOrientation = AVAudioMake3DVectorOrientation(
-                                                                           AVAudioMake3DVector(0,0,-1), // forward
-                                                                           AVAudioMake3DVector(0, 1, 0)); // up
+protected:
    
-   [audioEngine attachNode:listenerNode];
-   [audioEngine connect:listenerNode to:[audioEngine mainMixerNode] format:nil];
+   AVAudioPCMBuffer *pcmBuffer;
+   AVAudioFormat *format;
    
-   [audioEngine startAndReturnError:nil];
-}
-
-SFXAPPLEDevice::~SFXAPPLEDevice(){
-   [audioEngine stop];
-}
-
-SFXBuffer* SFXAPPLEDevice::createBuffer(const ThreadSafeRef<SFXStream> &stream, SFXDescription *desc)
-{
+   SFXAPPLEBuffer(const ThreadSafeRef<SFXStream>& stream,
+                  SFXDescription* desc,
+                  bool useHardware);
    
-}
-
-SFXVoice* SFXAPPLEDevice::createVoice(bool is3D, SFXBuffer *buffer)
-{
+   void write( SFXInternal::SFXStreamPacket* const* packets, U32 num) override;
+   void _flush() override;
    
-}
-
-void SFXAPPLEDevice::setListener(U32 index, const SFXListenerProperties &listener)
-{
+public:
+   static SFXAPPLEBuffer* create(const ThreadSafeRef<SFXStream>& stream,
+                                 SFXDescription* desc,
+                                 bool useHardware);
    
-}
+   virtual ~SFXAPPLEBuffer();
+};
 
-void SFXAPPLEDevice::setDistanceModel(SFXDistanceModel model)
-{
-   return;
-}
-
-void SFXAPPLEDevice::setDopplerFactor(F32 fac)
-{
-   
-}
-
-void SFXAPPLEDevice::setRolloffFactor(F32 fac)
-{
-   
-}
-
-
+#endif /* sfxAPPLEBuffer_hpp */

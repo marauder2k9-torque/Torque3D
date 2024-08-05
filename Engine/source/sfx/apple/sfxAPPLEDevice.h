@@ -43,5 +43,34 @@
    #include "sfx/sfxVoice.h"
 #endif
 
+#import <Foundation/Foundation.h>
+#import <AVFoundation/AVFoundation.h>
+
+class SFXAPPLEDevice : public SFXDevice
+{
+public:
+   typedef SFXDevice Parent;
+   
+   SFXAPPLEDevice( SFXProvider* provider,
+                   String name,
+                   bool useHardware,
+                   S32 maxBuffers);
+   
+   virtual ~SFXAPPLEDevice();
+   
+   SFXBuffer* createBuffer(const ThreadSafeRef<SFXStream>& stream, SFXDescription* desc) override;
+   SFXVoice* createVoice(bool is3D, SFXBuffer* buffer) override;
+   void setListener(U32 index, const SFXListenerProperties& listener) override;
+   void setDistanceModel(SFXDistanceModel model) override;
+   void setDopplerFactor(F32 fac) override;
+   void setRolloffFactor(F32 fac) override;
+   
+   void resetReverb() override {}
+   
+   AVAudioEngine* audioEngine;
+   AVAudioEnvironmentNode* listenerNode;
+};
+
+
 #endif /* _SFXAPPLEDEVICE_H_ */
 
