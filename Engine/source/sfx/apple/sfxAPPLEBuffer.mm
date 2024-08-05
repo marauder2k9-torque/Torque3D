@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "sfxAPPLEBuffer.h"
+#include "sfx/apple/sfxAPPLEBuffer.h"
 
 SFXAPPLEBuffer *SFXAPPLEBuffer::create(const ThreadSafeRef<SFXStream> &stream, SFXDescription *desc, bool useHardware) {
    SFXAPPLEBuffer* buffer = new SFXAPPLEBuffer(stream, desc, useHardware);
@@ -29,15 +29,20 @@ SFXAPPLEBuffer *SFXAPPLEBuffer::create(const ThreadSafeRef<SFXStream> &stream, S
 }
 
 
-SFXAPPLEBuffer::SFXAPPLEBuffer(const ThreadSafeRef<SFXStream> &stream, SFXDescription *desc, bool useHardware) : Parent(stream, desc)
+SFXAPPLEBuffer::SFXAPPLEBuffer(const ThreadSafeRef<SFXStream> &stream, SFXDescription *desc, bool useHardware) 
+   :  Parent(stream, desc),
+      pcmBuffer(nullptr),
+      format(nullptr)
 {
    const SFXFormat sfxFormat = stream->getFormat();
    
-   format = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:sfxFormat.getSamplesPerSecond() channels:sfxFormat.getChannels()];
+   format = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:sfxFormat.getSamplesPerSecond() 
+                                                           channels:sfxFormat.getChannels()];
    
    U32 sampleCount = stream->getSampleCount();
    
-   pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format frameCapacity:sampleCount];
+   pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format 
+                                             frameCapacity:sampleCount];
 }
 
 
@@ -64,7 +69,10 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
          [pcmBuffer release];
       }
       
-      pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format frameCapacity:packet->mSizeActual / format.streamDescription->mBytesPerFrame];
+      pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format 
+                                                frameCapacity:packet->mSizeActual /
+                   format.streamDescription->mBytesPerFrame];
+      
       pcmBuffer.frameLength = pcmBuffer.frameCapacity;
 
       // Copy data to AVAudioPCMBuffer
@@ -88,7 +96,8 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
          continue;
       }
 
-      pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format       frameCapacity:packet->mSizeActual / format.streamDescription->mBytesPerFrame];
+      pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format 
+                                                frameCapacity:packet->mSizeActual / format.streamDescription->mBytesPerFrame];
       pcmBuffer.frameLength = pcmBuffer.frameCapacity;
 
       // Copy data to AVAudioPCMBuffer
@@ -100,7 +109,7 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
 }
 
 void SFXAPPLEBuffer::_flush() {
-
+   [pcmBuffer release];
 }
 
 SFXAPPLEBuffer::~SFXAPPLEBuffer() {

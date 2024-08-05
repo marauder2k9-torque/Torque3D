@@ -20,40 +20,95 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef _SFXAPPLEBUFFER_H_
-#define _SFXAPPLEBUFFER_H_
-
-#ifndef _SFXAPPLEDEVICE_H_
+#include "platform/platform.h"
+#include "sfx/apple/sfxAPPLEBuffer.h"
 #include "sfx/apple/sfxAPPLEDevice.h"
-#endif
+#include "sfx/apple/sfxAPPLEVoice.h"
 
-class SFXAPPLEVoice;
 
-class SFXAPPLEBuffer : public SFXBuffer
+SFXAPPLEVoice::SFXAPPLEVoice(AVAudioEngine *audioEngine, SFXAPPLEBuffer *buffer)
+:  Parent( buffer),
+   mPlayerNode([[AVAudioPlayerNode alloc] init])
 {
-public:
-   typedef SFXBuffer Parent;
-   friend class SFXAPPLEVoice;
-   friend class SFXAPPLEDevice;
    
-protected:
-   
-   AVAudioPCMBuffer *pcmBuffer;
-   AVAudioFormat *format;
-   
-   SFXAPPLEBuffer(const ThreadSafeRef<SFXStream>& stream,
-                  SFXDescription* desc,
-                  bool useHardware);
-   
-   void write( SFXInternal::SFXStreamPacket* const* packets, U32 num) override;
-   void _flush() override;
-   
-public:
-   static SFXAPPLEBuffer* create(const ThreadSafeRef<SFXStream>& stream,
-                                 SFXDescription* desc,
-                                 bool useHardware);
-   
-   virtual ~SFXAPPLEBuffer();
-};
+}
 
-#endif /* _SFXAPPLEBUFFER_H_ */
+
+SFXAPPLEVoice *SFXAPPLEVoice::create(SFXAPPLEDevice *device, SFXAPPLEBuffer *buffer) {
+   
+}
+
+
+SFXAPPLEVoice::~SFXAPPLEVoice() { 
+
+}
+
+SFXStatus SFXAPPLEVoice::_status() const { 
+   
+}
+
+void SFXAPPLEVoice::_play() { 
+   
+}
+
+void SFXAPPLEVoice::_pause() { 
+   
+}
+
+void SFXAPPLEVoice::_stop() { 
+   
+}
+
+void SFXAPPLEVoice::_seek(U32 sample) { 
+   
+}
+
+U32 SFXAPPLEVoice::_tell() const { 
+   
+}
+
+void SFXAPPLEVoice::setVolume(F32 volume) { 
+   
+}
+
+void SFXAPPLEVoice::setPitch(F32 pitch) { 
+   
+}
+
+void SFXAPPLEVoice::setMinMaxDistance(F32 min, F32 max) { 
+   
+}
+
+void SFXAPPLEVoice::play(bool looping) { 
+   
+}
+
+void SFXAPPLEVoice::setVelocity(const VectorF &velocity) { 
+   
+}
+
+void SFXAPPLEVoice::setTransform(const MatrixF &transform) { 
+   
+}
+
+void SFXAPPLEVoice::setCone(F32 innerAngle, F32 outerAngle, F32 outerVolume) { 
+   
+}
+
+void SFXAPPLEVoice::setRolloffFactor(F32 factor) { 
+   
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

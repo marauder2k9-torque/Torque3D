@@ -20,40 +20,53 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef _SFXAPPLEBUFFER_H_
-#define _SFXAPPLEBUFFER_H_
+#ifndef _SFXAPPLEVOICE_H_
+#define _SFXAPPLEVOICE_H_
 
 #ifndef _SFXAPPLEDEVICE_H_
 #include "sfx/apple/sfxAPPLEDevice.h"
 #endif
 
-class SFXAPPLEVoice;
+class SFXAPPLEBuffer;
 
-class SFXAPPLEBuffer : public SFXBuffer
+class SFXAPPLEVoice : public SFXVoice
 {
 public:
-   typedef SFXBuffer Parent;
-   friend class SFXAPPLEVoice;
+   typedef SFXVoice Parent;
+   friend class SFXAPPLEBuffer;
    friend class SFXAPPLEDevice;
    
+public:
+   /// Create a new voice for the given buffer.
+   static SFXAPPLEVoice* create(SFXAPPLEDevice* device, SFXAPPLEBuffer* buffer);
+
+   SFXAPPLEVoice(AVAudioEngine* audioEngine, SFXAPPLEBuffer* buffer);
+   
+   virtual ~SFXAPPLEVoice();
+
+   /// @name SFXVoice
+   /// @{
+   virtual SFXStatus _status() const override;
+   virtual void _play() override;
+   virtual void _pause() override;
+   virtual void _stop() override;
+   virtual void _seek(U32 sample) override;
+   virtual U32 _tell() const override;
+   virtual void setVolume(F32 volume) override;
+   virtual void setPitch(F32 pitch) override;
+   virtual void setMinMaxDistance(F32 min, F32 max) override;
+   virtual void play(bool looping) override;
+   virtual void setVelocity(const VectorF& velocity) override;
+   virtual void setTransform(const MatrixF& transform) override;
+   virtual void setCone(F32 innerAngle, F32 outerAngle, F32 outerVolume) override;
+   virtual void setRolloffFactor(F32 factor) override;
+   /// @}
+
 protected:
    
-   AVAudioPCMBuffer *pcmBuffer;
-   AVAudioFormat *format;
-   
-   SFXAPPLEBuffer(const ThreadSafeRef<SFXStream>& stream,
-                  SFXDescription* desc,
-                  bool useHardware);
-   
-   void write( SFXInternal::SFXStreamPacket* const* packets, U32 num) override;
-   void _flush() override;
-   
-public:
-   static SFXAPPLEBuffer* create(const ThreadSafeRef<SFXStream>& stream,
-                                 SFXDescription* desc,
-                                 bool useHardware);
-   
-   virtual ~SFXAPPLEBuffer();
+   AVAudioEngine* mAudioEngine;
+   AVAudioPlayerNode* mPlayerNode;
+
 };
 
-#endif /* _SFXAPPLEBUFFER_H_ */
+#endif // _SFXAPPLEVOICE_H_

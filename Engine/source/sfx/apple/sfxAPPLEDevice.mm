@@ -29,11 +29,13 @@ SFXAPPLEDevice::SFXAPPLEDevice(SFXProvider *provider, String name, bool useHardw
    listenerNode = [[AVAudioEnvironmentNode alloc] init];
    
    listenerNode.listenerVectorOrientation = AVAudioMake3DVectorOrientation(
-                                                                           AVAudioMake3DVector(0,0,-1), // forward
-                                                                           AVAudioMake3DVector(0, 1, 0)); // up
+                                                AVAudioMake3DVector(0,0,-1), // forward
+                                                AVAudioMake3DVector(0, 1, 0)); // up
    
    [audioEngine attachNode:listenerNode];
-   [audioEngine connect:listenerNode to:[audioEngine mainMixerNode] format:nil];
+   
+   [audioEngine connect:listenerNode
+                     to:[audioEngine mainMixerNode] format:nil];
    
    [audioEngine startAndReturnError:nil];
 }
