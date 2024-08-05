@@ -52,7 +52,7 @@ class SFXALVoice : public SFXVoice
                   ALuint sourceName );
 
       ALuint mSourceName;
-
+      bool mis3D;
       /// Buggy OAL jumps around when pausing.  Save playback cursor here.
       F32 mResumeAtSampleOffset;
       

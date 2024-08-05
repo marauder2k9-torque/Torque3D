@@ -72,9 +72,11 @@ SFXALVoice::SFXALVoice( const OPENALFNTABLE &oalft,
       mSourceName( sourceName ),
       mResumeAtSampleOffset( -1.0f ),
       mSampleOffset( 0 ),
-      mOpenAL( oalft )
+      mOpenAL( oalft ),
+      mis3D(buffer->mIs3d)
 {
    AL_SANITY_CHECK();
+   
 }
 
 SFXALVoice::~SFXALVoice()
@@ -190,7 +192,10 @@ U32 SFXALVoice::_tell() const
 void SFXALVoice::setMinMaxDistance( F32 min, F32 max )
 {
    AL_SANITY_CHECK();
-
+   
+   if(!mis3D)
+      return;
+   
    mOpenAL.alSourcef( mSourceName, AL_REFERENCE_DISTANCE, min );
    mOpenAL.alSourcef( mSourceName, AL_MAX_DISTANCE, max );
 }
@@ -210,7 +215,9 @@ void SFXALVoice::setVelocity( const VectorF& velocity )
 {
    AL_SANITY_CHECK();
 
-   // Torque and OpenAL are both right handed 
+   if(!mis3D)
+      return;
+   // Torque and OpenAL are both right handed
    // systems, so no coordinate flipping is needed.
 
    mOpenAL.alSourcefv( mSourceName, AL_VELOCITY, velocity );
@@ -222,7 +229,9 @@ void SFXALVoice::setTransform( const MatrixF& transform )
 
    // Torque and OpenAL are both right handed 
    // systems, so no coordinate flipping is needed.
-
+   if(!mis3D)
+      return;
+   
    Point3F pos, dir;
    transform.getColumn( 3, &pos );
    transform.getColumn( 1, &dir );
@@ -248,7 +257,10 @@ void SFXALVoice::setPitch( F32 pitch )
 void SFXALVoice::setCone( F32 innerAngle, F32 outerAngle, F32 outerVolume )
 {
    AL_SANITY_CHECK();
-
+   
+   if(!mis3D)
+      return;
+   
    mOpenAL.alSourcef( mSourceName, AL_CONE_INNER_ANGLE, innerAngle );
    mOpenAL.alSourcef( mSourceName, AL_CONE_OUTER_ANGLE, outerAngle );
    mOpenAL.alSourcef( mSourceName, AL_CONE_OUTER_GAIN, outerVolume );
@@ -256,5 +268,8 @@ void SFXALVoice::setCone( F32 innerAngle, F32 outerAngle, F32 outerVolume )
 
 void SFXALVoice::setRolloffFactor( F32 factor )
 {
+   if(!mis3D)
+      return;
+   
    mOpenAL.alSourcef( mSourceName, AL_ROLLOFF_FACTOR, factor );
 }

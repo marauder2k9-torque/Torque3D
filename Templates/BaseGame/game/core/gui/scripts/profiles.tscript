@@ -67,7 +67,6 @@ new GuiControlProfile (GuiDefaultProfile)
    fontColorSEL= "255 255 255";
 
    // bitmap information
-   bitmapAsset = "";
    bitmapBase = "";
    textOffset = "0 0";
 
@@ -79,6 +78,8 @@ new GuiControlProfile (GuiDefaultProfile)
    returnTab = false;
    numbersOnly = false;
    cursorColor = "0 0 0 255";
+   soundButtonDownAsset = "Core_GUI:buttonClick";
+   soundButtonOverAsset = "Core_GUI:buttonHover";
 };
 
 if(!isObject(GuiNonModalDefaultProfile))
