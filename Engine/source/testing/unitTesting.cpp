@@ -36,69 +36,69 @@
 
 //-----------------------------------------------------------------------------
 
-//class TorqueUnitTestListener : public ::testing::EmptyTestEventListener
-//{
-//   // Called before a test starts.
-//   virtual void OnTestStart(const ::testing::TestInfo& testInfo)
-//   {
-//      if (mVerbose)
-//         Con::printf("> Starting Test '%s.%s'",
-//            testInfo.test_case_name(), testInfo.name());
-//   }
-//
-//   // Called after a failed assertion or a SUCCEED() invocation.
-//   virtual void OnTestPartResult(const ::testing::TestPartResult& testPartResult)
-//   {
-//      if (testPartResult.failed())
-//      {
-//         Con::warnf(">> Failed with '%s' in '%s' at (line:%d)\n",
-//            testPartResult.summary(),
-//            testPartResult.file_name(),
-//            testPartResult.line_number()
-//         );
-//      }
-//      else if (mVerbose)
-//      {
-//         Con::printf(">> Passed with '%s' in '%s' at (line:%d)",
-//            testPartResult.summary(),
-//            testPartResult.file_name(),
-//            testPartResult.line_number()
-//         );
-//      }
-//   }
-//
-//   // Called after a test ends.
-//   virtual void OnTestEnd(const ::testing::TestInfo& testInfo)
-//   {
-//      if (testInfo.result()->Failed())
-//      {
-//         Con::printf("TestClass:%s Test:%s Failed!",
-//            testInfo.test_case_name(), testInfo.name());
-//      }
-//
-//      if (!mVerbose)
-//         return;
-//
-//      else if(testInfo.result()->Passed())
-//      {
-//         Con::printf("TestClass:%s Test:%s Succeeded!",
-//            testInfo.test_case_name(), testInfo.name());
-//      }
-//      else
-//      {
-//         Con::printf("TestClass:%s Test:%s Skipped!",
-//            testInfo.test_case_name(), testInfo.name());
-//      }
-//
-//      Con::printf("> Ending Test\n");
-//
-//   }
-//
-//   bool mVerbose;
-//
-//public:
-//   TorqueUnitTestListener(bool verbose) : mVerbose(verbose) {}
-//};
+class TorqueUnitTestListener : public ::testing::EmptyTestEventListener
+{
+   // Called before a test starts.
+   virtual void OnTestStart(const ::testing::TestInfo& testInfo)
+   {
+      if (mVerbose)
+         Con::printf("> Starting Test '%s.%s'",
+            testInfo.test_case_name(), testInfo.name());
+   }
+
+   // Called after a failed assertion or a SUCCEED() invocation.
+   virtual void OnTestPartResult(const ::testing::TestPartResult& testPartResult)
+   {
+      if (testPartResult.failed())
+      {
+         Con::warnf(">> Failed with '%s' in '%s' at (line:%d)\n",
+            testPartResult.summary(),
+            testPartResult.file_name(),
+            testPartResult.line_number()
+         );
+      }
+      else if (mVerbose)
+      {
+         Con::printf(">> Passed with '%s' in '%s' at (line:%d)",
+            testPartResult.summary(),
+            testPartResult.file_name(),
+            testPartResult.line_number()
+         );
+      }
+   }
+
+   // Called after a test ends.
+   virtual void OnTestEnd(const ::testing::TestInfo& testInfo)
+   {
+      if (testInfo.result()->Failed())
+      {
+         Con::printf("TestClass:%s Test:%s Failed!",
+            testInfo.test_case_name(), testInfo.name());
+      }
+
+      if (!mVerbose)
+         return;
+
+      else if(testInfo.result()->Passed())
+      {
+         Con::printf("TestClass:%s Test:%s Succeeded!",
+            testInfo.test_case_name(), testInfo.name());
+      }
+      else
+      {
+         Con::printf("TestClass:%s Test:%s Skipped!",
+            testInfo.test_case_name(), testInfo.name());
+      }
+
+      Con::printf("> Ending Test\n");
+
+   }
+
+   bool mVerbose;
+
+public:
+   TorqueUnitTestListener(bool verbose) : mVerbose(verbose) {}
+};
 
 class MemoryLeakDetector : public ::testing::EmptyTestEventListener
 {
@@ -117,8 +117,11 @@ public:
 #if defined(TORQUE_OS_WIN)
          _CrtMemState stateNow, stateDiff;
          _CrtMemCheckpoint(&stateNow);
-         if (_CrtMemDifference(&stateDiff, &memState_, &stateNow))
-            _CrtMemDumpStatistics(&stateDiff);
+         int diffResult = _CrtMemDifference(&stateDiff, &memState_, &stateNow);
+         if (diffResult)
+         {
+            FAIL() << "Memory leak of " << stateDiff.lSizes[1] << " byte(s) detected.";
+         }
 #endif
       }
    }
@@ -127,21 +130,23 @@ private:
 #if defined(TORQUE_OS_WIN)
    _CrtMemState memState_;
 #endif
+public:
+   MemoryLeakDetector() {}
 };
 
-//class TorqueScriptFixture : public testing::Test {};
-//
-//class TorqueScriptTest : public TorqueScriptFixture {
-//public:
-//   explicit TorqueScriptTest(const char* pFunctionName) : mFunctionName(pFunctionName) {}
-//   void TestBody() override
-//   {
-//      Con::executef(mFunctionName);
-//   }
-//
-//private:
-//   const char* mFunctionName;
-//};
+class TorqueScriptFixture : public testing::Test {};
+
+class TorqueScriptTest : public TorqueScriptFixture {
+public:
+   explicit TorqueScriptTest(const char* pFunctionName) : mFunctionName(pFunctionName) {}
+   void TestBody() override
+   {
+      Con::executef(mFunctionName);
+   }
+
+private:
+   const char* mFunctionName;
+};
 
 int main(int argc, char** argv)
 {
@@ -151,9 +156,6 @@ int main(int argc, char** argv)
    printf("Running main() from %s\n", __FILE__);
    // Initialize Google Test.
    testing::InitGoogleTest(&argc, argv);
-
-   /*MemoryLeakDetector my_listener;
-   ::testing::UnitTest::GetInstance()->listeners().Append(&my_listener);*/
 
    // torques handle command.
    StandardMainLoop::init();
@@ -176,52 +178,51 @@ int main(int argc, char** argv)
    // run tests.
    int res = RUN_ALL_TESTS();
    StandardMainLoop::shutdown();
-
    return res;
 }
 
-//DefineEngineFunction(addUnitTest, void, (const char* function), ,
-//   "Add a TorqueScript function as a GTest unit test.\n"
-//   "@note This is only implemented rudimentarily to open the door for future development in unit-testing the engine.\n"
-//   "@tsexample\n"
-//   "function MyTest() {\n"
-//   "   expectTrue(2+2 == 4, \"basic math should work\");\n"
-//   "}\n"
-//   "addUnitTest(MyTest);\n"
-//   "@endtsexample\n"
-//   "@see expectTrue")
-//{
-//   Namespace::Entry* entry = Namespace::global()->lookup(StringTable->insert(function));
-//   const char* file = __FILE__;
-//   U32 ln = __LINE__;
-//   if (entry != NULL)
-//   {
-//      file = entry->mModule->getName();
-//      U32 inst;
-//      entry->mModule->findBreakLine(entry->mFunctionOffset, ln, inst);
-//   }
-//   else
-//   {
-//      Con::warnf("failed to register unit test %s, could not find the function", function);
-//   }
-//
-//   testing::RegisterTest("TorqueScriptFixture", function, NULL, NULL, file, ln,
-//      [=]() -> TorqueScriptFixture* { return new TorqueScriptTest(function); });
-//}
-//
-//String scriptFileMessage(const char* message)
-//{
-//   Dictionary* frame = Con::getCurrentStackFrame();
-//   Con::Module* module = frame->module;
-//   const char* scriptLine = module->getFileLine(frame->ip);
-//   return  String::ToString("at %s: %s", scriptLine, message);
-//}
-//
-//DefineEngineFunction(expectTrue, void, (bool test, const char* message), (""),
-//   "TorqueScript wrapper around the EXPECT_TRUE assertion in GTest.\n"
-//   "@tsexample\n"
-//   "expectTrue(2+2 == 4, \"basic math should work\");\n"
-//   "@endtsexample")
-//{
-//   EXPECT_TRUE(test) << scriptFileMessage(message).c_str();
-//}
+DefineEngineFunction(addUnitTest, void, (const char* function), ,
+   "Add a TorqueScript function as a GTest unit test.\n"
+   "@note This is only implemented rudimentarily to open the door for future development in unit-testing the engine.\n"
+   "@tsexample\n"
+   "function MyTest() {\n"
+   "   expectTrue(2+2 == 4, \"basic math should work\");\n"
+   "}\n"
+   "addUnitTest(MyTest);\n"
+   "@endtsexample\n"
+   "@see expectTrue")
+{
+   Namespace::Entry* entry = Namespace::global()->lookup(StringTable->insert(function));
+   const char* file = __FILE__;
+   U32 ln = __LINE__;
+   if (entry != NULL)
+   {
+      file = entry->mModule->getName();
+      U32 inst;
+      entry->mModule->findBreakLine(entry->mFunctionOffset, ln, inst);
+   }
+   else
+   {
+      Con::warnf("failed to register unit test %s, could not find the function", function);
+   }
+
+   testing::RegisterTest("TorqueScriptFixture", function, NULL, NULL, file, ln,
+      [=]() -> TorqueScriptFixture* { return new TorqueScriptTest(function); });
+}
+
+String scriptFileMessage(const char* message)
+{
+   Dictionary* frame = Con::getCurrentStackFrame();
+   Con::Module* module = frame->module;
+   const char* scriptLine = module->getFileLine(frame->ip);
+   return  String::ToString("at %s: %s", scriptLine, message);
+}
+
+DefineEngineFunction(expectTrue, void, (bool test, const char* message), (""),
+   "TorqueScript wrapper around the EXPECT_TRUE assertion in GTest.\n"
+   "@tsexample\n"
+   "expectTrue(2+2 == 4, \"basic math should work\");\n"
+   "@endtsexample")
+{
+   EXPECT_TRUE(test) << scriptFileMessage(message).c_str();
+}
