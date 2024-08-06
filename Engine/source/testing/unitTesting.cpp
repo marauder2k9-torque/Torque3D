@@ -178,7 +178,7 @@ int main(int argc, char** argv)
    // run tests.
    int res = RUN_ALL_TESTS();
    StandardMainLoop::shutdown();
-   return 0;
+   return res;
 }
 
 DefineEngineFunction(addUnitTest, void, (const char* function), ,
