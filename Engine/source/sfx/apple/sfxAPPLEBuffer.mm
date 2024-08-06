@@ -21,6 +21,8 @@
 //-----------------------------------------------------------------------------
 
 #include "sfx/apple/sfxAPPLEBuffer.h"
+#include "sfx/sfxDescription.h"
+#include "console/console.h"
 
 SFXAPPLEBuffer *SFXAPPLEBuffer::create(const ThreadSafeRef<SFXStream> &stream, SFXDescription *desc, bool useHardware) {
    SFXAPPLEBuffer* buffer = new SFXAPPLEBuffer(stream, desc, useHardware);
@@ -29,25 +31,28 @@ SFXAPPLEBuffer *SFXAPPLEBuffer::create(const ThreadSafeRef<SFXStream> &stream, S
 }
 
 
-SFXAPPLEBuffer::SFXAPPLEBuffer(const ThreadSafeRef<SFXStream> &stream, SFXDescription *desc, bool useHardware) 
+SFXAPPLEBuffer::SFXAPPLEBuffer(const ThreadSafeRef<SFXStream> &stream, 
+                               SFXDescription *desc,
+                               bool useHardware)
    :  Parent(stream, desc),
-      pcmBuffer(nullptr),
-      format(nullptr)
+      mIs3d(desc->mIs3D),
+      mPCMBuffer(nullptr),
+      mFormat(nullptr)
 {
    const SFXFormat sfxFormat = stream->getFormat();
    
-   format = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:sfxFormat.getSamplesPerSecond() 
+   mFormat = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:sfxFormat.getSamplesPerSecond()
                                                            channels:sfxFormat.getChannels()];
    
    U32 sampleCount = stream->getSampleCount();
    
-   pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format 
+   mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:mFormat
                                              frameCapacity:sampleCount];
 }
 
 
 void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num) {
-   if (!num || !pcmBuffer)
+   if (!num || !mPCMBuffer)
    {
       return;
    }
@@ -58,25 +63,24 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
       SFXInternal::SFXStreamPacket* packet = packets[num - 1];
 
       // Ensure format is valid and create AVAudioPCMBuffer.
-      AVAudioFormat* format = format;
+      AVAudioFormat* format = mFormat;
       if (!format)
       {
          return;
       }
 
-      if (pcmBuffer)
+      if (mPCMBuffer)
       {
-         [pcmBuffer release];
+         [mPCMBuffer release];
       }
       
-      pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format 
-                                                frameCapacity:packet->mSizeActual /
-                   format.streamDescription->mBytesPerFrame];
+      mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
+                                                frameCapacity:packet->mSizeActual];
       
-      pcmBuffer.frameLength = pcmBuffer.frameCapacity;
-
       // Copy data to AVAudioPCMBuffer
-      memcpy(pcmBuffer.audioBufferList->mBuffers[0].mData, packet->data, packet->mSizeActual);
+      memcpy(mPCMBuffer.audioBufferList->mBuffers[0].mData, packet->data, packet->mSizeActual);
+      
+      mPCMBuffer.frameLength = packet->mSizeActual;
 
       // Clean up packet
       destructSingle(packet);
@@ -89,19 +93,19 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
    for (U32 i = 0; i < num; ++i)
    {
       SFXInternal::SFXStreamPacket* packet = packets[i];
-      AVAudioFormat* format = format;
+      AVAudioFormat* format = mFormat;
 
       // Ensure format is valid and create AVAudioPCMBuffer
       if (!format) {
          continue;
       }
 
-      pcmBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format 
+      mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
                                                 frameCapacity:packet->mSizeActual / format.streamDescription->mBytesPerFrame];
-      pcmBuffer.frameLength = pcmBuffer.frameCapacity;
+      mPCMBuffer.frameLength = mPCMBuffer.frameCapacity;
 
       // Copy data to AVAudioPCMBuffer
-      memcpy(pcmBuffer.audioBufferList->mBuffers[0].mData, packet->data, packet->mSizeActual);
+      memcpy(mPCMBuffer.audioBufferList->mBuffers[0].mData, packet->data, packet->mSizeActual);
 
       // Clean up packet
       destructSingle(packet);
@@ -109,19 +113,19 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
 }
 
 void SFXAPPLEBuffer::_flush() {
-   [pcmBuffer release];
+   [mPCMBuffer release];
 }
 
 SFXAPPLEBuffer::~SFXAPPLEBuffer() {
-   if(pcmBuffer)
+   if(mPCMBuffer)
    {
-      [pcmBuffer release];
-      pcmBuffer = nullptr;
+      [mPCMBuffer release];
+      mPCMBuffer = nullptr;
    }
    
-   if(format)
+   if(mFormat)
    {
-      [format release];
-      format = nullptr;
+      [mFormat release];
+      mFormat = nullptr;
    }
 }

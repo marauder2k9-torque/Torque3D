@@ -26,41 +26,77 @@
 #include "sfx/apple/sfxAPPLEVoice.h"
 
 
-SFXAPPLEVoice::SFXAPPLEVoice(AVAudioEngine *audioEngine, SFXAPPLEBuffer *buffer)
+SFXAPPLEVoice *SFXAPPLEVoice::create(SFXAPPLEDevice *device, SFXAPPLEBuffer *buffer) {
+   return new SFXAPPLEVoice(device, buffer);
+}
+
+SFXAPPLEVoice::SFXAPPLEVoice(SFXAPPLEDevice *device, SFXAPPLEBuffer *buffer)
 :  Parent( buffer),
+   mAudioEngine(device->audioEngine),
+   mEnvironmentNode(device->listenerNode),
+   mPitchControl([[AVAudioUnitTimePitch alloc] init]),
    mPlayerNode([[AVAudioPlayerNode alloc] init])
 {
+   [mAudioEngine attachNode:mPitchControl];
+   [mAudioEngine attachNode:mPlayerNode];
+   
+   [mAudioEngine connect:mPlayerNode
+                      to:mPitchControl
+                  format:buffer->mFormat];
+   
+   if(buffer->mIs3d){
+      [mAudioEngine connect:mPitchControl
+                         to:mEnvironmentNode
+                     format:buffer->mFormat];
+      mPlayerNode.sourceMode = AVAudio3DMixingSourceModePointSource;
+   }
+   else
+   {
+      [mAudioEngine connect:mPitchControl
+                         to:mAudioEngine.mainMixerNode
+                     format:buffer->mFormat];
+   }
+   
+   [mPlayerNode scheduleBuffer:buffer->mPCMBuffer
+             completionHandler:nil];
+   
+   mPlayerNode.position = AVAudioMake3DPoint(0, 0, 0);
    
 }
 
-
-SFXAPPLEVoice *SFXAPPLEVoice::create(SFXAPPLEDevice *device, SFXAPPLEBuffer *buffer) {
+SFXAPPLEVoice::~SFXAPPLEVoice() {
+   [mPlayerNode stop];
+   [mAudioEngine detachNode:mPlayerNode];
+   [mPlayerNode release];
    
-}
-
-
-SFXAPPLEVoice::~SFXAPPLEVoice() { 
-
+   [mAudioEngine detachNode:mPitchControl];
+   [mPitchControl release];
 }
 
 SFXStatus SFXAPPLEVoice::_status() const { 
+   if(mPlayerNode.isPlaying){
+      return SFXStatus::SFXStatusPlaying;
+   }
    
+   if(!mPlayerNode.isPlaying)
+      return SFXStatus::SFXStatusStopped;
 }
 
 void SFXAPPLEVoice::_play() { 
-   
+   [mPlayerNode play];
 }
 
 void SFXAPPLEVoice::_pause() { 
-   
+   [mPlayerNode pause];
 }
 
 void SFXAPPLEVoice::_stop() { 
-   
+   [mPlayerNode stop];
+   [mPlayerNode reset];
 }
 
 void SFXAPPLEVoice::_seek(U32 sample) { 
-   
+   [mPlayerNode stop];
 }
 
 U32 SFXAPPLEVoice::_tell() const { 
@@ -68,31 +104,31 @@ U32 SFXAPPLEVoice::_tell() const {
 }
 
 void SFXAPPLEVoice::setVolume(F32 volume) { 
-   
+   mPlayerNode.volume = volume;
 }
 
 void SFXAPPLEVoice::setPitch(F32 pitch) { 
-   
+   mPitchControl.pitch = pitch * 1200;
 }
 
-void SFXAPPLEVoice::setMinMaxDistance(F32 min, F32 max) { 
-   
+void SFXAPPLEVoice::setMinMaxDistance(F32 min, F32 max) {
 }
 
 void SFXAPPLEVoice::play(bool looping) { 
-   
+   [mPlayerNode play];
 }
 
 void SFXAPPLEVoice::setVelocity(const VectorF &velocity) { 
    
 }
 
-void SFXAPPLEVoice::setTransform(const MatrixF &transform) { 
+void SFXAPPLEVoice::setTransform(const MatrixF &transform) {
+   Point3D pos = transform.getPosition();
    
+   mPlayerNode.position = AVAudioMake3DPoint(pos.x, pos.y, pos.z);
 }
 
-void SFXAPPLEVoice::setCone(F32 innerAngle, F32 outerAngle, F32 outerVolume) { 
-   
+void SFXAPPLEVoice::setCone(F32 innerAngle, F32 outerAngle, F32 outerVolume) {
 }
 
 void SFXAPPLEVoice::setRolloffFactor(F32 factor) { 

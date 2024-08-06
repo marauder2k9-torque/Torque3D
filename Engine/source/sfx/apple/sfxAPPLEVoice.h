@@ -40,7 +40,7 @@ public:
    /// Create a new voice for the given buffer.
    static SFXAPPLEVoice* create(SFXAPPLEDevice* device, SFXAPPLEBuffer* buffer);
 
-   SFXAPPLEVoice(AVAudioEngine* audioEngine, SFXAPPLEBuffer* buffer);
+   SFXAPPLEVoice(SFXAPPLEDevice* audioEngine, SFXAPPLEBuffer* buffer);
    
    virtual ~SFXAPPLEVoice();
 
@@ -66,6 +66,10 @@ protected:
    
    AVAudioEngine* mAudioEngine;
    AVAudioPlayerNode* mPlayerNode;
+   
+   // controllers for playernode
+   AVAudioUnitTimePitch* mPitchControl;
+   AVAudioEnvironmentNode* mEnvironmentNode;
 
 };
 

@@ -27,6 +27,10 @@
 #include "sfx/apple/sfxAPPLEDevice.h"
 #endif
 
+#ifndef _SFXINTERNAL_H_
+   #include "sfx/sfxInternal.h"
+#endif
+
 class SFXAPPLEVoice;
 
 class SFXAPPLEBuffer : public SFXBuffer
@@ -38,8 +42,9 @@ public:
    
 protected:
    
-   AVAudioPCMBuffer *pcmBuffer;
-   AVAudioFormat *format;
+   AVAudioPCMBuffer *mPCMBuffer;
+   AVAudioFormat *mFormat;
+   bool mIs3d;
    
    SFXAPPLEBuffer(const ThreadSafeRef<SFXStream>& stream,
                   SFXDescription* desc,
