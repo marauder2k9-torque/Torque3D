@@ -52,64 +52,71 @@ SFXAPPLEBuffer::SFXAPPLEBuffer(const ThreadSafeRef<SFXStream> &stream,
 
 
 void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num) {
-   if (!num || !mPCMBuffer)
-   {
-      return;
-   }
+    if (!num || !mFormat) {
+        return;
+    }
 
-   // If this is not a streaming buffer, load the data into our single static buffer.
-   if (!isStreaming())
-   {
-      SFXInternal::SFXStreamPacket* packet = packets[num - 1];
+    // Helper function to convert uint8_t data to Float32
+    auto convertUInt8ToFloat32 = [](const uint8_t *inputData, Float32 *outputData, U32 sampleCount) {
+        for (U32 i = 0; i < sampleCount; ++i) {
+            outputData[i] = (inputData[i] - 128) / 128.0f;
+        }
+    };
 
-      // Ensure format is valid and create AVAudioPCMBuffer.
-      AVAudioFormat* format = mFormat;
-      if (!format)
-      {
-         return;
-      }
+    // Process non-streaming buffer
+    if (!isStreaming()) {
+        SFXInternal::SFXStreamPacket* packet = packets[num - 1];
+        AVAudioFormat* format = mFormat;
 
-      if (mPCMBuffer)
-      {
-         [mPCMBuffer release];
-      }
-      
-      mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
-                                                frameCapacity:packet->mSizeActual];
-      
-      // Copy data to AVAudioPCMBuffer
-      memcpy(mPCMBuffer.audioBufferList->mBuffers[0].mData, packet->data, packet->mSizeActual);
-      
-      mPCMBuffer.frameLength = packet->mSizeActual;
+        if (!format) {
+            return;
+        }
 
-      // Clean up packet
-      destructSingle(packet);
-      return;
-   }
+        if (mPCMBuffer) {
+            [mPCMBuffer release];
+        }
 
-   // Unqueue processed packets if necessary (done in the playernode (voice)
+        U32 numFrames = num * getFormat().getBytesPerSample();
+        mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
+                                                  frameCapacity:packet->mSizeActual];
+        mPCMBuffer.frameLength = format.streamDescription->mBytesPerFrame;
+       
+        // Allocate and convert data
+        Float32 *floatData = (Float32 *)malloc(numFrames * sizeof(Float32));
+        convertUInt8ToFloat32((const uint8_t *)packet->data, floatData, numFrames);
 
-   // Queue new buffers
-   for (U32 i = 0; i < num; ++i)
-   {
-      SFXInternal::SFXStreamPacket* packet = packets[i];
-      AVAudioFormat* format = mFormat;
+        // Copy data to buffer
+        memcpy(mPCMBuffer.audioBufferList->mBuffers[0].mData, floatData, numFrames * sizeof(Float32));
+        free(floatData);
 
-      // Ensure format is valid and create AVAudioPCMBuffer
-      if (!format) {
-         continue;
-      }
+        destructSingle(packet);
+        return;
+    }
 
-      mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
-                                                frameCapacity:packet->mSizeActual / format.streamDescription->mBytesPerFrame];
-      mPCMBuffer.frameLength = mPCMBuffer.frameCapacity;
+    // Process streaming buffers
+    for (U32 i = 0; i < num; ++i) {
+        SFXInternal::SFXStreamPacket* packet = packets[i];
+        AVAudioFormat* format = mFormat;
 
-      // Copy data to AVAudioPCMBuffer
-      memcpy(mPCMBuffer.audioBufferList->mBuffers[0].mData, packet->data, packet->mSizeActual);
+        if (!format) {
+            continue;
+        }
 
-      // Clean up packet
-      destructSingle(packet);
-   }
+        U32 numFrames = packet->mSizeActual / format.streamDescription->mBytesPerFrame;
+        mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:format
+                                                  frameCapacity:numFrames];
+        mPCMBuffer.frameLength = numFrames;
+
+        // Allocate and convert data
+        Float32 *floatData = (Float32 *)malloc(numFrames * sizeof(Float32));
+        convertUInt8ToFloat32((const uint8_t *)packet->data, floatData, numFrames);
+
+        // Copy data to buffer
+        memcpy(mPCMBuffer.audioBufferList->mBuffers[0].mData, floatData, numFrames * sizeof(Float32));
+        free(floatData);
+
+        destructSingle(packet);
+    }
 }
 
 void SFXAPPLEBuffer::_flush() {
