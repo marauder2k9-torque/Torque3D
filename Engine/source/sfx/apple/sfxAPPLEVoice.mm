@@ -37,28 +37,36 @@ SFXAPPLEVoice::SFXAPPLEVoice(SFXAPPLEDevice *device, SFXAPPLEBuffer *buffer)
    mPitchControl([[AVAudioUnitTimePitch alloc] init]),
    mPlayerNode([[AVAudioPlayerNode alloc] init])
 {
+   
+   AVAudioFormat* bufferFormat = buffer->mFormat;
+   
    [mAudioEngine attachNode:mPitchControl];
    [mAudioEngine attachNode:mPlayerNode];
    
    [mAudioEngine connect:mPlayerNode
                       to:mPitchControl
-                  format:buffer->mFormat];
+                  format:bufferFormat];
    
    if(buffer->mIs3d){
       [mAudioEngine connect:mPitchControl
                          to:mEnvironmentNode
-                     format:buffer->mFormat];
+                     format:bufferFormat];
       mPlayerNode.sourceMode = AVAudio3DMixingSourceModePointSource;
    }
    else
    {
       [mAudioEngine connect:mPitchControl
                          to:mAudioEngine.mainMixerNode
-                     format:buffer->mFormat];
+                     format:bufferFormat];
    }
    
    [mPlayerNode scheduleBuffer:buffer->mPCMBuffer
+                        atTime:nil
+                       options:AVAudioPlayerNodeBufferInterrupts
              completionHandler:nil];
+
+       mPlayerNode.position = AVAudioMake3DPoint(0, 0, 0);
+   
    
    mPlayerNode.position = AVAudioMake3DPoint(0, 0, 0);
    
@@ -82,8 +90,9 @@ SFXStatus SFXAPPLEVoice::_status() const {
       return SFXStatus::SFXStatusStopped;
 }
 
-void SFXAPPLEVoice::_play() { 
-   [mPlayerNode play];
+void SFXAPPLEVoice::_play() {
+   if(!mPlayerNode.isPlaying)
+      [mPlayerNode play];
 }
 
 void SFXAPPLEVoice::_pause() { 
@@ -91,8 +100,8 @@ void SFXAPPLEVoice::_pause() {
 }
 
 void SFXAPPLEVoice::_stop() { 
-   [mPlayerNode stop];
-   [mPlayerNode reset];
+   if(mPlayerNode.isPlaying)
+      [mPlayerNode stop];
 }
 
 void SFXAPPLEVoice::_seek(U32 sample) { 

@@ -226,15 +226,19 @@ class SFXFormat
 
       /// The frequency in samples per second.
       U32 mSamplesPerSecond;
+   
+   U32 mFrames;
 
    public:
 
       SFXFormat(  U8 channels = 0,                  
                   U8 bitsPerSample = 0,
-                  U32 samplesPerSecond = 0 )
+                  U32 samplesPerSecond = 0,
+                U32 frameCount = 0)
          :  mChannels( channels ),
             mBitsPerSample( bitsPerSample ),
-            mSamplesPerSecond( samplesPerSecond )
+            mSamplesPerSecond( samplesPerSecond ),
+            mFrames(frameCount)
       {}
 
       /// Copy constructor.
@@ -254,19 +258,34 @@ class SFXFormat
          mChannels = channels;
          mBitsPerSample = bitsPerSample;
          mSamplesPerSecond = samplesPerSecond;
+         mFrames = 0;
       }
+   
+   /// Sets the format.
+   void set(   U8 channels,
+               U8 bitsPerSample,
+               U32 samplesPerSecond,
+               U32 frameCount)
+   {
+      mChannels = channels;
+      mBitsPerSample = bitsPerSample;
+      mSamplesPerSecond = samplesPerSecond;
+      mFrames = frameCount;
+   }
 
       /// Comparision between formats.
       bool operator == ( const SFXFormat& format ) const 
       { 
          return   mChannels == format.mChannels && 
                   mBitsPerSample == format.mBitsPerSample &&
-                  mSamplesPerSecond == format.mSamplesPerSecond;
+                  mSamplesPerSecond == format.mSamplesPerSecond &&
+                  mFrames == format.mFrames;
       }
 
       /// Returns the number of sound channels.
       U8 getChannels() const { return mChannels; }
 
+      U32 getFrames() const { return mFrames; }
       /// Returns true if there is a single sound channel.
       bool isMono() const { return mChannels == 1; }
 

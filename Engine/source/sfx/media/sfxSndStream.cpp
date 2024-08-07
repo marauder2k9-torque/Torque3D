@@ -72,7 +72,7 @@ bool SFXSndStream::_readHeader()
       break;
    }
 
-   mFormat.set(sfinfo.channels, bitsPerSample * sfinfo.channels, sfinfo.samplerate);
+   mFormat.set(sfinfo.channels, bitsPerSample * sfinfo.channels, sfinfo.samplerate, sfinfo.frames);
 
    mSamples = sfinfo.frames;
 
