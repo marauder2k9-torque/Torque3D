@@ -2892,3 +2892,13 @@ function AssetBrowserWindow::releasePanel(%this)
    
    EditorGui.updateSideBar();
 }
+
+function AssetBrowserWindow::onResize(%this, %posX, %posY, %width, %height)
+{
+    if (%width>%height)
+        AssetBrowser-->assetList.fillRowFirst = true;
+    else
+        AssetBrowser-->assetList.fillRowFirst = false;
+        
+    AssetBrowser.doRebuildAssetArray();
+}

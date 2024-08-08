@@ -1459,7 +1459,7 @@ void GuiInspectorTypeBitMask32::consoleInit()
    Parent::consoleInit();
 
    // Set this to be the inspector type for all bitfield console types.
-   
+
    for( ConsoleBaseType* type = ConsoleBaseType::getListHead(); type != NULL; type = type->getListNext() )
       if( type->getTypeInfo() && type->getTypeInfo()->isBitfield() )
          type->setInspectorFieldType( "GuiInspectorTypeBitMask32" );
@@ -1520,7 +1520,7 @@ StringTableEntry GuiInspectorTypeBitMask32::getValue()
 
 void GuiInspectorTypeBitMask32::setValue( StringTableEntry value )
 {
-   U32 mask = dAtoui( value, 0 );
+   U32 mask = dAtoui( value );
 
    for ( U32 i = 0; i < mArrayCtrl->size(); i++ )
    {
@@ -1583,7 +1583,7 @@ GuiControl* GuiInspectorTypeBitMask32Helper::constructEditControl()
    mButton->setField( "Command", szBuffer );
    mButton->setField( "buttonType", "ToggleButton" );
    mButton->setDataField( StringTable->insert("Profile"), NULL, "GuiInspectorButtonProfile" );
-   mButton->setBitmap(StringTable->insert("ToolsModule:arrowBtn_image") );
+   mButton->setBitmap(StringTable->insert("ToolsModule:arrowBtn_n_image") );
    mButton->setStateOn( true );
    mButton->setExtent( 16, 16 );
    mButton->registerObject();

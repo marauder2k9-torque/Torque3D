@@ -867,6 +867,9 @@ void WorldEditor::terrainSnapSelection(Selection* sel, U8 modifier, Point3F gizm
             case AlignNegZ:
                rot.set(mDegToRad(-90.0f), 0.0f, mDegToRad(180.0f));
                break;
+               
+            default:
+               break;
          }
 
          MatrixF mat = MathUtils::createOrientFromDir(ri.normal);

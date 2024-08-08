@@ -942,6 +942,7 @@ U32 AssignExprNode::compile(CodeStream& codeStream, U32 ip, TypeReq type)
       case TypeReqString: codeStream.emit(OP_SAVEVAR_STR);  break;
       case TypeReqUInt:   codeStream.emit(OP_SAVEVAR_UINT); break;
       case TypeReqFloat:  codeStream.emit(OP_SAVEVAR_FLT);  break;
+      default: break;
       }
    }
    else

@@ -144,4 +144,4 @@ public:
    void canHitSelectedNodes(bool state = true);
 };
 
-#endif _GUISHADEREDITOR_H_
+#endif //_GUISHADEREDITOR_H_

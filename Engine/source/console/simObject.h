@@ -40,6 +40,7 @@
 #ifndef _TAML_CALLBACKS_H_
 #include "persistence/taml/tamlCallbacks.h"
 #endif
+#include "T3D/objectTypes.h"
 
 class Stream;
 class LightManager;
@@ -1009,6 +1010,8 @@ public:
    virtual void reloadReset() { }
 };
 
+typedef SceneObjectTypes GameTypeMasksType;
+DefineBitfieldType(GameTypeMasksType);
 
 /// Smart SimObject pointer.
 ///

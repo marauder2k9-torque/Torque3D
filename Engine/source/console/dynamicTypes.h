@@ -218,13 +218,13 @@ class BitfieldConsoleBaseType : public ConsoleBaseType
       {
          static const U32 bufSize = 256;
          char* returnBuffer = Con::getReturnBuffer(bufSize);
-         dSprintf(returnBuffer, bufSize, "0x%08x", *((S32 *) dptr) );
+         dSprintf(returnBuffer, bufSize, "%i", *((S32 *) dptr) );
          return returnBuffer;
       }
       void setData( void* dptr, S32 argc, const char** argv, const EnumTable*, BitSet32 ) override
       {
          if( argc != 1 ) return; \
-         *((S32 *) dptr) = dAtoui(argv[0],0); \
+         *((S32 *) dptr) = dAtoui(argv[0]); \
       }
 };
 

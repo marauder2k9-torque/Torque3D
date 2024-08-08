@@ -43,42 +43,38 @@ GuiAudioCtrl::GuiAudioCtrl()
    mTickPeriodMS = 100;
    mLastThink = 0;
    mCurrTick = 0;
-   mPlayIf = "";
    mSoundPlaying = NULL;
 
    mUseTrackDescriptionOnly = false;
-   mDescription.mIs3D = false;
-   mDescription.mIsLooping = true;
-   mDescription.mIsStreaming = false;
-   mDescription.mFadeInTime = -1.f;
-   mDescription.mFadeOutTime = -1.f;
-
    mVolume = 1;
    mPitch = 1;
    mFadeInTime = -1;
    mFadeOutTime = -1;
    mSourceGroup = NULL;
-   setProcessTicks();
 }
 
 GuiAudioCtrl::~GuiAudioCtrl()
 {
-   if (mSoundPlaying)
-      mSoundPlaying->stop();
    SFX_DELETE(mSoundPlaying);
 }
 
 bool GuiAudioCtrl::onWake()
 {
-   return Parent::onWake();
+   bool awake = Parent::onWake();
+   setProcessTicks();
+   _update();
+   return awake;
 }
 
 void GuiAudioCtrl::onSleep()
 {
-   if (mSoundPlaying)
-      mSoundPlaying->stop();
-   SFX_DELETE(mSoundPlaying);
    Parent::onSleep();
+   _update();
+}
+
+void GuiAudioCtrl::onRemove()
+{
+   Parent::onRemove();
 }
 
 void GuiAudioCtrl::processTick()
@@ -154,22 +150,13 @@ void GuiAudioCtrl::initPersistFields()
 
 void GuiAudioCtrl::_update()
 {
-   if (isSoundValid())
-   {
-      //mLocalProfile = *mSoundAsset->getSfxProfile();
-      mDescription = *mSoundAsset->getSfxDescription();
-   }
-
-   // Make sure all the settings are valid.
-   mDescription.validate();
-
    bool useTrackDescriptionOnly = (mUseTrackDescriptionOnly && getSoundProfile());
 
    if (getSoundProfile())
    {
       if (mSoundPlaying == NULL)
       {
-         mSoundPlaying = SFX->createSource(getSoundProfile());
+         mSoundPlaying = SFX->createSource(getSoundProfile(), &(SFX->getListener().getTransform()));
       }
    }
 
@@ -193,9 +180,9 @@ void GuiAudioCtrl::_update()
 
    }
 
-   if (testCondition() && isActive() && isAwake())
+   if (isAwake())
    {
-      if (mSoundPlaying && !mSoundPlaying->isPlaying())
+      if (testCondition() && mSoundPlaying && !mSoundPlaying->isPlaying())
       {
          mSoundPlaying->play();
       }
@@ -205,6 +192,8 @@ void GuiAudioCtrl::_update()
       if (mSoundPlaying != NULL)
       {
          mSoundPlaying->stop();
+         SFX_DELETE(mSoundPlaying);
+         setProcessTicks(false);
       }
    }
 }

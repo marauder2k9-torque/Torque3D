@@ -232,7 +232,7 @@ class ParticleEmitter : public GameBase
    void addParticle(const Point3F &pos, const Point3F &axis, const Point3F &vel, const Point3F &axisx, const U32 age_offset);
 
 
-   inline void setupBillboard( Particle *part,
+   void setupBillboard( Particle *part,
                                Point3F *basePts,
                                const MatrixF &camView,
                                const LinearColorF &ambientColor,

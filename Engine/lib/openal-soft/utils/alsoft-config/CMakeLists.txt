@@ -12,9 +12,10 @@ if(Qt5Widgets_FOUND)
         verstr.cpp
         verstr.h
         ${UIS} ${RSCS} ${TRS} ${MOCS})
-    target_link_libraries(alsoft-config Qt5::Widgets)
+    target_link_libraries(alsoft-config PUBLIC Qt5::Widgets PRIVATE alcommon)
     target_include_directories(alsoft-config PRIVATE "${alsoft-config_BINARY_DIR}"
         "${OpenAL_BINARY_DIR}")
+    target_compile_definitions(alsoft-config PRIVATE QT_NO_KEYWORDS)
     set_target_properties(alsoft-config PROPERTIES ${DEFAULT_TARGET_PROPS}
         RUNTIME_OUTPUT_DIRECTORY ${OpenAL_BINARY_DIR})
     if(TARGET build_version)
