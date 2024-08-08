@@ -150,40 +150,41 @@ void GuiAudioCtrl::initPersistFields()
 
 void GuiAudioCtrl::_update()
 {
-   bool useTrackDescriptionOnly = (mUseTrackDescriptionOnly && getSoundProfile());
 
-   if (getSoundProfile())
+   if (testCondition() && isAwake())
    {
-      if (mSoundPlaying == NULL)
-      {
-         mSoundPlaying = SFX->createSource(getSoundProfile(), &(SFX->getListener().getTransform()));
-      }
-   }
+      bool useTrackDescriptionOnly = (mUseTrackDescriptionOnly && getSoundProfile());
 
-   // The rest only applies if we have a source.
-   if (mSoundPlaying && !useTrackDescriptionOnly)
-   {
-      
-      // Set the volume irrespective of the profile.
-      if (mSourceGroup)
+      if (getSoundProfile())
       {
-         mSourceGroup->addObject(mSoundPlaying);
-         mSoundPlaying->setVolume(mSourceGroup->getVolume() * mVolume);
-      }
-      else
-      {
-         mSoundPlaying->setVolume(mVolume);
+         if (mSoundPlaying == NULL)
+         {
+            mSoundPlaying = SFX->createSource(getSoundProfile(), &(SFX->getListener().getTransform()));
+         }
       }
 
-      mSoundPlaying->setPitch(mPitch);
-      mSoundPlaying->setFadeTimes(mFadeInTime, mFadeOutTime);
-
-   }
-
-   if (isAwake())
-   {
-      if (testCondition() && mSoundPlaying && !mSoundPlaying->isPlaying())
+      if ( mSoundPlaying && !mSoundPlaying->isPlaying())
       {
+         // The rest only applies if we have a source.
+         if (!useTrackDescriptionOnly)
+         {
+
+            // Set the volume irrespective of the profile.
+            if (mSourceGroup)
+            {
+               mSourceGroup->addObject(mSoundPlaying);
+               mSoundPlaying->setVolume(mSourceGroup->getVolume() * mVolume);
+            }
+            else
+            {
+               mSoundPlaying->setVolume(mVolume);
+            }
+
+            mSoundPlaying->setPitch(mPitch);
+            mSoundPlaying->setFadeTimes(mFadeInTime, mFadeOutTime);
+
+         }
+
          mSoundPlaying->play();
       }
    }
@@ -191,7 +192,6 @@ void GuiAudioCtrl::_update()
    {
       if (mSoundPlaying != NULL)
       {
-         mSoundPlaying->stop();
          SFX_DELETE(mSoundPlaying);
          setProcessTicks(false);
       }
