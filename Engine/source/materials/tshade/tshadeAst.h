@@ -33,35 +33,170 @@
 class SimObject;
 class SimGroup;
 
-struct tshadeNode
+//-----------------------------------------------
+// ENUMS 
+//-----------------------------------------------
+
+enum ShaderStageType {
+   tSTAGE_VERTEX,
+   tSTAGE_PIXEL,
+   tSTAGE_GEOMETRY,
+   tSTAGE_COMPUTE,
+   tSTAGE_COUNT
+};
+
+enum ShaderVarType {
+   tTYPE_FLOAT,
+   tTYPE_INT,
+   tTYPE_UINT,
+   tTYPE_BOOL,
+   tTYPE_FLOAT2,
+   tTYPE_FLOAT3,
+   tTYPE_FLOAT4,
+   tTYPE_INT2,
+   tTYPE_INT3,
+   tTYPE_INT4,
+   tTYPE_UINT2,
+   tTYPE_UINT3,
+   tTYPE_UINT4,
+   tTYPE_BOOL2,
+   tTYPE_BOOL3,
+   tTYPE_BOOL4,
+   tTYPE_MAT33,
+   tTYPE_MAT34,
+   tTYPE_MAT43,
+   tTYPE_MAT44,
+   tTYPE_COUNT,
+};
+
+enum ShaderSemanticType {
+   // vertex semantics
+   SEMANTIC_VERT_POSITION,
+   SEMANTIC_VERT_COLOR,
+   SEMANTIC_VERT_NORMAL,
+   SEMANTIC_VERT_BINORMAL,
+   SEMANTIC_VERT_PSIZE,
+   SEMANTIC_VERT_TANGENT,
+   SEMANTIC_VERT_TEXCOORD,
+   SEMANTIC_VERT_TESSFACTOR,
+   // pixel shader semantics
+   SEMANTIC_PIXIN_COLOR,
+   SEMANTIC_PIXIN_TEXCOORD,
+   SEMANTIC_PIXIN_ISFRONTFACE,
+   SEMANTIC_PIXIN_POSITION,
+   SEMANTIC_PIXOUT_DEPTH,
+   SEMANTIC_PIXOUT_TARGET,
+   SEMANTIC_COUNT
+};
+
+//-----------------------------------------------
+// ENUMS END
+//-----------------------------------------------
+
+//-----------------------------------------------
+// AST NODES
+//-----------------------------------------------
+
+struct tShadeNode
 {
 public:
-   tshadeNode();
-   virtual ~tshadeNode();
+   tShadeNode();
+   virtual ~tShadeNode();
 };
 
-struct tstageNode : tshadeNode
+struct tStructMemberNode {
+   String name;
+   ShaderVarType type;
+   ShaderSemanticType semantic;
+
+   tStructMemberNode(const String& memberName, ShaderVarType memberType, ShaderSemanticType memberSemantic)
+      : name(memberName), type(memberType), semantic(memberSemantic) {}
+};
+
+struct tStructNode {
+   String structName;
+   Vector<tStructMemberNode*> members;
+
+   tStructNode(const String& name) : structName(name) {}
+
+   ~tStructNode() {
+      for (auto member : members)
+         delete member;
+   }
+
+   void addMember(tStructMemberNode* member)
+   {
+      members.push_back(member);
+   }
+};
+
+
+struct tStageNode : tShadeNode
 {
-   tstageNode(tshadeNode* node) {
+   ShaderStageType stage;
+   tShadeNode* rootNode;
+
+   tStageNode(ShaderStageType stage, tShadeNode* node) {
       rootNode = node;
    }
-   tshadeNode* rootNode;
 };
 
 
-struct tshadeAst
+struct tShadeAst
 {
-   StringTableEntry shaderName;
+   String shaderName;
 
-   // global vars, could be uniforms/structs etc.
-   Vector<tshadeNode*> mGlobalVars;
+   Vector<tStructNode*> mDataStructs;
 
-   tstageNode* mVertStage;
-   tstageNode* mPixStage;
-   tstageNode* mGeoStage;
-   tstageNode* mComputeStage;
+   tStageNode* mVertStage;
+   tStageNode* mPixStage;
+   tStageNode* mGeoStage;
+   tStageNode* mComputeStage;
+
+   tShadeAst(const String& name)
+      : shaderName(name), mVertStage(nullptr), mPixStage(nullptr), mGeoStage(nullptr),
+      mComputeStage(nullptr) {}
+
+   ~tShadeAst() {
+      for (auto dataStruct : mDataStructs)
+         delete dataStruct;
+
+      delete mVertStage;
+      delete mPixStage;
+      delete mGeoStage;
+      delete mComputeStage;
+   }
+
+   void addStageNode(ShaderStageType stageType, tStageNode* stageNode)
+   {
+      switch (stageType)
+      {
+      case tSTAGE_VERTEX:
+         mVertStage = stageNode;
+         break;
+      case tSTAGE_PIXEL:
+         mPixStage = stageNode;
+         break;
+      case tSTAGE_GEOMETRY:
+         mGeoStage = stageNode;
+         break;
+      case tSTAGE_COMPUTE:
+         mComputeStage = stageNode;
+         break;
+      default:
+         break;
+      }
+   }
+
+   void addStruct(tStructNode* structNode) {
+      mDataStructs.push_back(structNode);
+   }
 
 };
+
+//-----------------------------------------------
+// AST NODES END
+//-----------------------------------------------
 
 #endif // !_TSHADEAST_H_
 

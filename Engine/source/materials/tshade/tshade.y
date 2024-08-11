@@ -18,7 +18,7 @@
 
   typedef void* yyscan_t;
   void yyerror(yyscan_t yyscanner, const char* msg);
-  void yyerror(yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg);
+  void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg);
   #define YY_DECL int yylex(union YYSTYPE *, yyscan_t)
   YY_DECL;
 
@@ -27,7 +27,7 @@
 
 %union{
   // source side ASTnode.
-  struct tshadeNode* node;
+  struct tShadeNode* node;
   // symbol specifics.
   float fVal;
   int intVal;
@@ -100,43 +100,45 @@ program_globals
 var_decl
   : var_type VAR_IDENT ';'
     {}
+  | var_type VAR_IDENT ':' ';'
+    {}
   ;
 
 var_type
   : tMAT34_TYPE 
-    {$$ = tshade_tokentype::tMAT34_TYPE;}
+    {$$ = ShaderVarType::tTYPE_MAT34;}
   | tMAT43_TYPE
-    {$$ = tshade_tokentype::tMAT43_TYPE;}
+    {$$ = ShaderVarType::tTYPE_MAT43;}
   | tMAT3_TYPE
-    {$$ = tshade_tokentype::tMAT3_TYPE;}
+    {$$ = ShaderVarType::tMAT3_TYPE;}
   | tMAT4_TYPE
-    {$$ = tshade_tokentype::tMAT4_TYPE;}
+    {$$ = ShaderVarType::tMAT4_TYPE;}
   | tFVEC2_TYPE
-    {$$ = tshade_tokentype::tFVEC2_TYPE;}
+    {$$ = ShaderVarType::tTYPE_FLOAT2;}
   | tFVEC3_TYPE
-    {$$ = tshade_tokentype::tFVEC3_TYPE;}
+    {$$ = ShaderVarType::tTYPE_FLOAT3;}
   | tFVEC4_TYPE
-    {$$ = tshade_tokentype::tFVEC4_TYPE;}
+    {$$ = ShaderVarType::tTYPE_FLOAT4;}
   | tIVEC2_TYPE
-    {$$ = tshade_tokentype::tIVEC2_TYPE;}
+    {$$ = ShaderVarType::tTYPE_INT2;}
   | tIVEC3_TYPE
-    {$$ = tshade_tokentype::tIVEC3_TYPE;}
+    {$$ = ShaderVarType::tTYPE_INT3;}
   | tIVEC4_TYPE
-    {$$ = tshade_tokentype::tIVEC4_TYPE;}
+    {$$ = ShaderVarType::tTYPE_INT4;}
   | tBVEC2_TYPE
-    {$$ = tshade_tokentype::tBVEC2_TYPE;}
+    {$$ = ShaderVarType::tTYPE_BOOL2;}
   | tBVEC3_TYPE
-    {$$ = tshade_tokentype::tBVEC3_TYPE;}
+    {$$ = ShaderVarType::tTYPE_BOOL3;}
   | tBVEC4_TYPE
-    {$$ = tshade_tokentype::tBVEC4_TYPE;}
+    {$$ = ShaderVarType::tTYPE_BOOL4;}
   | tFLOAT_TYPE
-    {$$ = tshade_tokentype::tFLOAT_TYPE;}
+    {$$ = ShaderVarType::tTYPE_FLOAT;}
   | tINT_TYPE
-    {$$ = tshade_tokentype::tINT_TYPE;}
+    {$$ = ShaderVarType::tTYPE_INT;}
   | tUINT_TYPE
-    {$$ = tshade_tokentype::tUINT_TYPE;}
+    {$$ = ShaderVarType::tTYPE_UINT;}
   | tBOOL_TYPE
-    {$$ = tshade_tokentype::tBOOL_TYPE;}
+    {$$ = ShaderVarType::tTYPE_BOOL;}
   ;
 
 %%
@@ -145,6 +147,6 @@ void yyerror(yyscan_t yyscanner, const char* msg){
     Con::errorf("TorqueShader ERROR: %s Line: %d", msg, yylineno);
 }
 
-void yyerror(yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg) {
+void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg) {
 	yyerror(yyscanner, msg);
 }

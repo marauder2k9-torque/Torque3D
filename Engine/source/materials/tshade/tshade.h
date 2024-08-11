@@ -117,7 +117,7 @@ union TSHADE_STYPE
 #line 28 "tshade.y"
 
   // source side ASTnode.
-  struct tshadeNode* node;
+  struct tShadeNode* node;
   // symbol specifics.
   float fVal;
   int intVal;
@@ -134,7 +134,7 @@ typedef union TSHADE_STYPE TSHADE_STYPE;
 
 
 
-int tshade_parse (yyscan_t scanner, tshadeAst* shadeAst);
+int tshade_parse (yyscan_t scanner, tShadeAst* shadeAst);
 
 
 #endif /* !YY_TSHADE_TSHADE_H_INCLUDED  */

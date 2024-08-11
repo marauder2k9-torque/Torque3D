@@ -125,26 +125,26 @@ NEWLINE  (\n)|(\r\n)
 "struct"        { return tSTRUCT; }
 "uniform"       { return tUNIFORM; }
 "cbuffer"       { return tCBUFFER; }
-"VertexShader"   { return tVSSHADER; } 
-"PixelShader"    { return tPSSHADER; }  
-"GeometryShader" { return tGSSHADER; } 
-"ComputeShader"  { return tCSSHADER; }  
-"DomainShader"   { return tDSSHADER; } 
-"HullShader"     { return tHSSHADER; } 
+"VertexShader"   { return tVSSHADER; }
+"PixelShader"    { return tPSSHADER; }
+"GeometryShader" { return tGSSHADER; }
+"ComputeShader"  { return tCSSHADER; }
+"DomainShader"   { return tDSSHADER; }
+"HullShader"     { return tHSSHADER; }
 
 "mat3x4"  |
-"float3x4"  { return tMAT34_TYPE; } 
+"float3x4"  { return tMAT34_TYPE; }
 
 "mat4x3"  |
-"float4x3"  { return tMAT43_TYPE; } 
+"float4x3"  { return tMAT43_TYPE; }
 
 "mat3"    |
 "mat3x3"  |
-"float3x3"  { return tMAT3_TYPE; } 
+"float3x3"  { return tMAT3_TYPE; }
 
 "mat4"    |
 "mat4x4"  |
-"float4x4"  { return tMAT4_TYPE; } 
+"float4x4"  { return tMAT4_TYPE; }
 
 "float2" |
 "vec2"      { return tFVEC2_TYPE; }
@@ -177,7 +177,7 @@ NEWLINE  (\n)|(\r\n)
 
 %%
 
-bool TShadeParse(const char* code, tshadeAst* shadeAst)
+bool TShadeParse(const char* code, tShadeAst* shadeAst)
 {
   yyscan_t yyscanner;
   yylex_init(&yyscanner);
