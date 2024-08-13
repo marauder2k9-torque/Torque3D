@@ -4,7 +4,7 @@
 
 %lex-param {yyscan_t scanner}
 %parse-param {yyscan_t scanner}
-%parse-param {tshadeAst* shadeAst}
+%parse-param {tShadeAst* shadeAst}
 
 %{
   #include <stdlib.h>
@@ -29,7 +29,7 @@
   // source side ASTnode.
   struct tShadeNode* node;
   // symbol specifics.
-  float fVal;
+  double fVal;
   int intVal;
   const char* strVal;
 }
@@ -63,6 +63,7 @@
 // Everything after this point is specific to shader language. 
 // shader specific keywords
 %token tSTRUCT tUNIFORM tCBUFFER tSHADERDECLARE
+%token tSWIZZLE
 
 // shader stages
 %token tVSSHADER tPSSHADER tGSSHADER tCSSHADER tDSSHADER tHSSHADER
@@ -78,30 +79,97 @@
 // shader matrix types
 %token tMAT4_TYPE tMAT43_TYPE tMAT34_TYPE tMAT3_TYPE
 
-%type <node> program program_globals var_decl
+%left OP_OR
+%left OP_AND
+%left '|' '^' '&'
+%left OP_EQ OP_NEQ
+%left '<' '>' OP_LE OP_GE
+%left '+' '-'
+%left '*' '/' '%'
+%right '!' '~' // Prefix operators
+%nonassoc '(' ')' // Highest precedence for grouping
+
+%type <node> program program_globals var_decl expression shader_stage shader_body
 %type <intVal> var_type
+
 
 %start program
 
 %%
 
 program 
-  : program_globals 
-    { $$ = nullptr; }
+  : tSHADERDECLARE STR_VAL '{' program_globals '}' 
+    { $$ = nullptr; shadeAst->shaderName = $2; }
   ;
 
 program_globals 
-  : tSHADERDECLARE STR_VAL ';' 
-    {$$ = nullptr; shadeAst->shaderName = $2;}
-  | var_decl
+  : program_globals var_decl
     {$$ = nullptr; shadeAst->mGlobalVars.push_back($1); }
+  ;
+
+shader_stage
+  : tVSSHADER '{' shader_body '}'
+    { shadeAst->mVertStage = new tStageNode(ShaderStageType::tSTAGE_VERTEX, $3); }
+  | tPSSHADER '{' shader_body '}'
+    {shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_PIXEL, $3);}
+  | tGSSHADER '{' shader_body '}'
+    {shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_GEOMETRY, $3);}
+  | tCSSHADER '{' shader_body '}'
+    {shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_COMPUTE, $3);}
+  ;
+
+shader_body
+  :
   ;
 
 var_decl
   : var_type VAR_IDENT ';'
     {}
-  | var_type VAR_IDENT ':' ';'
+  | var_type VAR_IDENT ':' VAR_IDENT ';'
     {}
+  ;
+
+expression
+  : expression '+' expression 
+    { $$ = new tBinaryOpNode('+', $1, $3); }
+  | expression '-' expression 
+    { $$ = new tBinaryOpNode('-', $1, $3); }
+  | expression '*' expression 
+    { $$ = new tBinaryOpNode('*', $1, $3); }
+  | expression '/' expression 
+    { $$ = new tBinaryOpNode('/', $1, $3); }
+  | expression '%' expression 
+    { $$ = new tBinaryOpNode('%', $1, $3); }
+  | expression OP_EQ expression 
+    { $$ = new tBinaryOpNode('==', $1, $3); }
+  | expression OP_NEQ expression 
+    { $$ = new tBinaryOpNode('!=', $1, $3); }
+  | expression '<' expression 
+    { $$ = new tBinaryOpNode('<', $1, $3); }
+  | expression '>' expression 
+    { $$ = new tBinaryOpNode('>', $1, $3); }
+  | expression OP_GE expression 
+    { $$ = new tBinaryOpNode('>=', $1, $3); }
+  | expression OP_AND expression 
+    { $$ = new tBinaryOpNode('&&', $1, $3); }
+  | expression OP_OR expression 
+    { $$ = new tBinaryOpNode('||', $1, $3); }
+  | '!' expression 
+    { $$ = new tUnaryOpNode('!', $2); }
+  | '-' expression %prec '*' 
+    { $$ = new tUnaryOpNode('-', $2); } // Unary negation
+  | '(' expression ')' 
+    { $$ = $2; } // Grouping
+  | expression '.' VAR_IDENT
+    {}
+  | VAR_IDENT tSWIZZLE
+    {}
+  | VAR_IDENT 
+    { $$ = new tVarRefNode($1); }
+  | INT_NUM 
+    { $$ = new tIntLiteralNode($1); }
+  | FLOAT_NUM 
+    { $$ = new tFloatLiteralNode($1); }
   ;
 
 var_type
@@ -110,9 +178,9 @@ var_type
   | tMAT43_TYPE
     {$$ = ShaderVarType::tTYPE_MAT43;}
   | tMAT3_TYPE
-    {$$ = ShaderVarType::tMAT3_TYPE;}
+    {$$ = ShaderVarType::tTYPE_MAT33;}
   | tMAT4_TYPE
-    {$$ = ShaderVarType::tMAT4_TYPE;}
+    {$$ = ShaderVarType::tTYPE_MAT44;}
   | tFVEC2_TYPE
     {$$ = ShaderVarType::tTYPE_FLOAT2;}
   | tFVEC3_TYPE

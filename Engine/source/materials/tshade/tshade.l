@@ -109,7 +109,7 @@ NEWLINE  (\n)|(\r\n)
 "="               { return *yytext; }
 0[xX]{HEXDIGIT}+  { S32 val = 0; dSscanf(yytext, "%x", &val); yylval->intVal = val; return INT_NUM; }
 {INTEGER}         { yylval->intVal = dAtoi(yytext); return INT_NUM; }
-{FLOAT}           { yylval->fVal = dAtof(yytext); return FLOAT_NUM; }
+{FLOAT}           { yylval->fVal = dAtod(yytext); return FLOAT_NUM; }
 \"(\\.|[^\\"\n\r])*\" { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
 
 "/*"            { BEGIN(COMMENT); }
@@ -171,6 +171,10 @@ NEWLINE  (\n)|(\r\n)
 "int"       { return tINT_TYPE; }
 "uint"      { return tUINT_TYPE; }
 "bool"      { return tBOOL_TYPE; }
+
+\.[xyzw]{1,4} { yylval->strVal = strdup(yytext); return tSWIZZLE; }
+\.[rgba]{1,4} { yylval->strVal = strdup(yytext); return tSWIZZLE; }
+\.[stpq]{1,4} { yylval->strVal = strdup(yytext); return tSWIZZLE; }
 
 {VAR}       { yylval->strVal = StringTable->insert(yytext); return VAR_IDENT; }
 {NEWLINE}   {}

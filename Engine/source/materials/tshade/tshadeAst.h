@@ -89,6 +89,13 @@ enum ShaderSemanticType {
    SEMANTIC_COUNT
 };
 
+enum ParamModifier{
+   PARAM_MOD_IN,
+   PARAM_MOD_OUT,
+   PARAM_MOD_INOUT,
+   PARAM_MOD_COUNT
+};
+
 //-----------------------------------------------
 // ENUMS END
 //-----------------------------------------------
