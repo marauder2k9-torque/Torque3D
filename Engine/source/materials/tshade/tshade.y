@@ -124,9 +124,9 @@ shader_body
 
 var_decl
   : var_type VAR_IDENT ';'
-    {}
-  | var_type VAR_IDENT ':' VAR_IDENT ';'
-    {}
+    {$$ = new tVarDeclNode($2, $1); }
+  | var_type VAR_IDENT '=' expression ';'
+    {$$ = new tVarDeclNode($2, $1, $4);}
   ;
 
 expression

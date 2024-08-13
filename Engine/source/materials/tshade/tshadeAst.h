@@ -137,6 +137,14 @@ struct tStructNode {
    }
 };
 
+struct tVarDeclNode : public tShadeNode {
+   String name;
+   ShaderVarType type;
+   tShadeNode* initExpr;
+
+   tVarDeclNode(const String& inName, ShaderVarType vartype, tShadeNode* init = nullptr)
+      : name(inName), type(vartype), initExpr(init) {}
+};
 
 struct tStageNode : tShadeNode
 {
