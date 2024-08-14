@@ -186,15 +186,34 @@ struct tFunctionParamListNode : public tShadeNode {
 struct tFunctionNode : public tShadeNode {
    String name;
    ShaderVarType returnType;
+   tFunctionNode(const String& funcName, ShaderVarType returnType)
+      :name(funcName), returnType(returnType) {}
+
+   ~tFunctionNode() {}
+};
+
+struct tFunctionDefNode : public tFunctionNode {
    tFunctionParamListNode* paramList;
    tStatementListNode* body;
 
-   tFunctionNode(const String& funcName, ShaderVarType returnType, tFunctionParamListNode* params, tStatementListNode* funcBody)
-      : name(funcName), returnType(returnType), paramList(params), body(funcBody) {}
+   tFunctionDefNode(const String& funcName, ShaderVarType returnType, tFunctionParamListNode* params, tStatementListNode* funcBody)
+      : tFunctionNode(funcName, returnType), paramList(params), body(funcBody) {}
 
-   ~tFunctionNode() {
+   ~tFunctionDefNode() {
       delete paramList;
-      delete body;
+      if (body)
+         delete body;
+   }
+};
+
+struct tFunctionDeclNode : public tFunctionNode {
+   tFunctionParamListNode* paramList;
+
+   tFunctionDeclNode(const String& funcName, ShaderVarType returnType, tFunctionParamListNode* params)
+      : tFunctionNode(funcName, returnType), paramList(params) {}
+
+   ~tFunctionDeclNode() {
+      delete paramList;
    }
 };
 
@@ -428,6 +447,9 @@ struct tShadeAst
    }
 
    void addfunction(tFunctionNode* func) {
+      if (findFunction(func->name))
+         return;
+
       mFuncMap[func->name] = func;
    }
 

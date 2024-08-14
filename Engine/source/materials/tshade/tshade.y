@@ -174,9 +174,9 @@ param_modifier
 
 function_def
   : var_type VAR_IDENT '(' function_param_list ')' '{' statement_list '}'
-    { $$ = new tFunctionNode($2, $1, $4, $7); shadeAst->addfunction($$); }
-  | rwVOID VAR_IDENT '(' function_param_list ')' '{' statement_list '}'
-    { $$ = new tFunctionNode($2, ShaderVarType::tTYPE_VOID, $4, $7); shadeAst->addfunction($$);}
+    { $$ = new tFunctionDefNode($2, $1, $4, $7); shadeAst->addfunction($$); }
+  | var_type VAR_IDENT '(' function_param_list ')' ';'
+    { $$ = new tFunctionDeclNode($2, $1, $4); shadeAst->addfunction($$); }
   ;
 
 function_param_list
@@ -313,6 +313,8 @@ var_type
     {$$ = ShaderVarType::tTYPE_UINT;}
   | tBOOL_TYPE
     {$$ = ShaderVarType::tTYPE_BOOL;}
+  | rwVOID
+    {$$ = ShaderVarType::tTYPE_VOID;}
   ;
 
 statement_list
