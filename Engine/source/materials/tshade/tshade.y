@@ -21,8 +21,6 @@
   void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg);
   #define YY_DECL int yylex(union YYSTYPE *, yyscan_t)
   YY_DECL;
-
-  extern int yylineno;
 %} 
 
 %union{
@@ -377,7 +375,7 @@ return_statement
 %%
 
 void yyerror(yyscan_t yyscanner, const char* msg){
-    Con::errorf("TorqueShader ERROR: %s Line: %d", msg, yylineno);
+    Con::errorf("TorqueShader ERROR: %s", msg);
 }
 
 void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg) {

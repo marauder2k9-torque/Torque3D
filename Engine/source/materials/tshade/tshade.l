@@ -6,6 +6,10 @@
 %option noyywrap
 %option prefix="tshade_"
 
+%top{
+  #include <stdint.h>
+}
+
 %{
   #define YYLMAX 4096
   #define YY_NO_UNISTD_H
@@ -19,7 +23,7 @@
   #include "tshadeAst.h"
   #include "tshade.h"
 
-  extern tShadeAst* currentAst;
+  extern tShadeAst* currentAst = nullptr;
 %}
 
 DIGIT    [0-9]
@@ -175,9 +179,9 @@ NEWLINE  (\n)|(\r\n)
 "uint"      { return tUINT_TYPE; }
 "bool"      { return tBOOL_TYPE; }
 
-\.[xyzw]{1,4} { yylval->strVal = strdup(yytext); return tSWIZZLE; }
-\.[rgba]{1,4} { yylval->strVal = strdup(yytext); return tSWIZZLE; }
-\.[stpq]{1,4} { yylval->strVal = strdup(yytext); return tSWIZZLE; }
+\.[xyzw]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
+\.[rgba]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
+\.[stpq]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
 
 {VAR} { 
   if(currentAst && currentAst->isStruct(yytext))

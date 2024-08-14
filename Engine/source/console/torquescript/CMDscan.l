@@ -1,4 +1,9 @@
 %option yylineno nounput
+
+%top{
+  #include <stdint.h>
+}
+
 %{
 
 // flex --nounput -o CMDscan.cpp -P CMD CMDscan.l

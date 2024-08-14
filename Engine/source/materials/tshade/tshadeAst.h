@@ -115,9 +115,12 @@ enum ParamModifier{
 struct tShadeNode
 {
 public:
-   tShadeNode();
-   virtual ~tShadeNode();
+   tShadeNode() {}
+   virtual ~tShadeNode() {}
 };
+
+// forward declare
+struct tStatementListNode;
 
 struct tStructMemberNode : public tShadeNode {
    String name;
