@@ -57,12 +57,12 @@ SFXAPPLEVoice::SFXAPPLEVoice(SFXAPPLEDevice *device, SFXAPPLEBuffer *buffer)
    }
    
    [mPlayerNode scheduleBuffer:buffer->mPCMBuffer
-                        atTime:nil
-                       options:AVAudioPlayerNodeBufferInterrupts
-             completionHandler:nil];
-
-       mPlayerNode.position = AVAudioMake3DPoint(0, 0, 0);
-   
+                       atTime:nil
+                       options:AVAudioPlayerNodeCompletionDataPlayedBack
+             completionHandler:^{dispatch_async(dispatch_get_main_queue(), ^{
+            _stop();
+      });
+   }];
    
    mPlayerNode.position = AVAudioMake3DPoint(0, 0, 0);
    
@@ -78,12 +78,11 @@ SFXAPPLEVoice::~SFXAPPLEVoice() {
 }
 
 SFXStatus SFXAPPLEVoice::_status() const { 
-   if(mPlayerNode.isPlaying){
-      return SFXStatus::SFXStatusPlaying;
+   if([mPlayerNode isPlaying]){
+      return SFXStatusPlaying;
    }
-   
-   if(!mPlayerNode.isPlaying)
-      return SFXStatus::SFXStatusStopped;
+   else
+      return SFXStatusStopped;
 }
 
 void SFXAPPLEVoice::_play() {
@@ -95,13 +94,14 @@ void SFXAPPLEVoice::_pause() {
    [mPlayerNode pause];
 }
 
-void SFXAPPLEVoice::_stop() { 
-   if(mPlayerNode.isPlaying)
-      [mPlayerNode stop];
+void SFXAPPLEVoice::_stop() {
+   if(mPlayerNode){
+      if([mPlayerNode isPlaying])
+         [mPlayerNode stop];
+   }
 }
 
-void SFXAPPLEVoice::_seek(U32 sample) { 
-   [mPlayerNode stop];
+void SFXAPPLEVoice::_seek(U32 sample) {
 }
 
 U32 SFXAPPLEVoice::_tell() const { 
@@ -119,8 +119,10 @@ void SFXAPPLEVoice::setPitch(F32 pitch) {
 void SFXAPPLEVoice::setMinMaxDistance(F32 min, F32 max) {
 }
 
-void SFXAPPLEVoice::play(bool looping) { 
+void SFXAPPLEVoice::play(bool looping) {
    [mPlayerNode play];
+   
+   Parent::play(looping);
 }
 
 void SFXAPPLEVoice::setVelocity(const VectorF &velocity) { 

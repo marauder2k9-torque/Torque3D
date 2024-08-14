@@ -93,7 +93,7 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
       
       // Convert the int16 data to Float32 and fill the buffer
       int16_t *sourceData = (int16_t *)packet->data;
-      Float32 *floatData = (Float32 *)mPCMBuffer.mutableAudioBufferList->mBuffers[0].mData;
+      Float32 *floatData = (Float32 *)mPCMBuffer.mutableAudioBufferList->mBuffers->mData;
 
       for (U32 i = 0; i < numFrames * numChannels; i++) {
           floatData[i] = (Float32)((sourceData[i]) / 32768.0f);
