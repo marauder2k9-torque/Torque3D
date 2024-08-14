@@ -18,6 +18,8 @@
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
   #include "tshade.h"
+
+  extern tShadeAst* currentAst;
 %}
 
 DIGIT    [0-9]
@@ -184,6 +186,7 @@ NEWLINE  (\n)|(\r\n)
 
 bool TShadeParse(const char* code, tShadeAst* shadeAst)
 {
+  currentAst = shadeAst;
   yyscan_t yyscanner;
   yylex_init(&yyscanner);
   struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;

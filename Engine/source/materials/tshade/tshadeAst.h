@@ -28,6 +28,10 @@
 #include "platform/types.h"
 #endif
 
+#ifndef _TDICTIONARY_H_
+#include "core/util/tDictionary.h"
+#endif // !#ifndef _TDICTIONARY_H_
+
 #define YYSTYPE TSHADE_STYPE
 
 class SimObject;
@@ -38,6 +42,7 @@ class SimGroup;
 //-----------------------------------------------
 
 enum ShaderStageType {
+   tSTAGE_GLOBAL, // for data that will be copied across all stages.
    tSTAGE_VERTEX,
    tSTAGE_PIXEL,
    tSTAGE_GEOMETRY,
@@ -111,7 +116,7 @@ public:
    virtual ~tShadeNode();
 };
 
-struct tStructMemberNode {
+struct tStructMemberNode : public tShadeNode {
    String name;
    ShaderVarType type;
    ShaderSemanticType semantic;
@@ -120,7 +125,7 @@ struct tStructMemberNode {
       : name(memberName), type(memberType), semantic(memberSemantic) {}
 };
 
-struct tStructNode {
+struct tStructNode : public tShadeNode {
    String structName;
    Vector<tStructMemberNode*> members;
 
@@ -292,8 +297,17 @@ struct tReturnNode : public tShadeNode {
    }
 };
 
+struct DataInfo {
+   ShaderVarType type;
+   ShaderStageType stage;
+};
+
 struct tShadeAst
 {
+   // map string to var type and shaderStage.
+   typedef Map<String, DataInfo> DataMap;
+   DataMap mDataMap;
+
    String shaderName;
 
    Vector<tShadeNode*> mGlobalVars; // global vars, macros
@@ -326,6 +340,8 @@ struct tShadeAst
 
       if(mComputeStage)
          delete mComputeStage;
+
+      mDataMap.clear();
    }
 
    void addStruct(tStructNode* structNode) {
