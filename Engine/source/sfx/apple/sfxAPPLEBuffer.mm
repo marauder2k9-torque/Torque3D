@@ -91,14 +91,25 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
       mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:mFormat
                                                  frameCapacity:numFrames];
       
-      // Convert the int16 data to Float32 and fill the buffer
+      // Access the mutable audio buffer list
+      AudioBufferList *bufferList = mPCMBuffer.mutableAudioBufferList;
       int16_t *sourceData = (int16_t *)packet->data;
-      Float32 *floatData = (Float32 *)mPCMBuffer.mutableAudioBufferList->mBuffers->mData;
+      
+      // Iterate over each channel
+      for (int channel = 0; channel < numChannels; channel++) {
+          // Access the AudioBuffer for the current channel
+          AudioBuffer *audioBuffer = &bufferList->mBuffers[channel];
+          Float32 *floatData = (Float32 *)audioBuffer->mData;
+          // Calculate the offset for the current channel in the interleaved data
+          int32_t channelOffset = channel; // Offset for the current channel
 
-      for (U32 i = 0; i < numFrames * numChannels; i++) {
-          floatData[i] = (Float32)((sourceData[i]) / 32768.0f);
+          // Convert and copy data for the current channel
+          for (UInt32 i = 0; i < numFrames; i++) {
+              // Extract the sample for the current channel
+              floatData[i] = (Float32)(sourceData[channelOffset + i * numChannels]) / 32768.0f;
+          }
       }
-
+      
       mPCMBuffer.frameLength = numFrames;
 
       destructSingle(packet);

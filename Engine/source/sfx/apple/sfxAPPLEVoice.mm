@@ -43,15 +43,19 @@ SFXAPPLEVoice::SFXAPPLEVoice(SFXAPPLEDevice *device, SFXAPPLEBuffer *buffer)
    [mAudioEngine attachNode:mPitchControl];
    [mAudioEngine attachNode:mPlayerNode];
    
+   [mAudioEngine connect:mPlayerNode 
+                      to:mPitchControl
+                  format:bufferFormat];
+   
    if(buffer->mIs3d){
-      [mAudioEngine connect:mPlayerNode
+      [mAudioEngine connect:mPitchControl
                          to:mEnvironmentNode
                      format:bufferFormat];
       mPlayerNode.sourceMode = AVAudio3DMixingSourceModePointSource;
    }
    else
    {
-      [mAudioEngine connect:mPlayerNode
+      [mAudioEngine connect:mPitchControl
                          to:mAudioEngine.mainMixerNode
                      format:bufferFormat];
    }
@@ -113,7 +117,9 @@ void SFXAPPLEVoice::setVolume(F32 volume) {
 }
 
 void SFXAPPLEVoice::setPitch(F32 pitch) { 
-   //mPitchControl.pitch = 1200;
+   // apple pitch is in cents.
+   F32 semi = 12 * mLog2(pitch);
+   mPitchControl.pitch = semi * 100;
 }
 
 void SFXAPPLEVoice::setMinMaxDistance(F32 min, F32 max) {
