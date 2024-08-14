@@ -119,9 +119,20 @@ public:
    virtual ~tShadeNode() {}
 };
 
-// forward declare
-struct tStatementListNode;
+struct tStatementListNode : public tShadeNode {
+   Vector<tShadeNode*> statements;
 
+   tStatementListNode() {}
+
+   ~tStatementListNode() {
+      for (auto stmt : statements)
+         delete stmt;
+   }
+
+   void addStatement(tShadeNode* stmt) {
+      statements.push_back(stmt);
+   }
+};
 struct tStructMemberNode : public tShadeNode {
    String name;
    ShaderVarType type;
@@ -228,6 +239,14 @@ struct tFunctionRefNode : public tShadeNode {
       : funcDecl(decl), expr(exprList) {}
 };
 
+struct tTypeRefNode : public tShadeNode {
+   ShaderVarType returnType;
+   tExpressionListNode* expr;
+
+   tTypeRefNode(ShaderVarType type, tExpressionListNode* exprList)
+      : returnType(type), expr(exprList) {}
+};
+
 struct tVarDeclNode : public tShadeNode {
    String name;
    ShaderVarType type;
@@ -312,28 +331,15 @@ struct tStageNode : tShadeNode
    ShaderStageType stage;
    tShadeNode* rootNode;
 
-   tStageNode(ShaderStageType stage, tShadeNode* node) {
+   tStageNode(ShaderStageType inStage, tShadeNode* node)
+   : stage(inStage) {
+
       rootNode = node;
    }
 
    ~tStageNode() {
       if (rootNode)
          delete rootNode;
-   }
-};
-
-struct tStatementListNode : public tShadeNode {
-   Vector<tShadeNode*> statements;
-
-   tStatementListNode() {}
-
-   ~tStatementListNode() {
-      for (auto stmt : statements)
-         delete stmt;
-   }
-
-   void addStatement(tShadeNode* stmt) {
-      statements.push_back(stmt);
    }
 };
 

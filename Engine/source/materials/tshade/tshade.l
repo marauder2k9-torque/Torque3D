@@ -22,7 +22,7 @@
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
   #include "tshade.h"
-
+  
   extern tShadeAst* currentAst = nullptr;
 %}
 

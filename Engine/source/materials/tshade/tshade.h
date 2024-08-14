@@ -143,7 +143,7 @@ extern int tshade_debug;
 #if ! defined TSHADE_STYPE && ! defined TSHADE_STYPE_IS_DECLARED
 union TSHADE_STYPE
 {
-#line 26 "tshade.y"
+#line 28 "tshade.y"
 
   // source side ASTnode.
   tShadeNode* node;

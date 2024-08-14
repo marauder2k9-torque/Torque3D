@@ -914,7 +914,7 @@ static const flex_int32_t yy_rule_can_match_eol[122] =
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
   #include "tshade.h"
-
+  
   extern tShadeAst* currentAst = nullptr;
 #line 919 "tshade.lex.cpp"
 

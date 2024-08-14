@@ -21,6 +21,8 @@
   void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg);
   #define YY_DECL int yylex(union YYSTYPE *, yyscan_t)
   YY_DECL;
+
+  int yylineno;
 %} 
 
 %union{
@@ -92,6 +94,7 @@
 %left '+' '-'
 %left '*' '/' '%'
 %right '!' '~' // Prefix operators
+%right '='
 %nonassoc '(' ')' // Highest precedence for grouping
 
 %type <node> program program_globals expression shader_stage shader_body
@@ -203,6 +206,8 @@ expression_list
 expression
   : expression '+' expression 
     { $$ = new tBinaryOpNode("+", $1, $3); }
+  | expression '=' expression 
+    { $$ = new tBinaryOpNode("=", $1, $3); }
   | expression '-' expression 
     { $$ = new tBinaryOpNode("-", $1, $3); }
   | expression '*' expression 
@@ -232,7 +237,7 @@ expression
   | '(' expression ')' 
     { $$ = $2; } // Grouping
   | var_type '(' expression_list ')' // ex float4(1.0, 1.0, 1.0, 1.0)
-    {}
+    { $$ = new tTypeRefNode($1, $3); }
   | VAR_IDENT '(' expression_list ')'
     {
       tFunctionNode* funcDecl = shadeAst->findFunction($1);
@@ -339,6 +344,9 @@ statement
     {$$ = $1;}
   | function_def
     {$$ = $1; }
+  | expression ';'
+    {$$ = $1;}
+  ;
 
 
 if_statement
@@ -375,7 +383,7 @@ return_statement
 %%
 
 void yyerror(yyscan_t yyscanner, const char* msg){
-    Con::errorf("TorqueShader ERROR: %s", msg);
+    Con::errorf("TorqueShader ERROR: %s Line: %d", msg, yylineno);
 }
 
 void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg) {
