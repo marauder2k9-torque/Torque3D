@@ -44,13 +44,15 @@ SFXAPPLEBuffer::SFXAPPLEBuffer(const ThreadSafeRef<SFXStream> &stream,
    // Standard initialization with sample rate and channels
    float sampleRate = sfxFormat.getSamplesPerSecond();
    AVAudioChannelCount channels = sfxFormat.getChannels();
+   
    mFormat = [[AVAudioFormat alloc] initStandardFormatWithSampleRate:sampleRate
                                                             channels:channels];
    
    U32 sampleCount = stream->getSampleCount();
    
    mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:mFormat
-                                              frameCapacity:sfxFormat.getFrames()];
+                                              frameCapacity:sampleCount];
+   
 }
 
 
@@ -74,19 +76,28 @@ void SFXAPPLEBuffer::write(SFXInternal::SFXStreamPacket *const *packets, U32 num
       if (!mFormat) {
          return;
       }
-
-      if (mPCMBuffer) {
-         [mPCMBuffer release];
-      }
-
+      
       U32 numFrames = packet->mFormat.getFrames();
+
+      if (!mPCMBuffer || mPCMBuffer.frameCapacity < numFrames) {
+         if (mPCMBuffer) {
+            [mPCMBuffer release];
+         }
+         mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:mFormat 
+                                                    frameCapacity:numFrames];
+      }
+      
       U32 numChannels = packet->mFormat.getChannels();
       mPCMBuffer = [[AVAudioPCMBuffer alloc] initWithPCMFormat:mFormat
-      frameCapacity:numFrames];
+                                                 frameCapacity:numFrames];
+      
+      // Convert the int16 data to Float32 and fill the buffer
+      int16_t *sourceData = (int16_t *)packet->data;
+      Float32 *floatData = (Float32 *)mPCMBuffer.mutableAudioBufferList->mBuffers[0].mData;
 
-      // Allocate and convert data
-      Float32 *floatData = (Float32 *)mPCMBuffer.audioBufferList->mBuffers[0].mData;
-      convertShortToFloat32((const int16_t *)packet->data, floatData, numFrames, numChannels);
+      for (U32 i = 0; i < numFrames * numChannels; i++) {
+          floatData[i] = (Float32)((sourceData[i]) / 32768.0f);
+      }
 
       mPCMBuffer.frameLength = numFrames;
 
