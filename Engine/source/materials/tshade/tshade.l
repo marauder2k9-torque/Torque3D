@@ -58,6 +58,7 @@ NEWLINE  (\n)|(\r\n)
 "typedef"   { return rwTYPEDEF;   }
 "true"      { return rwTRUE;      }
 "false"     { return rwFALSE;     }
+"return"    { return rwRETURN;    }
 
 "=="        { return OP_EQ;       }
 "!="        { return OP_NEQ;      }

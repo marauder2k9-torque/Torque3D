@@ -137,13 +137,78 @@ struct tStructNode {
    }
 };
 
+struct tExpressionListNode : public tShadeNode {
+   Vector<tShadeNode*> mExpressions;
+
+   tExpressionListNode() {}
+
+   void addExpression(tShadeNode* expr) {
+      mExpressions.push_back(expr);
+   }
+
+   ~tExpressionListNode() {
+      for (auto expr : mExpressions) {
+         delete expr;  // Assuming expressions are dynamically allocated
+      }
+   }
+};
+
 struct tVarDeclNode : public tShadeNode {
    String name;
    ShaderVarType type;
    tShadeNode* initExpr;
+   tShadeNode* arraySize; // arrays can be set by an expression/macros etc
 
-   tVarDeclNode(const String& inName, ShaderVarType vartype, tShadeNode* init = nullptr)
-      : name(inName), type(vartype), initExpr(init) {}
+   tVarDeclNode(const String& inName, ShaderVarType vartype, tShadeNode* init = nullptr, tShadeNode* initArray = nullptr)
+      : name(inName), type(vartype), initExpr(init), arraySize(initArray) {}
+
+   ~tVarDeclNode() {
+      if(initExpr)
+         delete initExpr;
+
+      if (arraySize)
+         delete arraySize;
+   }
+};
+
+struct tBinaryOpNode : public tShadeNode {
+   String op;
+   tShadeNode* left;
+   tShadeNode* right;
+
+   tBinaryOpNode(const String& inOp, tShadeNode* inLeft, tShadeNode* inRight)
+      : op(inOp), left(inLeft), right(inRight) {}
+
+   ~tBinaryOpNode() {
+      delete left;
+      delete right;
+   }
+
+};
+
+struct tUnaryOpNode : public tShadeNode {
+   String op;
+   tShadeNode* expr;
+
+   tUnaryOpNode(const String& inOp, tShadeNode* inExpr)
+   : op(inOp), expr(inExpr) {}
+
+   ~tUnaryOpNode() {
+      if(expr)
+         delete expr;
+   }
+};
+
+struct tIntLiteralNode : public tShadeNode {
+   S32 value;
+
+   tIntLiteralNode(S32 val) : value(val) {}
+};
+
+struct tFloatLiteralNode : public tShadeNode {
+   F64 value;
+
+   tFloatLiteralNode(F64 val) : value(val) {}
 };
 
 struct tStageNode : tShadeNode
@@ -154,14 +219,85 @@ struct tStageNode : tShadeNode
    tStageNode(ShaderStageType stage, tShadeNode* node) {
       rootNode = node;
    }
+
+   ~tStageNode() {
+      if (rootNode)
+         delete rootNode;
+   }
 };
 
+struct tStatementListNode : public tShadeNode {
+   Vector<tShadeNode*> statements;
+
+   tStatementListNode() {}
+
+   ~tStatementListNode() {
+      for (auto stmt : statements)
+         delete stmt;
+   }
+
+   void addStatement(tShadeNode* stmt) {
+      statements.push_back(stmt);
+   }
+};
+
+struct tIfNode : public tShadeNode {
+   tShadeNode* expr;
+   tStatementListNode* trueBranch;
+   tStatementListNode* elseBranch;
+
+   tIfNode(tShadeNode* inExpr, tStatementListNode* inTrue, tStatementListNode* inElse = nullptr)
+      : expr(inExpr), trueBranch(inTrue), elseBranch(inElse) {}
+
+   ~tIfNode() {
+      delete expr;
+      delete trueBranch;
+
+      if(elseBranch)
+         delete elseBranch;
+   }
+};
+
+struct tWhileNode : public tShadeNode {
+   tShadeNode* expr;
+   tStatementListNode* trueBranch;
+   bool isDo;
+
+   tWhileNode(tShadeNode* inExpr, tStatementListNode* inTrue, bool doLoop = false)
+      : expr(inExpr), trueBranch(inTrue), isDo(doLoop) {}
+
+   ~tWhileNode() {
+      delete expr;
+      delete trueBranch;
+   }
+};
+
+struct tContinueNode : public tShadeNode {
+   tContinueNode() {}
+};
+
+struct tBreakNode : public tShadeNode {
+   tBreakNode() {}
+};
+
+
+struct tReturnNode : public tShadeNode {
+   tShadeNode* expr;
+
+   tReturnNode(tShadeNode* inExpr = nullptr)
+      : expr(inExpr){}
+
+   ~tReturnNode() {
+      delete expr;
+   }
+};
 
 struct tShadeAst
 {
    String shaderName;
 
-   Vector<tStructNode*> mDataStructs;
+   Vector<tShadeNode*> mGlobalVars; // global vars, macros
+   Vector<tStructNode*> mDataStructs; // data structs (vert pix connect etc)
 
    tStageNode* mVertStage;
    tStageNode* mPixStage;
@@ -173,34 +309,23 @@ struct tShadeAst
       mComputeStage(nullptr) {}
 
    ~tShadeAst() {
+      for (auto var : mGlobalVars)
+         delete var;
+
       for (auto dataStruct : mDataStructs)
          delete dataStruct;
 
-      delete mVertStage;
-      delete mPixStage;
-      delete mGeoStage;
-      delete mComputeStage;
-   }
+      if(mVertStage)
+         delete mVertStage;
 
-   void addStageNode(ShaderStageType stageType, tStageNode* stageNode)
-   {
-      switch (stageType)
-      {
-      case tSTAGE_VERTEX:
-         mVertStage = stageNode;
-         break;
-      case tSTAGE_PIXEL:
-         mPixStage = stageNode;
-         break;
-      case tSTAGE_GEOMETRY:
-         mGeoStage = stageNode;
-         break;
-      case tSTAGE_COMPUTE:
-         mComputeStage = stageNode;
-         break;
-      default:
-         break;
-      }
+      if(mPixStage)
+         delete mPixStage;
+
+      if(mGeoStage)
+         delete mGeoStage;
+
+      if(mComputeStage)
+         delete mComputeStage;
    }
 
    void addStruct(tStructNode* structNode) {

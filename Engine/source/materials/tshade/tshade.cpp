@@ -86,7 +86,7 @@
 
   typedef void* yyscan_t;
   void yyerror(yyscan_t yyscanner, const char* msg);
-  void yyerror(yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg);
+  void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg);
   #define YY_DECL int yylex(union YYSTYPE *, yyscan_t)
   YY_DECL;
 
@@ -156,44 +156,86 @@ enum yysymbol_kind_t
   YYSYMBOL_rwIF = 33,                      /* rwIF  */
   YYSYMBOL_rwELSE = 34,                    /* rwELSE  */
   YYSYMBOL_rwDISCARD = 35,                 /* rwDISCARD  */
-  YYSYMBOL_OP_EQ = 36,                     /* OP_EQ  */
-  YYSYMBOL_OP_NEQ = 37,                    /* OP_NEQ  */
-  YYSYMBOL_OP_AND = 38,                    /* OP_AND  */
-  YYSYMBOL_OP_OR = 39,                     /* OP_OR  */
-  YYSYMBOL_OP_LE = 40,                     /* OP_LE  */
-  YYSYMBOL_OP_GE = 41,                     /* OP_GE  */
-  YYSYMBOL_INT_NUM = 42,                   /* INT_NUM  */
-  YYSYMBOL_FLOAT_NUM = 43,                 /* FLOAT_NUM  */
-  YYSYMBOL_VAR_IDENT = 44,                 /* VAR_IDENT  */
-  YYSYMBOL_STR_VAL = 45,                   /* STR_VAL  */
-  YYSYMBOL_TYPE_IDENT = 46,                /* TYPE_IDENT  */
-  YYSYMBOL_tSTRUCT = 47,                   /* tSTRUCT  */
-  YYSYMBOL_tUNIFORM = 48,                  /* tUNIFORM  */
-  YYSYMBOL_tCBUFFER = 49,                  /* tCBUFFER  */
-  YYSYMBOL_tSHADERDECLARE = 50,            /* tSHADERDECLARE  */
-  YYSYMBOL_tVSSHADER = 51,                 /* tVSSHADER  */
-  YYSYMBOL_tFLOAT_TYPE = 52,               /* tFLOAT_TYPE  */
-  YYSYMBOL_tINT_TYPE = 53,                 /* tINT_TYPE  */
-  YYSYMBOL_tBOOL_TYPE = 54,                /* tBOOL_TYPE  */
-  YYSYMBOL_tUINT_TYPE = 55,                /* tUINT_TYPE  */
-  YYSYMBOL_tFVEC2_TYPE = 56,               /* tFVEC2_TYPE  */
-  YYSYMBOL_tFVEC3_TYPE = 57,               /* tFVEC3_TYPE  */
-  YYSYMBOL_tFVEC4_TYPE = 58,               /* tFVEC4_TYPE  */
-  YYSYMBOL_tIVEC2_TYPE = 59,               /* tIVEC2_TYPE  */
-  YYSYMBOL_tIVEC3_TYPE = 60,               /* tIVEC3_TYPE  */
-  YYSYMBOL_tIVEC4_TYPE = 61,               /* tIVEC4_TYPE  */
-  YYSYMBOL_tBVEC2_TYPE = 62,               /* tBVEC2_TYPE  */
-  YYSYMBOL_tBVEC3_TYPE = 63,               /* tBVEC3_TYPE  */
-  YYSYMBOL_tBVEC4_TYPE = 64,               /* tBVEC4_TYPE  */
-  YYSYMBOL_tMAT4_TYPE = 65,                /* tMAT4_TYPE  */
-  YYSYMBOL_tMAT43_TYPE = 66,               /* tMAT43_TYPE  */
-  YYSYMBOL_tMAT34_TYPE = 67,               /* tMAT34_TYPE  */
-  YYSYMBOL_tMAT3_TYPE = 68,                /* tMAT3_TYPE  */
-  YYSYMBOL_YYACCEPT = 69,                  /* $accept  */
-  YYSYMBOL_program = 70,                   /* program  */
-  YYSYMBOL_program_globals = 71,           /* program_globals  */
-  YYSYMBOL_var_decl = 72,                  /* var_decl  */
-  YYSYMBOL_var_type = 73                   /* var_type  */
+  YYSYMBOL_rwVOID = 36,                    /* rwVOID  */
+  YYSYMBOL_rwSTATIC = 37,                  /* rwSTATIC  */
+  YYSYMBOL_rwIN = 38,                      /* rwIN  */
+  YYSYMBOL_rwOUT = 39,                     /* rwOUT  */
+  YYSYMBOL_rwINOUT = 40,                   /* rwINOUT  */
+  YYSYMBOL_rwTYPEDEF = 41,                 /* rwTYPEDEF  */
+  YYSYMBOL_rwTRUE = 42,                    /* rwTRUE  */
+  YYSYMBOL_rwFALSE = 43,                   /* rwFALSE  */
+  YYSYMBOL_rwRETURN = 44,                  /* rwRETURN  */
+  YYSYMBOL_OP_EQ = 45,                     /* OP_EQ  */
+  YYSYMBOL_OP_NEQ = 46,                    /* OP_NEQ  */
+  YYSYMBOL_OP_AND = 47,                    /* OP_AND  */
+  YYSYMBOL_OP_OR = 48,                     /* OP_OR  */
+  YYSYMBOL_OP_LE = 49,                     /* OP_LE  */
+  YYSYMBOL_OP_GE = 50,                     /* OP_GE  */
+  YYSYMBOL_OP_PLUSPLUS = 51,               /* OP_PLUSPLUS  */
+  YYSYMBOL_OP_MINUSMINUS = 52,             /* OP_MINUSMINUS  */
+  YYSYMBOL_OP_PLUS_ASS = 53,               /* OP_PLUS_ASS  */
+  YYSYMBOL_OP_MINUS_ASS = 54,              /* OP_MINUS_ASS  */
+  YYSYMBOL_OP_MUL_ASS = 55,                /* OP_MUL_ASS  */
+  YYSYMBOL_OP_DIV_ASS = 56,                /* OP_DIV_ASS  */
+  YYSYMBOL_OP_MOD_ASS = 57,                /* OP_MOD_ASS  */
+  YYSYMBOL_OP_AND_ASS = 58,                /* OP_AND_ASS  */
+  YYSYMBOL_OP_OR_ASS = 59,                 /* OP_OR_ASS  */
+  YYSYMBOL_OP_XOR_ASS = 60,                /* OP_XOR_ASS  */
+  YYSYMBOL_OP_BIT_LEFT_ASS = 61,           /* OP_BIT_LEFT_ASS  */
+  YYSYMBOL_OP_BIT_RIGHT_ASS = 62,          /* OP_BIT_RIGHT_ASS  */
+  YYSYMBOL_OP_BIT_LEFT = 63,               /* OP_BIT_LEFT  */
+  YYSYMBOL_OP_BIT_RIGHT = 64,              /* OP_BIT_RIGHT  */
+  YYSYMBOL_INT_NUM = 65,                   /* INT_NUM  */
+  YYSYMBOL_FLOAT_NUM = 66,                 /* FLOAT_NUM  */
+  YYSYMBOL_VAR_IDENT = 67,                 /* VAR_IDENT  */
+  YYSYMBOL_STR_VAL = 68,                   /* STR_VAL  */
+  YYSYMBOL_TYPE_IDENT = 69,                /* TYPE_IDENT  */
+  YYSYMBOL_tSTRUCT = 70,                   /* tSTRUCT  */
+  YYSYMBOL_tUNIFORM = 71,                  /* tUNIFORM  */
+  YYSYMBOL_tCBUFFER = 72,                  /* tCBUFFER  */
+  YYSYMBOL_tSHADERDECLARE = 73,            /* tSHADERDECLARE  */
+  YYSYMBOL_tSWIZZLE = 74,                  /* tSWIZZLE  */
+  YYSYMBOL_tVSSHADER = 75,                 /* tVSSHADER  */
+  YYSYMBOL_tPSSHADER = 76,                 /* tPSSHADER  */
+  YYSYMBOL_tGSSHADER = 77,                 /* tGSSHADER  */
+  YYSYMBOL_tCSSHADER = 78,                 /* tCSSHADER  */
+  YYSYMBOL_tDSSHADER = 79,                 /* tDSSHADER  */
+  YYSYMBOL_tHSSHADER = 80,                 /* tHSSHADER  */
+  YYSYMBOL_tFLOAT_TYPE = 81,               /* tFLOAT_TYPE  */
+  YYSYMBOL_tINT_TYPE = 82,                 /* tINT_TYPE  */
+  YYSYMBOL_tBOOL_TYPE = 83,                /* tBOOL_TYPE  */
+  YYSYMBOL_tUINT_TYPE = 84,                /* tUINT_TYPE  */
+  YYSYMBOL_tFVEC2_TYPE = 85,               /* tFVEC2_TYPE  */
+  YYSYMBOL_tFVEC3_TYPE = 86,               /* tFVEC3_TYPE  */
+  YYSYMBOL_tFVEC4_TYPE = 87,               /* tFVEC4_TYPE  */
+  YYSYMBOL_tIVEC2_TYPE = 88,               /* tIVEC2_TYPE  */
+  YYSYMBOL_tIVEC3_TYPE = 89,               /* tIVEC3_TYPE  */
+  YYSYMBOL_tIVEC4_TYPE = 90,               /* tIVEC4_TYPE  */
+  YYSYMBOL_tBVEC2_TYPE = 91,               /* tBVEC2_TYPE  */
+  YYSYMBOL_tBVEC3_TYPE = 92,               /* tBVEC3_TYPE  */
+  YYSYMBOL_tBVEC4_TYPE = 93,               /* tBVEC4_TYPE  */
+  YYSYMBOL_tMAT4_TYPE = 94,                /* tMAT4_TYPE  */
+  YYSYMBOL_tMAT43_TYPE = 95,               /* tMAT43_TYPE  */
+  YYSYMBOL_tMAT34_TYPE = 96,               /* tMAT34_TYPE  */
+  YYSYMBOL_tMAT3_TYPE = 97,                /* tMAT3_TYPE  */
+  YYSYMBOL_98_ = 98,                       /* '['  */
+  YYSYMBOL_99_ = 99,                       /* ']'  */
+  YYSYMBOL_YYACCEPT = 100,                 /* $accept  */
+  YYSYMBOL_program = 101,                  /* program  */
+  YYSYMBOL_program_globals = 102,          /* program_globals  */
+  YYSYMBOL_shader_stage = 103,             /* shader_stage  */
+  YYSYMBOL_shader_body = 104,              /* shader_body  */
+  YYSYMBOL_var_decl = 105,                 /* var_decl  */
+  YYSYMBOL_expression_list = 106,          /* expression_list  */
+  YYSYMBOL_expression = 107,               /* expression  */
+  YYSYMBOL_var_type = 108,                 /* var_type  */
+  YYSYMBOL_statement_list = 109,           /* statement_list  */
+  YYSYMBOL_statement = 110,                /* statement  */
+  YYSYMBOL_if_statement = 111,             /* if_statement  */
+  YYSYMBOL_while_statement = 112,          /* while_statement  */
+  YYSYMBOL_continue_statement = 113,       /* continue_statement  */
+  YYSYMBOL_break_statement = 114,          /* break_statement  */
+  YYSYMBOL_return_statement = 115          /* return_statement  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -310,7 +352,7 @@ typedef int yytype_uint16;
 
 
 /* Stored state numbers (used for stacks). */
-typedef yytype_int8 yy_state_t;
+typedef yytype_uint8 yy_state_t;
 
 /* State numbers in computations.  */
 typedef int yy_state_fast_t;
@@ -519,21 +561,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  24
+#define YYFINAL  4
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   22
+#define YYLAST   597
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  69
+#define YYNTOKENS  100
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  5
+#define YYNNTS  16
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  22
+#define YYNRULES  70
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  28
+#define YYNSTATES  143
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   301
+#define YYMAXUTOK   330
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -556,7 +598,7 @@ static const yytype_int8 yytranslate[] =
        7,     9,     8,     2,    24,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,    21,     2,     2,     2,     2,     2,
+       2,    98,     2,    99,    21,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,    19,    11,    20,    22,     2,     2,     2,
@@ -577,16 +619,24 @@ static const yytype_int8 yytranslate[] =
       37,    38,    39,    40,    41,    42,    43,    44,    45,    46,
       47,    48,    49,    50,    51,    52,    53,    54,    55,    56,
       57,    58,    59,    60,    61,    62,    63,    64,    65,    66,
-      67,    68
+      67,    68,    69,    70,    71,    72,    73,    74,    75,    76,
+      77,    78,    79,    80,    81,    82,    83,    84,    85,    86,
+      87,    88,    89,    90,    91,    92,    93,    94,    95,    96,
+      97
 };
 
 #if TSHADE_DEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_int8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    78,    78,    83,    85,    90,    95,    97,    99,   101,
-     103,   105,   107,   109,   111,   113,   115,   117,   119,   121,
-     123,   125,   127
+       0,   106,   106,   107,   113,   114,   116,   121,   123,   125,
+     127,   132,   137,   139,   141,   143,   148,   150,   155,   157,
+     159,   161,   163,   165,   167,   169,   171,   173,   175,   177,
+     179,   181,   183,   185,   187,   189,   191,   193,   198,   200,
+     202,   204,   206,   208,   210,   212,   214,   216,   218,   220,
+     222,   224,   226,   228,   230,   236,   237,   242,   244,   246,
+     248,   250,   252,   257,   259,   264,   266,   271,   276,   281,
+     283
 };
 #endif
 
@@ -606,14 +656,23 @@ static const char *const yytname[] =
   "'/'", "'<'", "'>'", "'='", "'.'", "'|'", "'&'", "'%'", "'('", "')'",
   "','", "':'", "';'", "'{'", "'}'", "'^'", "'~'", "'!'", "'@'",
   "rwSWITCH", "rwCASE", "rwDEFAULT", "rwWHILE", "rwDO", "rwFOR", "rwBREAK",
-  "rwCONTINUE", "rwIF", "rwELSE", "rwDISCARD", "OP_EQ", "OP_NEQ", "OP_AND",
-  "OP_OR", "OP_LE", "OP_GE", "INT_NUM", "FLOAT_NUM", "VAR_IDENT",
-  "STR_VAL", "TYPE_IDENT", "tSTRUCT", "tUNIFORM", "tCBUFFER",
-  "tSHADERDECLARE", "tVSSHADER", "tFLOAT_TYPE", "tINT_TYPE", "tBOOL_TYPE",
-  "tUINT_TYPE", "tFVEC2_TYPE", "tFVEC3_TYPE", "tFVEC4_TYPE", "tIVEC2_TYPE",
-  "tIVEC3_TYPE", "tIVEC4_TYPE", "tBVEC2_TYPE", "tBVEC3_TYPE",
-  "tBVEC4_TYPE", "tMAT4_TYPE", "tMAT43_TYPE", "tMAT34_TYPE", "tMAT3_TYPE",
-  "$accept", "program", "program_globals", "var_decl", "var_type", YY_NULLPTR
+  "rwCONTINUE", "rwIF", "rwELSE", "rwDISCARD", "rwVOID", "rwSTATIC",
+  "rwIN", "rwOUT", "rwINOUT", "rwTYPEDEF", "rwTRUE", "rwFALSE", "rwRETURN",
+  "OP_EQ", "OP_NEQ", "OP_AND", "OP_OR", "OP_LE", "OP_GE", "OP_PLUSPLUS",
+  "OP_MINUSMINUS", "OP_PLUS_ASS", "OP_MINUS_ASS", "OP_MUL_ASS",
+  "OP_DIV_ASS", "OP_MOD_ASS", "OP_AND_ASS", "OP_OR_ASS", "OP_XOR_ASS",
+  "OP_BIT_LEFT_ASS", "OP_BIT_RIGHT_ASS", "OP_BIT_LEFT", "OP_BIT_RIGHT",
+  "INT_NUM", "FLOAT_NUM", "VAR_IDENT", "STR_VAL", "TYPE_IDENT", "tSTRUCT",
+  "tUNIFORM", "tCBUFFER", "tSHADERDECLARE", "tSWIZZLE", "tVSSHADER",
+  "tPSSHADER", "tGSSHADER", "tCSSHADER", "tDSSHADER", "tHSSHADER",
+  "tFLOAT_TYPE", "tINT_TYPE", "tBOOL_TYPE", "tUINT_TYPE", "tFVEC2_TYPE",
+  "tFVEC3_TYPE", "tFVEC4_TYPE", "tIVEC2_TYPE", "tIVEC3_TYPE",
+  "tIVEC4_TYPE", "tBVEC2_TYPE", "tBVEC3_TYPE", "tBVEC4_TYPE", "tMAT4_TYPE",
+  "tMAT43_TYPE", "tMAT34_TYPE", "tMAT3_TYPE", "'['", "']'", "$accept",
+  "program", "program_globals", "shader_stage", "shader_body", "var_decl",
+  "expression_list", "expression", "var_type", "statement_list",
+  "statement", "if_statement", "while_statement", "continue_statement",
+  "break_statement", "return_statement", YY_NULLPTR
 };
 
 static const char *
@@ -623,7 +682,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-51)
+#define YYPACT_NINF (-64)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -635,11 +694,23 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-static const yytype_int8 yypact[] =
+static const yytype_int16 yypact[] =
 {
-     -50,   -44,   -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,
-     -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,   -51,    19,
-     -51,   -51,   -24,     3,   -51,     4,   -51,   -51
+     -63,   -45,    25,     9,   -64,   500,    15,    28,    30,    31,
+     -64,   -64,   -64,   -64,   -64,   -64,   -64,   -64,   -64,   -64,
+     -64,   -64,   -64,   -64,   -64,   -64,   -64,    10,   -64,   -64,
+     -16,   -64,   -64,   -64,   -64,    24,    18,    32,   477,    33,
+      34,    35,   -64,    56,   -64,    56,   -64,    48,    49,    51,
+      53,    61,    17,   -64,   -64,   -64,   -64,   -64,   -64,   -64,
+     -64,   -64,   -64,    56,    56,    56,   -64,   -64,   -64,    11,
+      62,    -2,    56,   -64,   -64,   -64,    56,   -64,   346,    -7,
+     394,    -7,    56,    56,    56,    56,    56,    56,    56,   -64,
+      56,    56,    56,    56,    56,   -64,    56,    14,   408,   180,
+     430,   -64,   -64,     7,     7,    -7,    -7,    60,    60,    -7,
+     164,   164,   480,   466,    60,    23,    83,    55,   -64,    58,
+      64,    76,   -64,    56,    56,   -64,   101,   -64,    83,    21,
+     197,    56,   215,    99,   -64,   444,    84,   -64,   -64,   100,
+     -64,   293,   -64
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -647,63 +718,213 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,    19,    20,    22,    21,    10,    11,    12,    13,
-      14,    15,    16,    17,    18,     9,     7,     6,     8,     0,
-       2,     4,     0,     0,     1,     0,     3,     5
+       2,     0,     0,     0,     1,     4,     0,     0,     0,     0,
+      51,    52,    54,    53,    42,    43,    44,    45,    46,    47,
+      48,    49,    50,    41,    39,    38,    40,     0,     6,     5,
+       0,    55,    55,    55,    55,     0,     0,     0,    11,     0,
+       0,     0,     3,     0,    12,     0,     7,     0,     0,     0,
+       0,     0,     0,    57,    56,    58,    59,    60,    61,    62,
+       8,     9,    10,     0,     0,     0,    36,    37,    35,     0,
+       0,     0,     0,    55,    68,    67,     0,    69,     0,    31,
+       0,    30,     0,     0,     0,     0,     0,     0,     0,    13,
+       0,     0,     0,     0,     0,    34,     0,     0,     0,     0,
+       0,    70,    32,    18,    19,    20,    21,    25,    26,    22,
+      23,    24,    28,    29,    27,     0,    16,     0,    14,     0,
+       0,     0,    33,     0,     0,    55,     0,    55,    17,     0,
+       0,     0,     0,     0,    65,     0,    64,    15,    66,     0,
+      55,     0,    63
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -51,   -51,   -51,   -51,   -51
+     -64,   -64,   -64,   -64,   -25,   115,     0,   111,    -5,   -47,
+     -64,   -64,   -64,   -64,   -64,   -64
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,    19,    20,    21,    22
+       0,     2,    27,    28,    37,    53,   115,   116,    70,    38,
+      54,    55,    56,    57,    58,    59
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule whose
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
-static const yytype_int8 yytable[] =
+static const yytype_uint8 yytable[] =
 {
-       1,    23,     2,     3,     4,     5,     6,     7,     8,     9,
-      10,    11,    12,    13,    14,    15,    16,    17,    18,    24,
-      25,    26,    27
+      30,    82,    83,    84,    85,    86,    87,    39,    40,    41,
+       1,    88,    84,    85,    82,    83,    84,    85,    86,    87,
+      88,    63,     3,   117,    88,     4,    99,    43,     5,    89,
+      35,    64,   118,    30,    31,    77,    44,   123,   122,   123,
+      65,   133,    42,    90,    91,    92,    93,    32,    94,    33,
+      34,    36,    46,    60,    61,    62,    90,    91,    92,    93,
+      63,    94,    72,    82,    83,    84,    85,    95,    73,    74,
+      64,    75,    95,    88,   124,    76,    96,   125,   130,    65,
+     132,    95,    66,    67,    68,    95,    82,    83,    84,    85,
+      86,    87,   126,   141,    30,   127,    88,    97,    10,    11,
+      12,    13,    14,    15,    16,    17,    18,    19,    20,    21,
+      22,    23,    24,    25,    26,   131,    45,   137,   139,   140,
+      29,    66,    67,    68,   129,    30,     0,    30,    90,    91,
+      92,    93,     0,    94,    95,     0,    30,    10,    11,    12,
+      13,    14,    15,    16,    17,    18,    19,    20,    21,    22,
+      23,    24,    25,    26,    69,     0,    71,    95,     0,     0,
+       0,     0,     0,    78,     0,     0,     0,    82,    83,    84,
+      85,    86,    87,     0,    79,    80,    81,    88,     0,     0,
+       0,     0,     0,    98,     0,     0,     0,   100,     0,     0,
+       0,     0,     0,   103,   104,   105,   106,   107,   108,   109,
+     120,   110,   111,   112,   113,   114,     0,     0,    47,    48,
+       0,    49,    50,    51,    94,     0,     0,   134,     0,     0,
+       0,     0,     0,     0,    52,    47,    48,     0,    49,    50,
+      51,     0,     0,     0,   128,   136,     0,     0,    95,     0,
+       0,    52,   135,    47,    48,     0,    49,    50,    51,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    52,
+       0,    10,    11,    12,    13,    14,    15,    16,    17,    18,
+      19,    20,    21,    22,    23,    24,    25,    26,    10,    11,
+      12,    13,    14,    15,    16,    17,    18,    19,    20,    21,
+      22,    23,    24,    25,    26,     0,    10,    11,    12,    13,
+      14,    15,    16,    17,    18,    19,    20,    21,    22,    23,
+      24,    25,    26,   142,     0,     0,     0,     0,     0,     0,
+       0,    47,    48,     0,    49,    50,    51,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,    52,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    82,
+      83,    84,    85,    86,    87,     0,     0,     0,     0,    88,
+       0,     0,     0,     0,   101,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    10,    11,    12,    13,    14,    15,
+      16,    17,    18,    19,    20,    21,    22,    23,    24,    25,
+      26,    90,    91,    92,    93,     0,    94,    82,    83,    84,
+      85,    86,    87,     0,     0,     0,     0,    88,     0,   102,
+       0,    82,    83,    84,    85,    86,    87,     0,     0,     0,
+      95,    88,     0,   119,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,    82,    83,    84,    85,    86,    87,    90,
+      91,    92,    93,    88,    94,   121,     0,    82,    83,    84,
+      85,    86,    87,    90,    91,    92,    93,    88,    94,   138,
+       0,     0,     0,     0,     0,     0,     0,     0,    95,    82,
+      83,    84,    85,    86,    87,    90,    91,    92,    93,    88,
+      94,     0,    95,    82,    83,    84,    85,    86,    87,    90,
+      91,    92,    93,    88,    94,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    95,    47,    48,     0,    49,    50,
+      51,    90,    91,    92,     0,     0,    94,     0,    95,     0,
+       0,    52,     0,     0,     0,    90,    91,     0,     0,     0,
+      94,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+      95,     0,     0,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     0,     0,    95,     0,     0,     0,    10,    11,
+      12,    13,    14,    15,    16,    17,    18,    19,    20,    21,
+      22,    23,    24,    25,    26,     6,     7,     8,     9,     0,
+       0,    10,    11,    12,    13,    14,    15,    16,    17,    18,
+      19,    20,    21,    22,    23,    24,    25,    26
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_int16 yycheck[] =
 {
-      50,    45,    52,    53,    54,    55,    56,    57,    58,    59,
-      60,    61,    62,    63,    64,    65,    66,    67,    68,     0,
-      44,    18,    18
+       5,     3,     4,     5,     6,     7,     8,    32,    33,    34,
+      73,    13,     5,     6,     3,     4,     5,     6,     7,     8,
+      13,     4,    67,     9,    13,     0,    73,     9,    19,    18,
+      20,    14,    18,    38,    19,    18,    18,    16,    15,    16,
+      23,    20,    18,    45,    46,    47,    48,    19,    50,    19,
+      19,    67,    20,    20,    20,    20,    45,    46,    47,    48,
+       4,    50,    14,     3,     4,     5,     6,    74,    19,    18,
+      14,    18,    74,    13,    19,    14,    14,    19,   125,    23,
+     127,    74,    65,    66,    67,    74,     3,     4,     5,     6,
+       7,     8,    28,   140,    99,    19,    13,    99,    81,    82,
+      83,    84,    85,    86,    87,    88,    89,    90,    91,    92,
+      93,    94,    95,    96,    97,    14,    98,    18,    34,    19,
+       5,    65,    66,    67,   124,   130,    -1,   132,    45,    46,
+      47,    48,    -1,    50,    74,    -1,   141,    81,    82,    83,
+      84,    85,    86,    87,    88,    89,    90,    91,    92,    93,
+      94,    95,    96,    97,    43,    -1,    45,    74,    -1,    -1,
+      -1,    -1,    -1,    52,    -1,    -1,    -1,     3,     4,     5,
+       6,     7,     8,    -1,    63,    64,    65,    13,    -1,    -1,
+      -1,    -1,    -1,    72,    -1,    -1,    -1,    76,    -1,    -1,
+      -1,    -1,    -1,    82,    83,    84,    85,    86,    87,    88,
+      20,    90,    91,    92,    93,    94,    -1,    -1,    28,    29,
+      -1,    31,    32,    33,    50,    -1,    -1,    20,    -1,    -1,
+      -1,    -1,    -1,    -1,    44,    28,    29,    -1,    31,    32,
+      33,    -1,    -1,    -1,   123,    20,    -1,    -1,    74,    -1,
+      -1,    44,   131,    28,    29,    -1,    31,    32,    33,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    44,
+      -1,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,    94,    95,    96,    97,    81,    82,
+      83,    84,    85,    86,    87,    88,    89,    90,    91,    92,
+      93,    94,    95,    96,    97,    -1,    81,    82,    83,    84,
+      85,    86,    87,    88,    89,    90,    91,    92,    93,    94,
+      95,    96,    97,    20,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    28,    29,    -1,    31,    32,    33,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    44,    -1,    -1,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,     3,
+       4,     5,     6,     7,     8,    -1,    -1,    -1,    -1,    13,
+      -1,    -1,    -1,    -1,    18,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    81,    82,    83,    84,    85,    86,
+      87,    88,    89,    90,    91,    92,    93,    94,    95,    96,
+      97,    45,    46,    47,    48,    -1,    50,     3,     4,     5,
+       6,     7,     8,    -1,    -1,    -1,    -1,    13,    -1,    15,
+      -1,     3,     4,     5,     6,     7,     8,    -1,    -1,    -1,
+      74,    13,    -1,    15,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,     3,     4,     5,     6,     7,     8,    45,
+      46,    47,    48,    13,    50,    15,    -1,     3,     4,     5,
+       6,     7,     8,    45,    46,    47,    48,    13,    50,    15,
+      -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    74,     3,
+       4,     5,     6,     7,     8,    45,    46,    47,    48,    13,
+      50,    -1,    74,     3,     4,     5,     6,     7,     8,    45,
+      46,    47,    48,    13,    50,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    74,    28,    29,    -1,    31,    32,
+      33,    45,    46,    47,    -1,    -1,    50,    -1,    74,    -1,
+      -1,    44,    -1,    -1,    -1,    45,    46,    -1,    -1,    -1,
+      50,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      74,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,    -1,
+      -1,    -1,    -1,    -1,    74,    -1,    -1,    -1,    81,    82,
+      83,    84,    85,    86,    87,    88,    89,    90,    91,    92,
+      93,    94,    95,    96,    97,    75,    76,    77,    78,    -1,
+      -1,    81,    82,    83,    84,    85,    86,    87,    88,    89,
+      90,    91,    92,    93,    94,    95,    96,    97
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,    50,    52,    53,    54,    55,    56,    57,    58,    59,
-      60,    61,    62,    63,    64,    65,    66,    67,    68,    70,
-      71,    72,    73,    45,     0,    44,    18,    18
+       0,    73,   101,    67,     0,    19,    75,    76,    77,    78,
+      81,    82,    83,    84,    85,    86,    87,    88,    89,    90,
+      91,    92,    93,    94,    95,    96,    97,   102,   103,   105,
+     108,    19,    19,    19,    19,    20,    67,   104,   109,   104,
+     104,   104,    18,     9,    18,    98,    20,    28,    29,    31,
+      32,    33,    44,   105,   110,   111,   112,   113,   114,   115,
+      20,    20,    20,     4,    14,    23,    65,    66,    67,   107,
+     108,   107,    14,    19,    18,    18,    14,    18,   107,   107,
+     107,   107,     3,     4,     5,     6,     7,     8,    13,    18,
+      45,    46,    47,    48,    50,    74,    14,    99,   107,   109,
+     107,    18,    15,   107,   107,   107,   107,   107,   107,   107,
+     107,   107,   107,   107,   107,   106,   107,     9,    18,    15,
+      20,    15,    15,    16,    19,    19,    28,    19,   107,   106,
+     109,    14,   109,    20,    20,   107,    20,    18,    15,    34,
+      19,   109,    20
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    69,    70,    71,    71,    72,    73,    73,    73,    73,
-      73,    73,    73,    73,    73,    73,    73,    73,    73,    73,
-      73,    73,    73
+       0,   100,   101,   101,   102,   102,   102,   103,   103,   103,
+     103,   104,   105,   105,   105,   105,   106,   106,   107,   107,
+     107,   107,   107,   107,   107,   107,   107,   107,   107,   107,
+     107,   107,   107,   107,   107,   107,   107,   107,   108,   108,
+     108,   108,   108,   108,   108,   108,   108,   108,   108,   108,
+     108,   108,   108,   108,   108,   109,   109,   110,   110,   110,
+     110,   110,   110,   111,   111,   112,   112,   113,   114,   115,
+     115
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     3,     1,     3,     1,     1,     1,     1,
+       0,     2,     0,     6,     0,     1,     1,     4,     4,     4,
+       4,     1,     3,     5,     6,    10,     1,     3,     3,     3,
+       3,     3,     3,     3,     3,     3,     3,     3,     3,     3,
+       2,     2,     3,     4,     2,     1,     1,     1,     1,     1,
        1,     1,     1,     1,     1,     1,     1,     1,     1,     1,
-       1,     1,     1
+       1,     1,     1,     1,     1,     0,     2,     1,     1,     1,
+       1,     1,     1,    11,     7,     7,     8,     2,     2,     2,
+       3
 };
 
 
@@ -777,7 +998,7 @@ do {                                                                      \
 
 static void
 yy_symbol_value_print (FILE *yyo,
-                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, yyscan_t scanner, tshadeAst* shadeAst)
+                       yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, yyscan_t scanner, tShadeAst* shadeAst)
 {
   FILE *yyoutput = yyo;
   YY_USE (yyoutput);
@@ -797,7 +1018,7 @@ yy_symbol_value_print (FILE *yyo,
 
 static void
 yy_symbol_print (FILE *yyo,
-                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, yyscan_t scanner, tshadeAst* shadeAst)
+                 yysymbol_kind_t yykind, YYSTYPE const * const yyvaluep, yyscan_t scanner, tShadeAst* shadeAst)
 {
   YYFPRINTF (yyo, "%s %s (",
              yykind < YYNTOKENS ? "token" : "nterm", yysymbol_name (yykind));
@@ -836,7 +1057,7 @@ do {                                                            \
 
 static void
 yy_reduce_print (yy_state_t *yyssp, YYSTYPE *yyvsp,
-                 int yyrule, yyscan_t scanner, tshadeAst* shadeAst)
+                 int yyrule, yyscan_t scanner, tShadeAst* shadeAst)
 {
   int yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
@@ -898,7 +1119,7 @@ int yydebug;
 
 static void
 yydestruct (const char *yymsg,
-            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, yyscan_t scanner, tshadeAst* shadeAst)
+            yysymbol_kind_t yykind, YYSTYPE *yyvaluep, yyscan_t scanner, tShadeAst* shadeAst)
 {
   YY_USE (yyvaluep);
   YY_USE (scanner);
@@ -922,7 +1143,7 @@ yydestruct (const char *yymsg,
 `----------*/
 
 int
-yyparse (yyscan_t scanner, tshadeAst* shadeAst)
+yyparse (yyscan_t scanner, tShadeAst* shadeAst)
 {
 /* Lookahead token kind.  */
 int yychar;
@@ -1176,134 +1397,422 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 2: /* program: program_globals  */
-#line 79 "tshade.y"
-    { (yyval.node) = nullptr; }
-#line 1183 "tshade.cpp"
-    break;
-
-  case 3: /* program_globals: tSHADERDECLARE STR_VAL ';'  */
-#line 84 "tshade.y"
-    {(yyval.node) = nullptr; shadeAst->shaderName = (yyvsp[-1].strVal);}
-#line 1189 "tshade.cpp"
-    break;
-
-  case 4: /* program_globals: var_decl  */
-#line 86 "tshade.y"
-    {(yyval.node) = nullptr; shadeAst->mGlobalVars.push_back((yyvsp[0].node)); }
-#line 1195 "tshade.cpp"
-    break;
-
-  case 5: /* var_decl: var_type VAR_IDENT ';'  */
-#line 91 "tshade.y"
-    {}
-#line 1201 "tshade.cpp"
-    break;
-
-  case 6: /* var_type: tMAT34_TYPE  */
-#line 96 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tMAT34_TYPE;}
-#line 1207 "tshade.cpp"
-    break;
-
-  case 7: /* var_type: tMAT43_TYPE  */
-#line 98 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tMAT43_TYPE;}
-#line 1213 "tshade.cpp"
-    break;
-
-  case 8: /* var_type: tMAT3_TYPE  */
-#line 100 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tMAT3_TYPE;}
-#line 1219 "tshade.cpp"
-    break;
-
-  case 9: /* var_type: tMAT4_TYPE  */
-#line 102 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tMAT4_TYPE;}
-#line 1225 "tshade.cpp"
-    break;
-
-  case 10: /* var_type: tFVEC2_TYPE  */
-#line 104 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tFVEC2_TYPE;}
-#line 1231 "tshade.cpp"
-    break;
-
-  case 11: /* var_type: tFVEC3_TYPE  */
+  case 2: /* program: %empty  */
 #line 106 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tFVEC3_TYPE;}
-#line 1237 "tshade.cpp"
+    { (yyval.node) = nullptr;}
+#line 1404 "tshade.cpp"
     break;
 
-  case 12: /* var_type: tFVEC4_TYPE  */
+  case 3: /* program: tSHADERDECLARE VAR_IDENT '{' program_globals '}' ';'  */
 #line 108 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tFVEC4_TYPE;}
-#line 1243 "tshade.cpp"
+    {(yyval.node) = nullptr; shadeAst->shaderName = (yyvsp[-4].strVal); }
+#line 1410 "tshade.cpp"
     break;
 
-  case 13: /* var_type: tIVEC2_TYPE  */
-#line 110 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tIVEC2_TYPE;}
-#line 1249 "tshade.cpp"
+  case 4: /* program_globals: %empty  */
+#line 113 "tshade.y"
+    {(yyval.node) = nullptr; }
+#line 1416 "tshade.cpp"
     break;
 
-  case 14: /* var_type: tIVEC3_TYPE  */
-#line 112 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tIVEC3_TYPE;}
-#line 1255 "tshade.cpp"
+  case 5: /* program_globals: var_decl  */
+#line 115 "tshade.y"
+    {(yyval.node) = nullptr; shadeAst->mGlobalVars.push_back((yyvsp[0].node)); }
+#line 1422 "tshade.cpp"
     break;
 
-  case 15: /* var_type: tIVEC4_TYPE  */
-#line 114 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tIVEC4_TYPE;}
-#line 1261 "tshade.cpp"
+  case 6: /* program_globals: shader_stage  */
+#line 117 "tshade.y"
+    {}
+#line 1428 "tshade.cpp"
     break;
 
-  case 16: /* var_type: tBVEC2_TYPE  */
-#line 116 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tBVEC2_TYPE;}
-#line 1267 "tshade.cpp"
-    break;
-
-  case 17: /* var_type: tBVEC3_TYPE  */
-#line 118 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tBVEC3_TYPE;}
-#line 1273 "tshade.cpp"
-    break;
-
-  case 18: /* var_type: tBVEC4_TYPE  */
-#line 120 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tBVEC4_TYPE;}
-#line 1279 "tshade.cpp"
-    break;
-
-  case 19: /* var_type: tFLOAT_TYPE  */
+  case 7: /* shader_stage: tVSSHADER '{' shader_body '}'  */
 #line 122 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tFLOAT_TYPE;}
-#line 1285 "tshade.cpp"
+    { shadeAst->mVertStage = new tStageNode(ShaderStageType::tSTAGE_VERTEX, (yyvsp[-1].node)); }
+#line 1434 "tshade.cpp"
     break;
 
-  case 20: /* var_type: tINT_TYPE  */
+  case 8: /* shader_stage: tPSSHADER '{' shader_body '}'  */
 #line 124 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tINT_TYPE;}
-#line 1291 "tshade.cpp"
+    {shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_PIXEL, (yyvsp[-1].node));}
+#line 1440 "tshade.cpp"
     break;
 
-  case 21: /* var_type: tUINT_TYPE  */
+  case 9: /* shader_stage: tGSSHADER '{' shader_body '}'  */
 #line 126 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tUINT_TYPE;}
-#line 1297 "tshade.cpp"
+    {shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_GEOMETRY, (yyvsp[-1].node));}
+#line 1446 "tshade.cpp"
     break;
 
-  case 22: /* var_type: tBOOL_TYPE  */
+  case 10: /* shader_stage: tCSSHADER '{' shader_body '}'  */
 #line 128 "tshade.y"
-    {(yyval.intVal) = tshade_tokentype::tBOOL_TYPE;}
-#line 1303 "tshade.cpp"
+    {shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_COMPUTE, (yyvsp[-1].node));}
+#line 1452 "tshade.cpp"
+    break;
+
+  case 11: /* shader_body: statement_list  */
+#line 133 "tshade.y"
+    {(yyval.node) = (yyvsp[0].stmt_list_node);}
+#line 1458 "tshade.cpp"
+    break;
+
+  case 12: /* var_decl: var_type VAR_IDENT ';'  */
+#line 138 "tshade.y"
+    {(yyval.node) = new tVarDeclNode((yyvsp[-1].strVal), (yyvsp[-2].varType)); }
+#line 1464 "tshade.cpp"
+    break;
+
+  case 13: /* var_decl: var_type VAR_IDENT '=' expression ';'  */
+#line 140 "tshade.y"
+    {(yyval.node) = new tVarDeclNode((yyvsp[-3].strVal), (yyvsp[-4].varType), (yyvsp[-1].node));}
+#line 1470 "tshade.cpp"
+    break;
+
+  case 14: /* var_decl: var_type VAR_IDENT '[' expression ']' ';'  */
+#line 142 "tshade.y"
+    {(yyval.node) = new tVarDeclNode((yyvsp[-4].strVal), (yyvsp[-5].varType), nullptr, (yyvsp[-2].node));}
+#line 1476 "tshade.cpp"
+    break;
+
+  case 15: /* var_decl: var_type VAR_IDENT '[' expression ']' '=' '{' expression_list '}' ';'  */
+#line 144 "tshade.y"
+    {(yyval.node) = new tVarDeclNode((yyvsp[-8].strVal), (yyvsp[-9].varType), (yyvsp[-2].exprListnode), (yyvsp[-6].node));}
+#line 1482 "tshade.cpp"
+    break;
+
+  case 16: /* expression_list: expression  */
+#line 149 "tshade.y"
+    { (yyval.exprListnode) = new tExpressionListNode(); (yyval.exprListnode)->addExpression((yyvsp[0].node)); }
+#line 1488 "tshade.cpp"
+    break;
+
+  case 17: /* expression_list: expression_list ',' expression  */
+#line 151 "tshade.y"
+    { (yyval.exprListnode)->addExpression((yyvsp[0].node)); }
+#line 1494 "tshade.cpp"
+    break;
+
+  case 18: /* expression: expression '+' expression  */
+#line 156 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("+", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1500 "tshade.cpp"
+    break;
+
+  case 19: /* expression: expression '-' expression  */
+#line 158 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("-", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1506 "tshade.cpp"
+    break;
+
+  case 20: /* expression: expression '*' expression  */
+#line 160 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("*", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1512 "tshade.cpp"
+    break;
+
+  case 21: /* expression: expression '/' expression  */
+#line 162 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("/", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1518 "tshade.cpp"
+    break;
+
+  case 22: /* expression: expression '%' expression  */
+#line 164 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("%", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1524 "tshade.cpp"
+    break;
+
+  case 23: /* expression: expression OP_EQ expression  */
+#line 166 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("==", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1530 "tshade.cpp"
+    break;
+
+  case 24: /* expression: expression OP_NEQ expression  */
+#line 168 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("!=", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1536 "tshade.cpp"
+    break;
+
+  case 25: /* expression: expression '<' expression  */
+#line 170 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("<", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1542 "tshade.cpp"
+    break;
+
+  case 26: /* expression: expression '>' expression  */
+#line 172 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode(">", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1548 "tshade.cpp"
+    break;
+
+  case 27: /* expression: expression OP_GE expression  */
+#line 174 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode(">=", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1554 "tshade.cpp"
+    break;
+
+  case 28: /* expression: expression OP_AND expression  */
+#line 176 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("&&", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1560 "tshade.cpp"
+    break;
+
+  case 29: /* expression: expression OP_OR expression  */
+#line 178 "tshade.y"
+    { (yyval.node) = new tBinaryOpNode("||", (yyvsp[-2].node), (yyvsp[0].node)); }
+#line 1566 "tshade.cpp"
+    break;
+
+  case 30: /* expression: '!' expression  */
+#line 180 "tshade.y"
+    { (yyval.node) = new tUnaryOpNode("!", (yyvsp[0].node)); }
+#line 1572 "tshade.cpp"
+    break;
+
+  case 31: /* expression: '-' expression  */
+#line 182 "tshade.y"
+    { (yyval.node) = new tUnaryOpNode("-", (yyvsp[0].node)); }
+#line 1578 "tshade.cpp"
+    break;
+
+  case 32: /* expression: '(' expression ')'  */
+#line 184 "tshade.y"
+    { (yyval.node) = (yyvsp[-1].node); }
+#line 1584 "tshade.cpp"
+    break;
+
+  case 33: /* expression: var_type '(' expression_list ')'  */
+#line 186 "tshade.y"
+    {}
+#line 1590 "tshade.cpp"
+    break;
+
+  case 34: /* expression: expression tSWIZZLE  */
+#line 188 "tshade.y"
+    {}
+#line 1596 "tshade.cpp"
+    break;
+
+  case 35: /* expression: VAR_IDENT  */
+#line 190 "tshade.y"
+    { (yyval.node) = new tVarRefNode((yyvsp[0].strVal)); }
+#line 1602 "tshade.cpp"
+    break;
+
+  case 36: /* expression: INT_NUM  */
+#line 192 "tshade.y"
+    { (yyval.node) = new tIntLiteralNode((yyvsp[0].intVal)); }
+#line 1608 "tshade.cpp"
+    break;
+
+  case 37: /* expression: FLOAT_NUM  */
+#line 194 "tshade.y"
+    { (yyval.node) = new tFloatLiteralNode((yyvsp[0].fVal)); }
+#line 1614 "tshade.cpp"
+    break;
+
+  case 38: /* var_type: tMAT34_TYPE  */
+#line 199 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_MAT34;}
+#line 1620 "tshade.cpp"
+    break;
+
+  case 39: /* var_type: tMAT43_TYPE  */
+#line 201 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_MAT43;}
+#line 1626 "tshade.cpp"
+    break;
+
+  case 40: /* var_type: tMAT3_TYPE  */
+#line 203 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_MAT33;}
+#line 1632 "tshade.cpp"
+    break;
+
+  case 41: /* var_type: tMAT4_TYPE  */
+#line 205 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_MAT44;}
+#line 1638 "tshade.cpp"
+    break;
+
+  case 42: /* var_type: tFVEC2_TYPE  */
+#line 207 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_FLOAT2;}
+#line 1644 "tshade.cpp"
+    break;
+
+  case 43: /* var_type: tFVEC3_TYPE  */
+#line 209 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_FLOAT3;}
+#line 1650 "tshade.cpp"
+    break;
+
+  case 44: /* var_type: tFVEC4_TYPE  */
+#line 211 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_FLOAT4;}
+#line 1656 "tshade.cpp"
+    break;
+
+  case 45: /* var_type: tIVEC2_TYPE  */
+#line 213 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_INT2;}
+#line 1662 "tshade.cpp"
+    break;
+
+  case 46: /* var_type: tIVEC3_TYPE  */
+#line 215 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_INT3;}
+#line 1668 "tshade.cpp"
+    break;
+
+  case 47: /* var_type: tIVEC4_TYPE  */
+#line 217 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_INT4;}
+#line 1674 "tshade.cpp"
+    break;
+
+  case 48: /* var_type: tBVEC2_TYPE  */
+#line 219 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_BOOL2;}
+#line 1680 "tshade.cpp"
+    break;
+
+  case 49: /* var_type: tBVEC3_TYPE  */
+#line 221 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_BOOL3;}
+#line 1686 "tshade.cpp"
+    break;
+
+  case 50: /* var_type: tBVEC4_TYPE  */
+#line 223 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_BOOL4;}
+#line 1692 "tshade.cpp"
+    break;
+
+  case 51: /* var_type: tFLOAT_TYPE  */
+#line 225 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_FLOAT;}
+#line 1698 "tshade.cpp"
+    break;
+
+  case 52: /* var_type: tINT_TYPE  */
+#line 227 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_INT;}
+#line 1704 "tshade.cpp"
+    break;
+
+  case 53: /* var_type: tUINT_TYPE  */
+#line 229 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_UINT;}
+#line 1710 "tshade.cpp"
+    break;
+
+  case 54: /* var_type: tBOOL_TYPE  */
+#line 231 "tshade.y"
+    {(yyval.varType) = ShaderVarType::tTYPE_BOOL;}
+#line 1716 "tshade.cpp"
+    break;
+
+  case 55: /* statement_list: %empty  */
+#line 236 "tshade.y"
+    { (yyval.stmt_list_node) = new tStatementListNode(); }
+#line 1722 "tshade.cpp"
+    break;
+
+  case 56: /* statement_list: statement_list statement  */
+#line 238 "tshade.y"
+    { (yyvsp[-1].stmt_list_node)->addStatement((yyvsp[0].node)); (yyval.stmt_list_node) = (yyvsp[-1].stmt_list_node); }
+#line 1728 "tshade.cpp"
+    break;
+
+  case 57: /* statement: var_decl  */
+#line 243 "tshade.y"
+    {(yyval.node) = (yyvsp[0].node);}
+#line 1734 "tshade.cpp"
+    break;
+
+  case 58: /* statement: if_statement  */
+#line 245 "tshade.y"
+    {(yyval.node) = (yyvsp[0].node);}
+#line 1740 "tshade.cpp"
+    break;
+
+  case 59: /* statement: while_statement  */
+#line 247 "tshade.y"
+    {(yyval.node) = (yyvsp[0].node);}
+#line 1746 "tshade.cpp"
+    break;
+
+  case 60: /* statement: continue_statement  */
+#line 249 "tshade.y"
+    {(yyval.node) = (yyvsp[0].node);}
+#line 1752 "tshade.cpp"
+    break;
+
+  case 61: /* statement: break_statement  */
+#line 251 "tshade.y"
+    {(yyval.node) = (yyvsp[0].node);}
+#line 1758 "tshade.cpp"
+    break;
+
+  case 62: /* statement: return_statement  */
+#line 253 "tshade.y"
+    {(yyval.node) = (yyvsp[0].node);}
+#line 1764 "tshade.cpp"
+    break;
+
+  case 63: /* if_statement: rwIF '(' expression ')' '{' statement_list '}' rwELSE '{' statement_list '}'  */
+#line 258 "tshade.y"
+    { (yyval.node) = new tIfNode((yyvsp[-8].node), (yyvsp[-5].stmt_list_node), (yyvsp[-1].stmt_list_node)); }
+#line 1770 "tshade.cpp"
+    break;
+
+  case 64: /* if_statement: rwIF '(' expression ')' '{' statement_list '}'  */
+#line 260 "tshade.y"
+    { (yyval.node) = new tIfNode((yyvsp[-4].node), (yyvsp[-1].stmt_list_node)); }
+#line 1776 "tshade.cpp"
+    break;
+
+  case 65: /* while_statement: rwWHILE '(' expression ')' '{' statement_list '}'  */
+#line 265 "tshade.y"
+    { (yyval.node) = new tWhileNode((yyvsp[-4].node), (yyvsp[-1].stmt_list_node)); }
+#line 1782 "tshade.cpp"
+    break;
+
+  case 66: /* while_statement: rwDO '{' statement_list '}' rwWHILE '(' expression ')'  */
+#line 267 "tshade.y"
+    { (yyval.node) = new tWhileNode((yyvsp[-1].node), (yyvsp[-5].stmt_list_node), true); }
+#line 1788 "tshade.cpp"
+    break;
+
+  case 67: /* continue_statement: rwCONTINUE ';'  */
+#line 272 "tshade.y"
+    { (yyval.node) = new tContinueNode(); }
+#line 1794 "tshade.cpp"
+    break;
+
+  case 68: /* break_statement: rwBREAK ';'  */
+#line 277 "tshade.y"
+    { (yyval.node) = new tBreakNode(); }
+#line 1800 "tshade.cpp"
+    break;
+
+  case 69: /* return_statement: rwRETURN ';'  */
+#line 282 "tshade.y"
+    { (yyval.node) = new tReturnNode(); }
+#line 1806 "tshade.cpp"
+    break;
+
+  case 70: /* return_statement: rwRETURN expression ';'  */
+#line 284 "tshade.y"
+    { (yyval.node) = new tReturnNode((yyvsp[-1].node)); }
+#line 1812 "tshade.cpp"
     break;
 
 
-#line 1307 "tshade.cpp"
+#line 1816 "tshade.cpp"
 
       default: break;
     }
@@ -1496,13 +2005,13 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 131 "tshade.y"
+#line 287 "tshade.y"
 
 
 void yyerror(yyscan_t yyscanner, const char* msg){
     Con::errorf("TorqueShader ERROR: %s Line: %d", msg, yylineno);
 }
 
-void yyerror(yyscan_t yyscanner, tshadeAst* shadeAst, char const *msg) {
+void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg) {
 	yyerror(yyscanner, msg);
 }

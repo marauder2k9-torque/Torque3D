@@ -27,11 +27,14 @@
 
 %union{
   // source side ASTnode.
-  struct tShadeNode* node;
+  tShadeNode* node;
+  tStatmentListNode* stmt_list_node;
+  tExpressionListNode* exprListnode;
   // symbol specifics.
   double fVal;
   int intVal;
   const char* strVal;
+  ShaderVarType varType;
 }
 
 // Language agnostic tokens.
@@ -42,7 +45,7 @@
 %token rwSWITCH rwCASE rwDEFAULT rwWHILE rwDO 
 %token rwFOR rwBREAK rwCONTINUE rwIF rwELSE rwDISCARD
 %token rwVOID rwSTATIC rwIN rwOUT rwINOUT rwTYPEDEF
-%token rwTRUE rwFALSE
+%token rwTRUE rwFALSE rwRETURN
 
 // Conditional OPS.
 %token OP_EQ OP_NEQ OP_AND OP_OR OP_LE OP_GE
@@ -89,22 +92,29 @@
 %right '!' '~' // Prefix operators
 %nonassoc '(' ')' // Highest precedence for grouping
 
-%type <node> program program_globals var_decl expression shader_stage shader_body
-%type <intVal> var_type
-
-
+%type <node> program program_globals var_decl expression shader_stage shader_body 
+%type <exprListnode> expression_list
+%type <varType> var_type
+%type <node> statement if_statement while_statement return_statement continue_statement break_statement
+%type <stmt_list_node> statement_list
 %start program
 
 %%
 
 program 
-  : tSHADERDECLARE STR_VAL '{' program_globals '}' 
-    { $$ = nullptr; shadeAst->shaderName = $2; }
+  : /* empty */
+    { $$ = nullptr;}
+  | tSHADERDECLARE VAR_IDENT '{' program_globals '}' ';' // only do globals if we have a declare
+    {$$ = nullptr; shadeAst->shaderName = $2; }
   ;
 
 program_globals 
-  : program_globals var_decl
+  : /* empty */
+    {$$ = nullptr; }
+  | var_decl
     {$$ = nullptr; shadeAst->mGlobalVars.push_back($1); }
+  | shader_stage
+    {}
   ;
 
 shader_stage
@@ -119,7 +129,8 @@ shader_stage
   ;
 
 shader_body
-  :
+  : statement_list
+    {$$ = $1;}
   ;
 
 var_decl
@@ -127,42 +138,53 @@ var_decl
     {$$ = new tVarDeclNode($2, $1); }
   | var_type VAR_IDENT '=' expression ';'
     {$$ = new tVarDeclNode($2, $1, $4);}
+  | var_type VAR_IDENT '[' expression ']' ';'
+    {$$ = new tVarDeclNode($2, $1, nullptr, $4);}
+  | var_type VAR_IDENT '[' expression ']' '=' '{' expression_list '}' ';'
+    {$$ = new tVarDeclNode($2, $1, $8, $4);}
+  ;
+
+expression_list
+  : expression
+    { $$ = new tExpressionListNode(); $$->addExpression($1); }
+  | expression_list ',' expression
+    { $$->addExpression($3); }
   ;
 
 expression
   : expression '+' expression 
-    { $$ = new tBinaryOpNode('+', $1, $3); }
+    { $$ = new tBinaryOpNode("+", $1, $3); }
   | expression '-' expression 
-    { $$ = new tBinaryOpNode('-', $1, $3); }
+    { $$ = new tBinaryOpNode("-", $1, $3); }
   | expression '*' expression 
-    { $$ = new tBinaryOpNode('*', $1, $3); }
+    { $$ = new tBinaryOpNode("*", $1, $3); }
   | expression '/' expression 
-    { $$ = new tBinaryOpNode('/', $1, $3); }
+    { $$ = new tBinaryOpNode("/", $1, $3); }
   | expression '%' expression 
-    { $$ = new tBinaryOpNode('%', $1, $3); }
+    { $$ = new tBinaryOpNode("%", $1, $3); }
   | expression OP_EQ expression 
-    { $$ = new tBinaryOpNode('==', $1, $3); }
+    { $$ = new tBinaryOpNode("==", $1, $3); }
   | expression OP_NEQ expression 
-    { $$ = new tBinaryOpNode('!=', $1, $3); }
+    { $$ = new tBinaryOpNode("!=", $1, $3); }
   | expression '<' expression 
-    { $$ = new tBinaryOpNode('<', $1, $3); }
+    { $$ = new tBinaryOpNode("<", $1, $3); }
   | expression '>' expression 
-    { $$ = new tBinaryOpNode('>', $1, $3); }
+    { $$ = new tBinaryOpNode(">", $1, $3); }
   | expression OP_GE expression 
-    { $$ = new tBinaryOpNode('>=', $1, $3); }
+    { $$ = new tBinaryOpNode(">=", $1, $3); }
   | expression OP_AND expression 
-    { $$ = new tBinaryOpNode('&&', $1, $3); }
+    { $$ = new tBinaryOpNode("&&", $1, $3); }
   | expression OP_OR expression 
-    { $$ = new tBinaryOpNode('||', $1, $3); }
+    { $$ = new tBinaryOpNode("||", $1, $3); }
   | '!' expression 
-    { $$ = new tUnaryOpNode('!', $2); }
+    { $$ = new tUnaryOpNode("!", $2); }
   | '-' expression %prec '*' 
-    { $$ = new tUnaryOpNode('-', $2); } // Unary negation
+    { $$ = new tUnaryOpNode("-", $2); } // Unary negation
   | '(' expression ')' 
     { $$ = $2; } // Grouping
-  | expression '.' VAR_IDENT
+  | var_type '(' expression_list ')' // ex float4(1.0, 1.0, 1.0, 1.0)
     {}
-  | VAR_IDENT tSWIZZLE
+  | expression tSWIZZLE
     {}
   | VAR_IDENT 
     { $$ = new tVarRefNode($1); }
@@ -207,6 +229,59 @@ var_type
     {$$ = ShaderVarType::tTYPE_UINT;}
   | tBOOL_TYPE
     {$$ = ShaderVarType::tTYPE_BOOL;}
+  ;
+
+statement_list
+  : /* empty */
+    { $$ = new tStatementListNode(); }
+  | statement_list statement
+    { $1->addStatement($2); $$ = $1; }
+  ;
+
+statement
+  : var_decl
+    {$$ = $1;}
+  | if_statement
+    {$$ = $1;}
+  | while_statement
+    {$$ = $1;}
+  | continue_statement
+    {$$ = $1;}
+  | break_statement
+    {$$ = $1;}
+  | return_statement
+    {$$ = $1;}
+
+
+if_statement
+  : rwIF '(' expression ')' '{' statement_list '}' rwELSE '{' statement_list '}'
+    { $$ = new tIfNode($3, $6, $10); }
+  | rwIF '(' expression ')' '{' statement_list '}'
+    { $$ = new tIfNode($3, $6); }
+  ;
+
+while_statement
+  : rwWHILE '(' expression ')' '{' statement_list '}'
+    { $$ = new tWhileNode($3, $6); }
+  | rwDO '{' statement_list '}' rwWHILE '(' expression ')' 
+    { $$ = new tWhileNode($7, $3, true); }
+  ;
+
+continue_statement
+  : rwCONTINUE ';'
+    { $$ = new tContinueNode(); }
+  ;
+
+break_statement
+  : rwBREAK ';'
+    { $$ = new tBreakNode(); }
+  ;
+
+return_statement
+  : rwRETURN ';'
+    { $$ = new tReturnNode(); }
+  | rwRETURN expression ';'
+    { $$ = new tReturnNode($2); }
   ;
 
 %%
