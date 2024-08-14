@@ -28,7 +28,7 @@
 %union{
   // source side ASTnode.
   tShadeNode* node;
-  tStatmentListNode* stmt_list_node;
+  tStatementListNode* stmt_list_node;
   tExpressionListNode* exprListnode;
   // symbol specifics.
   double fVal;
@@ -97,6 +97,7 @@
 %type <varType> var_type
 %type <node> statement if_statement while_statement return_statement continue_statement break_statement
 %type <stmt_list_node> statement_list
+
 %start program
 
 %%
@@ -235,7 +236,7 @@ statement_list
   : /* empty */
     { $$ = new tStatementListNode(); }
   | statement_list statement
-    { $1->addStatement($2); $$ = $1; }
+    { $1->addStatement($2); }
   ;
 
 statement

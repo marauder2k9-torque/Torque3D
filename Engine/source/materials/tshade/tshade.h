@@ -147,7 +147,7 @@ union TSHADE_STYPE
 
   // source side ASTnode.
   tShadeNode* node;
-  tStatmentListNode* stmt_list_node;
+  tStatementListNode* stmt_list_node;
   tExpressionListNode* exprListnode;
   // symbol specifics.
   double fVal;
