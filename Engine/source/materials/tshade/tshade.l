@@ -179,7 +179,15 @@ NEWLINE  (\n)|(\r\n)
 \.[rgba]{1,4} { yylval->strVal = strdup(yytext); return tSWIZZLE; }
 \.[stpq]{1,4} { yylval->strVal = strdup(yytext); return tSWIZZLE; }
 
-{VAR}       { yylval->strVal = StringTable->insert(yytext); return VAR_IDENT; }
+{VAR} { 
+  if(currentAst && currentAst->isStruct(yytext))
+  {
+    return TYPE_IDENT;
+  }
+  else {
+    yylval->strVal = StringTable->insert(yytext); return VAR_IDENT;
+  }
+}
 {NEWLINE}   {}
 
 %%

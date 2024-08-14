@@ -107,11 +107,11 @@ extern int tshade_debug;
     VAR_IDENT = 300,               /* VAR_IDENT  */
     STR_VAL = 301,                 /* STR_VAL  */
     TYPE_IDENT = 302,              /* TYPE_IDENT  */
-    tSTRUCT = 303,                 /* tSTRUCT  */
-    tUNIFORM = 304,                /* tUNIFORM  */
-    tCBUFFER = 305,                /* tCBUFFER  */
-    tSHADERDECLARE = 306,          /* tSHADERDECLARE  */
-    tSWIZZLE = 307,                /* tSWIZZLE  */
+    tSWIZZLE = 303,                /* tSWIZZLE  */
+    tSTRUCT = 304,                 /* tSTRUCT  */
+    tUNIFORM = 305,                /* tUNIFORM  */
+    tCBUFFER = 306,                /* tCBUFFER  */
+    tSHADERDECLARE = 307,          /* tSHADERDECLARE  */
     tVSSHADER = 308,               /* tVSSHADER  */
     tPSSHADER = 309,               /* tPSSHADER  */
     tGSSHADER = 310,               /* tGSSHADER  */
@@ -149,13 +149,18 @@ union TSHADE_STYPE
   tShadeNode* node;
   tStatementListNode* stmt_list_node;
   tExpressionListNode* exprListnode;
+  tVarDeclNode* declNode;
+  tFunctionNode* funcNode;
+  tFunctionParamListNode* funcList;
+  tFunctionParamNode* funcParam;
   // symbol specifics.
   double fVal;
   int intVal;
   const char* strVal;
   ShaderVarType varType;
+  ParamModifier modifier;
 
-#line 159 "tshade.h"
+#line 164 "tshade.h"
 
 };
 typedef union TSHADE_STYPE TSHADE_STYPE;

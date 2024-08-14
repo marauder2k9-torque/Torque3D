@@ -51,6 +51,8 @@ enum ShaderStageType {
 };
 
 enum ShaderVarType {
+   tTYPE_VOID,
+   tTYPE_STRUCT,
    tTYPE_FLOAT,
    tTYPE_INT,
    tTYPE_UINT,
@@ -95,6 +97,7 @@ enum ShaderSemanticType {
 };
 
 enum ParamModifier{
+   PARAM_MOD_NONE,
    PARAM_MOD_IN,
    PARAM_MOD_OUT,
    PARAM_MOD_INOUT,
@@ -158,14 +161,72 @@ struct tExpressionListNode : public tShadeNode {
    }
 };
 
+struct tFunctionParamNode : public tShadeNode {
+   String name;
+   ShaderVarType type;
+   ParamModifier modifier;
+
+   tFunctionParamNode(const String& paramName, ShaderVarType paramType, ParamModifier paramModifier)
+      : name(paramName), type(paramType), modifier(paramModifier) {}
+};
+
+struct tFunctionParamListNode : public tShadeNode {
+   Vector<tFunctionParamNode*> params;
+
+   void addParam(tFunctionParamNode* param) {
+      params.push_back(param);
+   }
+
+   ~tFunctionParamListNode() {
+      for (auto param : params)
+         delete param;
+   }
+};
+
+struct tFunctionNode : public tShadeNode {
+   String name;
+   ShaderVarType returnType;
+   tFunctionParamListNode* paramList;
+   tStatementListNode* body;
+
+   tFunctionNode(const String& funcName, ShaderVarType returnType, tFunctionParamListNode* params, tStatementListNode* funcBody)
+      : name(funcName), returnType(returnType), paramList(params), body(funcBody) {}
+
+   ~tFunctionNode() {
+      delete paramList;
+      delete body;
+   }
+};
+
+struct tFunctionRefNode : public tShadeNode {
+   tFunctionNode* funcDecl;
+   tExpressionListNode* expr;
+
+   tFunctionRefNode(tFunctionNode* decl, tExpressionListNode* exprList)
+      : funcDecl(decl), expr(exprList) {}
+};
+
 struct tVarDeclNode : public tShadeNode {
    String name;
    ShaderVarType type;
    tShadeNode* initExpr;
    tShadeNode* arraySize; // arrays can be set by an expression/macros etc
+   bool isStruct;
+   bool isUniform;
 
-   tVarDeclNode(const String& inName, ShaderVarType vartype, tShadeNode* init = nullptr, tShadeNode* initArray = nullptr)
-      : name(inName), type(vartype), initExpr(init), arraySize(initArray) {}
+   tVarDeclNode(
+      const String& inName,
+      ShaderVarType vartype,
+      tShadeNode* init = nullptr,
+      tShadeNode* initArray = nullptr,
+      bool inStruct = false)
+      : name(inName),
+      type(vartype),
+      initExpr(init),
+      arraySize(initArray),
+      isStruct(inStruct),
+      isUniform(false)
+   {}
 
    ~tVarDeclNode() {
       if(initExpr)
@@ -174,6 +235,14 @@ struct tVarDeclNode : public tShadeNode {
       if (arraySize)
          delete arraySize;
    }
+};
+
+struct tVarRefNode : public tShadeNode {
+   tVarDeclNode* varDecl;
+   String swizzle;
+
+   tVarRefNode(tVarDeclNode* decl, const String& swiz = String::EmptyString)
+      : varDecl(decl), swizzle(swiz) {}
 };
 
 struct tBinaryOpNode : public tShadeNode {
@@ -297,16 +366,16 @@ struct tReturnNode : public tShadeNode {
    }
 };
 
-struct DataInfo {
-   ShaderVarType type;
-   ShaderStageType stage;
-};
-
 struct tShadeAst
 {
    // map string to var type and shaderStage.
-   typedef Map<String, DataInfo> DataMap;
-   DataMap mDataMap;
+   typedef Map<String, ShaderStageType> StructMap;
+   typedef Map<String, tVarDeclNode*> VarMap;
+   typedef Map<String, tFunctionNode*> FuncMap;
+
+   StructMap mStructMap;
+   VarMap mVarMap;
+   FuncMap mFuncMap;
 
    String shaderName;
 
@@ -341,11 +410,44 @@ struct tShadeAst
       if(mComputeStage)
          delete mComputeStage;
 
-      mDataMap.clear();
+      mVarMap.clear();
+      mStructMap.clear();
+      mFuncMap.clear();
    }
 
    void addStruct(tStructNode* structNode) {
       mDataStructs.push_back(structNode);
+
+      mStructMap[structNode->structName] = ShaderStageType::tSTAGE_GLOBAL;
+   }
+
+   void addStruct(tStructNode* structNode, ShaderStageType stage) {
+      mDataStructs.push_back(structNode);
+
+      mStructMap[structNode->structName] = stage;
+   }
+
+   void addfunction(tFunctionNode* func) {
+      mFuncMap[func->name] = func;
+   }
+
+   void addVarDecl(tVarDeclNode* varDecl) {
+      mVarMap[varDecl->name] = varDecl;
+   }
+
+   tVarDeclNode* findVar(const String& name) {
+      auto var = mVarMap.find(name);
+      return var != mVarMap.end() ? var->value : nullptr;
+   }
+
+   tFunctionNode* findFunction(const String& name) {
+      auto func = mFuncMap.find(name);
+      return func != mFuncMap.end() ? func->value : nullptr;
+   }
+
+   bool isStruct(const String& name) const {
+      auto strct = mStructMap.find(name);
+      return (strct != mStructMap.end());
    }
 
 };

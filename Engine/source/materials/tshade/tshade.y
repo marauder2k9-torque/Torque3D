@@ -30,11 +30,16 @@
   tShadeNode* node;
   tStatementListNode* stmt_list_node;
   tExpressionListNode* exprListnode;
+  tVarDeclNode* declNode;
+  tFunctionNode* funcNode;
+  tFunctionParamListNode* funcList;
+  tFunctionParamNode* funcParam;
   // symbol specifics.
   double fVal;
   int intVal;
   const char* strVal;
   ShaderVarType varType;
+  ParamModifier modifier;
 }
 
 // Language agnostic tokens.
@@ -61,12 +66,11 @@
 
 %token <intVal> INT_NUM
 %token <fVal> FLOAT_NUM
-%token <strVal> VAR_IDENT STR_VAL TYPE_IDENT
+%token <strVal> VAR_IDENT STR_VAL TYPE_IDENT tSWIZZLE
 
 // Everything after this point is specific to shader language. 
 // shader specific keywords
 %token tSTRUCT tUNIFORM tCBUFFER tSHADERDECLARE
-%token tSWIZZLE
 
 // shader stages
 %token tVSSHADER tPSSHADER tGSSHADER tCSSHADER tDSSHADER tHSSHADER
@@ -92,12 +96,16 @@
 %right '!' '~' // Prefix operators
 %nonassoc '(' ')' // Highest precedence for grouping
 
-%type <node> program program_globals var_decl expression shader_stage shader_body 
+%type <node> program program_globals expression shader_stage shader_body
+%type <declNode> var_decl uniform_decl
 %type <exprListnode> expression_list
 %type <varType> var_type
 %type <node> statement if_statement while_statement return_statement continue_statement break_statement
+%type <funcNode> function_def 
 %type <stmt_list_node> statement_list
-
+%type <modifier> param_modifier
+%type <funcList> function_param_list
+%type <funcParam> function_param
 %start program
 
 %%
@@ -134,22 +142,64 @@ shader_body
     {$$ = $1;}
   ;
 
+uniform_decl
+  : tUNIFORM var_decl
+  {
+    $2->isUniform = true;
+    $$ = $2;
+  }
+  ;
+
 var_decl
   : var_type VAR_IDENT ';'
-    {$$ = new tVarDeclNode($2, $1); }
+    {$$ = new tVarDeclNode($2, $1); shadeAst->addVarDecl($$); }
   | var_type VAR_IDENT '=' expression ';'
-    {$$ = new tVarDeclNode($2, $1, $4);}
+    {$$ = new tVarDeclNode($2, $1, $4); shadeAst->addVarDecl($$); }
   | var_type VAR_IDENT '[' expression ']' ';'
-    {$$ = new tVarDeclNode($2, $1, nullptr, $4);}
+    {$$ = new tVarDeclNode($2, $1, nullptr, $4); shadeAst->addVarDecl($$); }
   | var_type VAR_IDENT '[' expression ']' '=' '{' expression_list '}' ';'
-    {$$ = new tVarDeclNode($2, $1, $8, $4);}
+    {$$ = new tVarDeclNode($2, $1, $8, $4); shadeAst->addVarDecl($$); }
+  | TYPE_IDENT VAR_IDENT ';'
+    {$$ = new tVarDeclNode($2, ShaderVarType::tTYPE_STRUCT, nullptr, nullptr, true); shadeAst->addVarDecl($$); }
+  ;
+
+param_modifier
+  : rwIN
+    { $$ = ParamModifier::PARAM_MOD_IN; }
+  | rwOUT
+    { $$ = ParamModifier::PARAM_MOD_OUT; }
+  | rwINOUT
+    { $$ = ParamModifier::PARAM_MOD_INOUT; }
+  ;
+
+function_def
+  : var_type VAR_IDENT '(' function_param_list ')' '{' statement_list '}'
+    { $$ = new tFunctionNode($2, $1, $4, $7); shadeAst->addfunction($$); }
+  | rwVOID VAR_IDENT '(' function_param_list ')' '{' statement_list '}'
+    { $$ = new tFunctionNode($2, ShaderVarType::tTYPE_VOID, $4, $7); shadeAst->addfunction($$);}
+  ;
+
+function_param_list
+  : /* empty */
+    { $$ = new tFunctionParamListNode(); }
+  | function_param
+    { $$ = new tFunctionParamListNode(); $$->addParam($1); }
+  | function_param_list ',' function_param
+    {$1->addParam($3); $$ = $1; }
+  ;
+
+function_param
+  : param_modifier var_type VAR_IDENT
+    { $$ = new tFunctionParamNode($3, $2, $1); }
+  | var_type VAR_IDENT
+    { $$ = new tFunctionParamNode($2, $1, ParamModifier::PARAM_MOD_NONE); }
   ;
 
 expression_list
   : expression
     { $$ = new tExpressionListNode(); $$->addExpression($1); }
   | expression_list ',' expression
-    { $$->addExpression($3); }
+    { $$->addExpression($3); $$ = $1; }
   ;
 
 expression
@@ -185,10 +235,43 @@ expression
     { $$ = $2; } // Grouping
   | var_type '(' expression_list ')' // ex float4(1.0, 1.0, 1.0, 1.0)
     {}
-  | expression tSWIZZLE
-    {}
+  | VAR_IDENT '(' expression_list ')'
+    {
+      tFunctionNode* funcDecl = shadeAst->findFunction($1);
+      if (funcDecl) {
+          $$ = new tFunctionRefNode(funcDecl, $3);
+      } else {
+          yyerror(scanner, shadeAst, "Undefined function");
+          $$ = nullptr;  // Handle error appropriately
+      }
+    }
+  | VAR_IDENT tSWIZZLE
+    { tVarDeclNode* varDecl = shadeAst->findVar($1);
+      if (varDecl) {
+          $$ = new tVarRefNode(varDecl, $2);
+      } else {
+          yyerror(scanner, shadeAst, "Undefined variable");
+          $$ = nullptr;  // Handle error appropriately
+      } 
+    }
   | VAR_IDENT 
-    { $$ = new tVarRefNode($1); }
+    { tVarDeclNode* varDecl = shadeAst->findVar($1);
+      if (varDecl) {
+          $$ = new tVarRefNode(varDecl);
+      } else {
+          yyerror(scanner, shadeAst, "Undefined variable");
+          $$ = nullptr;  // Handle error appropriately
+      } 
+    }
+  | VAR_IDENT '.' VAR_IDENT
+    { tVarDeclNode* varDecl = shadeAst->findVar($1);
+      if (varDecl->isStruct) {
+          $$ = new tVarRefNode(varDecl);
+      } else {
+          yyerror(scanner, shadeAst, "Unknown member");
+          $$ = nullptr;  // Handle error appropriately
+      } 
+    }
   | INT_NUM 
     { $$ = new tIntLiteralNode($1); }
   | FLOAT_NUM 
@@ -236,11 +319,13 @@ statement_list
   : /* empty */
     { $$ = new tStatementListNode(); }
   | statement_list statement
-    { $1->addStatement($2); }
+    { $1->addStatement($2); $$ = $1; }
   ;
 
 statement
   : var_decl
+    {$$ = $1;}
+  | uniform_decl
     {$$ = $1;}
   | if_statement
     {$$ = $1;}
@@ -252,6 +337,8 @@ statement
     {$$ = $1;}
   | return_statement
     {$$ = $1;}
+  | function_def
+    {$$ = $1; }
 
 
 if_statement

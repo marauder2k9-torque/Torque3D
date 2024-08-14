@@ -1741,20 +1741,28 @@ YY_RULE_SETUP
 case 119:
 YY_RULE_SETUP
 #line 182 "tshade.l"
-{ yylval->strVal = StringTable->insert(yytext); return VAR_IDENT; }
+{ 
+  if(currentAst && currentAst->isStruct(yytext))
+  {
+    return TYPE_IDENT;
+  }
+  else {
+    yylval->strVal = StringTable->insert(yytext); return VAR_IDENT;
+  }
+}
 	YY_BREAK
 case 120:
 /* rule 120 can match eol */
 YY_RULE_SETUP
-#line 183 "tshade.l"
+#line 191 "tshade.l"
 {}
 	YY_BREAK
 case 121:
 YY_RULE_SETUP
-#line 185 "tshade.l"
+#line 193 "tshade.l"
 ECHO;
 	YY_BREAK
-#line 1757 "tshade.lex.cpp"
+#line 1765 "tshade.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -2906,7 +2914,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 185 "tshade.l"
+#line 193 "tshade.l"
 
 
 bool TShadeParse(const char* code, tShadeAst* shadeAst)
