@@ -38,26 +38,26 @@ SFXAPPLEVoice::SFXAPPLEVoice(SFXAPPLEDevice *device, SFXAPPLEBuffer *buffer)
    mPlayerNode([[AVAudioPlayerNode alloc] init])
 {
    
-   AVAudioFormat* bufferFormat = buffer->mFormat;
+   mCurFormat = buffer->mFormat;
    
    [mAudioEngine attachNode:mPitchControl];
    [mAudioEngine attachNode:mPlayerNode];
    
    [mAudioEngine connect:mPlayerNode 
                       to:mPitchControl
-                  format:bufferFormat];
+                  format:mCurFormat];
    
    if(buffer->mIs3d){
       [mAudioEngine connect:mPitchControl
                          to:mEnvironmentNode
-                     format:bufferFormat];
+                     format:mCurFormat];
       mPlayerNode.sourceMode = AVAudio3DMixingSourceModePointSource;
    }
    else
    {
       [mAudioEngine connect:mPitchControl
                          to:mAudioEngine.mainMixerNode
-                     format:bufferFormat];
+                     format:mCurFormat];
    }
    
    [mPlayerNode scheduleBuffer:buffer->mPCMBuffer
@@ -106,10 +106,13 @@ void SFXAPPLEVoice::_stop() {
 }
 
 void SFXAPPLEVoice::_seek(U32 sample) {
+   AVAudioTime* time = [AVAudioTime timeWithSampleTime:sample atRate:mCurFormat.sampleRate];
+   [mPlayerNode playAtTime:time];
 }
 
 U32 SFXAPPLEVoice::_tell() const { 
-   
+   // no way to return this from avaudioengine
+   // unless we track it manually ourselves....
 }
 
 void SFXAPPLEVoice::setVolume(F32 volume) { 

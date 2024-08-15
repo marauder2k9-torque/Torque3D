@@ -69,6 +69,7 @@ protected:
    
    // controllers for playernode
    AVAudioUnitTimePitch* mPitchControl;
+   AVAudioFormat* mCurFormat;
    AVAudioEnvironmentNode* mEnvironmentNode;
 
 };
