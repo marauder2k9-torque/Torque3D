@@ -23,7 +23,9 @@
   #include "tshadeAst.h"
   #include "tshade.h"
   
-  extern tShadeAst* currentAst = nullptr;
+  tShadeAst* currentAst = nullptr;
+
+  U32 scanHLSLSemantic(const char* text);
 %}
 
 DIGIT    [0-9]
@@ -58,6 +60,7 @@ NEWLINE  (\n)|(\r\n)
 "discard"   { return rwDISCARD;   }
 "void"      { return rwVOID;      }
 "static"    { return rwSTATIC;    }
+"const"     { return rwCONST;     }
 "in"        { return rwIN;        }
 "out"       { return rwOUT;       }
 "inout"     { return rwINOUT;     }
@@ -183,6 +186,20 @@ NEWLINE  (\n)|(\r\n)
 \.[rgba]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
 \.[stpq]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
 
+"(?i)SV_POSITION"[0-9]* |
+"(?i)POSITION"[0-9]*    |
+"(?i)NORMAL"[0-9]*      |
+"(?i)BINORMAL"[0-9]*    |
+"(?i)TANGENT"[0-9]*     |
+"(?i)TEXCOORD"[0-9]*    |
+"(?i)COLOR"[0-9]*       |
+"(?i)TARGET"[0-9]*      |
+"(?i)SV_DEPTH"[0-9]*    |
+"(?i)SV_TARGET"[0-9]*   |
+"(?i)PSIZE"[0-9]*       |
+"(?i)TESSFACTOR"[0-9]*  |
+"(?i)ISFRONTFACE"[0-9]*  { return scanHLSLSemantic(yytext); }
+
 {VAR} { 
   if(currentAst && currentAst->isStruct(yytext))
   {
@@ -195,6 +212,45 @@ NEWLINE  (\n)|(\r\n)
 {NEWLINE}   {}
 
 %%
+
+U32 scanHLSLSemantic(const char* text)
+{
+  char semantic[32];
+  U32 num = 0;
+
+  dSscanf(text, "%31[^0123456789]%d", semantic, &num);
+
+  if (dStricmp(semantic, "sv_position") == 0) {
+        return tSEM_SVPOSITION;
+    } else if (dStricmp(semantic, "position") == 0) {
+        return tSEM_POSITION;
+    } else if (dStricmp(semantic, "normal") == 0) {
+        return tSEM_NORMAL;
+    } else if (dStricmp(semantic, "binormal") == 0) {
+        return tSEM_BINORMAL;
+    } else if (dStricmp(semantic, "tangent") == 0) {
+        return tSEM_TANGENT;
+    } else if (dStricmp(semantic, "texcoord") == 0) {
+        return tSEM_TEXCOORD;
+    } else if (dStricmp(semantic, "color") == 0) {
+        return tSEM_COLOR;
+    } else if (dStricmp(semantic, "target") == 0) {
+        return tSEM_TARGET;
+    } else if (dStricmp(semantic, "depth") == 0) {
+        return tSEM_DEPTH;
+    } else if (dStricmp(semantic, "sv_target") == 0) {
+        return tSEM_TARGET;
+    } else if (dStricmp(semantic, "psize") == 0) {
+        return tSEM_PSIZE;
+    } else if (dStricmp(semantic, "tessfactor") == 0) {
+        return tSEM_TESSFACTOR;
+    } else if (dStricmp(semantic, "isfrontface") == 0) {
+        return tSEM_ISFRONTFACE;
+    }
+
+    return 0;
+
+}
 
 bool TShadeParse(const char* code, tShadeAst* shadeAst)
 {

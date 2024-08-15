@@ -82,59 +82,72 @@ extern int tshade_debug;
     rwTRUE = 275,                  /* rwTRUE  */
     rwFALSE = 276,                 /* rwFALSE  */
     rwRETURN = 277,                /* rwRETURN  */
-    OP_EQ = 278,                   /* OP_EQ  */
-    OP_NEQ = 279,                  /* OP_NEQ  */
-    OP_AND = 280,                  /* OP_AND  */
-    OP_OR = 281,                   /* OP_OR  */
-    OP_LE = 282,                   /* OP_LE  */
-    OP_GE = 283,                   /* OP_GE  */
-    OP_PLUSPLUS = 284,             /* OP_PLUSPLUS  */
-    OP_MINUSMINUS = 285,           /* OP_MINUSMINUS  */
-    OP_PLUS_ASS = 286,             /* OP_PLUS_ASS  */
-    OP_MINUS_ASS = 287,            /* OP_MINUS_ASS  */
-    OP_MUL_ASS = 288,              /* OP_MUL_ASS  */
-    OP_DIV_ASS = 289,              /* OP_DIV_ASS  */
-    OP_MOD_ASS = 290,              /* OP_MOD_ASS  */
-    OP_AND_ASS = 291,              /* OP_AND_ASS  */
-    OP_OR_ASS = 292,               /* OP_OR_ASS  */
-    OP_XOR_ASS = 293,              /* OP_XOR_ASS  */
-    OP_BIT_LEFT_ASS = 294,         /* OP_BIT_LEFT_ASS  */
-    OP_BIT_RIGHT_ASS = 295,        /* OP_BIT_RIGHT_ASS  */
-    OP_BIT_LEFT = 296,             /* OP_BIT_LEFT  */
-    OP_BIT_RIGHT = 297,            /* OP_BIT_RIGHT  */
-    INT_NUM = 298,                 /* INT_NUM  */
-    FLOAT_NUM = 299,               /* FLOAT_NUM  */
-    VAR_IDENT = 300,               /* VAR_IDENT  */
-    STR_VAL = 301,                 /* STR_VAL  */
-    TYPE_IDENT = 302,              /* TYPE_IDENT  */
-    tSWIZZLE = 303,                /* tSWIZZLE  */
-    tSTRUCT = 304,                 /* tSTRUCT  */
-    tUNIFORM = 305,                /* tUNIFORM  */
-    tCBUFFER = 306,                /* tCBUFFER  */
-    tSHADERDECLARE = 307,          /* tSHADERDECLARE  */
-    tVSSHADER = 308,               /* tVSSHADER  */
-    tPSSHADER = 309,               /* tPSSHADER  */
-    tGSSHADER = 310,               /* tGSSHADER  */
-    tCSSHADER = 311,               /* tCSSHADER  */
-    tDSSHADER = 312,               /* tDSSHADER  */
-    tHSSHADER = 313,               /* tHSSHADER  */
-    tFLOAT_TYPE = 314,             /* tFLOAT_TYPE  */
-    tINT_TYPE = 315,               /* tINT_TYPE  */
-    tBOOL_TYPE = 316,              /* tBOOL_TYPE  */
-    tUINT_TYPE = 317,              /* tUINT_TYPE  */
-    tFVEC2_TYPE = 318,             /* tFVEC2_TYPE  */
-    tFVEC3_TYPE = 319,             /* tFVEC3_TYPE  */
-    tFVEC4_TYPE = 320,             /* tFVEC4_TYPE  */
-    tIVEC2_TYPE = 321,             /* tIVEC2_TYPE  */
-    tIVEC3_TYPE = 322,             /* tIVEC3_TYPE  */
-    tIVEC4_TYPE = 323,             /* tIVEC4_TYPE  */
-    tBVEC2_TYPE = 324,             /* tBVEC2_TYPE  */
-    tBVEC3_TYPE = 325,             /* tBVEC3_TYPE  */
-    tBVEC4_TYPE = 326,             /* tBVEC4_TYPE  */
-    tMAT4_TYPE = 327,              /* tMAT4_TYPE  */
-    tMAT43_TYPE = 328,             /* tMAT43_TYPE  */
-    tMAT34_TYPE = 329,             /* tMAT34_TYPE  */
-    tMAT3_TYPE = 330               /* tMAT3_TYPE  */
+    rwCONST = 278,                 /* rwCONST  */
+    OP_EQ = 279,                   /* OP_EQ  */
+    OP_NEQ = 280,                  /* OP_NEQ  */
+    OP_AND = 281,                  /* OP_AND  */
+    OP_OR = 282,                   /* OP_OR  */
+    OP_LE = 283,                   /* OP_LE  */
+    OP_GE = 284,                   /* OP_GE  */
+    OP_PLUSPLUS = 285,             /* OP_PLUSPLUS  */
+    OP_MINUSMINUS = 286,           /* OP_MINUSMINUS  */
+    OP_PLUS_ASS = 287,             /* OP_PLUS_ASS  */
+    OP_MINUS_ASS = 288,            /* OP_MINUS_ASS  */
+    OP_MUL_ASS = 289,              /* OP_MUL_ASS  */
+    OP_DIV_ASS = 290,              /* OP_DIV_ASS  */
+    OP_MOD_ASS = 291,              /* OP_MOD_ASS  */
+    OP_AND_ASS = 292,              /* OP_AND_ASS  */
+    OP_OR_ASS = 293,               /* OP_OR_ASS  */
+    OP_XOR_ASS = 294,              /* OP_XOR_ASS  */
+    OP_BIT_LEFT_ASS = 295,         /* OP_BIT_LEFT_ASS  */
+    OP_BIT_RIGHT_ASS = 296,        /* OP_BIT_RIGHT_ASS  */
+    OP_BIT_LEFT = 297,             /* OP_BIT_LEFT  */
+    OP_BIT_RIGHT = 298,            /* OP_BIT_RIGHT  */
+    INT_NUM = 299,                 /* INT_NUM  */
+    FLOAT_NUM = 300,               /* FLOAT_NUM  */
+    VAR_IDENT = 301,               /* VAR_IDENT  */
+    STR_VAL = 302,                 /* STR_VAL  */
+    TYPE_IDENT = 303,              /* TYPE_IDENT  */
+    tSWIZZLE = 304,                /* tSWIZZLE  */
+    tSTRUCT = 305,                 /* tSTRUCT  */
+    tUNIFORM = 306,                /* tUNIFORM  */
+    tCBUFFER = 307,                /* tCBUFFER  */
+    tSHADERDECLARE = 308,          /* tSHADERDECLARE  */
+    tVSSHADER = 309,               /* tVSSHADER  */
+    tPSSHADER = 310,               /* tPSSHADER  */
+    tGSSHADER = 311,               /* tGSSHADER  */
+    tCSSHADER = 312,               /* tCSSHADER  */
+    tDSSHADER = 313,               /* tDSSHADER  */
+    tHSSHADER = 314,               /* tHSSHADER  */
+    tFLOAT_TYPE = 315,             /* tFLOAT_TYPE  */
+    tINT_TYPE = 316,               /* tINT_TYPE  */
+    tBOOL_TYPE = 317,              /* tBOOL_TYPE  */
+    tUINT_TYPE = 318,              /* tUINT_TYPE  */
+    tFVEC2_TYPE = 319,             /* tFVEC2_TYPE  */
+    tFVEC3_TYPE = 320,             /* tFVEC3_TYPE  */
+    tFVEC4_TYPE = 321,             /* tFVEC4_TYPE  */
+    tIVEC2_TYPE = 322,             /* tIVEC2_TYPE  */
+    tIVEC3_TYPE = 323,             /* tIVEC3_TYPE  */
+    tIVEC4_TYPE = 324,             /* tIVEC4_TYPE  */
+    tBVEC2_TYPE = 325,             /* tBVEC2_TYPE  */
+    tBVEC3_TYPE = 326,             /* tBVEC3_TYPE  */
+    tBVEC4_TYPE = 327,             /* tBVEC4_TYPE  */
+    tMAT4_TYPE = 328,              /* tMAT4_TYPE  */
+    tMAT43_TYPE = 329,             /* tMAT43_TYPE  */
+    tMAT34_TYPE = 330,             /* tMAT34_TYPE  */
+    tMAT3_TYPE = 331,              /* tMAT3_TYPE  */
+    tSEM_SVPOSITION = 332,         /* tSEM_SVPOSITION  */
+    tSEM_POSITION = 333,           /* tSEM_POSITION  */
+    tSEM_NORMAL = 334,             /* tSEM_NORMAL  */
+    tSEM_BINORMAL = 335,           /* tSEM_BINORMAL  */
+    tSEM_TANGENT = 336,            /* tSEM_TANGENT  */
+    tSEM_PSIZE = 337,              /* tSEM_PSIZE  */
+    tSEM_TESSFACTOR = 338,         /* tSEM_TESSFACTOR  */
+    tSEM_ISFRONTFACE = 339,        /* tSEM_ISFRONTFACE  */
+    tSEM_TEXCOORD = 340,           /* tSEM_TEXCOORD  */
+    tSEM_COLOR = 341,              /* tSEM_COLOR  */
+    tSEM_TARGET = 342,             /* tSEM_TARGET  */
+    tSEM_DEPTH = 343               /* tSEM_DEPTH  */
   };
   typedef enum tshade_tokentype tshade_token_kind_t;
 #endif
@@ -150,6 +163,7 @@ union TSHADE_STYPE
   tStatementListNode* stmt_list_node;
   tExpressionListNode* exprListnode;
   tVarDeclNode* declNode;
+  tStructNode* structNode;
   tFunctionNode* funcNode;
   tFunctionParamListNode* funcList;
   tFunctionParamNode* funcParam;
@@ -159,8 +173,9 @@ union TSHADE_STYPE
   const char* strVal;
   ShaderVarType varType;
   ParamModifier modifier;
+  ShaderSemanticType semtype;
 
-#line 164 "tshade.h"
+#line 179 "tshade.h"
 
 };
 typedef union TSHADE_STYPE TSHADE_STYPE;

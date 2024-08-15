@@ -77,22 +77,23 @@ enum ShaderVarType {
 };
 
 enum ShaderSemanticType {
-   // vertex semantics
-   SEMANTIC_VERT_POSITION,
-   SEMANTIC_VERT_COLOR,
-   SEMANTIC_VERT_NORMAL,
-   SEMANTIC_VERT_BINORMAL,
-   SEMANTIC_VERT_PSIZE,
-   SEMANTIC_VERT_TANGENT,
-   SEMANTIC_VERT_TEXCOORD,
-   SEMANTIC_VERT_TESSFACTOR,
-   // pixel shader semantics
-   SEMANTIC_PIXIN_COLOR,
-   SEMANTIC_PIXIN_TEXCOORD,
-   SEMANTIC_PIXIN_ISFRONTFACE,
-   SEMANTIC_PIXIN_POSITION,
-   SEMANTIC_PIXOUT_DEPTH,
-   SEMANTIC_PIXOUT_TARGET,
+   SEMANTIC_NONE,
+   SEMANTIC_SV_POSITION,
+   SEMANTIC_POSITION,
+   SEMANTIC_COLOR,
+   SEMANTIC_SV_DEPTH,
+   SEMANTIC_SV_TARGET,
+   SEMANTIC_TEXCOORD,
+   SEMANTIC_FOG,
+   SEMANTIC_ISFRONTFACE,
+   SEMANTIC_TESSFACTOR,
+   SEMANTIC_BINORMAL,
+   SEMANTIC_BLENDWEIGHT,
+   SEMANTIC_BLENDINDICES,
+   SEMANTIC_NORMAL,
+   SEMANTIC_TANGENT,
+   SEMANTIC_POSITIONT,
+   SEMANTIC_PSIZE,
    SEMANTIC_COUNT
 };
 
@@ -133,29 +134,26 @@ struct tStatementListNode : public tShadeNode {
       statements.push_back(stmt);
    }
 };
+
 struct tStructMemberNode : public tShadeNode {
    String name;
    ShaderVarType type;
    ShaderSemanticType semantic;
+   U32 semNumber;
 
-   tStructMemberNode(const String& memberName, ShaderVarType memberType, ShaderSemanticType memberSemantic)
-      : name(memberName), type(memberType), semantic(memberSemantic) {}
+   tStructMemberNode(const String& memberName, ShaderVarType memberType, ShaderSemanticType memberSemantic = ShaderSemanticType::SEMANTIC_NONE, U32 semNum = 0)
+      : name(memberName), type(memberType), semantic(memberSemantic), semNumber(semNum) {}
 };
 
 struct tStructNode : public tShadeNode {
    String structName;
-   Vector<tStructMemberNode*> members;
+   tStatementListNode* members;
 
-   tStructNode(const String& name) : structName(name) {}
+   tStructNode(const String& name, tStatementListNode* memeberList)
+      : structName(name), members(memeberList) {}
 
    ~tStructNode() {
-      for (auto member : members)
-         delete member;
-   }
-
-   void addMember(tStructMemberNode* member)
-   {
-      members.push_back(member);
+      delete members;
    }
 };
 
@@ -254,6 +252,8 @@ struct tVarDeclNode : public tShadeNode {
    tShadeNode* arraySize; // arrays can be set by an expression/macros etc
    bool isStruct;
    bool isUniform;
+   bool isStatic;
+   bool isConst;
 
    tVarDeclNode(
       const String& inName,
@@ -266,7 +266,9 @@ struct tVarDeclNode : public tShadeNode {
       initExpr(init),
       arraySize(initArray),
       isStruct(inStruct),
-      isUniform(false)
+      isUniform(false),
+      isStatic(false),
+      isConst(false)
    {}
 
    ~tVarDeclNode() {
@@ -304,9 +306,10 @@ struct tBinaryOpNode : public tShadeNode {
 struct tUnaryOpNode : public tShadeNode {
    String op;
    tShadeNode* expr;
+   bool prefix;
 
-   tUnaryOpNode(const String& inOp, tShadeNode* inExpr)
-   : op(inOp), expr(inExpr) {}
+   tUnaryOpNode(const String& inOp, tShadeNode* inExpr, bool isPrefix = true)
+   : op(inOp), expr(inExpr), prefix(isPrefix) {}
 
    ~tUnaryOpNode() {
       if(expr)
@@ -374,12 +377,44 @@ struct tWhileNode : public tShadeNode {
    }
 };
 
+struct tSwitchNode : public tShadeNode {
+   tShadeNode* expr;
+   tStatementListNode* trueBranch;
+   bool isDo;
+
+   tSwitchNode(tShadeNode* inExpr, tStatementListNode* inTrue, bool doLoop = false)
+      : expr(inExpr), trueBranch(inTrue), isDo(doLoop) {}
+
+   ~tSwitchNode() {
+      delete expr;
+      delete trueBranch;
+   }
+};
+
+struct tCaseNode : public tShadeNode {
+   tShadeNode* expr;
+   tStatementListNode* trueBranch;
+   bool isDefault;
+
+   tCaseNode(tShadeNode* inExpr, tStatementListNode* inTrue, bool def = false)
+      : expr(inExpr), trueBranch(inTrue), isDefault(def) {}
+
+   ~tCaseNode() {
+      delete expr;
+      delete trueBranch;
+   }
+};
+
 struct tContinueNode : public tShadeNode {
    tContinueNode() {}
 };
 
 struct tBreakNode : public tShadeNode {
    tBreakNode() {}
+};
+
+struct tDiscardNode : public tShadeNode {
+   tDiscardNode() {}
 };
 
 
@@ -397,7 +432,7 @@ struct tReturnNode : public tShadeNode {
 struct tShadeAst
 {
    // map string to var type and shaderStage.
-   typedef Map<String, ShaderStageType> StructMap;
+   typedef Map<String, tStructNode*> StructMap;
    typedef Map<String, tVarDeclNode*> VarMap;
    typedef Map<String, tFunctionNode*> FuncMap;
 
@@ -405,9 +440,10 @@ struct tShadeAst
    VarMap mVarMap;
    FuncMap mFuncMap;
 
+   ShaderStageType currentStage;
+
    String shaderName;
 
-   Vector<tShadeNode*> mGlobalVars; // global vars, macros
    Vector<tStructNode*> mDataStructs; // data structs (vert pix connect etc)
 
    tStageNode* mVertStage;
@@ -417,12 +453,9 @@ struct tShadeAst
 
    tShadeAst(const String& name)
       : shaderName(name), mVertStage(nullptr), mPixStage(nullptr), mGeoStage(nullptr),
-      mComputeStage(nullptr) {}
+      mComputeStage(nullptr), currentStage(ShaderStageType::tSTAGE_GLOBAL) {}
 
    ~tShadeAst() {
-      for (auto var : mGlobalVars)
-         delete var;
-
       for (auto dataStruct : mDataStructs)
          delete dataStruct;
 
@@ -443,16 +476,13 @@ struct tShadeAst
       mFuncMap.clear();
    }
 
-   void addStruct(tStructNode* structNode) {
+   void addDataStruct(tStructNode* structNode) {
       mDataStructs.push_back(structNode);
-
-      mStructMap[structNode->structName] = ShaderStageType::tSTAGE_GLOBAL;
+      mStructMap[structNode->structName] = structNode;
    }
 
    void addStruct(tStructNode* structNode, ShaderStageType stage) {
-      mDataStructs.push_back(structNode);
-
-      mStructMap[structNode->structName] = stage;
+      mStructMap[structNode->structName] = structNode;
    }
 
    void addfunction(tFunctionNode* func) {
