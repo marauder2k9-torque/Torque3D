@@ -29,6 +29,12 @@
 #include "lighting/lightManager.h"
 #include "console/engineAPI.h"
 
+// tshade changes
+//--------------
+#include "core/volume.h"
+#include "materials/tshade/tshadeAst.h"
+bool TShadeParse(const char* code, tShadeAst* shadeAst);
+
 using namespace Torque;
 
 
@@ -77,6 +83,9 @@ ShaderData::ShaderData()
    mOGLVertexShaderName = StringTable->EmptyString();
    mOGLPixelShaderName = StringTable->EmptyString();
    mOGLGeometryShaderName = StringTable->EmptyString();
+
+   // tshade changes
+   mTShaderFile = StringTable->EmptyString();
 }
 
 void ShaderData::initPersistFields()
@@ -110,6 +119,10 @@ void ShaderData::initPersistFields()
 
    addField("OGLGeometryShaderFile", TypeStringFilename, Offset(mOGLGeometryShaderName, ShaderData),
       "@brief %Path to the OpenGL Geometry shader file to use for this ShaderData.\n\n");
+
+   // tshade changes
+   addField("TShaderFile", TypeStringFilename, Offset(mTShaderFile, ShaderData),
+      "@brief %Path to the TShader File to use for this ShaderData.\n\n");
 
    addField("useDevicePixVersion", TypeBool, Offset(mUseDevicePixVersion, ShaderData),
       "@brief If true, the maximum pixel shader version offered by the graphics card will be used.\n\n"
@@ -251,16 +264,47 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
    for(int i = 0; i < ShaderData::NumTextures; ++i)
       samplers[i] = mSamplerNames[i][0] == '$' ? mSamplerNames[i] : "$"+mSamplerNames[i];
 
+   // tshade changes
+   if (mTShaderFile != StringTable->EmptyString())
+   {
+      void* data = NULL;
+      U32 dataSize = 0;
+
+      bool fileReadSuccess = FS::ReadFile(mTShaderFile, data, dataSize, true);
+
+      if (!fileReadSuccess) {
+         // Handle file read error
+      }
+
+      if (dataSize > 0 && data != NULL) {
+         tShadeAst tShader;
+         bool parseSuccess = TShadeParse(static_cast<const char*>(data), &tShader);
+
+         if (!parseSuccess) {
+            // Handle parsing error
+         }
+      }
+      else {
+         // Handle empty file or null data
+      }
+
+      // Free the data if needed (depends on how FS::ReadFile allocates memory)
+      if (data) {
+         delete[] static_cast<char*>(data); // or free(data) depending on allocation
+      }
+
+   }
+
    // Initialize the right shader type.
    switch( GFX->getAdapterType() )
    {
       case Direct3D11:
       {
-         if (mDXVertexShaderName != String::EmptyString)
+         if (mDXVertexShaderName != StringTable->EmptyString())
             shader->setShaderStageFile(GFXShaderStage::VERTEX_SHADER, mDXVertexShaderName);
-         if (mDXPixelShaderName != String::EmptyString)
+         if (mDXPixelShaderName != StringTable->EmptyString())
             shader->setShaderStageFile(GFXShaderStage::PIXEL_SHADER, mDXPixelShaderName);
-         if (mDXGeometryShaderName != String::EmptyString)
+         if (mDXGeometryShaderName != StringTable->EmptyString())
             shader->setShaderStageFile(GFXShaderStage::GEOMETRY_SHADER, mDXGeometryShaderName);
          success = shader->init( pixver,
                                  macros,
@@ -270,11 +314,11 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
 
       case OpenGL:
       {
-         if(mOGLVertexShaderName != String::EmptyString)
+         if(mOGLVertexShaderName != StringTable->EmptyString())
             shader->setShaderStageFile(GFXShaderStage::VERTEX_SHADER, mOGLVertexShaderName);
-         if (mOGLPixelShaderName != String::EmptyString)
+         if (mOGLPixelShaderName != StringTable->EmptyString())
             shader->setShaderStageFile(GFXShaderStage::PIXEL_SHADER, mOGLPixelShaderName);
-         if (mOGLGeometryShaderName != String::EmptyString)
+         if (mOGLGeometryShaderName != StringTable->EmptyString())
             shader->setShaderStageFile(GFXShaderStage::GEOMETRY_SHADER, mOGLGeometryShaderName);
 
          success = shader->init( pixver,

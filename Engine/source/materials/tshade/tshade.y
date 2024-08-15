@@ -1,5 +1,6 @@
 %define api.header.include {"tshade.h"}
 %define api.pure full
+%define parse.error custom
 %define api.prefix {tshade_}
 
 %lex-param {yyscan_t scanner}
@@ -17,12 +18,16 @@
   #define nil 0
 
   typedef void* yyscan_t;
+  void yyerror(const char* msg);
   void yyerror(yyscan_t yyscanner, const char* msg);
   void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg);
+  
   #define YY_DECL int yylex(union YYSTYPE *, yyscan_t)
   YY_DECL;
 
-  int yylineno;
+  extern int TShaderGetLineNo(yyscan_t);
+  extern int TShaderGetColumnNo(yyscan_t);
+  extern char* TShaderGetText(yyscan_t);
 %} 
 
 %union{
@@ -110,7 +115,7 @@
 %right '='                // Simple assignment (=)
 %nonassoc '(' ')'         // Highest precedence for grouping
 
-%type <node> program program_globals expression shader_stage shader_body struct_member 
+%type <node> program program_globals program_global_list expression shader_stage shader_body struct_member 
 %type <structNode> struct_decl
 %type <declNode> var_decl uniform_decl static_const_decl
 %type <exprListnode> expression_list
@@ -128,19 +133,28 @@
 %%
 
 program 
-  : /* empty */
-    { $$ = nullptr;}
-  | tSHADERDECLARE VAR_IDENT '{' program_globals '}' // only do globals if we have a declare
+  : tSHADERDECLARE VAR_IDENT '{' program_globals '}' // only do globals if we have a declare
     {$$ = nullptr; shadeAst->shaderName = $2; }
   ;
 
 program_globals 
-  : /* empty */
+  : program_global_list
     {$$ = nullptr; }
-  | struct_decl
-    {$$ = nullptr; shadeAst->addDataStruct($1); }
-  | shader_stage
-    { $$ = nullptr; }
+  ;
+
+program_global_list
+  : program_global_list struct_decl 
+    {
+      shadeAst->addDataStruct($2);
+    }
+  | program_global_list shader_stage 
+    {
+      $$ = nullptr;
+    }
+  | /* empty */
+    {
+      $$ = nullptr;
+    }
   ;
 
 shader_stage
@@ -181,9 +195,9 @@ struct_decl
   ;
 
 structbody_list
-  : /* empty */
+  : /*empty*/
     { $$ = new tStatementListNode(); }
-  | statement_list struct_member
+  | structbody_list struct_member
     { $1->addStatement($2); $$ = $1; }
   ;
 
@@ -359,7 +373,7 @@ expression
   | VAR_IDENT '.' VAR_IDENT
     { tVarDeclNode* varDecl = shadeAst->findVar($1);
       if (varDecl->isStruct) {
-          $$ = new tVarRefNode(varDecl);
+          $$ = new tVarRefNode(varDecl, $3);
       } else {
           yyerror(scanner, shadeAst, "Unknown struct");
           $$ = nullptr;  // Handle error appropriately
@@ -532,10 +546,42 @@ struct_semantic
 
 %%
 
-void yyerror(yyscan_t yyscanner, const char* msg){
-    Con::errorf("TorqueShader ERROR: %s Line: %d", msg, yylineno);
-}
-
 void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg) {
 	yyerror(yyscanner, msg);
+}
+
+void yyerror(yyscan_t yyscanner, const char* msg) {
+   Con::errorf("TorqueShader ERROR: %s Line: %d column: %d \n %s",
+      msg,
+      TShaderGetLineNo(yyscanner),
+      TShaderGetColumnNo(yyscanner),
+      TShaderGetText(yyscanner));
+}
+
+int
+yyreport_syntax_error  (const yypcontext_t *ctx, yyscan_t scanner, tShadeAst* shadeAst)
+{
+   int ret = 0;
+   String output;
+   output += "syntax error: ";
+
+   yysymbol_kind_t nxt = yypcontext_token(ctx);
+   if (nxt != YYSYMBOL_YYEMPTY)
+      output += String::ToString("unexpected: %s", yysymbol_name(nxt));
+
+   enum { TOKENMAX = 10 };
+   yysymbol_kind_t expected[TOKENMAX];
+
+   int exp = yypcontext_expected_tokens(ctx, expected, TOKENMAX);
+   if (exp < 0)
+      ret = exp;
+   else
+   {
+      for (int i = 0; i < exp; ++i)
+         output += String::ToString("%s %s", i == 0 ? ": expected" : "or", yysymbol_name(expected[i]));
+   }
+
+   yyerror(scanner, output.c_str());
+
+   return ret;
 }

@@ -63,6 +63,11 @@ protected:
    StringTableEntry mOGLPixelShaderName;
    StringTableEntry mOGLGeometryShaderName;
 
+
+   // tshade changes
+   StringTableEntry mTShaderFile;
+   //---------------
+
    /// A semicolon, tab, or newline delimited string of case
    /// sensitive defines that are passed to the shader compiler.
    ///

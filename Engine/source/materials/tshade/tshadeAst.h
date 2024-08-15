@@ -284,10 +284,10 @@ struct tVarDeclNode : public tShadeNode {
 
 struct tVarRefNode : public tShadeNode {
    tVarDeclNode* varDecl;
-   String swizzle;
+   String member;
 
-   tVarRefNode(tVarDeclNode* decl, const String& swiz = String::EmptyString)
-      : varDecl(decl), swizzle(swiz) {}
+   tVarRefNode(tVarDeclNode* decl, const String& memOrSwiz = String::EmptyString)
+      : varDecl(decl), member(memOrSwiz) {}
 };
 
 struct tBinaryOpNode : public tShadeNode {
@@ -453,8 +453,8 @@ struct tShadeAst
    tStageNode* mGeoStage;
    tStageNode* mComputeStage;
 
-   tShadeAst(const String& name)
-      : shaderName(name), mVertStage(nullptr), mPixStage(nullptr), mGeoStage(nullptr),
+   tShadeAst()
+      : shaderName(String::EmptyString), mVertStage(nullptr), mPixStage(nullptr), mGeoStage(nullptr),
       mComputeStage(nullptr), currentStage(ShaderStageType::tSTAGE_GLOBAL) {}
 
    ~tShadeAst() {

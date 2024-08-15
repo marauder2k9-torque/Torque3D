@@ -22,10 +22,16 @@
   #include "core/strings/stringFunctions.h"
   #include "tshadeAst.h"
   #include "tshade.h"
-  
+
   tShadeAst* currentAst = nullptr;
 
   U32 scanHLSLSemantic(const char* text);
+
+  #define YY_USER_ACTION do { \
+    yycolumn += yyleng; \
+    } while(0);
+
+  
 %}
 
 DIGIT    [0-9]
@@ -42,57 +48,9 @@ NEWLINE  (\n)|(\r\n)
 %x COMMENT
 
 %%
-
 {SPACE}+ { }
-
-"//"[^\n\r]* ;  
-
-"if"        { return rwIF;        }
-"else"      { return rwELSE;      }
-"while"     { return rwWHILE;     }
-"do"        { return rwDO;        }
-"break"     { return rwBREAK;     }
-"for"       { return rwFOR;       }
-"switch"    { return rwSWITCH;    }
-"case"      { return rwCASE;      }
-"default"   { return rwDEFAULT;   }
-"continue"  { return rwCONTINUE;  }
-"discard"   { return rwDISCARD;   }
-"void"      { return rwVOID;      }
-"static"    { return rwSTATIC;    }
-"const"     { return rwCONST;     }
-"in"        { return rwIN;        }
-"out"       { return rwOUT;       }
-"inout"     { return rwINOUT;     }
-"typedef"   { return rwTYPEDEF;   }
-"true"      { return rwTRUE;      }
-"false"     { return rwFALSE;     }
-"return"    { return rwRETURN;    }
-
-"=="        { return OP_EQ;       }
-"!="        { return OP_NEQ;      }
-"&&"        { return OP_AND;      }
-"||"        { return OP_OR;       }
-"<="        { return OP_LE;       }
-">="        { return OP_GE;       }
-
-"++"        { return OP_PLUSPLUS; }
-"--"        { return OP_MINUSMINUS; }
-
-"+="        { return OP_PLUS_ASS; }
-"-="        { return OP_MINUS_ASS; }
-"*="        { return OP_MUL_ASS; }
-"/="        { return OP_DIV_ASS; }
-"%="        { return OP_MOD_ASS; }
-
-"&="        { return OP_AND_ASS; }
-"|="        { return OP_OR_ASS; }
-"^="        { return OP_XOR_ASS; }
-"<<="       { return OP_BIT_LEFT_ASS; }
-">>="       { return OP_BIT_RIGHT_ASS; }
-"<<"        { return OP_BIT_LEFT; }
-">>"        { return OP_BIT_RIGHT; }
- 
+{NEWLINE} { }
+"//"[^\n\r]* { }
 "?" |
 "[" |
 "]" |
@@ -116,21 +74,72 @@ NEWLINE  (\n)|(\r\n)
 "%" |
 "^" |
 "~" |
-"="               { return *yytext; }
+"="         { return yytext[0]; }
+"if"        { return rwIF;        }
+"else"      { return rwELSE;      }
+"while"     { return rwWHILE;     }
+"do"        { return rwDO;        }
+"break"     { return rwBREAK;     }
+"for"       { return rwFOR;       }
+"switch"    { return rwSWITCH;    }
+"case"      { return rwCASE;      }
+"default"   { return rwDEFAULT;   }
+"continue"  { return rwCONTINUE;  }
+"discard"   { return rwDISCARD;   }
+"void"      { return rwVOID;      }
+"static"    { return rwSTATIC;    }
+"const"     { return rwCONST;     }
+"in"        { return rwIN;        }
+"out"       { return rwOUT;       }
+"inout"     { return rwINOUT;     }
+"typedef"   { return rwTYPEDEF;   }
+"true"      { return rwTRUE;      }
+"false"     { return rwFALSE;     }
+"return"    { return rwRETURN;    }
+"=="        { return OP_EQ;       }
+"!="        { return OP_NEQ;      }
+"&&"        { return OP_AND;      }
+"||"        { return OP_OR;       }
+"<="        { return OP_LE;       }
+">="        { return OP_GE;       }
+"++"        { return OP_PLUSPLUS; }
+"--"        { return OP_MINUSMINUS; }
+"+="        { return OP_PLUS_ASS; }
+"-="        { return OP_MINUS_ASS; }
+"*="        { return OP_MUL_ASS; }
+"/="        { return OP_DIV_ASS; }
+"%="        { return OP_MOD_ASS; }
+"&="        { return OP_AND_ASS; }
+"|="        { return OP_OR_ASS; }
+"^="        { return OP_XOR_ASS; }
+"<<="       { return OP_BIT_LEFT_ASS; }
+">>="       { return OP_BIT_RIGHT_ASS; }
+"<<"        { return OP_BIT_LEFT; }
+">>"        { return OP_BIT_RIGHT; }
 0[xX]{HEXDIGIT}+  { S32 val = 0; dSscanf(yytext, "%x", &val); yylval->intVal = val; return INT_NUM; }
 {INTEGER}         { yylval->intVal = dAtoi(yytext); return INT_NUM; }
 {FLOAT}           { yylval->fVal = dAtod(yytext); return FLOAT_NUM; }
 \"(\\.|[^\\"\n\r])*\" { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
-
 "/*"            { BEGIN(COMMENT); }
 <COMMENT>(.|\n) {
 /*  skip comments , after this point shader specific lexer rules.
     We need a case for each type both hlsl/glsl explicitly as we use these enums
     in the ast's to decide which type a var is. */ 
 }
-
 <COMMENT>"*/"   { BEGIN(INITIAL); }
-
+"SV_POSITION"[0-9]*       { return scanHLSLSemantic(yytext); }
+"POSITION"[0-9]*          { return scanHLSLSemantic(yytext); }
+"NORMAL"[0-9]*            { return scanHLSLSemantic(yytext); }
+"BINORMAL"[0-9]*          { return scanHLSLSemantic(yytext); }
+"TANGENT"[0-9]*           { return scanHLSLSemantic(yytext); }
+"TEXCOORD"[0-9]*          { return scanHLSLSemantic(yytext); }
+"COLOR"[0-9]*             { return scanHLSLSemantic(yytext); }
+"TARGET"[0-9]*            { return scanHLSLSemantic(yytext); }
+"SV_DEPTH"[0-9]*          { return scanHLSLSemantic(yytext); }
+"SV_TARGET"[0-9]*         { return scanHLSLSemantic(yytext); }
+"PSIZE"[0-9]*             { return scanHLSLSemantic(yytext); }
+"TESSFACTOR"[0-9]*        { return scanHLSLSemantic(yytext); }
+"ISFRONTFACE"[0-9]*       { return scanHLSLSemantic(yytext); }
 "TorqueShader"  { return tSHADERDECLARE; }
 "struct"        { return tSTRUCT; }
 "uniform"       { return tUNIFORM; }
@@ -141,65 +150,41 @@ NEWLINE  (\n)|(\r\n)
 "ComputeShader"  { return tCSSHADER; }
 "DomainShader"   { return tDSSHADER; }
 "HullShader"     { return tHSSHADER; }
-
 "mat3x4"  |
 "float3x4"  { return tMAT34_TYPE; }
-
 "mat4x3"  |
 "float4x3"  { return tMAT43_TYPE; }
-
 "mat3"    |
 "mat3x3"  |
 "float3x3"  { return tMAT3_TYPE; }
-
 "mat4"    |
 "mat4x4"  |
 "float4x4"  { return tMAT4_TYPE; }
-
 "float2" |
 "vec2"      { return tFVEC2_TYPE; }
 "float3" |
 "vec3"      { return tFVEC3_TYPE; }
 "float4" |
 "vec4"      { return tFVEC4_TYPE; }
-
 "int2" |
 "ivec2"      { return tIVEC2_TYPE; }
 "int3" |
 "ivec3"      { return tIVEC3_TYPE; }
 "int4" |
 "ivec4"      { return tIVEC4_TYPE; }
-
 "bool2" |
 "bvec2"      { return tBVEC2_TYPE; }
 "bool3" |
 "bvec3"      { return tBVEC3_TYPE; }
 "bool4" |
 "bvec4"      { return tBVEC4_TYPE; }
-
 "float"     { return tFLOAT_TYPE; }
 "int"       { return tINT_TYPE; }
 "uint"      { return tUINT_TYPE; }
 "bool"      { return tBOOL_TYPE; }
-
 \.[xyzw]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
 \.[rgba]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
 \.[stpq]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
-
-"(?i)SV_POSITION"[0-9]* |
-"(?i)POSITION"[0-9]*    |
-"(?i)NORMAL"[0-9]*      |
-"(?i)BINORMAL"[0-9]*    |
-"(?i)TANGENT"[0-9]*     |
-"(?i)TEXCOORD"[0-9]*    |
-"(?i)COLOR"[0-9]*       |
-"(?i)TARGET"[0-9]*      |
-"(?i)SV_DEPTH"[0-9]*    |
-"(?i)SV_TARGET"[0-9]*   |
-"(?i)PSIZE"[0-9]*       |
-"(?i)TESSFACTOR"[0-9]*  |
-"(?i)ISFRONTFACE"[0-9]*  { return scanHLSLSemantic(yytext); }
-
 {VAR} { 
   if(currentAst && currentAst->isStruct(yytext))
   {
@@ -210,8 +195,6 @@ NEWLINE  (\n)|(\r\n)
     yylval->strVal = StringTable->insert(yytext); return VAR_IDENT;
   }
 }
-{NEWLINE}   {}
-
 %%
 
 U32 scanHLSLSemantic(const char* text)
@@ -253,6 +236,21 @@ U32 scanHLSLSemantic(const char* text)
 
 }
 
+int TShaderGetLineNo(yyscan_t scanner)
+{
+  return yyget_lineno(scanner);
+}
+
+int TShaderGetColumnNo(yyscan_t scanner)
+{
+  return yyget_column(scanner);
+}
+
+char* TShaderGetText(yyscan_t scanner)
+{
+  return yyget_text(scanner);
+}
+
 bool TShadeParse(const char* code, tShadeAst* shadeAst)
 {
   currentAst = shadeAst;
@@ -261,7 +259,8 @@ bool TShadeParse(const char* code, tShadeAst* shadeAst)
   struct yyguts_t * yyg = (struct yyguts_t*)yyscanner;
   yy_delete_buffer(YY_CURRENT_BUFFER, yyscanner);
   yy_scan_string(code, yyscanner);
-
+  yyset_lineno(1, yyscanner);
+  yyset_column(0, yyscanner);
   bool ret = tshade_parse(yyscanner, shadeAst);
   yylex_destroy(yyscanner);
   return ret;
