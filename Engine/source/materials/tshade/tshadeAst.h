@@ -53,6 +53,7 @@ enum ShaderStageType {
 enum ShaderVarType {
    tTYPE_VOID,
    tTYPE_STRUCT,
+   tTYPE_SAMPLER2D,
    tTYPE_FLOAT,
    tTYPE_INT,
    tTYPE_UINT,
@@ -177,9 +178,9 @@ struct tFunctionParamNode : public tShadeNode {
    String name;
    ShaderVarType type;
    ParamModifier modifier;
-
+   String structName;
    tFunctionParamNode(const String& paramName, ShaderVarType paramType, ParamModifier paramModifier)
-      : name(paramName), type(paramType), modifier(paramModifier) {}
+      : name(paramName), type(paramType), modifier(paramModifier), structName(String::EmptyString) {}
 };
 
 struct tFunctionParamListNode : public tShadeNode {
@@ -198,8 +199,9 @@ struct tFunctionParamListNode : public tShadeNode {
 struct tFunctionNode : public tShadeNode {
    String name;
    ShaderVarType returnType;
+   String structName;
    tFunctionNode(const String& funcName, ShaderVarType returnType)
-      :name(funcName), returnType(returnType) {}
+      :name(funcName), returnType(returnType), structName(String::EmptyString) {}
 
    ~tFunctionNode() {}
 };
@@ -243,6 +245,12 @@ struct tTypeRefNode : public tShadeNode {
 
    tTypeRefNode(ShaderVarType type, tExpressionListNode* exprList)
       : returnType(type), expr(exprList) {}
+};
+
+struct tAccessNode : public tShadeNode {
+   String accessString;
+
+   tAccessNode(const String& inAccess): accessString(inAccess){}
 };
 
 struct tVarDeclNode : public tShadeNode {
@@ -348,6 +356,63 @@ struct tStageNode : tShadeNode
    }
 };
 
+struct tSampleNode : public tShadeNode {
+   tShadeNode* left;
+   tShadeNode* right;
+
+   tSampleNode(tShadeNode* inLeft, tShadeNode* inRight)
+      : left(inLeft), right(inRight) {}
+
+   ~tSampleNode()
+   {
+      delete left;
+      delete right;
+   }
+};
+
+struct tMulNode : public tShadeNode {
+   tShadeNode* left;
+   tShadeNode* right;
+
+   tMulNode(tShadeNode* inLeft, tShadeNode* inRight)
+      : left(inLeft), right(inRight) {}
+
+   ~tMulNode()
+   {
+      delete left;
+      delete right;
+   }
+};
+
+struct tLerpNode : public tShadeNode {
+   tShadeNode* a;
+   tShadeNode* b;
+   tShadeNode* c;
+
+   tLerpNode(tShadeNode* a, tShadeNode* b, tShadeNode* c)
+      : a(a), b(b), c(c) {}
+
+   ~tLerpNode()
+   {
+      delete a;
+      delete b;
+      delete c;
+   }
+};
+
+struct tFracNode : public tShadeNode {
+   tShadeNode* val;
+
+   tFracNode(tShadeNode* a)
+      : val(a){}
+
+   ~tFracNode()
+   {
+      delete val;
+   }
+};
+
+
 struct tIfNode : public tShadeNode {
    tShadeNode* expr;
    tStatementListNode* trueBranch;
@@ -446,7 +511,7 @@ struct tShadeAst
 
    String shaderName;
 
-   Vector<tStructNode*> mDataStructs; // data structs (vert pix connect etc)
+   Vector<tStructNode*> mDataStructs; // global data structs (vert pix connect etc)
 
    tStageNode* mVertStage;
    tStageNode* mPixStage;
@@ -496,6 +561,10 @@ struct tShadeAst
 
    void addVarDecl(tVarDeclNode* varDecl) {
       mVarMap[varDecl->name] = varDecl;
+   }
+
+   void clearVarDecls() {
+      mVarMap.clear();
    }
 
    tVarDeclNode* findVar(const String& name) {

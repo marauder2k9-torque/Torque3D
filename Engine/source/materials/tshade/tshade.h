@@ -108,7 +108,7 @@ extern int tshade_debug;
     VAR_IDENT = 301,               /* VAR_IDENT  */
     STR_VAL = 302,                 /* STR_VAL  */
     TYPE_IDENT = 303,              /* TYPE_IDENT  */
-    tSWIZZLE = 304,                /* tSWIZZLE  */
+    MEMBER_VAR = 304,              /* MEMBER_VAR  */
     tSTRUCT = 305,                 /* tSTRUCT  */
     tUNIFORM = 306,                /* tUNIFORM  */
     tCBUFFER = 307,                /* tCBUFFER  */
@@ -119,35 +119,40 @@ extern int tshade_debug;
     tCSSHADER = 312,               /* tCSSHADER  */
     tDSSHADER = 313,               /* tDSSHADER  */
     tHSSHADER = 314,               /* tHSSHADER  */
-    tFLOAT_TYPE = 315,             /* tFLOAT_TYPE  */
-    tINT_TYPE = 316,               /* tINT_TYPE  */
-    tBOOL_TYPE = 317,              /* tBOOL_TYPE  */
-    tUINT_TYPE = 318,              /* tUINT_TYPE  */
-    tFVEC2_TYPE = 319,             /* tFVEC2_TYPE  */
-    tFVEC3_TYPE = 320,             /* tFVEC3_TYPE  */
-    tFVEC4_TYPE = 321,             /* tFVEC4_TYPE  */
-    tIVEC2_TYPE = 322,             /* tIVEC2_TYPE  */
-    tIVEC3_TYPE = 323,             /* tIVEC3_TYPE  */
-    tIVEC4_TYPE = 324,             /* tIVEC4_TYPE  */
-    tBVEC2_TYPE = 325,             /* tBVEC2_TYPE  */
-    tBVEC3_TYPE = 326,             /* tBVEC3_TYPE  */
-    tBVEC4_TYPE = 327,             /* tBVEC4_TYPE  */
-    tMAT4_TYPE = 328,              /* tMAT4_TYPE  */
-    tMAT43_TYPE = 329,             /* tMAT43_TYPE  */
-    tMAT34_TYPE = 330,             /* tMAT34_TYPE  */
-    tMAT3_TYPE = 331,              /* tMAT3_TYPE  */
-    tSEM_SVPOSITION = 332,         /* tSEM_SVPOSITION  */
-    tSEM_POSITION = 333,           /* tSEM_POSITION  */
-    tSEM_NORMAL = 334,             /* tSEM_NORMAL  */
-    tSEM_BINORMAL = 335,           /* tSEM_BINORMAL  */
-    tSEM_TANGENT = 336,            /* tSEM_TANGENT  */
-    tSEM_PSIZE = 337,              /* tSEM_PSIZE  */
-    tSEM_TESSFACTOR = 338,         /* tSEM_TESSFACTOR  */
-    tSEM_ISFRONTFACE = 339,        /* tSEM_ISFRONTFACE  */
-    tSEM_TEXCOORD = 340,           /* tSEM_TEXCOORD  */
-    tSEM_COLOR = 341,              /* tSEM_COLOR  */
-    tSEM_TARGET = 342,             /* tSEM_TARGET  */
-    tSEM_DEPTH = 343               /* tSEM_DEPTH  */
+    tMULFUNC = 315,                /* tMULFUNC  */
+    tFRACFUNC = 316,               /* tFRACFUNC  */
+    tLERPFUNC = 317,               /* tLERPFUNC  */
+    tSAMPLE = 318,                 /* tSAMPLE  */
+    tFLOAT_TYPE = 319,             /* tFLOAT_TYPE  */
+    tINT_TYPE = 320,               /* tINT_TYPE  */
+    tBOOL_TYPE = 321,              /* tBOOL_TYPE  */
+    tUINT_TYPE = 322,              /* tUINT_TYPE  */
+    tSAMPLER2D_TYPE = 323,         /* tSAMPLER2D_TYPE  */
+    tFVEC2_TYPE = 324,             /* tFVEC2_TYPE  */
+    tFVEC3_TYPE = 325,             /* tFVEC3_TYPE  */
+    tFVEC4_TYPE = 326,             /* tFVEC4_TYPE  */
+    tIVEC2_TYPE = 327,             /* tIVEC2_TYPE  */
+    tIVEC3_TYPE = 328,             /* tIVEC3_TYPE  */
+    tIVEC4_TYPE = 329,             /* tIVEC4_TYPE  */
+    tBVEC2_TYPE = 330,             /* tBVEC2_TYPE  */
+    tBVEC3_TYPE = 331,             /* tBVEC3_TYPE  */
+    tBVEC4_TYPE = 332,             /* tBVEC4_TYPE  */
+    tMAT4_TYPE = 333,              /* tMAT4_TYPE  */
+    tMAT43_TYPE = 334,             /* tMAT43_TYPE  */
+    tMAT34_TYPE = 335,             /* tMAT34_TYPE  */
+    tMAT3_TYPE = 336,              /* tMAT3_TYPE  */
+    tSEM_SVPOSITION = 337,         /* tSEM_SVPOSITION  */
+    tSEM_POSITION = 338,           /* tSEM_POSITION  */
+    tSEM_NORMAL = 339,             /* tSEM_NORMAL  */
+    tSEM_BINORMAL = 340,           /* tSEM_BINORMAL  */
+    tSEM_TANGENT = 341,            /* tSEM_TANGENT  */
+    tSEM_PSIZE = 342,              /* tSEM_PSIZE  */
+    tSEM_TESSFACTOR = 343,         /* tSEM_TESSFACTOR  */
+    tSEM_ISFRONTFACE = 344,        /* tSEM_ISFRONTFACE  */
+    tSEM_TEXCOORD = 345,           /* tSEM_TEXCOORD  */
+    tSEM_COLOR = 346,              /* tSEM_COLOR  */
+    tSEM_TARGET = 347,             /* tSEM_TARGET  */
+    tSEM_DEPTH = 348               /* tSEM_DEPTH  */
   };
   typedef enum tshade_tokentype tshade_token_kind_t;
 #endif
@@ -175,7 +180,7 @@ union TSHADE_STYPE
   ParamModifier modifier;
   ShaderSemanticType semtype;
 
-#line 179 "tshade.h"
+#line 184 "tshade.h"
 
 };
 typedef union TSHADE_STYPE TSHADE_STYPE;

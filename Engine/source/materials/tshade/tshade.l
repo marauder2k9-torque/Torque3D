@@ -36,7 +36,7 @@
 
 DIGIT    [0-9]
 INTEGER  {DIGIT}+
-FLOAT    ({INTEGER}?\.{INTEGER})|({INTEGER}(\.{INTEGER})?[eE][+-]?{INTEGER})
+FLOAT    ({INTEGER}?\.{INTEGER}|{INTEGER}(\.{INTEGER})?[eE][+-]?{INTEGER})[fF]?
 LETTER   [A-Za-z_]
 FILECHAR [A-Za-z_\.]
 SPACE    [ \t\v\f]
@@ -137,9 +137,9 @@ NEWLINE  (\n)|(\r\n)
 "TARGET"[0-9]*            { return scanHLSLSemantic(yytext); }
 "SV_DEPTH"[0-9]*          { return scanHLSLSemantic(yytext); }
 "SV_TARGET"[0-9]*         { return scanHLSLSemantic(yytext); }
-"PSIZE"[0-9]*             { return scanHLSLSemantic(yytext); }
+"PSIZE"                   { return scanHLSLSemantic(yytext); }
 "TESSFACTOR"[0-9]*        { return scanHLSLSemantic(yytext); }
-"ISFRONTFACE"[0-9]*       { return scanHLSLSemantic(yytext); }
+"SV_ISFRONTFACE"          { return scanHLSLSemantic(yytext); }
 "TorqueShader"  { return tSHADERDECLARE; }
 "struct"        { return tSTRUCT; }
 "uniform"       { return tUNIFORM; }
@@ -150,6 +150,12 @@ NEWLINE  (\n)|(\r\n)
 "ComputeShader"  { return tCSSHADER; }
 "DomainShader"   { return tDSSHADER; }
 "HullShader"     { return tHSSHADER; }
+"Sample"         { return tSAMPLE; }
+"mul"           { return tMULFUNC; }
+"frac"    |
+"fract"         {return tFRACFUNC; }
+"lerp"    |
+"mix"           {return tLERPFUNC; }
 "mat3x4"  |
 "float3x4"  { return tMAT34_TYPE; }
 "mat4x3"  |
@@ -182,9 +188,13 @@ NEWLINE  (\n)|(\r\n)
 "int"       { return tINT_TYPE; }
 "uint"      { return tUINT_TYPE; }
 "bool"      { return tBOOL_TYPE; }
-\.[xyzw]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
-\.[rgba]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
-\.[stpq]{1,4} { yylval->strVal = dStrdup(yytext); return tSWIZZLE; }
+"sampler2D" { return tSAMPLER2D_TYPE; }
+
+\.{VAR} {
+    // If it's not a swizzle, it's likely a member variable like .pos
+    yylval->strVal = StringTable->insert(yytext);
+    return MEMBER_VAR;
+}
 {VAR} { 
   if(currentAst && currentAst->isStruct(yytext))
   {

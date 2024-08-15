@@ -73,7 +73,7 @@
 
 %token <intVal> INT_NUM
 %token <fVal> FLOAT_NUM
-%token <strVal> VAR_IDENT STR_VAL TYPE_IDENT tSWIZZLE
+%token <strVal> VAR_IDENT STR_VAL TYPE_IDENT MEMBER_VAR
 
 // Everything after this point is specific to shader language. 
 // shader specific keywords
@@ -82,8 +82,12 @@
 // shader stages
 %token tVSSHADER tPSSHADER tGSSHADER tCSSHADER tDSSHADER tHSSHADER
 
+// built in functions
+%token tMULFUNC tFRACFUNC tLERPFUNC tSAMPLE
+
 // shader scalar types
 %token tFLOAT_TYPE tINT_TYPE tBOOL_TYPE tUINT_TYPE
+%token tSAMPLER2D_TYPE
 
 // shader vector types
 %token tFVEC2_TYPE tFVEC3_TYPE tFVEC4_TYPE 
@@ -163,24 +167,28 @@ shader_stage
       shadeAst->currentStage = ShaderStageType::tSTAGE_VERTEX;
       shadeAst->mVertStage = new tStageNode(ShaderStageType::tSTAGE_VERTEX, $3);
       shadeAst->currentStage = ShaderStageType::tSTAGE_GLOBAL;
+      shadeAst->clearVarDecls();
     }
   | tPSSHADER '{' shader_body '}'
     {
       shadeAst->currentStage = ShaderStageType::tSTAGE_PIXEL;
       shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_PIXEL, $3);
       shadeAst->currentStage = ShaderStageType::tSTAGE_GLOBAL;
+      shadeAst->clearVarDecls();
     }
   | tGSSHADER '{' shader_body '}'
     {
       shadeAst->currentStage = ShaderStageType::tSTAGE_GEOMETRY;
       shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_GEOMETRY, $3);
       shadeAst->currentStage = ShaderStageType::tSTAGE_GLOBAL;
+      shadeAst->clearVarDecls();
     }
   | tCSSHADER '{' shader_body '}'
     {
       shadeAst->currentStage = ShaderStageType::tSTAGE_COMPUTE;
       shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_COMPUTE, $3);
       shadeAst->currentStage = ShaderStageType::tSTAGE_GLOBAL;
+      shadeAst->clearVarDecls();
     }
   ;
 
@@ -264,6 +272,14 @@ function_def
     { $$ = new tFunctionDefNode($2, $1, $4, $7); shadeAst->addfunction($$); }
   | var_type VAR_IDENT '(' function_param_list ')' ';'
     { $$ = new tFunctionDeclNode($2, $1, $4); shadeAst->addfunction($$); }
+  | TYPE_IDENT VAR_IDENT '(' function_param_list ')' '{' statement_list '}'
+    { $$ = new tFunctionDefNode($2, ShaderVarType::tTYPE_STRUCT, $4, $7); shadeAst->addfunction($$); 
+      $$->structName = $1;
+    }
+  | TYPE_IDENT VAR_IDENT '(' function_param_list ')' ';'
+    { $$ = new tFunctionDeclNode($2, ShaderVarType::tTYPE_STRUCT, $4); shadeAst->addfunction($$); 
+      $$->structName = $1;
+    }
   ;
 
 function_param_list
@@ -280,6 +296,13 @@ function_param
     { $$ = new tFunctionParamNode($3, $2, $1); }
   | var_type VAR_IDENT
     { $$ = new tFunctionParamNode($2, $1, ParamModifier::PARAM_MOD_NONE); }
+  | TYPE_IDENT VAR_IDENT
+    { 
+      $$ = new tFunctionParamNode($2, ShaderVarType::tTYPE_STRUCT, ParamModifier::PARAM_MOD_NONE); $$->structName = $1;  
+      tVarDeclNode* paramDecl = new tVarDeclNode($2, ShaderVarType::tTYPE_STRUCT, nullptr, nullptr, true); paramDecl->structName = $1; shadeAst->addVarDecl(paramDecl); 
+    }
+  | param_modifier TYPE_IDENT VAR_IDENT
+    { $$ = new tFunctionParamNode($3, ShaderVarType::tTYPE_STRUCT, $1); $$->structName = $2; }
   ;
 
 expression_list
@@ -338,6 +361,14 @@ expression
     { $$ = new tUnaryOpNode("++", $1, false); }
   | expression OP_MINUSMINUS
     { $$ = new tUnaryOpNode("--", $1, false); }
+  | tMULFUNC '(' expression ',' expression ')'
+    {$$ = new tMulNode($3, $5); }
+  | tFRACFUNC '(' expression ')'
+    {$$ = new tFracNode($3); }
+  | tLERPFUNC '(' expression ',' expression ',' expression ')'
+    {$$ = new tLerpNode($3, $5, $7); }
+  | tSAMPLE '(' expression ',' expression ')'
+    {$$ = new tSampleNode($3, $5); }
   | '(' expression ')' 
     { $$ = $2; } // Grouping
   | var_type '(' expression_list ')' // ex float4(1.0, 1.0, 1.0, 1.0)
@@ -352,30 +383,14 @@ expression
           $$ = nullptr;  // Handle error appropriately
       }
     }
-  | VAR_IDENT tSWIZZLE
-    { tVarDeclNode* varDecl = shadeAst->findVar($1);
-      if (varDecl) {
-          $$ = new tVarRefNode(varDecl, $2);
-      } else {
-          yyerror(scanner, shadeAst, "Undefined variable");
-          $$ = nullptr;  // Handle error appropriately
-      } 
-    }
+  | expression MEMBER_VAR
+    { $$ = new tAccessNode($2);}
   | VAR_IDENT 
     { tVarDeclNode* varDecl = shadeAst->findVar($1);
       if (varDecl) {
           $$ = new tVarRefNode(varDecl);
       } else {
           yyerror(scanner, shadeAst, "Undefined variable");
-          $$ = nullptr;  // Handle error appropriately
-      } 
-    }
-  | VAR_IDENT '.' VAR_IDENT
-    { tVarDeclNode* varDecl = shadeAst->findVar($1);
-      if (varDecl->isStruct) {
-          $$ = new tVarRefNode(varDecl, $3);
-      } else {
-          yyerror(scanner, shadeAst, "Unknown struct");
           $$ = nullptr;  // Handle error appropriately
       } 
     }
@@ -512,6 +527,8 @@ var_type
     {$$ = ShaderVarType::tTYPE_UINT;}
   | tBOOL_TYPE
     {$$ = ShaderVarType::tTYPE_BOOL;}
+  | tSAMPLER2D_TYPE
+    {$$ = ShaderVarType::tTYPE_SAMPLER2D;}
   | rwVOID
     {$$ = ShaderVarType::tTYPE_VOID;}
   ;
