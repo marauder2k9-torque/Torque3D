@@ -1870,6 +1870,7 @@ YY_RULE_SETUP
 { 
   if(currentAst && currentAst->isStruct(yytext))
   {
+    yylval->strVal = StringTable->insert(yytext);
     return TYPE_IDENT;
   }
   else {
@@ -1880,15 +1881,15 @@ YY_RULE_SETUP
 case 134:
 /* rule 134 can match eol */
 YY_RULE_SETUP
-#line 212 "tshade.l"
+#line 213 "tshade.l"
 {}
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 214 "tshade.l"
+#line 215 "tshade.l"
 ECHO;
 	YY_BREAK
-#line 1891 "tshade.lex.cpp"
+#line 1892 "tshade.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -3040,7 +3041,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 214 "tshade.l"
+#line 215 "tshade.l"
 
 
 U32 scanHLSLSemantic(const char* text)

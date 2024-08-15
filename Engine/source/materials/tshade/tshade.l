@@ -203,6 +203,7 @@ NEWLINE  (\n)|(\r\n)
 {VAR} { 
   if(currentAst && currentAst->isStruct(yytext))
   {
+    yylval->strVal = StringTable->insert(yytext);
     return TYPE_IDENT;
   }
   else {

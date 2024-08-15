@@ -233,7 +233,7 @@ var_decl
   | var_type VAR_IDENT '[' expression ']' '=' '{' expression_list '}' ';'
     {$$ = new tVarDeclNode($2, $1, $8, $4); shadeAst->addVarDecl($$); }
   | TYPE_IDENT VAR_IDENT ';'
-    {$$ = new tVarDeclNode($2, ShaderVarType::tTYPE_STRUCT, nullptr, nullptr, true); shadeAst->addVarDecl($$); }
+    {$$ = new tVarDeclNode($2, ShaderVarType::tTYPE_STRUCT, nullptr, nullptr, true); $$->structName = $1; shadeAst->addVarDecl($$); }
   ;
 
 param_modifier
@@ -361,7 +361,7 @@ expression
       if (varDecl->isStruct) {
           $$ = new tVarRefNode(varDecl);
       } else {
-          yyerror(scanner, shadeAst, "Unknown member");
+          yyerror(scanner, shadeAst, "Unknown struct");
           $$ = nullptr;  // Handle error appropriately
       } 
     }
@@ -402,6 +402,8 @@ statement
   | switch_statement
     {$$ = $1;}
   | discard_statement
+    {$$ = $1;}
+  | struct_decl
     {$$ = $1;}
   ;
 

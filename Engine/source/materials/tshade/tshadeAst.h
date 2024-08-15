@@ -247,6 +247,7 @@ struct tTypeRefNode : public tShadeNode {
 
 struct tVarDeclNode : public tShadeNode {
    String name;
+   String structName;
    ShaderVarType type;
    tShadeNode* initExpr;
    tShadeNode* arraySize; // arrays can be set by an expression/macros etc
@@ -262,6 +263,7 @@ struct tVarDeclNode : public tShadeNode {
       tShadeNode* initArray = nullptr,
       bool inStruct = false)
       : name(inName),
+      structName(String::EmptyString),
       type(vartype),
       initExpr(init),
       arraySize(initArray),
@@ -504,6 +506,11 @@ struct tShadeAst
    tFunctionNode* findFunction(const String& name) {
       auto func = mFuncMap.find(name);
       return func != mFuncMap.end() ? func->value : nullptr;
+   }
+
+   tStructNode* findStruct(const String& name) {
+      auto strct = mStructMap.find(name);
+      return strct != mStructMap.end() ? strct->value : nullptr;
    }
 
    bool isStruct(const String& name) const {
