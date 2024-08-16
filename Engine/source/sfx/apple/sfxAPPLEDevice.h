@@ -64,11 +64,12 @@ public:
    void setDistanceModel(SFXDistanceModel model) override;
    void setDopplerFactor(F32 fac) override;
    void setRolloffFactor(F32 fac) override;
-   
+   void setReverb(const SFXReverbProperties& reverb ) override;
    void resetReverb() override {}
    
    AVAudioEngine* audioEngine;
    AVAudioEnvironmentNode* listenerNode;
+   AVAudioUnitReverb* reverbNode;
 };
 
 

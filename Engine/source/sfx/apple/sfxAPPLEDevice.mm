@@ -29,6 +29,7 @@ SFXAPPLEDevice::SFXAPPLEDevice(SFXProvider *provider, String name, bool useHardw
 {
    audioEngine = [[AVAudioEngine alloc] init];
    listenerNode = [[AVAudioEnvironmentNode alloc] init];
+   reverbNode = [[AVAudioUnitReverb alloc] init];
    
    listenerNode.renderingAlgorithm = AVAudio3DMixingRenderingAlgorithmAuto;
    
@@ -37,8 +38,12 @@ SFXAPPLEDevice::SFXAPPLEDevice(SFXProvider *provider, String name, bool useHardw
                                                 AVAudioMake3DVector(0, 1, 0)); // up
    
    [audioEngine attachNode:listenerNode];
+   [audioEngine attachNode:reverbNode];
    
    [audioEngine connect:listenerNode
+                     to:reverbNode format:nil];
+   
+   [audioEngine connect:reverbNode
                      to:[audioEngine mainMixerNode] format:nil];
    
    [audioEngine connect:[audioEngine mainMixerNode]
@@ -114,5 +119,10 @@ void SFXAPPLEDevice::setRolloffFactor(F32 fac)
 {
    listenerNode.distanceAttenuationParameters.rolloffFactor = fac;
 }
+
+void SFXAPPLEDevice::setReverb(const SFXReverbProperties &reverb) {
+   [reverbNode loadFactoryPreset:AVAudioUnitReverbPresetMediumRoom];
+}
+
 
 
