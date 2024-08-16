@@ -1012,7 +1012,7 @@ static const flex_int32_t yy_rule_can_match_eol[141] =
 
   tShadeAst* currentAst = nullptr;
 
-  U32 scanHLSLSemantic(const char* text);
+  U32 scanHLSLSemantic(const char* text, yyscan_t yyscanner);
 
   void update_loc(YYLTYPE* loc, yyscan_t yyscanner);
 
@@ -1685,67 +1685,67 @@ YY_RULE_SETUP
 case 76:
 YY_RULE_SETUP
 #line 131 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
 #line 132 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
 #line 133 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
 #line 134 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
 #line 135 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
 #line 136 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
 #line 137 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
 #line 138 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
 #line 139 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
 #line 140 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
 #line 141 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
 #line 142 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
 #line 143 "tshade.l"
-{ return scanHLSLSemantic(yytext); }
+{ return scanHLSLSemantic(yytext, yyscanner); }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
@@ -3144,12 +3144,19 @@ void update_loc(YYLTYPE* loc, yyscan_t yyscanner)
   loc->first_line = loc->last_line = yyget_lineno(yyscanner);
 }
 
-U32 scanHLSLSemantic(const char* text)
+U32 scanHLSLSemantic(const char* text, yyscan_t yyscanner)
 {
   char semantic[32];
   U32 num = 0;
 
-  dSscanf(text, "%31[^0123456789]%d", semantic, &num);
+  // Parse the semantic and optional number
+  int scannedItems = dSscanf(text, "%31[^0123456789]%u", semantic, &num);
+
+  if (scannedItems < 2) {
+    num = 0;
+  }
+
+  yyget_lval(yyscanner)->intVal = num;
 
   if (dStricmp(semantic, "sv_position") == 0) {
         return tSEM_SVPOSITION;

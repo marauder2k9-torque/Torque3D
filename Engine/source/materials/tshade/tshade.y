@@ -593,15 +593,8 @@ yyreport_syntax_error  (const yypcontext_t *ctx, yyscan_t scanner, tShadeAst* sh
   }
   else
   {
-    if (exp == 0)
-    {
-      output += String::ToString("%s %s", ": Expected:", yysymbol_name(expected[exp]));
-    }
-    else
-    {
-      for (int i = 0; i < exp; ++i)
-        output += String::ToString("%s %s", i == 0 ? ": Expected:" : "or", yysymbol_name(expected[i]));
-    }
+    for (int i = 0; i < exp; ++i)
+      output += String::ToString("%s %s", i == 0 ? ": Expected:" : "or", yysymbol_name(expected[i]));
   }
 
   yyerror(loc, scanner, output.c_str());

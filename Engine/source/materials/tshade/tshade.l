@@ -27,7 +27,7 @@
 
   tShadeAst* currentAst = nullptr;
 
-  U32 scanHLSLSemantic(const char* text);
+  U32 scanHLSLSemantic(const char* text, yyscan_t yyscanner);
 
   void update_loc(YYLTYPE* loc, yyscan_t yyscanner);
 
@@ -128,19 +128,19 @@ NEWLINE  (\n)|(\r\n)
     in the ast's to decide which type a var is. */ 
 }
 <COMMENT>"*/"   { BEGIN(INITIAL); }
-"SV_POSITION"[0-9]*       { return scanHLSLSemantic(yytext); }
-"POSITION"[0-9]*          { return scanHLSLSemantic(yytext); }
-"NORMAL"[0-9]*            { return scanHLSLSemantic(yytext); }
-"BINORMAL"[0-9]*          { return scanHLSLSemantic(yytext); }
-"TANGENT"[0-9]*           { return scanHLSLSemantic(yytext); }
-"TEXCOORD"[0-9]*          { return scanHLSLSemantic(yytext); }
-"COLOR"[0-9]*             { return scanHLSLSemantic(yytext); }
-"TARGET"[0-9]*            { return scanHLSLSemantic(yytext); }
-"SV_DEPTH"[0-9]*          { return scanHLSLSemantic(yytext); }
-"SV_TARGET"[0-9]*         { return scanHLSLSemantic(yytext); }
-"PSIZE"                   { return scanHLSLSemantic(yytext); }
-"TESSFACTOR"[0-9]*        { return scanHLSLSemantic(yytext); }
-"SV_ISFRONTFACE"          { return scanHLSLSemantic(yytext); }
+"SV_POSITION"[0-9]*       { return scanHLSLSemantic(yytext, yyscanner); }
+"POSITION"[0-9]*          { return scanHLSLSemantic(yytext, yyscanner); }
+"NORMAL"[0-9]*            { return scanHLSLSemantic(yytext, yyscanner); }
+"BINORMAL"[0-9]*          { return scanHLSLSemantic(yytext, yyscanner); }
+"TANGENT"[0-9]*           { return scanHLSLSemantic(yytext, yyscanner); }
+"TEXCOORD"[0-9]*          { return scanHLSLSemantic(yytext, yyscanner); }
+"COLOR"[0-9]*             { return scanHLSLSemantic(yytext, yyscanner); }
+"TARGET"[0-9]*            { return scanHLSLSemantic(yytext, yyscanner); }
+"SV_DEPTH"[0-9]*          { return scanHLSLSemantic(yytext, yyscanner); }
+"SV_TARGET"[0-9]*         { return scanHLSLSemantic(yytext, yyscanner); }
+"PSIZE"                   { return scanHLSLSemantic(yytext, yyscanner); }
+"TESSFACTOR"[0-9]*        { return scanHLSLSemantic(yytext, yyscanner); }
+"SV_ISFRONTFACE"          { return scanHLSLSemantic(yytext, yyscanner); }
 "TorqueShader"  { return tSHADERDECLARE; }
 "struct"        { return tSTRUCT; }
 "uniform"       { return tUNIFORM; }
@@ -216,12 +216,19 @@ void update_loc(YYLTYPE* loc, yyscan_t yyscanner)
   loc->first_line = loc->last_line = yyget_lineno(yyscanner);
 }
 
-U32 scanHLSLSemantic(const char* text)
+U32 scanHLSLSemantic(const char* text, yyscan_t yyscanner)
 {
   char semantic[32];
   U32 num = 0;
 
-  dSscanf(text, "%31[^0123456789]%d", semantic, &num);
+  // Parse the semantic and optional number
+  int scannedItems = dSscanf(text, "%31[^0123456789]%u", semantic, &num);
+
+  if (scannedItems < 2) {
+    num = 0;
+  }
+
+  yyget_lval(yyscanner)->intVal = num;
 
   if (dStricmp(semantic, "sv_position") == 0) {
         return tSEM_SVPOSITION;
