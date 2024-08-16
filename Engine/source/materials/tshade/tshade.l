@@ -29,11 +29,10 @@
 
   U32 scanHLSLSemantic(const char* text);
 
-  #define YY_USER_ACTION do { \
-    yycolumn += yyleng; \
-    } while(0);
+  void update_loc(YYLTYPE* loc, yyscan_t yyscanner);
 
-  
+  #define YY_USER_ACTION update_loc(yyget_lloc(yyscanner), yyscanner);
+
 %}
 
 DIGIT    [0-9]
@@ -209,6 +208,14 @@ NEWLINE  (\n)|(\r\n)
 }
 %%
 
+void update_loc(YYLTYPE* loc, yyscan_t yyscanner)
+{
+  loc->first_column = yyget_column(yyscanner);
+  yyset_column(yyget_column(yyscanner) + yyget_leng(yyscanner), yyscanner);
+  loc->last_column = yyget_column(yyscanner);
+  loc->first_line = loc->last_line = yyget_lineno(yyscanner);
+}
+
 U32 scanHLSLSemantic(const char* text)
 {
   char semantic[32];
@@ -248,16 +255,6 @@ U32 scanHLSLSemantic(const char* text)
 
 }
 
-int TShaderGetLineNo(yyscan_t scanner)
-{
-  return yyget_lineno(scanner);
-}
-
-int TShaderGetColumnNo(yyscan_t scanner)
-{
-  return yyget_column(scanner);
-}
-
 char* TShaderGetText(yyscan_t scanner)
 {
   return yyget_text(scanner);
@@ -273,7 +270,10 @@ bool TShadeParse(const char* code, tShadeAst* shadeAst)
   yy_scan_string(code, yyscanner);
   yyset_lineno(1, yyscanner);
   yyset_column(0, yyscanner);
-  bool ret = tshade_parse(yyscanner, shadeAst);
+  int ret = tshade_parse(yyscanner, shadeAst);
   yylex_destroy(yyscanner);
-  return ret;
+  if(ret == 0)
+    return true;
+  else
+    return false;
 }

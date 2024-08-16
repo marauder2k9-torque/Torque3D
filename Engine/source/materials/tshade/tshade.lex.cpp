@@ -1014,14 +1014,13 @@ static const flex_int32_t yy_rule_can_match_eol[141] =
 
   U32 scanHLSLSemantic(const char* text);
 
-  #define YY_USER_ACTION do { \
-    yycolumn += yyleng; \
-    } while(0);
+  void update_loc(YYLTYPE* loc, yyscan_t yyscanner);
 
-  
-#line 1022 "tshade.lex.cpp"
+  #define YY_USER_ACTION update_loc(yyget_lloc(yyscanner), yyscanner);
 
-#line 1024 "tshade.lex.cpp"
+#line 1021 "tshade.lex.cpp"
+
+#line 1023 "tshade.lex.cpp"
 
 #define INITIAL 0
 #define COMMENT 1
@@ -1304,9 +1303,9 @@ YY_DECL
 		}
 
 	{
-#line 52 "tshade.l"
+#line 51 "tshade.l"
 
-#line 1309 "tshade.lex.cpp"
+#line 1308 "tshade.lex.cpp"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -1373,305 +1372,305 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 53 "tshade.l"
+#line 52 "tshade.l"
 { }
 	YY_BREAK
 case 2:
 /* rule 2 can match eol */
 YY_RULE_SETUP
-#line 54 "tshade.l"
+#line 53 "tshade.l"
 { }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 55 "tshade.l"
+#line 54 "tshade.l"
 { }
 	YY_BREAK
 case 4:
-#line 57 "tshade.l"
+#line 56 "tshade.l"
 case 5:
-#line 58 "tshade.l"
+#line 57 "tshade.l"
 case 6:
-#line 59 "tshade.l"
+#line 58 "tshade.l"
 case 7:
-#line 60 "tshade.l"
+#line 59 "tshade.l"
 case 8:
-#line 61 "tshade.l"
+#line 60 "tshade.l"
 case 9:
-#line 62 "tshade.l"
+#line 61 "tshade.l"
 case 10:
-#line 63 "tshade.l"
+#line 62 "tshade.l"
 case 11:
-#line 64 "tshade.l"
+#line 63 "tshade.l"
 case 12:
-#line 65 "tshade.l"
+#line 64 "tshade.l"
 case 13:
-#line 66 "tshade.l"
+#line 65 "tshade.l"
 case 14:
-#line 67 "tshade.l"
+#line 66 "tshade.l"
 case 15:
-#line 68 "tshade.l"
+#line 67 "tshade.l"
 case 16:
-#line 69 "tshade.l"
+#line 68 "tshade.l"
 case 17:
-#line 70 "tshade.l"
+#line 69 "tshade.l"
 case 18:
-#line 71 "tshade.l"
+#line 70 "tshade.l"
 case 19:
-#line 72 "tshade.l"
+#line 71 "tshade.l"
 case 20:
-#line 73 "tshade.l"
+#line 72 "tshade.l"
 case 21:
-#line 74 "tshade.l"
+#line 73 "tshade.l"
 case 22:
-#line 75 "tshade.l"
+#line 74 "tshade.l"
 case 23:
-#line 76 "tshade.l"
+#line 75 "tshade.l"
 case 24:
-#line 77 "tshade.l"
+#line 76 "tshade.l"
 case 25:
-#line 78 "tshade.l"
+#line 77 "tshade.l"
 case 26:
-#line 79 "tshade.l"
+#line 78 "tshade.l"
 case 27:
 YY_RULE_SETUP
-#line 79 "tshade.l"
+#line 78 "tshade.l"
 { return yytext[0]; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 80 "tshade.l"
+#line 79 "tshade.l"
 { return rwIF;        }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 81 "tshade.l"
+#line 80 "tshade.l"
 { return rwELSE;      }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 82 "tshade.l"
+#line 81 "tshade.l"
 { return rwWHILE;     }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 83 "tshade.l"
+#line 82 "tshade.l"
 { return rwDO;        }
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 84 "tshade.l"
+#line 83 "tshade.l"
 { return rwBREAK;     }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 85 "tshade.l"
+#line 84 "tshade.l"
 { return rwFOR;       }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 86 "tshade.l"
+#line 85 "tshade.l"
 { return rwSWITCH;    }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 87 "tshade.l"
+#line 86 "tshade.l"
 { return rwCASE;      }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 88 "tshade.l"
+#line 87 "tshade.l"
 { return rwDEFAULT;   }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
-#line 89 "tshade.l"
+#line 88 "tshade.l"
 { return rwCONTINUE;  }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 90 "tshade.l"
+#line 89 "tshade.l"
 { return rwDISCARD;   }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 91 "tshade.l"
+#line 90 "tshade.l"
 { return rwVOID;      }
 	YY_BREAK
 case 40:
 YY_RULE_SETUP
-#line 92 "tshade.l"
+#line 91 "tshade.l"
 { return rwSTATIC;    }
 	YY_BREAK
 case 41:
 YY_RULE_SETUP
-#line 93 "tshade.l"
+#line 92 "tshade.l"
 { return rwCONST;     }
 	YY_BREAK
 case 42:
 YY_RULE_SETUP
-#line 94 "tshade.l"
+#line 93 "tshade.l"
 { return rwIN;        }
 	YY_BREAK
 case 43:
 YY_RULE_SETUP
-#line 95 "tshade.l"
+#line 94 "tshade.l"
 { return rwOUT;       }
 	YY_BREAK
 case 44:
 YY_RULE_SETUP
-#line 96 "tshade.l"
+#line 95 "tshade.l"
 { return rwINOUT;     }
 	YY_BREAK
 case 45:
 YY_RULE_SETUP
-#line 97 "tshade.l"
+#line 96 "tshade.l"
 { return rwTYPEDEF;   }
 	YY_BREAK
 case 46:
 YY_RULE_SETUP
-#line 98 "tshade.l"
+#line 97 "tshade.l"
 { return rwTRUE;      }
 	YY_BREAK
 case 47:
 YY_RULE_SETUP
-#line 99 "tshade.l"
+#line 98 "tshade.l"
 { return rwFALSE;     }
 	YY_BREAK
 case 48:
 YY_RULE_SETUP
-#line 100 "tshade.l"
+#line 99 "tshade.l"
 { return rwRETURN;    }
 	YY_BREAK
 case 49:
 YY_RULE_SETUP
-#line 101 "tshade.l"
+#line 100 "tshade.l"
 { return OP_EQ;       }
 	YY_BREAK
 case 50:
 YY_RULE_SETUP
-#line 102 "tshade.l"
+#line 101 "tshade.l"
 { return OP_NEQ;      }
 	YY_BREAK
 case 51:
 YY_RULE_SETUP
-#line 103 "tshade.l"
+#line 102 "tshade.l"
 { return OP_AND;      }
 	YY_BREAK
 case 52:
 YY_RULE_SETUP
-#line 104 "tshade.l"
+#line 103 "tshade.l"
 { return OP_OR;       }
 	YY_BREAK
 case 53:
 YY_RULE_SETUP
-#line 105 "tshade.l"
+#line 104 "tshade.l"
 { return OP_LE;       }
 	YY_BREAK
 case 54:
 YY_RULE_SETUP
-#line 106 "tshade.l"
+#line 105 "tshade.l"
 { return OP_GE;       }
 	YY_BREAK
 case 55:
 YY_RULE_SETUP
-#line 107 "tshade.l"
+#line 106 "tshade.l"
 { return OP_PLUSPLUS; }
 	YY_BREAK
 case 56:
 YY_RULE_SETUP
-#line 108 "tshade.l"
+#line 107 "tshade.l"
 { return OP_MINUSMINUS; }
 	YY_BREAK
 case 57:
 YY_RULE_SETUP
-#line 109 "tshade.l"
+#line 108 "tshade.l"
 { return OP_PLUS_ASS; }
 	YY_BREAK
 case 58:
 YY_RULE_SETUP
-#line 110 "tshade.l"
+#line 109 "tshade.l"
 { return OP_MINUS_ASS; }
 	YY_BREAK
 case 59:
 YY_RULE_SETUP
-#line 111 "tshade.l"
+#line 110 "tshade.l"
 { return OP_MUL_ASS; }
 	YY_BREAK
 case 60:
 YY_RULE_SETUP
-#line 112 "tshade.l"
+#line 111 "tshade.l"
 { return OP_DIV_ASS; }
 	YY_BREAK
 case 61:
 YY_RULE_SETUP
-#line 113 "tshade.l"
+#line 112 "tshade.l"
 { return OP_MOD_ASS; }
 	YY_BREAK
 case 62:
 YY_RULE_SETUP
-#line 114 "tshade.l"
+#line 113 "tshade.l"
 { return OP_AND_ASS; }
 	YY_BREAK
 case 63:
 YY_RULE_SETUP
-#line 115 "tshade.l"
+#line 114 "tshade.l"
 { return OP_OR_ASS; }
 	YY_BREAK
 case 64:
 YY_RULE_SETUP
-#line 116 "tshade.l"
+#line 115 "tshade.l"
 { return OP_XOR_ASS; }
 	YY_BREAK
 case 65:
 YY_RULE_SETUP
-#line 117 "tshade.l"
+#line 116 "tshade.l"
 { return OP_BIT_LEFT_ASS; }
 	YY_BREAK
 case 66:
 YY_RULE_SETUP
-#line 118 "tshade.l"
+#line 117 "tshade.l"
 { return OP_BIT_RIGHT_ASS; }
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 119 "tshade.l"
+#line 118 "tshade.l"
 { return OP_BIT_LEFT; }
 	YY_BREAK
 case 68:
 YY_RULE_SETUP
-#line 120 "tshade.l"
+#line 119 "tshade.l"
 { return OP_BIT_RIGHT; }
 	YY_BREAK
 case 69:
 YY_RULE_SETUP
-#line 121 "tshade.l"
+#line 120 "tshade.l"
 { S32 val = 0; dSscanf(yytext, "%x", &val); yylval->intVal = val; return INT_NUM; }
 	YY_BREAK
 case 70:
 YY_RULE_SETUP
-#line 122 "tshade.l"
+#line 121 "tshade.l"
 { yylval->intVal = dAtoi(yytext); return INT_NUM; }
 	YY_BREAK
 case 71:
 YY_RULE_SETUP
-#line 123 "tshade.l"
+#line 122 "tshade.l"
 { yylval->fVal = dAtod(yytext); return FLOAT_NUM; }
 	YY_BREAK
 case 72:
 YY_RULE_SETUP
-#line 124 "tshade.l"
+#line 123 "tshade.l"
 { yylval->strVal = StringTable->insert(yytext); return STR_VAL; }
 	YY_BREAK
 case 73:
 YY_RULE_SETUP
-#line 125 "tshade.l"
+#line 124 "tshade.l"
 { BEGIN(COMMENT); }
 	YY_BREAK
 case 74:
 /* rule 74 can match eol */
 YY_RULE_SETUP
-#line 126 "tshade.l"
+#line 125 "tshade.l"
 {
 /*  skip comments , after this point shader specific lexer rules.
     We need a case for each type both hlsl/glsl explicitly as we use these enums
@@ -1680,271 +1679,271 @@ YY_RULE_SETUP
 	YY_BREAK
 case 75:
 YY_RULE_SETUP
-#line 131 "tshade.l"
+#line 130 "tshade.l"
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 76:
 YY_RULE_SETUP
-#line 132 "tshade.l"
+#line 131 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 77:
 YY_RULE_SETUP
-#line 133 "tshade.l"
+#line 132 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 78:
 YY_RULE_SETUP
-#line 134 "tshade.l"
+#line 133 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 79:
 YY_RULE_SETUP
-#line 135 "tshade.l"
+#line 134 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 80:
 YY_RULE_SETUP
-#line 136 "tshade.l"
+#line 135 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 81:
 YY_RULE_SETUP
-#line 137 "tshade.l"
+#line 136 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 82:
 YY_RULE_SETUP
-#line 138 "tshade.l"
+#line 137 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 83:
 YY_RULE_SETUP
-#line 139 "tshade.l"
+#line 138 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 84:
 YY_RULE_SETUP
-#line 140 "tshade.l"
+#line 139 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 85:
 YY_RULE_SETUP
-#line 141 "tshade.l"
+#line 140 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 86:
 YY_RULE_SETUP
-#line 142 "tshade.l"
+#line 141 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 87:
 YY_RULE_SETUP
-#line 143 "tshade.l"
+#line 142 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 88:
 YY_RULE_SETUP
-#line 144 "tshade.l"
+#line 143 "tshade.l"
 { return scanHLSLSemantic(yytext); }
 	YY_BREAK
 case 89:
 YY_RULE_SETUP
-#line 145 "tshade.l"
+#line 144 "tshade.l"
 { return tSHADERDECLARE; }
 	YY_BREAK
 case 90:
 YY_RULE_SETUP
-#line 146 "tshade.l"
+#line 145 "tshade.l"
 { return tSTRUCT; }
 	YY_BREAK
 case 91:
 YY_RULE_SETUP
-#line 147 "tshade.l"
+#line 146 "tshade.l"
 { return tUNIFORM; }
 	YY_BREAK
 case 92:
 YY_RULE_SETUP
-#line 148 "tshade.l"
+#line 147 "tshade.l"
 { return tCBUFFER; }
 	YY_BREAK
 case 93:
 YY_RULE_SETUP
-#line 149 "tshade.l"
+#line 148 "tshade.l"
 { return tVSSHADER; }
 	YY_BREAK
 case 94:
 YY_RULE_SETUP
-#line 150 "tshade.l"
+#line 149 "tshade.l"
 { return tPSSHADER; }
 	YY_BREAK
 case 95:
 YY_RULE_SETUP
-#line 151 "tshade.l"
+#line 150 "tshade.l"
 { return tGSSHADER; }
 	YY_BREAK
 case 96:
 YY_RULE_SETUP
-#line 152 "tshade.l"
+#line 151 "tshade.l"
 { return tCSSHADER; }
 	YY_BREAK
 case 97:
 YY_RULE_SETUP
-#line 153 "tshade.l"
+#line 152 "tshade.l"
 { return tDSSHADER; }
 	YY_BREAK
 case 98:
 YY_RULE_SETUP
-#line 154 "tshade.l"
+#line 153 "tshade.l"
 { return tHSSHADER; }
 	YY_BREAK
 case 99:
 YY_RULE_SETUP
-#line 155 "tshade.l"
+#line 154 "tshade.l"
 { return tSAMPLE; }
 	YY_BREAK
 case 100:
 YY_RULE_SETUP
-#line 156 "tshade.l"
+#line 155 "tshade.l"
 { return tMULFUNC; }
 	YY_BREAK
 case 101:
-#line 158 "tshade.l"
+#line 157 "tshade.l"
 case 102:
 YY_RULE_SETUP
-#line 158 "tshade.l"
+#line 157 "tshade.l"
 {return tFRACFUNC; }
 	YY_BREAK
 case 103:
-#line 160 "tshade.l"
+#line 159 "tshade.l"
 case 104:
 YY_RULE_SETUP
-#line 160 "tshade.l"
+#line 159 "tshade.l"
 {return tLERPFUNC; }
 	YY_BREAK
 case 105:
-#line 162 "tshade.l"
+#line 161 "tshade.l"
 case 106:
 YY_RULE_SETUP
-#line 162 "tshade.l"
+#line 161 "tshade.l"
 { return tMAT34_TYPE; }
 	YY_BREAK
 case 107:
-#line 164 "tshade.l"
+#line 163 "tshade.l"
 case 108:
 YY_RULE_SETUP
-#line 164 "tshade.l"
+#line 163 "tshade.l"
 { return tMAT43_TYPE; }
 	YY_BREAK
 case 109:
-#line 166 "tshade.l"
+#line 165 "tshade.l"
 case 110:
-#line 167 "tshade.l"
+#line 166 "tshade.l"
 case 111:
 YY_RULE_SETUP
-#line 167 "tshade.l"
+#line 166 "tshade.l"
 { return tMAT3_TYPE; }
 	YY_BREAK
 case 112:
-#line 169 "tshade.l"
+#line 168 "tshade.l"
 case 113:
-#line 170 "tshade.l"
+#line 169 "tshade.l"
 case 114:
 YY_RULE_SETUP
-#line 170 "tshade.l"
+#line 169 "tshade.l"
 { return tMAT4_TYPE; }
 	YY_BREAK
 case 115:
-#line 172 "tshade.l"
+#line 171 "tshade.l"
 case 116:
 YY_RULE_SETUP
-#line 172 "tshade.l"
+#line 171 "tshade.l"
 { return tFVEC2_TYPE; }
 	YY_BREAK
 case 117:
-#line 174 "tshade.l"
+#line 173 "tshade.l"
 case 118:
 YY_RULE_SETUP
-#line 174 "tshade.l"
+#line 173 "tshade.l"
 { return tFVEC3_TYPE; }
 	YY_BREAK
 case 119:
-#line 176 "tshade.l"
+#line 175 "tshade.l"
 case 120:
 YY_RULE_SETUP
-#line 176 "tshade.l"
+#line 175 "tshade.l"
 { return tFVEC4_TYPE; }
 	YY_BREAK
 case 121:
-#line 178 "tshade.l"
+#line 177 "tshade.l"
 case 122:
 YY_RULE_SETUP
-#line 178 "tshade.l"
+#line 177 "tshade.l"
 { return tIVEC2_TYPE; }
 	YY_BREAK
 case 123:
-#line 180 "tshade.l"
+#line 179 "tshade.l"
 case 124:
 YY_RULE_SETUP
-#line 180 "tshade.l"
+#line 179 "tshade.l"
 { return tIVEC3_TYPE; }
 	YY_BREAK
 case 125:
-#line 182 "tshade.l"
+#line 181 "tshade.l"
 case 126:
 YY_RULE_SETUP
-#line 182 "tshade.l"
+#line 181 "tshade.l"
 { return tIVEC4_TYPE; }
 	YY_BREAK
 case 127:
-#line 184 "tshade.l"
+#line 183 "tshade.l"
 case 128:
 YY_RULE_SETUP
-#line 184 "tshade.l"
+#line 183 "tshade.l"
 { return tBVEC2_TYPE; }
 	YY_BREAK
 case 129:
-#line 186 "tshade.l"
+#line 185 "tshade.l"
 case 130:
 YY_RULE_SETUP
-#line 186 "tshade.l"
+#line 185 "tshade.l"
 { return tBVEC3_TYPE; }
 	YY_BREAK
 case 131:
-#line 188 "tshade.l"
+#line 187 "tshade.l"
 case 132:
 YY_RULE_SETUP
-#line 188 "tshade.l"
+#line 187 "tshade.l"
 { return tBVEC4_TYPE; }
 	YY_BREAK
 case 133:
 YY_RULE_SETUP
-#line 189 "tshade.l"
+#line 188 "tshade.l"
 { return tFLOAT_TYPE; }
 	YY_BREAK
 case 134:
 YY_RULE_SETUP
-#line 190 "tshade.l"
+#line 189 "tshade.l"
 { return tINT_TYPE; }
 	YY_BREAK
 case 135:
 YY_RULE_SETUP
-#line 191 "tshade.l"
+#line 190 "tshade.l"
 { return tUINT_TYPE; }
 	YY_BREAK
 case 136:
 YY_RULE_SETUP
-#line 192 "tshade.l"
+#line 191 "tshade.l"
 { return tBOOL_TYPE; }
 	YY_BREAK
 case 137:
 YY_RULE_SETUP
-#line 193 "tshade.l"
+#line 192 "tshade.l"
 { return tSAMPLER2D_TYPE; }
 	YY_BREAK
 case 138:
 YY_RULE_SETUP
-#line 195 "tshade.l"
+#line 194 "tshade.l"
 {
     // If it's not a swizzle, it's likely a member variable like .pos
     yylval->strVal = StringTable->insert(yytext);
@@ -1953,7 +1952,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 200 "tshade.l"
+#line 199 "tshade.l"
 { 
   if(currentAst && currentAst->isStruct(yytext))
   {
@@ -1967,10 +1966,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 210 "tshade.l"
+#line 209 "tshade.l"
 ECHO;
 	YY_BREAK
-#line 1973 "tshade.lex.cpp"
+#line 1972 "tshade.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -3134,8 +3133,16 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 210 "tshade.l"
+#line 209 "tshade.l"
 
+
+void update_loc(YYLTYPE* loc, yyscan_t yyscanner)
+{
+  loc->first_column = yyget_column(yyscanner);
+  yyset_column(yyget_column(yyscanner) + yyget_leng(yyscanner), yyscanner);
+  loc->last_column = yyget_column(yyscanner);
+  loc->first_line = loc->last_line = yyget_lineno(yyscanner);
+}
 
 U32 scanHLSLSemantic(const char* text)
 {
@@ -3176,16 +3183,6 @@ U32 scanHLSLSemantic(const char* text)
 
 }
 
-int TShaderGetLineNo(yyscan_t scanner)
-{
-  return yyget_lineno(scanner);
-}
-
-int TShaderGetColumnNo(yyscan_t scanner)
-{
-  return yyget_column(scanner);
-}
-
 char* TShaderGetText(yyscan_t scanner)
 {
   return yyget_text(scanner);
@@ -3201,7 +3198,10 @@ bool TShadeParse(const char* code, tShadeAst* shadeAst)
   yy_scan_string(code, yyscanner);
   yyset_lineno(1, yyscanner);
   yyset_column(0, yyscanner);
-  bool ret = tshade_parse(yyscanner, shadeAst);
+  int ret = tshade_parse(yyscanner, shadeAst);
   yylex_destroy(yyscanner);
-  return ret;
+  if(ret == 0)
+    return true;
+  else
+    return false;
 }

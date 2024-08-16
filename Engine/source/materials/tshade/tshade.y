@@ -25,9 +25,6 @@
 
   int yylex(union YYSTYPE * yylval_param, YYLTYPE* yylloc_param , yyscan_t yyscanner);
 
-
-  extern int TShaderGetLineNo(yyscan_t);
-  extern int TShaderGetColumnNo(yyscan_t);
   extern char* TShaderGetText(yyscan_t);
 %} 
 
@@ -569,37 +566,45 @@ void yyerror(YYLTYPE* yylloc, yyscan_t yyscanner, tShadeAst* shadeAst, char cons
 }
 
 void yyerror(YYLTYPE* yylloc,yyscan_t yyscanner, const char* msg) {
-   Con::errorf("TorqueShader ERROR: %s Line: %d column: %d \n %s",
-      msg,
-      TShaderGetLineNo(yyscanner),
-      TShaderGetColumnNo(yyscanner),
-      TShaderGetText(yyscanner));
+  Con::errorf("TorqueShader ERROR: %s Line: %d column: %d",
+    msg,
+    yylloc->last_line,
+    yylloc->first_column);
 }
 
 int
 yyreport_syntax_error  (const yypcontext_t *ctx, yyscan_t scanner, tShadeAst* shadeAst)
 {
-   int ret = 0;
-   String output;
-   output += "syntax error: ";
-   YYLTYPE *loc = yypcontext_location (ctx);
-   yysymbol_kind_t nxt = yypcontext_token(ctx);
-   if (nxt != YYSYMBOL_YYEMPTY)
-      output += String::ToString("unexpected: %s", yysymbol_name(nxt));
+  int ret = 0;
+  String output;
+  output += "syntax error: ";
+  YYLTYPE *loc = yypcontext_location (ctx);
+  yysymbol_kind_t nxt = yypcontext_token(ctx);
+  if (nxt != YYSYMBOL_YYEMPTY)
+  output += String::ToString("Found: %s", TShaderGetText(scanner));
 
-   enum { TOKENMAX = 10 };
-   yysymbol_kind_t expected[TOKENMAX];
+  enum { TOKENMAX = 5 };
+  yysymbol_kind_t expected[TOKENMAX];
 
-   int exp = yypcontext_expected_tokens(ctx, expected, TOKENMAX);
-   if (exp < 0)
-      ret = exp;
-   else
-   {
+  int exp = yypcontext_expected_tokens(ctx, expected, TOKENMAX);
+  if (exp < 0)
+  {
+    ret = exp;
+  }
+  else
+  {
+    if (exp == 0)
+    {
+      output += String::ToString("%s %s", ": Expected:", yysymbol_name(expected[exp]));
+    }
+    else
+    {
       for (int i = 0; i < exp; ++i)
-         output += String::ToString("%s %s", i == 0 ? ": expected" : "or", yysymbol_name(expected[i]));
-   }
+        output += String::ToString("%s %s", i == 0 ? ": Expected:" : "or", yysymbol_name(expected[i]));
+    }
+  }
 
-   yyerror(loc, scanner, output.c_str());
+  yyerror(loc, scanner, output.c_str());
 
-   return ret;
+  return ret;
 }
