@@ -161,7 +161,7 @@ extern int tshade_debug;
 #if ! defined TSHADE_STYPE && ! defined TSHADE_STYPE_IS_DECLARED
 union TSHADE_STYPE
 {
-#line 33 "tshade.y"
+#line 34 "tshade.y"
 
   // source side ASTnode.
   tShadeNode* node;
@@ -186,6 +186,20 @@ union TSHADE_STYPE
 typedef union TSHADE_STYPE TSHADE_STYPE;
 # define TSHADE_STYPE_IS_TRIVIAL 1
 # define TSHADE_STYPE_IS_DECLARED 1
+#endif
+
+/* Location type.  */
+#if ! defined TSHADE_LTYPE && ! defined TSHADE_LTYPE_IS_DECLARED
+typedef struct TSHADE_LTYPE TSHADE_LTYPE;
+struct TSHADE_LTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+};
+# define TSHADE_LTYPE_IS_DECLARED 1
+# define TSHADE_LTYPE_IS_TRIVIAL 1
 #endif
 
 

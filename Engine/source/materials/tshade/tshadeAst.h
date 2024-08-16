@@ -33,6 +33,7 @@
 #endif // !#ifndef _TDICTIONARY_H_
 
 #define YYSTYPE TSHADE_STYPE
+#define YYLTYPE TSHADE_LTYPE
 
 class SimObject;
 class SimGroup;

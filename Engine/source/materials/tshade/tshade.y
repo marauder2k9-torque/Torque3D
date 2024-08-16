@@ -2,7 +2,7 @@
 %define api.pure full
 %define parse.error custom
 %define api.prefix {tshade_}
-
+%locations
 %lex-param {yyscan_t scanner}
 %parse-param {yyscan_t scanner}
 %parse-param {tShadeAst* shadeAst}
@@ -18,12 +18,13 @@
   #define nil 0
 
   typedef void* yyscan_t;
-  void yyerror(const char* msg);
-  void yyerror(yyscan_t yyscanner, const char* msg);
-  void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg);
-  
-  #define YY_DECL int yylex(union YYSTYPE *, yyscan_t)
-  YY_DECL;
+  struct YYLTYPE;
+
+  void yyerror(YYLTYPE* yylloc, yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg);
+  void yyerror(YYLTYPE* yylloc, yyscan_t yyscanner, char const* msg);
+
+  int yylex(union YYSTYPE * yylval_param, YYLTYPE* yylloc_param , yyscan_t yyscanner);
+
 
   extern int TShaderGetLineNo(yyscan_t);
   extern int TShaderGetColumnNo(yyscan_t);
@@ -379,7 +380,7 @@ expression
       if (funcDecl) {
           $$ = new tFunctionRefNode(funcDecl, $3);
       } else {
-          yyerror(scanner, shadeAst, "Undefined function");
+          yyerror(&yylloc, scanner, shadeAst, "Undefined function");
           $$ = nullptr;  // Handle error appropriately
       }
     }
@@ -390,7 +391,7 @@ expression
       if (varDecl) {
           $$ = new tVarRefNode(varDecl);
       } else {
-          yyerror(scanner, shadeAst, "Undefined variable");
+          yyerror(&yylloc, scanner, shadeAst, "Undefined variable");
           $$ = nullptr;  // Handle error appropriately
       } 
     }
@@ -563,11 +564,11 @@ struct_semantic
 
 %%
 
-void yyerror(yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg) {
-	yyerror(yyscanner, msg);
+void yyerror(YYLTYPE* yylloc, yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg){
+  yyerror(yylloc, yyscanner, msg);
 }
 
-void yyerror(yyscan_t yyscanner, const char* msg) {
+void yyerror(YYLTYPE* yylloc,yyscan_t yyscanner, const char* msg) {
    Con::errorf("TorqueShader ERROR: %s Line: %d column: %d \n %s",
       msg,
       TShaderGetLineNo(yyscanner),
@@ -581,7 +582,7 @@ yyreport_syntax_error  (const yypcontext_t *ctx, yyscan_t scanner, tShadeAst* sh
    int ret = 0;
    String output;
    output += "syntax error: ";
-
+   YYLTYPE *loc = yypcontext_location (ctx);
    yysymbol_kind_t nxt = yypcontext_token(ctx);
    if (nxt != YYSYMBOL_YYEMPTY)
       output += String::ToString("unexpected: %s", yysymbol_name(nxt));
@@ -598,7 +599,7 @@ yyreport_syntax_error  (const yypcontext_t *ctx, yyscan_t scanner, tShadeAst* sh
          output += String::ToString("%s %s", i == 0 ? ": expected" : "or", yysymbol_name(expected[i]));
    }
 
-   yyerror(scanner, output.c_str());
+   yyerror(loc, scanner, output.c_str());
 
    return ret;
 }

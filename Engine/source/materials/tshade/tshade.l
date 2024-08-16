@@ -1,10 +1,12 @@
 %option reentrant bison-bridge
+%option bison-locations
 %option never-interactive
 %option yylineno
 %option nounput
 %option noinput
 %option noyywrap
 %option prefix="tshade_"
+
 
 %top{
   #include <stdint.h>
