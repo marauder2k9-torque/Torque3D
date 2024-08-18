@@ -115,6 +115,7 @@
 %right OP_PLUSPLUS OP_MINUSMINUS // Increment (++), Decrement (--)
 %right OP_PLUS_ASS OP_MINUS_ASS OP_MUL_ASS OP_DIV_ASS OP_MOD_ASS // Compound assignment operators (+=, -=, *=, /=, %=)
 %right '='                // Simple assignment (=)
+%left MEMBER_VAR
 %nonassoc '(' ')'         // Highest precedence for grouping
 
 %type <node> program program_globals program_global_list expression shader_stage shader_body struct_member 
@@ -374,9 +375,11 @@ expression
   | VAR_IDENT '(' expression_list ')'
     {
       tFunctionNode* funcDecl = shadeAst->findFunction($1);
-      if (funcDecl) {
+      if (funcDecl) 
+      {
           $$ = new tFunctionRefNode(funcDecl, $3);
-      } else {
+      } else 
+      {
           yyerror(&yylloc, scanner, shadeAst, "Undefined function");
           $$ = nullptr;  // Handle error appropriately
       }
@@ -389,15 +392,20 @@ expression
       {
         $$ = new tVarRefNode(varRef->varDecl, memberVar);
       }
-      else{
+      else
+      {
         $$ = new tAccessNode($2);
       }
     }
   | VAR_IDENT 
-    { tVarDeclNode* varDecl = shadeAst->findVar($1);
-      if (varDecl) {
+    { 
+      tVarDeclNode* varDecl = shadeAst->findVar($1);
+      if (varDecl) 
+      {
           $$ = new tVarRefNode(varDecl);
-      } else {
+      } 
+      else 
+      {
           yyerror(&yylloc, scanner, shadeAst, "Undefined variable");
           $$ = nullptr;  // Handle error appropriately
       } 

@@ -669,20 +669,20 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,   138,   138,   143,   148,   152,   157,   163,   170,   177,
-     184,   194,   199,   205,   206,   211,   213,   215,   220,   228,
-     233,   239,   247,   249,   251,   253,   255,   260,   262,   264,
-     269,   271,   273,   277,   285,   286,   288,   293,   295,   297,
-     302,   307,   309,   314,   316,   318,   320,   322,   324,   326,
-     328,   330,   332,   334,   336,   338,   340,   342,   344,   346,
-     348,   350,   352,   354,   356,   358,   360,   362,   364,   366,
-     368,   370,   372,   374,   384,   396,   405,   407,   413,   414,
-     419,   421,   423,   425,   427,   429,   431,   433,   435,   437,
-     439,   441,   443,   449,   451,   456,   458,   463,   469,   470,
-     475,   477,   482,   487,   492,   494,   499,   504,   506,   508,
-     510,   512,   514,   516,   518,   520,   522,   524,   526,   528,
-     530,   532,   534,   536,   538,   540,   545,   547,   549,   551,
-     553,   555,   557,   559,   561,   563,   565,   567
+       0,   139,   139,   144,   149,   153,   158,   164,   171,   178,
+     185,   195,   200,   206,   207,   212,   214,   216,   221,   229,
+     234,   240,   248,   250,   252,   254,   256,   261,   263,   265,
+     270,   272,   274,   278,   286,   287,   289,   294,   296,   298,
+     303,   308,   310,   315,   317,   319,   321,   323,   325,   327,
+     329,   331,   333,   335,   337,   339,   341,   343,   345,   347,
+     349,   351,   353,   355,   357,   359,   361,   363,   365,   367,
+     369,   371,   373,   375,   387,   400,   413,   415,   421,   422,
+     427,   429,   431,   433,   435,   437,   439,   441,   443,   445,
+     447,   449,   451,   457,   459,   464,   466,   471,   477,   478,
+     483,   485,   490,   495,   500,   502,   507,   512,   514,   516,
+     518,   520,   522,   524,   526,   528,   530,   532,   534,   536,
+     538,   540,   542,   544,   546,   548,   553,   555,   557,   559,
+     561,   563,   565,   567,   569,   571,   573,   575
 };
 #endif
 
@@ -1975,19 +1975,19 @@ yyreduce:
   switch (yyn)
     {
   case 2: /* program: tSHADERDECLARE VAR_IDENT '{' program_globals '}'  */
-#line 139 "tshade.y"
+#line 140 "tshade.y"
     {(yyval.node) = nullptr; shadeAst->shaderName = (yyvsp[-3].strVal); }
 #line 1981 "tshade.cpp"
     break;
 
   case 3: /* program_globals: program_global_list  */
-#line 144 "tshade.y"
+#line 145 "tshade.y"
     {(yyval.node) = nullptr; }
 #line 1987 "tshade.cpp"
     break;
 
   case 4: /* program_global_list: program_global_list struct_decl  */
-#line 149 "tshade.y"
+#line 150 "tshade.y"
     {
       shadeAst->addDataStruct((yyvsp[0].structNode));
     }
@@ -1995,7 +1995,7 @@ yyreduce:
     break;
 
   case 5: /* program_global_list: program_global_list shader_stage  */
-#line 153 "tshade.y"
+#line 154 "tshade.y"
     {
       (yyval.node) = nullptr;
     }
@@ -2003,7 +2003,7 @@ yyreduce:
     break;
 
   case 6: /* program_global_list: %empty  */
-#line 157 "tshade.y"
+#line 158 "tshade.y"
     {
       (yyval.node) = nullptr;
     }
@@ -2011,7 +2011,7 @@ yyreduce:
     break;
 
   case 7: /* shader_stage: tVSSHADER '{' shader_body '}'  */
-#line 164 "tshade.y"
+#line 165 "tshade.y"
     { 
       shadeAst->currentStage = ShaderStageType::tSTAGE_VERTEX;
       shadeAst->mVertStage = new tStageNode(ShaderStageType::tSTAGE_VERTEX, (yyvsp[-1].node));
@@ -2022,7 +2022,7 @@ yyreduce:
     break;
 
   case 8: /* shader_stage: tPSSHADER '{' shader_body '}'  */
-#line 171 "tshade.y"
+#line 172 "tshade.y"
     {
       shadeAst->currentStage = ShaderStageType::tSTAGE_PIXEL;
       shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_PIXEL, (yyvsp[-1].node));
@@ -2033,7 +2033,7 @@ yyreduce:
     break;
 
   case 9: /* shader_stage: tGSSHADER '{' shader_body '}'  */
-#line 178 "tshade.y"
+#line 179 "tshade.y"
     {
       shadeAst->currentStage = ShaderStageType::tSTAGE_GEOMETRY;
       shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_GEOMETRY, (yyvsp[-1].node));
@@ -2044,7 +2044,7 @@ yyreduce:
     break;
 
   case 10: /* shader_stage: tCSSHADER '{' shader_body '}'  */
-#line 185 "tshade.y"
+#line 186 "tshade.y"
     {
       shadeAst->currentStage = ShaderStageType::tSTAGE_COMPUTE;
       shadeAst->mPixStage = new tStageNode(ShaderStageType::tSTAGE_COMPUTE, (yyvsp[-1].node));
@@ -2055,49 +2055,49 @@ yyreduce:
     break;
 
   case 11: /* shader_body: statement_list  */
-#line 195 "tshade.y"
+#line 196 "tshade.y"
     {(yyval.node) = (yyvsp[0].stmt_list_node);}
 #line 2061 "tshade.cpp"
     break;
 
   case 12: /* struct_decl: tSTRUCT VAR_IDENT '{' structbody_list '}'  */
-#line 200 "tshade.y"
+#line 201 "tshade.y"
     { (yyval.structNode) = new tStructNode((yyvsp[-3].strVal), (yyvsp[-1].stmt_list_node)); }
 #line 2067 "tshade.cpp"
     break;
 
   case 13: /* structbody_list: %empty  */
-#line 205 "tshade.y"
+#line 206 "tshade.y"
     { (yyval.stmt_list_node) = new tStatementListNode(); }
 #line 2073 "tshade.cpp"
     break;
 
   case 14: /* structbody_list: structbody_list struct_member  */
-#line 207 "tshade.y"
+#line 208 "tshade.y"
     { (yyvsp[-1].stmt_list_node)->addStatement((yyvsp[0].node)); (yyval.stmt_list_node) = (yyvsp[-1].stmt_list_node); }
 #line 2079 "tshade.cpp"
     break;
 
   case 15: /* struct_member: var_decl ':' struct_semantic ';'  */
-#line 212 "tshade.y"
+#line 213 "tshade.y"
     { (yyval.node) = new tStructMemberNode((yyvsp[-3].declNode), (yyvsp[-1].semtype), yylval.intVal); }
 #line 2085 "tshade.cpp"
     break;
 
   case 16: /* struct_member: var_decl ';'  */
-#line 214 "tshade.y"
+#line 215 "tshade.y"
     { (yyval.node) = new tStructMemberNode((yyvsp[-1].declNode));}
 #line 2091 "tshade.cpp"
     break;
 
   case 17: /* struct_member: function_def  */
-#line 216 "tshade.y"
+#line 217 "tshade.y"
     {(yyval.node) = (yyvsp[0].funcNode);}
 #line 2097 "tshade.cpp"
     break;
 
   case 18: /* uniform_decl: tUNIFORM var_decl  */
-#line 221 "tshade.y"
+#line 222 "tshade.y"
   {
     (yyvsp[0].declNode)->isUniform = true;
     (yyval.declNode) = (yyvsp[0].declNode);
@@ -2106,7 +2106,7 @@ yyreduce:
     break;
 
   case 19: /* static_const_decl: rwSTATIC var_decl  */
-#line 229 "tshade.y"
+#line 230 "tshade.y"
   {
     (yyvsp[0].declNode)->isStatic = true;
     (yyval.declNode) = (yyvsp[0].declNode);
@@ -2115,7 +2115,7 @@ yyreduce:
     break;
 
   case 20: /* static_const_decl: rwSTATIC rwCONST var_decl  */
-#line 234 "tshade.y"
+#line 235 "tshade.y"
   {
     (yyvsp[0].declNode)->isStatic = true;
     (yyvsp[0].declNode)->isConst = true;
@@ -2125,7 +2125,7 @@ yyreduce:
     break;
 
   case 21: /* static_const_decl: rwCONST var_decl  */
-#line 240 "tshade.y"
+#line 241 "tshade.y"
   {
     (yyvsp[0].declNode)->isConst = true;
     (yyval.declNode) = (yyvsp[0].declNode);
@@ -2134,67 +2134,67 @@ yyreduce:
     break;
 
   case 22: /* var_decl: var_type VAR_IDENT  */
-#line 248 "tshade.y"
+#line 249 "tshade.y"
     {(yyval.declNode) = new tVarDeclNode((yyvsp[0].strVal), (yyvsp[-1].varType)); shadeAst->addVarDecl((yyval.declNode)); }
 #line 2140 "tshade.cpp"
     break;
 
   case 23: /* var_decl: var_type VAR_IDENT '=' expression  */
-#line 250 "tshade.y"
+#line 251 "tshade.y"
     {(yyval.declNode) = new tVarDeclNode((yyvsp[-2].strVal), (yyvsp[-3].varType), (yyvsp[0].node)); shadeAst->addVarDecl((yyval.declNode)); }
 #line 2146 "tshade.cpp"
     break;
 
   case 24: /* var_decl: var_type VAR_IDENT '[' expression ']'  */
-#line 252 "tshade.y"
+#line 253 "tshade.y"
     {(yyval.declNode) = new tVarDeclNode((yyvsp[-3].strVal), (yyvsp[-4].varType), nullptr, (yyvsp[-1].node)); shadeAst->addVarDecl((yyval.declNode)); }
 #line 2152 "tshade.cpp"
     break;
 
   case 25: /* var_decl: var_type VAR_IDENT '[' expression ']' '=' '{' expression_list '}'  */
-#line 254 "tshade.y"
+#line 255 "tshade.y"
     {(yyval.declNode) = new tVarDeclNode((yyvsp[-7].strVal), (yyvsp[-8].varType), (yyvsp[-1].exprListnode), (yyvsp[-5].node)); shadeAst->addVarDecl((yyval.declNode)); }
 #line 2158 "tshade.cpp"
     break;
 
   case 26: /* var_decl: TYPE_IDENT VAR_IDENT  */
-#line 256 "tshade.y"
+#line 257 "tshade.y"
     {(yyval.declNode) = new tVarDeclNode((yyvsp[0].strVal), ShaderVarType::tTYPE_STRUCT, nullptr, nullptr, true); (yyval.declNode)->structName = (yyvsp[-1].strVal); shadeAst->addVarDecl((yyval.declNode)); }
 #line 2164 "tshade.cpp"
     break;
 
   case 27: /* param_modifier: rwIN  */
-#line 261 "tshade.y"
+#line 262 "tshade.y"
     { (yyval.modifier) = ParamModifier::PARAM_MOD_IN; }
 #line 2170 "tshade.cpp"
     break;
 
   case 28: /* param_modifier: rwOUT  */
-#line 263 "tshade.y"
+#line 264 "tshade.y"
     { (yyval.modifier) = ParamModifier::PARAM_MOD_OUT; }
 #line 2176 "tshade.cpp"
     break;
 
   case 29: /* param_modifier: rwINOUT  */
-#line 265 "tshade.y"
+#line 266 "tshade.y"
     { (yyval.modifier) = ParamModifier::PARAM_MOD_INOUT; }
 #line 2182 "tshade.cpp"
     break;
 
   case 30: /* function_def: var_type VAR_IDENT '(' function_param_list ')' '{' statement_list '}'  */
-#line 270 "tshade.y"
+#line 271 "tshade.y"
     { (yyval.funcNode) = new tFunctionDefNode((yyvsp[-6].strVal), (yyvsp[-7].varType), (yyvsp[-4].funcList), (yyvsp[-1].stmt_list_node)); shadeAst->addfunction((yyval.funcNode)); }
 #line 2188 "tshade.cpp"
     break;
 
   case 31: /* function_def: var_type VAR_IDENT '(' function_param_list ')' ';'  */
-#line 272 "tshade.y"
+#line 273 "tshade.y"
     { (yyval.funcNode) = new tFunctionDeclNode((yyvsp[-4].strVal), (yyvsp[-5].varType), (yyvsp[-2].funcList)); shadeAst->addfunction((yyval.funcNode)); }
 #line 2194 "tshade.cpp"
     break;
 
   case 32: /* function_def: TYPE_IDENT VAR_IDENT '(' function_param_list ')' '{' statement_list '}'  */
-#line 274 "tshade.y"
+#line 275 "tshade.y"
     { (yyval.funcNode) = new tFunctionDefNode((yyvsp[-6].strVal), ShaderVarType::tTYPE_STRUCT, (yyvsp[-4].funcList), (yyvsp[-1].stmt_list_node)); shadeAst->addfunction((yyval.funcNode)); 
       (yyval.funcNode)->structName = (yyvsp[-7].strVal);
     }
@@ -2202,7 +2202,7 @@ yyreduce:
     break;
 
   case 33: /* function_def: TYPE_IDENT VAR_IDENT '(' function_param_list ')' ';'  */
-#line 278 "tshade.y"
+#line 279 "tshade.y"
     { (yyval.funcNode) = new tFunctionDeclNode((yyvsp[-4].strVal), ShaderVarType::tTYPE_STRUCT, (yyvsp[-2].funcList)); shadeAst->addfunction((yyval.funcNode)); 
       (yyval.funcNode)->structName = (yyvsp[-5].strVal);
     }
@@ -2210,37 +2210,37 @@ yyreduce:
     break;
 
   case 34: /* function_param_list: %empty  */
-#line 285 "tshade.y"
+#line 286 "tshade.y"
     { (yyval.funcList) = new tFunctionParamListNode(); }
 #line 2216 "tshade.cpp"
     break;
 
   case 35: /* function_param_list: function_param  */
-#line 287 "tshade.y"
+#line 288 "tshade.y"
     { (yyval.funcList) = new tFunctionParamListNode(); (yyval.funcList)->addParam((yyvsp[0].funcParam)); }
 #line 2222 "tshade.cpp"
     break;
 
   case 36: /* function_param_list: function_param_list ',' function_param  */
-#line 289 "tshade.y"
+#line 290 "tshade.y"
     {(yyvsp[-2].funcList)->addParam((yyvsp[0].funcParam)); (yyval.funcList) = (yyvsp[-2].funcList); }
 #line 2228 "tshade.cpp"
     break;
 
   case 37: /* function_param: param_modifier var_type VAR_IDENT  */
-#line 294 "tshade.y"
+#line 295 "tshade.y"
     { (yyval.funcParam) = new tFunctionParamNode((yyvsp[0].strVal), (yyvsp[-1].varType), (yyvsp[-2].modifier)); }
 #line 2234 "tshade.cpp"
     break;
 
   case 38: /* function_param: var_type VAR_IDENT  */
-#line 296 "tshade.y"
+#line 297 "tshade.y"
     { (yyval.funcParam) = new tFunctionParamNode((yyvsp[0].strVal), (yyvsp[-1].varType), ParamModifier::PARAM_MOD_NONE); }
 #line 2240 "tshade.cpp"
     break;
 
   case 39: /* function_param: TYPE_IDENT VAR_IDENT  */
-#line 298 "tshade.y"
+#line 299 "tshade.y"
     { 
       (yyval.funcParam) = new tFunctionParamNode((yyvsp[0].strVal), ShaderVarType::tTYPE_STRUCT, ParamModifier::PARAM_MOD_NONE); (yyval.funcParam)->structName = (yyvsp[-1].strVal);  
       tVarDeclNode* paramDecl = new tVarDeclNode((yyvsp[0].strVal), ShaderVarType::tTYPE_STRUCT, nullptr, nullptr, true); paramDecl->structName = (yyvsp[-1].strVal); shadeAst->addVarDecl(paramDecl); 
@@ -2249,219 +2249,221 @@ yyreduce:
     break;
 
   case 40: /* function_param: param_modifier TYPE_IDENT VAR_IDENT  */
-#line 303 "tshade.y"
+#line 304 "tshade.y"
     { (yyval.funcParam) = new tFunctionParamNode((yyvsp[0].strVal), ShaderVarType::tTYPE_STRUCT, (yyvsp[-2].modifier)); (yyval.funcParam)->structName = (yyvsp[-1].strVal); }
 #line 2255 "tshade.cpp"
     break;
 
   case 41: /* expression_list: expression  */
-#line 308 "tshade.y"
+#line 309 "tshade.y"
     { (yyval.exprListnode) = new tExpressionListNode(); (yyval.exprListnode)->addExpression((yyvsp[0].node)); }
 #line 2261 "tshade.cpp"
     break;
 
   case 42: /* expression_list: expression_list ',' expression  */
-#line 310 "tshade.y"
+#line 311 "tshade.y"
     { (yyval.exprListnode)->addExpression((yyvsp[0].node)); (yyval.exprListnode) = (yyvsp[-2].exprListnode); }
 #line 2267 "tshade.cpp"
     break;
 
   case 43: /* expression: expression '+' expression  */
-#line 315 "tshade.y"
+#line 316 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("+", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2273 "tshade.cpp"
     break;
 
   case 44: /* expression: expression OP_PLUS_ASS expression  */
-#line 317 "tshade.y"
+#line 318 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("+=", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2279 "tshade.cpp"
     break;
 
   case 45: /* expression: expression '=' expression  */
-#line 319 "tshade.y"
+#line 320 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("=", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2285 "tshade.cpp"
     break;
 
   case 46: /* expression: expression '-' expression  */
-#line 321 "tshade.y"
+#line 322 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("-", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2291 "tshade.cpp"
     break;
 
   case 47: /* expression: expression OP_MINUS_ASS expression  */
-#line 323 "tshade.y"
+#line 324 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("-=", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2297 "tshade.cpp"
     break;
 
   case 48: /* expression: expression '*' expression  */
-#line 325 "tshade.y"
+#line 326 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("*", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2303 "tshade.cpp"
     break;
 
   case 49: /* expression: expression OP_MUL_ASS expression  */
-#line 327 "tshade.y"
+#line 328 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("*=", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2309 "tshade.cpp"
     break;
 
   case 50: /* expression: expression '/' expression  */
-#line 329 "tshade.y"
+#line 330 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("/", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2315 "tshade.cpp"
     break;
 
   case 51: /* expression: expression OP_DIV_ASS expression  */
-#line 331 "tshade.y"
+#line 332 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("/=", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2321 "tshade.cpp"
     break;
 
   case 52: /* expression: expression '%' expression  */
-#line 333 "tshade.y"
+#line 334 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("%", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2327 "tshade.cpp"
     break;
 
   case 53: /* expression: expression OP_MOD_ASS expression  */
-#line 335 "tshade.y"
+#line 336 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("%=", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2333 "tshade.cpp"
     break;
 
   case 54: /* expression: expression OP_EQ expression  */
-#line 337 "tshade.y"
+#line 338 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("==", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2339 "tshade.cpp"
     break;
 
   case 55: /* expression: expression OP_NEQ expression  */
-#line 339 "tshade.y"
+#line 340 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("!=", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2345 "tshade.cpp"
     break;
 
   case 56: /* expression: expression '<' expression  */
-#line 341 "tshade.y"
+#line 342 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("<", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2351 "tshade.cpp"
     break;
 
   case 57: /* expression: expression '>' expression  */
-#line 343 "tshade.y"
+#line 344 "tshade.y"
     { (yyval.node) = new tBinaryOpNode(">", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2357 "tshade.cpp"
     break;
 
   case 58: /* expression: expression OP_GE expression  */
-#line 345 "tshade.y"
+#line 346 "tshade.y"
     { (yyval.node) = new tBinaryOpNode(">=", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2363 "tshade.cpp"
     break;
 
   case 59: /* expression: expression OP_AND expression  */
-#line 347 "tshade.y"
+#line 348 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("&&", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2369 "tshade.cpp"
     break;
 
   case 60: /* expression: expression OP_OR expression  */
-#line 349 "tshade.y"
+#line 350 "tshade.y"
     { (yyval.node) = new tBinaryOpNode("||", (yyvsp[-2].node), (yyvsp[0].node)); }
 #line 2375 "tshade.cpp"
     break;
 
   case 61: /* expression: '!' expression  */
-#line 351 "tshade.y"
+#line 352 "tshade.y"
     { (yyval.node) = new tUnaryOpNode("!", (yyvsp[0].node)); }
 #line 2381 "tshade.cpp"
     break;
 
   case 62: /* expression: '-' expression  */
-#line 353 "tshade.y"
+#line 354 "tshade.y"
     { (yyval.node) = new tUnaryOpNode("-", (yyvsp[0].node)); }
 #line 2387 "tshade.cpp"
     break;
 
   case 63: /* expression: OP_PLUSPLUS expression  */
-#line 355 "tshade.y"
+#line 356 "tshade.y"
     { (yyval.node) = new tUnaryOpNode("++", (yyvsp[0].node)); }
 #line 2393 "tshade.cpp"
     break;
 
   case 64: /* expression: OP_MINUSMINUS expression  */
-#line 357 "tshade.y"
+#line 358 "tshade.y"
     { (yyval.node) = new tUnaryOpNode("--", (yyvsp[0].node)); }
 #line 2399 "tshade.cpp"
     break;
 
   case 65: /* expression: expression OP_PLUSPLUS  */
-#line 359 "tshade.y"
+#line 360 "tshade.y"
     { (yyval.node) = new tUnaryOpNode("++", (yyvsp[-1].node), false); }
 #line 2405 "tshade.cpp"
     break;
 
   case 66: /* expression: expression OP_MINUSMINUS  */
-#line 361 "tshade.y"
+#line 362 "tshade.y"
     { (yyval.node) = new tUnaryOpNode("--", (yyvsp[-1].node), false); }
 #line 2411 "tshade.cpp"
     break;
 
   case 67: /* expression: tMULFUNC '(' expression ',' expression ')'  */
-#line 363 "tshade.y"
+#line 364 "tshade.y"
     {(yyval.node) = new tMulNode((yyvsp[-3].node), (yyvsp[-1].node)); }
 #line 2417 "tshade.cpp"
     break;
 
   case 68: /* expression: tFRACFUNC '(' expression ')'  */
-#line 365 "tshade.y"
+#line 366 "tshade.y"
     {(yyval.node) = new tFracNode((yyvsp[-1].node)); }
 #line 2423 "tshade.cpp"
     break;
 
   case 69: /* expression: tLERPFUNC '(' expression ',' expression ',' expression ')'  */
-#line 367 "tshade.y"
+#line 368 "tshade.y"
     {(yyval.node) = new tLerpNode((yyvsp[-5].node), (yyvsp[-3].node), (yyvsp[-1].node)); }
 #line 2429 "tshade.cpp"
     break;
 
   case 70: /* expression: tSAMPLE '(' expression ',' expression ')'  */
-#line 369 "tshade.y"
+#line 370 "tshade.y"
     {(yyval.node) = new tSampleNode((yyvsp[-3].node), (yyvsp[-1].node)); }
 #line 2435 "tshade.cpp"
     break;
 
   case 71: /* expression: '(' expression ')'  */
-#line 371 "tshade.y"
+#line 372 "tshade.y"
     { (yyval.node) = (yyvsp[-1].node); }
 #line 2441 "tshade.cpp"
     break;
 
   case 72: /* expression: var_type '(' expression_list ')'  */
-#line 373 "tshade.y"
+#line 374 "tshade.y"
     { (yyval.node) = new tTypeRefNode((yyvsp[-3].varType), (yyvsp[-1].exprListnode)); }
 #line 2447 "tshade.cpp"
     break;
 
   case 73: /* expression: VAR_IDENT '(' expression_list ')'  */
-#line 375 "tshade.y"
+#line 376 "tshade.y"
     {
       tFunctionNode* funcDecl = shadeAst->findFunction((yyvsp[-3].strVal));
-      if (funcDecl) {
+      if (funcDecl) 
+      {
           (yyval.node) = new tFunctionRefNode(funcDecl, (yyvsp[-1].exprListnode));
-      } else {
+      } else 
+      {
           yyerror(&yylloc, scanner, shadeAst, "Undefined function");
           (yyval.node) = nullptr;  // Handle error appropriately
       }
     }
-#line 2461 "tshade.cpp"
+#line 2463 "tshade.cpp"
     break;
 
   case 74: /* expression: expression MEMBER_VAR  */
-#line 385 "tshade.y"
+#line 388 "tshade.y"
     { 
       tVarRefNode* varRef = dynamic_cast<tVarRefNode*>((yyvsp[-1].node));
       tVarDeclNode* memberVar = shadeAst->findVar((yyvsp[0].strVal) + 1);
@@ -2469,400 +2471,405 @@ yyreduce:
       {
         (yyval.node) = new tVarRefNode(varRef->varDecl, memberVar);
       }
-      else{
+      else
+      {
         (yyval.node) = new tAccessNode((yyvsp[0].strVal));
       }
     }
-#line 2477 "tshade.cpp"
+#line 2480 "tshade.cpp"
     break;
 
   case 75: /* expression: VAR_IDENT  */
-#line 397 "tshade.y"
-    { tVarDeclNode* varDecl = shadeAst->findVar((yyvsp[0].strVal));
-      if (varDecl) {
+#line 401 "tshade.y"
+    { 
+      tVarDeclNode* varDecl = shadeAst->findVar((yyvsp[0].strVal));
+      if (varDecl) 
+      {
           (yyval.node) = new tVarRefNode(varDecl);
-      } else {
+      } 
+      else 
+      {
           yyerror(&yylloc, scanner, shadeAst, "Undefined variable");
           (yyval.node) = nullptr;  // Handle error appropriately
       } 
     }
-#line 2490 "tshade.cpp"
+#line 2497 "tshade.cpp"
     break;
 
   case 76: /* expression: INT_NUM  */
-#line 406 "tshade.y"
+#line 414 "tshade.y"
     { (yyval.node) = new tIntLiteralNode((yyvsp[0].intVal)); }
-#line 2496 "tshade.cpp"
+#line 2503 "tshade.cpp"
     break;
 
   case 77: /* expression: FLOAT_NUM  */
-#line 408 "tshade.y"
+#line 416 "tshade.y"
     { (yyval.node) = new tFloatLiteralNode((yyvsp[0].fVal)); }
-#line 2502 "tshade.cpp"
+#line 2509 "tshade.cpp"
     break;
 
   case 78: /* statement_list: %empty  */
-#line 413 "tshade.y"
+#line 421 "tshade.y"
     { (yyval.stmt_list_node) = new tStatementListNode(); }
-#line 2508 "tshade.cpp"
+#line 2515 "tshade.cpp"
     break;
 
   case 79: /* statement_list: statement_list statement  */
-#line 415 "tshade.y"
+#line 423 "tshade.y"
     { (yyvsp[-1].stmt_list_node)->addStatement((yyvsp[0].node)); (yyval.stmt_list_node) = (yyvsp[-1].stmt_list_node); }
-#line 2514 "tshade.cpp"
+#line 2521 "tshade.cpp"
     break;
 
   case 80: /* statement: var_decl ';'  */
-#line 420 "tshade.y"
+#line 428 "tshade.y"
     {(yyval.node) = (yyvsp[-1].declNode);}
-#line 2520 "tshade.cpp"
+#line 2527 "tshade.cpp"
     break;
 
   case 81: /* statement: uniform_decl ';'  */
-#line 422 "tshade.y"
+#line 430 "tshade.y"
     {(yyval.node) = (yyvsp[-1].declNode);}
-#line 2526 "tshade.cpp"
+#line 2533 "tshade.cpp"
     break;
 
   case 82: /* statement: static_const_decl ';'  */
-#line 424 "tshade.y"
+#line 432 "tshade.y"
     {(yyval.node) = (yyvsp[-1].declNode);}
-#line 2532 "tshade.cpp"
+#line 2539 "tshade.cpp"
     break;
 
   case 83: /* statement: if_statement  */
-#line 426 "tshade.y"
+#line 434 "tshade.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 2538 "tshade.cpp"
+#line 2545 "tshade.cpp"
     break;
 
   case 84: /* statement: while_statement  */
-#line 428 "tshade.y"
+#line 436 "tshade.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 2544 "tshade.cpp"
+#line 2551 "tshade.cpp"
     break;
 
   case 85: /* statement: continue_statement  */
-#line 430 "tshade.y"
+#line 438 "tshade.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 2550 "tshade.cpp"
+#line 2557 "tshade.cpp"
     break;
 
   case 86: /* statement: break_statement  */
-#line 432 "tshade.y"
+#line 440 "tshade.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 2556 "tshade.cpp"
+#line 2563 "tshade.cpp"
     break;
 
   case 87: /* statement: return_statement  */
-#line 434 "tshade.y"
+#line 442 "tshade.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 2562 "tshade.cpp"
+#line 2569 "tshade.cpp"
     break;
 
   case 88: /* statement: function_def  */
-#line 436 "tshade.y"
+#line 444 "tshade.y"
     {(yyval.node) = (yyvsp[0].funcNode); }
-#line 2568 "tshade.cpp"
+#line 2575 "tshade.cpp"
     break;
 
   case 89: /* statement: expression ';'  */
-#line 438 "tshade.y"
+#line 446 "tshade.y"
     {(yyval.node) = (yyvsp[-1].node);}
-#line 2574 "tshade.cpp"
+#line 2581 "tshade.cpp"
     break;
 
   case 90: /* statement: switch_statement  */
-#line 440 "tshade.y"
+#line 448 "tshade.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 2580 "tshade.cpp"
+#line 2587 "tshade.cpp"
     break;
 
   case 91: /* statement: discard_statement  */
-#line 442 "tshade.y"
+#line 450 "tshade.y"
     {(yyval.node) = (yyvsp[0].node);}
-#line 2586 "tshade.cpp"
+#line 2593 "tshade.cpp"
     break;
 
   case 92: /* statement: struct_decl  */
-#line 444 "tshade.y"
+#line 452 "tshade.y"
     {(yyval.node) = (yyvsp[0].structNode);}
-#line 2592 "tshade.cpp"
+#line 2599 "tshade.cpp"
     break;
 
   case 93: /* if_statement: rwIF '(' expression ')' '{' statement_list '}' rwELSE '{' statement_list '}'  */
-#line 450 "tshade.y"
+#line 458 "tshade.y"
     { (yyval.node) = new tIfNode((yyvsp[-8].node), (yyvsp[-5].stmt_list_node), (yyvsp[-1].stmt_list_node)); }
-#line 2598 "tshade.cpp"
+#line 2605 "tshade.cpp"
     break;
 
   case 94: /* if_statement: rwIF '(' expression ')' '{' statement_list '}'  */
-#line 452 "tshade.y"
+#line 460 "tshade.y"
     { (yyval.node) = new tIfNode((yyvsp[-4].node), (yyvsp[-1].stmt_list_node)); }
-#line 2604 "tshade.cpp"
+#line 2611 "tshade.cpp"
     break;
 
   case 95: /* while_statement: rwWHILE '(' expression ')' '{' statement_list '}'  */
-#line 457 "tshade.y"
+#line 465 "tshade.y"
     { (yyval.node) = new tWhileNode((yyvsp[-4].node), (yyvsp[-1].stmt_list_node)); }
-#line 2610 "tshade.cpp"
+#line 2617 "tshade.cpp"
     break;
 
   case 96: /* while_statement: rwDO '{' statement_list '}' rwWHILE '(' expression ')'  */
-#line 459 "tshade.y"
+#line 467 "tshade.y"
     { (yyval.node) = new tWhileNode((yyvsp[-1].node), (yyvsp[-5].stmt_list_node), true); }
-#line 2616 "tshade.cpp"
+#line 2623 "tshade.cpp"
     break;
 
   case 97: /* switch_statement: rwSWITCH '(' expression ')' '{' case_statements '}'  */
-#line 464 "tshade.y"
+#line 472 "tshade.y"
     {(yyval.node) = new tSwitchNode((yyvsp[-4].node), (yyvsp[-1].stmt_list_node)); }
-#line 2622 "tshade.cpp"
+#line 2629 "tshade.cpp"
     break;
 
   case 98: /* case_statements: %empty  */
-#line 469 "tshade.y"
+#line 477 "tshade.y"
     { (yyval.stmt_list_node) = new tStatementListNode(); }
-#line 2628 "tshade.cpp"
+#line 2635 "tshade.cpp"
     break;
 
   case 99: /* case_statements: case_statements case_rule  */
-#line 471 "tshade.y"
+#line 479 "tshade.y"
     { (yyvsp[-1].stmt_list_node)->addStatement((yyvsp[0].node)); (yyval.stmt_list_node) = (yyvsp[-1].stmt_list_node); }
-#line 2634 "tshade.cpp"
+#line 2641 "tshade.cpp"
     break;
 
   case 100: /* case_rule: rwCASE expression ':' statement_list  */
-#line 476 "tshade.y"
+#line 484 "tshade.y"
     {(yyval.node) = new tCaseNode((yyvsp[-2].node), (yyvsp[0].stmt_list_node));}
-#line 2640 "tshade.cpp"
+#line 2647 "tshade.cpp"
     break;
 
   case 101: /* case_rule: rwDEFAULT ':' statement_list  */
-#line 478 "tshade.y"
+#line 486 "tshade.y"
     { (yyval.node) = new tCaseNode(nullptr, (yyvsp[0].stmt_list_node), true); }
-#line 2646 "tshade.cpp"
+#line 2653 "tshade.cpp"
     break;
 
   case 102: /* continue_statement: rwCONTINUE ';'  */
-#line 483 "tshade.y"
+#line 491 "tshade.y"
     { (yyval.node) = new tContinueNode(); }
-#line 2652 "tshade.cpp"
+#line 2659 "tshade.cpp"
     break;
 
   case 103: /* break_statement: rwBREAK ';'  */
-#line 488 "tshade.y"
+#line 496 "tshade.y"
     { (yyval.node) = new tBreakNode(); }
-#line 2658 "tshade.cpp"
+#line 2665 "tshade.cpp"
     break;
 
   case 104: /* return_statement: rwRETURN ';'  */
-#line 493 "tshade.y"
+#line 501 "tshade.y"
     { (yyval.node) = new tReturnNode(); }
-#line 2664 "tshade.cpp"
+#line 2671 "tshade.cpp"
     break;
 
   case 105: /* return_statement: rwRETURN expression ';'  */
-#line 495 "tshade.y"
+#line 503 "tshade.y"
     { (yyval.node) = new tReturnNode((yyvsp[-1].node)); }
-#line 2670 "tshade.cpp"
+#line 2677 "tshade.cpp"
     break;
 
   case 106: /* discard_statement: rwDISCARD ';'  */
-#line 500 "tshade.y"
+#line 508 "tshade.y"
     { (yyval.node) = new tDiscardNode(); }
-#line 2676 "tshade.cpp"
+#line 2683 "tshade.cpp"
     break;
 
   case 107: /* var_type: tMAT34_TYPE  */
-#line 505 "tshade.y"
+#line 513 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_MAT34;}
-#line 2682 "tshade.cpp"
+#line 2689 "tshade.cpp"
     break;
 
   case 108: /* var_type: tMAT43_TYPE  */
-#line 507 "tshade.y"
+#line 515 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_MAT43;}
-#line 2688 "tshade.cpp"
+#line 2695 "tshade.cpp"
     break;
 
   case 109: /* var_type: tMAT3_TYPE  */
-#line 509 "tshade.y"
+#line 517 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_MAT33;}
-#line 2694 "tshade.cpp"
+#line 2701 "tshade.cpp"
     break;
 
   case 110: /* var_type: tMAT4_TYPE  */
-#line 511 "tshade.y"
+#line 519 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_MAT44;}
-#line 2700 "tshade.cpp"
+#line 2707 "tshade.cpp"
     break;
 
   case 111: /* var_type: tFVEC2_TYPE  */
-#line 513 "tshade.y"
+#line 521 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_FLOAT2;}
-#line 2706 "tshade.cpp"
+#line 2713 "tshade.cpp"
     break;
 
   case 112: /* var_type: tFVEC3_TYPE  */
-#line 515 "tshade.y"
+#line 523 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_FLOAT3;}
-#line 2712 "tshade.cpp"
+#line 2719 "tshade.cpp"
     break;
 
   case 113: /* var_type: tFVEC4_TYPE  */
-#line 517 "tshade.y"
+#line 525 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_FLOAT4;}
-#line 2718 "tshade.cpp"
+#line 2725 "tshade.cpp"
     break;
 
   case 114: /* var_type: tIVEC2_TYPE  */
-#line 519 "tshade.y"
+#line 527 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_INT2;}
-#line 2724 "tshade.cpp"
+#line 2731 "tshade.cpp"
     break;
 
   case 115: /* var_type: tIVEC3_TYPE  */
-#line 521 "tshade.y"
+#line 529 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_INT3;}
-#line 2730 "tshade.cpp"
+#line 2737 "tshade.cpp"
     break;
 
   case 116: /* var_type: tIVEC4_TYPE  */
-#line 523 "tshade.y"
+#line 531 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_INT4;}
-#line 2736 "tshade.cpp"
+#line 2743 "tshade.cpp"
     break;
 
   case 117: /* var_type: tBVEC2_TYPE  */
-#line 525 "tshade.y"
+#line 533 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_BOOL2;}
-#line 2742 "tshade.cpp"
+#line 2749 "tshade.cpp"
     break;
 
   case 118: /* var_type: tBVEC3_TYPE  */
-#line 527 "tshade.y"
+#line 535 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_BOOL3;}
-#line 2748 "tshade.cpp"
+#line 2755 "tshade.cpp"
     break;
 
   case 119: /* var_type: tBVEC4_TYPE  */
-#line 529 "tshade.y"
+#line 537 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_BOOL4;}
-#line 2754 "tshade.cpp"
+#line 2761 "tshade.cpp"
     break;
 
   case 120: /* var_type: tFLOAT_TYPE  */
-#line 531 "tshade.y"
+#line 539 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_FLOAT;}
-#line 2760 "tshade.cpp"
+#line 2767 "tshade.cpp"
     break;
 
   case 121: /* var_type: tINT_TYPE  */
-#line 533 "tshade.y"
+#line 541 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_INT;}
-#line 2766 "tshade.cpp"
+#line 2773 "tshade.cpp"
     break;
 
   case 122: /* var_type: tUINT_TYPE  */
-#line 535 "tshade.y"
+#line 543 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_UINT;}
-#line 2772 "tshade.cpp"
+#line 2779 "tshade.cpp"
     break;
 
   case 123: /* var_type: tBOOL_TYPE  */
-#line 537 "tshade.y"
+#line 545 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_BOOL;}
-#line 2778 "tshade.cpp"
+#line 2785 "tshade.cpp"
     break;
 
   case 124: /* var_type: tSAMPLER2D_TYPE  */
-#line 539 "tshade.y"
+#line 547 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_SAMPLER2D;}
-#line 2784 "tshade.cpp"
+#line 2791 "tshade.cpp"
     break;
 
   case 125: /* var_type: rwVOID  */
-#line 541 "tshade.y"
+#line 549 "tshade.y"
     {(yyval.varType) = ShaderVarType::tTYPE_VOID;}
-#line 2790 "tshade.cpp"
+#line 2797 "tshade.cpp"
     break;
 
   case 126: /* struct_semantic: tSEM_SVPOSITION  */
-#line 546 "tshade.y"
+#line 554 "tshade.y"
     { (yyval.semtype) = SEMANTIC_SV_POSITION; }
-#line 2796 "tshade.cpp"
+#line 2803 "tshade.cpp"
     break;
 
   case 127: /* struct_semantic: tSEM_POSITION  */
-#line 548 "tshade.y"
+#line 556 "tshade.y"
     { (yyval.semtype) = SEMANTIC_POSITION; }
-#line 2802 "tshade.cpp"
+#line 2809 "tshade.cpp"
     break;
 
   case 128: /* struct_semantic: tSEM_NORMAL  */
-#line 550 "tshade.y"
+#line 558 "tshade.y"
     { (yyval.semtype) = SEMANTIC_NORMAL; }
-#line 2808 "tshade.cpp"
+#line 2815 "tshade.cpp"
     break;
 
   case 129: /* struct_semantic: tSEM_BINORMAL  */
-#line 552 "tshade.y"
+#line 560 "tshade.y"
     { (yyval.semtype) = SEMANTIC_BINORMAL; }
-#line 2814 "tshade.cpp"
+#line 2821 "tshade.cpp"
     break;
 
   case 130: /* struct_semantic: tSEM_TANGENT  */
-#line 554 "tshade.y"
+#line 562 "tshade.y"
     { (yyval.semtype) = SEMANTIC_TANGENT; }
-#line 2820 "tshade.cpp"
+#line 2827 "tshade.cpp"
     break;
 
   case 131: /* struct_semantic: tSEM_TEXCOORD  */
-#line 556 "tshade.y"
+#line 564 "tshade.y"
     { (yyval.semtype) = SEMANTIC_TEXCOORD; }
-#line 2826 "tshade.cpp"
+#line 2833 "tshade.cpp"
     break;
 
   case 132: /* struct_semantic: tSEM_COLOR  */
-#line 558 "tshade.y"
+#line 566 "tshade.y"
    { (yyval.semtype) = SEMANTIC_COLOR; }
-#line 2832 "tshade.cpp"
+#line 2839 "tshade.cpp"
     break;
 
   case 133: /* struct_semantic: tSEM_TARGET  */
-#line 560 "tshade.y"
+#line 568 "tshade.y"
     { (yyval.semtype) = SEMANTIC_SV_TARGET; }
-#line 2838 "tshade.cpp"
+#line 2845 "tshade.cpp"
     break;
 
   case 134: /* struct_semantic: tSEM_DEPTH  */
-#line 562 "tshade.y"
+#line 570 "tshade.y"
     { (yyval.semtype) = SEMANTIC_SV_DEPTH; }
-#line 2844 "tshade.cpp"
+#line 2851 "tshade.cpp"
     break;
 
   case 135: /* struct_semantic: tSEM_ISFRONTFACE  */
-#line 564 "tshade.y"
+#line 572 "tshade.y"
     { (yyval.semtype) = SEMANTIC_ISFRONTFACE; }
-#line 2850 "tshade.cpp"
+#line 2857 "tshade.cpp"
     break;
 
   case 136: /* struct_semantic: tSEM_TESSFACTOR  */
-#line 566 "tshade.y"
+#line 574 "tshade.y"
     { (yyval.semtype) = SEMANTIC_TESSFACTOR; }
-#line 2856 "tshade.cpp"
+#line 2863 "tshade.cpp"
     break;
 
   case 137: /* struct_semantic: tSEM_PSIZE  */
-#line 568 "tshade.y"
+#line 576 "tshade.y"
     { (yyval.semtype) = SEMANTIC_PSIZE; }
-#line 2862 "tshade.cpp"
+#line 2869 "tshade.cpp"
     break;
 
 
-#line 2866 "tshade.cpp"
+#line 2873 "tshade.cpp"
 
       default: break;
     }
@@ -3065,7 +3072,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 572 "tshade.y"
+#line 580 "tshade.y"
 
 
 void yyerror(YYLTYPE* yylloc, yyscan_t yyscanner, tShadeAst* shadeAst, char const *msg){
