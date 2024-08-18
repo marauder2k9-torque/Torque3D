@@ -114,12 +114,15 @@ enum ParamModifier{
 //-----------------------------------------------
 // AST NODES
 //-----------------------------------------------
+struct tShadeAst;
 
 struct tShadeNode
 {
 public:
    tShadeNode() {}
    virtual ~tShadeNode() {}
+   
+   virtual void print(tShadeAst* ast, String& out) = 0;
 };
 
 struct tStatementListNode : public tShadeNode {
@@ -131,6 +134,14 @@ struct tStatementListNode : public tShadeNode {
       for (auto stmt : statements)
          delete stmt;
    }
+   
+   void print(tShadeAst *ast, String &out) override {
+      for(auto statment : statements){
+         statement->print(ast, out);
+         out += ";\n\n";
+      }
+   }
+   
 
    void addStatement(tShadeNode* stmt) {
       statements.push_back(stmt);
@@ -147,6 +158,13 @@ struct tStructNode : public tShadeNode {
    ~tStructNode() {
       delete members;
    }
+   
+   void print(tShadeAst *ast, String &out) override {
+      out += "struct " + structName + " {\n";
+      members->print(ast, out);
+      out += "\n};";
+   }
+   
 };
 
 struct tExpressionListNode : public tShadeNode {
@@ -163,6 +181,14 @@ struct tExpressionListNode : public tShadeNode {
          delete expr;  // Assuming expressions are dynamically allocated
       }
    }
+   
+   void print(tShadeAst *ast, String &out) override {
+      for(auto expression : mExpressions)
+      {
+         expression->print(ast, out);
+      }
+   }
+   
 };
 
 struct tFunctionParamNode : public tShadeNode {
@@ -172,6 +198,9 @@ struct tFunctionParamNode : public tShadeNode {
    String structName;
    tFunctionParamNode(const String& paramName, ShaderVarType paramType, ParamModifier paramModifier)
       : name(paramName), type(paramType), modifier(paramModifier), structName(String::EmptyString) {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tFunctionParamListNode : public tShadeNode {
@@ -185,6 +214,9 @@ struct tFunctionParamListNode : public tShadeNode {
       for (auto param : params)
          delete param;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tFunctionNode : public tShadeNode {
@@ -195,6 +227,7 @@ struct tFunctionNode : public tShadeNode {
       :name(funcName), returnType(returnType), structName(String::EmptyString) {}
 
    ~tFunctionNode() {}
+   
 };
 
 struct tFunctionDefNode : public tFunctionNode {
@@ -209,6 +242,9 @@ struct tFunctionDefNode : public tFunctionNode {
       if (body)
          delete body;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tFunctionDeclNode : public tFunctionNode {
@@ -220,6 +256,9 @@ struct tFunctionDeclNode : public tFunctionNode {
    ~tFunctionDeclNode() {
       delete paramList;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tFunctionRefNode : public tShadeNode {
@@ -228,6 +267,9 @@ struct tFunctionRefNode : public tShadeNode {
 
    tFunctionRefNode(tFunctionNode* decl, tExpressionListNode* exprList)
       : funcDecl(decl), expr(exprList) {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tTypeRefNode : public tShadeNode {
@@ -236,12 +278,18 @@ struct tTypeRefNode : public tShadeNode {
 
    tTypeRefNode(ShaderVarType type, tExpressionListNode* exprList)
       : returnType(type), expr(exprList) {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tAccessNode : public tShadeNode {
    String accessString;
 
    tAccessNode(const String& inAccess): accessString(inAccess){}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tVarDeclNode : public tShadeNode {
@@ -279,6 +327,9 @@ struct tVarDeclNode : public tShadeNode {
       if (arraySize)
          delete arraySize;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tStructMemberNode : public tShadeNode {
@@ -288,6 +339,9 @@ struct tStructMemberNode : public tShadeNode {
 
    tStructMemberNode(tVarDeclNode* varDecl, ShaderSemanticType memberSemantic = ShaderSemanticType::SEMANTIC_NONE, U32 semNum = 0)
       : varDecl(varDecl), semantic(memberSemantic), semNumber(semNum) {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tVarRefNode : public tShadeNode {
@@ -296,6 +350,9 @@ struct tVarRefNode : public tShadeNode {
 
    tVarRefNode(tVarDeclNode* decl, tVarDeclNode* memberDecl = nullptr)
       : varDecl(decl), memberVar(memberDecl) {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tBinaryOpNode : public tShadeNode {
@@ -310,6 +367,8 @@ struct tBinaryOpNode : public tShadeNode {
       delete left;
       delete right;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
 
 };
 
@@ -325,18 +384,27 @@ struct tUnaryOpNode : public tShadeNode {
       if(expr)
          delete expr;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tIntLiteralNode : public tShadeNode {
    S32 value;
 
    tIntLiteralNode(S32 val) : value(val) {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tFloatLiteralNode : public tShadeNode {
    F64 value;
 
    tFloatLiteralNode(F64 val) : value(val) {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tStageNode : tShadeNode
@@ -354,6 +422,9 @@ struct tStageNode : tShadeNode
       if (rootNode)
          delete rootNode;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tSampleNode : public tShadeNode {
@@ -368,6 +439,9 @@ struct tSampleNode : public tShadeNode {
       delete left;
       delete right;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tMulNode : public tShadeNode {
@@ -382,6 +456,9 @@ struct tMulNode : public tShadeNode {
       delete left;
       delete right;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tLerpNode : public tShadeNode {
@@ -398,6 +475,9 @@ struct tLerpNode : public tShadeNode {
       delete b;
       delete c;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tFracNode : public tShadeNode {
@@ -410,6 +490,9 @@ struct tFracNode : public tShadeNode {
    {
       delete val;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 
@@ -428,6 +511,9 @@ struct tIfNode : public tShadeNode {
       if(elseBranch)
          delete elseBranch;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tWhileNode : public tShadeNode {
@@ -442,6 +528,9 @@ struct tWhileNode : public tShadeNode {
       delete expr;
       delete trueBranch;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tSwitchNode : public tShadeNode {
@@ -456,6 +545,9 @@ struct tSwitchNode : public tShadeNode {
       delete expr;
       delete trueBranch;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tCaseNode : public tShadeNode {
@@ -470,18 +562,30 @@ struct tCaseNode : public tShadeNode {
       delete expr;
       delete trueBranch;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tContinueNode : public tShadeNode {
    tContinueNode() {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tBreakNode : public tShadeNode {
    tBreakNode() {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tDiscardNode : public tShadeNode {
    tDiscardNode() {}
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 
@@ -494,6 +598,9 @@ struct tReturnNode : public tShadeNode {
    ~tReturnNode() {
       delete expr;
    }
+   
+   void print(tShadeAst *ast, String &out) override {}
+   
 };
 
 struct tShadeAst
