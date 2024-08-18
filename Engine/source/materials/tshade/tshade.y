@@ -197,7 +197,7 @@ shader_body
   ;
 
 struct_decl
-  : tSTRUCT VAR_IDENT '{' structbody_list '}'
+  : tSTRUCT VAR_IDENT '{' structbody_list '}' ';'
     { $$ = new tStructNode($2, $4); }
   ;
 
