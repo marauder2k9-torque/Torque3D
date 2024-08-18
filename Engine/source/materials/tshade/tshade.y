@@ -208,10 +208,10 @@ structbody_list
   ;
 
 struct_member
-  : var_type VAR_IDENT ':' struct_semantic ';'
-    {$$ = new tStructMemberNode($2, $1, $4, yylval.intVal); }
-  | var_type VAR_IDENT ';'
-    {$$ = new tStructMemberNode($2, $1); }
+  : var_decl ':' struct_semantic ';'
+    { $$ = new tStructMemberNode($1, $3, yylval.intVal); }
+  | var_decl ';'
+    { $$ = new tStructMemberNode($1);}
   | function_def
     {$$ = $1;}
   ;
@@ -244,15 +244,15 @@ static_const_decl
   ;
 
 var_decl
-  : var_type VAR_IDENT ';'
+  : var_type VAR_IDENT
     {$$ = new tVarDeclNode($2, $1); shadeAst->addVarDecl($$); }
-  | var_type VAR_IDENT '=' expression ';'
+  | var_type VAR_IDENT '=' expression
     {$$ = new tVarDeclNode($2, $1, $4); shadeAst->addVarDecl($$); }
-  | var_type VAR_IDENT '[' expression ']' ';'
+  | var_type VAR_IDENT '[' expression ']'
     {$$ = new tVarDeclNode($2, $1, nullptr, $4); shadeAst->addVarDecl($$); }
-  | var_type VAR_IDENT '[' expression ']' '=' '{' expression_list '}' ';'
+  | var_type VAR_IDENT '[' expression ']' '=' '{' expression_list '}'
     {$$ = new tVarDeclNode($2, $1, $8, $4); shadeAst->addVarDecl($$); }
-  | TYPE_IDENT VAR_IDENT ';'
+  | TYPE_IDENT VAR_IDENT
     {$$ = new tVarDeclNode($2, ShaderVarType::tTYPE_STRUCT, nullptr, nullptr, true); $$->structName = $1; shadeAst->addVarDecl($$); }
   ;
 
@@ -382,7 +382,17 @@ expression
       }
     }
   | expression MEMBER_VAR
-    { $$ = new tAccessNode($2);}
+    { 
+      tVarRefNode* varRef = dynamic_cast<tVarRefNode*>($1);
+      tVarDeclNode* memberVar = shadeAst->findVar($2 + 1);
+      if(varRef && memberVar)
+      {
+        $$ = new tVarRefNode(varRef->varDecl, memberVar);
+      }
+      else{
+        $$ = new tAccessNode($2);
+      }
+    }
   | VAR_IDENT 
     { tVarDeclNode* varDecl = shadeAst->findVar($1);
       if (varDecl) {
@@ -406,11 +416,11 @@ statement_list
   ;
 
 statement
-  : var_decl
+  : var_decl ';'
     {$$ = $1;}
-  | uniform_decl
+  | uniform_decl ';'
     {$$ = $1;}
-  | static_const_decl
+  | static_const_decl ';'
     {$$ = $1;}
   | if_statement
     {$$ = $1;}

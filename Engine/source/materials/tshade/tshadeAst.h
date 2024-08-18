@@ -137,16 +137,6 @@ struct tStatementListNode : public tShadeNode {
    }
 };
 
-struct tStructMemberNode : public tShadeNode {
-   String name;
-   ShaderVarType type;
-   ShaderSemanticType semantic;
-   U32 semNumber;
-
-   tStructMemberNode(const String& memberName, ShaderVarType memberType, ShaderSemanticType memberSemantic = ShaderSemanticType::SEMANTIC_NONE, U32 semNum = 0)
-      : name(memberName), type(memberType), semantic(memberSemantic), semNumber(semNum) {}
-};
-
 struct tStructNode : public tShadeNode {
    String structName;
    tStatementListNode* members;
@@ -291,12 +281,21 @@ struct tVarDeclNode : public tShadeNode {
    }
 };
 
+struct tStructMemberNode : public tShadeNode {
+   tVarDeclNode* varDecl;
+   ShaderSemanticType semantic;
+   U32 semNumber;
+
+   tStructMemberNode(tVarDeclNode* varDecl, ShaderSemanticType memberSemantic = ShaderSemanticType::SEMANTIC_NONE, U32 semNum = 0)
+      : varDecl(varDecl), semantic(memberSemantic), semNumber(semNum) {}
+};
+
 struct tVarRefNode : public tShadeNode {
    tVarDeclNode* varDecl;
-   String member;
+   tVarDeclNode* memberVar;
 
-   tVarRefNode(tVarDeclNode* decl, const String& memOrSwiz = String::EmptyString)
-      : varDecl(decl), member(memOrSwiz) {}
+   tVarRefNode(tVarDeclNode* decl, tVarDeclNode* memberDecl = nullptr)
+      : varDecl(decl), memberVar(memberDecl) {}
 };
 
 struct tBinaryOpNode : public tShadeNode {
@@ -505,7 +504,8 @@ struct tShadeAst
    typedef Map<String, tFunctionNode*> FuncMap;
 
    StructMap mStructMap;
-   VarMap mVarMap;
+   VarMap mLocalVarMap;
+   VarMap mGlobalVarMap;
    FuncMap mFuncMap;
 
    ShaderStageType currentStage;
@@ -539,7 +539,8 @@ struct tShadeAst
       if(mComputeStage)
          delete mComputeStage;
 
-      mVarMap.clear();
+      mLocalVarMap.clear();
+      mGlobalVarMap.clear();
       mStructMap.clear();
       mFuncMap.clear();
    }
@@ -561,16 +562,26 @@ struct tShadeAst
    }
 
    void addVarDecl(tVarDeclNode* varDecl) {
-      mVarMap[varDecl->name] = varDecl;
+      if(currentStage == ShaderStageType::tSTAGE_GLOBAL)
+         mGlobalVarMap[varDecl->name] = varDecl;
+      else
+         mLocalVarMap[varDecl->name] = varDecl;
    }
 
    void clearVarDecls() {
-      mVarMap.clear();
+      mLocalVarMap.clear();
    }
 
    tVarDeclNode* findVar(const String& name) {
-      auto var = mVarMap.find(name);
-      return var != mVarMap.end() ? var->value : nullptr;
+      auto var = mLocalVarMap.find(name);
+      if (var != mLocalVarMap.end())
+         return var->value;
+      else
+      {
+         // not in local, check global.
+         var = mGlobalVarMap.find(name);
+         return var != mGlobalVarMap.end() ? var->value : nullptr;
+      }
    }
 
    tFunctionNode* findFunction(const String& name) {

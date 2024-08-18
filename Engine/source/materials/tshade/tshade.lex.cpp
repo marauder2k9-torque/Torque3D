@@ -1945,14 +1945,13 @@ case 138:
 YY_RULE_SETUP
 #line 194 "tshade.l"
 {
-    // If it's not a swizzle, it's likely a member variable like .pos
     yylval->strVal = StringTable->insert(yytext);
     return MEMBER_VAR;
 }
 	YY_BREAK
 case 139:
 YY_RULE_SETUP
-#line 199 "tshade.l"
+#line 198 "tshade.l"
 { 
   if(currentAst && currentAst->isStruct(yytext))
   {
@@ -1966,10 +1965,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 140:
 YY_RULE_SETUP
-#line 209 "tshade.l"
+#line 208 "tshade.l"
 ECHO;
 	YY_BREAK
-#line 1972 "tshade.lex.cpp"
+#line 1971 "tshade.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -3133,7 +3132,7 @@ void yyfree (void * ptr , yyscan_t yyscanner)
 
 #define YYTABLES_NAME "yytables"
 
-#line 209 "tshade.l"
+#line 208 "tshade.l"
 
 
 void update_loc(YYLTYPE* loc, yyscan_t yyscanner)

@@ -192,7 +192,6 @@ NEWLINE  (\n)|(\r\n)
 "sampler2D" { return tSAMPLER2D_TYPE; }
 
 \.{VAR} {
-    // If it's not a swizzle, it's likely a member variable like .pos
     yylval->strVal = StringTable->insert(yytext);
     return MEMBER_VAR;
 }
