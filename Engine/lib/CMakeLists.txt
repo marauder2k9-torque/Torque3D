@@ -195,6 +195,11 @@ add_subdirectory(squish ${TORQUE_LIB_TARG_DIRECTORY}/squish EXCLUDE_FROM_ALL)
 add_subdirectory(collada ${TORQUE_LIB_TARG_DIRECTORY}/collada EXCLUDE_FROM_ALL)
 add_subdirectory(glad ${TORQUE_LIB_TARG_DIRECTORY}/glad EXCLUDE_FROM_ALL)
 
+advanced_option(SPIRV_CROSS_ENABLE_TESTS "" OFF)
+advanced_option(ENABLE_OPT "" OFF)
+add_subdirectory(glslang ${TORQUE_LIB_TARG_DIRECTORY}/glslang EXCLUDE_FROM_ALL)
+add_subdirectory(spirv-cross ${TORQUE_LIB_TARG_DIRECTORY}/spirv-cross EXCLUDE_FROM_ALL)
+
 #hidden options
 if(TORQUE_SFX_OPENAL)
     advanced_option(TORQUE_OGGVORBIS "Enable OGG Vorbis" ON)
