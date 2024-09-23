@@ -1683,65 +1683,29 @@ YY_RULE_SETUP
 { BEGIN(INITIAL); }
 	YY_BREAK
 case 76:
-YY_RULE_SETUP
-#line 131 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 77:
-YY_RULE_SETUP
 #line 132 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 78:
-YY_RULE_SETUP
+case 77:
 #line 133 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 79:
-YY_RULE_SETUP
+case 78:
 #line 134 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 80:
-YY_RULE_SETUP
+case 79:
 #line 135 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 81:
-YY_RULE_SETUP
+case 80:
 #line 136 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 82:
-YY_RULE_SETUP
+case 81:
 #line 137 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 83:
-YY_RULE_SETUP
+case 82:
 #line 138 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 84:
-YY_RULE_SETUP
+case 83:
 #line 139 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 85:
-YY_RULE_SETUP
+case 84:
 #line 140 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 86:
-YY_RULE_SETUP
+case 85:
 #line 141 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
-case 87:
-YY_RULE_SETUP
+case 86:
 #line 142 "tshade.l"
-{ return scanHLSLSemantic(yytext, yyscanner); }
-	YY_BREAK
+case 87:
+#line 143 "tshade.l"
 case 88:
 YY_RULE_SETUP
 #line 143 "tshade.l"
@@ -1968,7 +1932,7 @@ YY_RULE_SETUP
 #line 208 "tshade.l"
 ECHO;
 	YY_BREAK
-#line 1971 "tshade.lex.cpp"
+#line 1935 "tshade.lex.cpp"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(COMMENT):
 	yyterminate();
@@ -3181,7 +3145,7 @@ U32 scanHLSLSemantic(const char* text, yyscan_t yyscanner)
         return tSEM_PSIZE;
     } else if (dStricmp(semantic, "tessfactor") == 0) {
         return tSEM_TESSFACTOR;
-    } else if (dStricmp(semantic, "isfrontface") == 0) {
+    } else if (dStricmp(semantic, "sv_isfrontface") == 0) {
         return tSEM_ISFRONTFACE;
     }
 

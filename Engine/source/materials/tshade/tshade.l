@@ -128,31 +128,31 @@ NEWLINE  (\n)|(\r\n)
     in the ast's to decide which type a var is. */ 
 }
 <COMMENT>"*/"   { BEGIN(INITIAL); }
-"SV_POSITION"[0-9]*       { return scanHLSLSemantic(yytext, yyscanner); }
-"POSITION"[0-9]*          { return scanHLSLSemantic(yytext, yyscanner); }
-"NORMAL"[0-9]*            { return scanHLSLSemantic(yytext, yyscanner); }
-"BINORMAL"[0-9]*          { return scanHLSLSemantic(yytext, yyscanner); }
-"TANGENT"[0-9]*           { return scanHLSLSemantic(yytext, yyscanner); }
-"TEXCOORD"[0-9]*          { return scanHLSLSemantic(yytext, yyscanner); }
-"COLOR"[0-9]*             { return scanHLSLSemantic(yytext, yyscanner); }
-"TARGET"[0-9]*            { return scanHLSLSemantic(yytext, yyscanner); }
-"SV_DEPTH"[0-9]*          { return scanHLSLSemantic(yytext, yyscanner); }
-"SV_TARGET"[0-9]*         { return scanHLSLSemantic(yytext, yyscanner); }
-"PSIZE"                   { return scanHLSLSemantic(yytext, yyscanner); }
-"TESSFACTOR"[0-9]*        { return scanHLSLSemantic(yytext, yyscanner); }
-"SV_ISFRONTFACE"          { return scanHLSLSemantic(yytext, yyscanner); }
-"TorqueShader"  { return tSHADERDECLARE; }
-"struct"        { return tSTRUCT; }
-"uniform"       { return tUNIFORM; }
-"cbuffer"       { return tCBUFFER; }
-"VertexShader"   { return tVSSHADER; }
-"PixelShader"    { return tPSSHADER; }
-"GeometryShader" { return tGSSHADER; }
-"ComputeShader"  { return tCSSHADER; }
-"DomainShader"   { return tDSSHADER; }
-"HullShader"     { return tHSSHADER; }
-"Sample"         { return tSAMPLE; }
-"mul"           { return tMULFUNC; }
+"SV_POSITION"[0-9]* |
+"POSITION"[0-9]*    |
+"NORMAL"[0-9]*      |
+"BINORMAL"[0-9]*    |
+"TANGENT"[0-9]*     |
+"TEXCOORD"[0-9]*    |
+"COLOR"[0-9]*       |
+"TARGET"[0-9]*      |
+"SV_DEPTH"[0-9]*    |
+"SV_TARGET"[0-9]*   |
+"PSIZE"             |
+"TESSFACTOR"[0-9]*  |
+"SV_ISFRONTFACE"    { return scanHLSLSemantic(yytext, yyscanner); }
+"TorqueShader"      { return tSHADERDECLARE; }
+"struct"            { return tSTRUCT; }
+"uniform"           { return tUNIFORM; }
+"cbuffer"           { return tCBUFFER; }
+"VertexShader"      { return tVSSHADER; }
+"PixelShader"       { return tPSSHADER; }
+"GeometryShader"    { return tGSSHADER; }
+"ComputeShader"     { return tCSSHADER; }
+"DomainShader"      { return tDSSHADER; }
+"HullShader"        { return tHSSHADER; }
+"Sample"            { return tSAMPLE; }
+"mul"               { return tMULFUNC; }
 "frac"    |
 "fract"         {return tFRACFUNC; }
 "lerp"    |
@@ -253,7 +253,7 @@ U32 scanHLSLSemantic(const char* text, yyscan_t yyscanner)
         return tSEM_PSIZE;
     } else if (dStricmp(semantic, "tessfactor") == 0) {
         return tSEM_TESSFACTOR;
-    } else if (dStricmp(semantic, "isfrontface") == 0) {
+    } else if (dStricmp(semantic, "sv_isfrontface") == 0) {
         return tSEM_ISFRONTFACE;
     }
 

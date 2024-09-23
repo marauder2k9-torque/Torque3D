@@ -137,7 +137,7 @@ struct tStatementListNode : public tShadeNode {
    
    void print(tShadeAst *ast, String &out) override {
       for(auto statment : statements){
-         statement->print(ast, out);
+         statment->print(ast, out);
          out += ";\n\n";
       }
    }
