@@ -57,6 +57,8 @@
 #include "core/util/tSignal.h"
 #endif
 
+#include <glslang/Public/ShaderLang.h>
+
 class Point2I;
 class Point2F;
 class LinearColorF;
@@ -243,13 +245,20 @@ protected:
    /// If true the shader warnings are spewed to the console.
    static bool smLogWarnings;
 
-   /// The vertex shader file.
+   // TODO: replace torque::path vars with a Map for mapping
+   // stages to files so we can use for loops instead.
+   /// The base vertex shader file (spv or hlsl).
+   Torque::Path mVertexBaseFile;
+   /// The base pixel shader file (spv or hlsl).
+   Torque::Path mPixelBaseFile;
+   // the base geometry shader file (spv or hlsl).
+   Torque::Path mGeometryBaseFile;
+
+   /// The api vertex shader file.
    Torque::Path mVertexFile;
-
-   /// The pixel shader file.
+   /// The api pixel shader file.
    Torque::Path mPixelFile;
-
-   // the geometry shader file.
+   // the api geometry shader file.
    Torque::Path mGeometryFile;
 
    /// The macros to be passed to the shader.
@@ -281,6 +290,10 @@ protected:
    Vector<GFXShaderConstBuffer*> mActiveBuffers;
 
    GFXVertexFormat *mInstancingFormat;
+
+   U32 mStages;
+
+   bool mGenSPV;
 
    /// A protected constructor so it cannot be instantiated.
    GFXShader();
@@ -328,6 +341,7 @@ public:
    bool init( F32 pixVersion,
                const Vector<GFXShaderMacro> &macros,
                const Vector<String> &samplerNames,
+               bool genSPV = false,
                GFXVertexFormat *instanceFormat = NULL );
 
    /// Reloads the shader from disk.
@@ -393,6 +407,24 @@ protected:
 
    /// Called to update the description string after init.
    void _updateDesc();
+
+   // functions for supporting spirv generation.
+   bool _setupShaders();
+
+   // CHECKERS
+   S32 checkFile(Torque::Path& fileA, Torque::Path& fileB);
+   bool requireSPIRVRecompile(Torque::Path& shaderFile);
+   bool checkSpirvRecompile();
+   //---------
+
+   // Compile functions
+   bool convertToSpirv();
+   bool parseShader(const String& shaderFile, EShLanguage stage, glslang::TShader& shader);
+   //---------
+
+   // save functions
+   bool saveSPIRV(const std::vector<uint32_t>& spirv, Torque::Path& output);
+   //---------
 };
 
 /// A strong pointer to a reference counted GFXShader.

@@ -144,7 +144,7 @@ struct GFXShaderMacro
    /// The optional macro value.
    String value;
 
-   static void stringize( const Vector<GFXShaderMacro> &macros, String *outString );
+   static void stringize( const Vector<GFXShaderMacro> &macros, String *outString, bool define = false );
 };
 
 #endif // _GFXSTRUCTS_H_

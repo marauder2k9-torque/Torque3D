@@ -496,7 +496,8 @@ GFXShader* ShaderGen::getShader( const MaterialFeatureData &featureData, const G
    shader->setShaderStageFile(GFXShaderStage::VERTEX_SHADER, vertFile);
    shader->setShaderStageFile(GFXShaderStage::PIXEL_SHADER, pixFile);
 
-   if (!shader->init(pixVersion, shaderMacros, samplers, &mInstancingFormat))
+   // do not gen spv files from shadergen for now.
+   if (!shader->init(pixVersion, shaderMacros, samplers, false, &mInstancingFormat))
    {
       delete shader;
       return NULL;

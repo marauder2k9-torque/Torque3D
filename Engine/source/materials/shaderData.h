@@ -55,9 +55,9 @@ protected:
 
    F32 mPixVersion;
 
-   StringTableEntry mDXVertexShaderName;
-   StringTableEntry mDXPixelShaderName;
-   StringTableEntry mDXGeometryShaderName;
+   StringTableEntry mVertexShaderFile;
+   StringTableEntry mPixelShaderFile;
+   StringTableEntry mGeometryShaderFile;
 
    StringTableEntry mOGLVertexShaderName;
    StringTableEntry mOGLPixelShaderName;

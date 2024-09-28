@@ -66,15 +66,18 @@ const String GFXVideoMode::toString() const
    return String::ToString("%d %d %s %d %d %d", resolution.x, resolution.y, (fullScreen ? "true" : "false"), bitDepth,  refreshRate, antialiasLevel);
 }
 
-void GFXShaderMacro::stringize( const Vector<GFXShaderMacro> &macros, String *outString )
+void GFXShaderMacro::stringize( const Vector<GFXShaderMacro> &macros, String *outString, bool define)
 {
    Vector<GFXShaderMacro>::const_iterator itr = macros.begin();
    for ( ; itr != macros.end(); itr++ )
    {
+      if (define && itr->name.isNotEmpty())
+         (*outString) += "#define ";
+
       (*outString) += itr->name;
       if ( itr->value.isNotEmpty() )
       {
-         (*outString) += "=";
+         (*outString) += " = ";
          (*outString) += itr->value;
       }
       (*outString) += ";";

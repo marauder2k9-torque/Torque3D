@@ -38,27 +38,27 @@ Vector<ShaderData*> ShaderData::smAllShaderData;
 IMPLEMENT_CONOBJECT( ShaderData );
 
 ConsoleDocClass( ShaderData,
-	"@brief Special type of data block that stores information about a handwritten shader.\n\n"
+   "@brief Special type of data block that stores information about a handwritten shader.\n\n"
 
-	"To use hand written shaders, a ShaderData datablock must be used. This datablock "
-	"refers only to the vertex and pixel shader filenames and a hardware target level. "
-	"Shaders are API specific, so DirectX and OpenGL shaders must be explicitly identified.\n\n "
+   "To use hand written shaders, a ShaderData datablock must be used. This datablock "
+   "refers only to the vertex and pixel shader filenames and a hardware target level. "
+   "Shaders are API specific, so DirectX and OpenGL shaders must be explicitly identified.\n\n "
 
-	"@tsexample\n"
-	"// Used for the procedural clould system\n"
-	"singleton ShaderData( CloudLayerShader )\n"
-	"{\n"
+   "@tsexample\n"
+   "// Used for the procedural clould system\n"
+   "singleton ShaderData( CloudLayerShader )\n"
+   "{\n"
    "	DXVertexShaderFile      = $Core::CommonShaderPath @ \"/cloudLayerV.hlsl\";\n"
    "	DXPixelShaderFile       = $Core::CommonShaderPath @ \"/cloudLayerP.hlsl\";\n"
    "	DXGeometryShaderFile    = $Core::CommonShaderPath @ \"/cloudLayerG.hlsl\";\n"
    "	OGLVertexShaderFile     = $Core::CommonShaderPath @ \"/gl/cloudLayerV.glsl\";\n"
    "	OGLPixelShaderFile      = $Core::CommonShaderPath @ \"/gl/cloudLayerP.glsl\";\n"
    "	OGLGeometryShaderFile   = $Core::CommonShaderPath @ \"/gl/cloudLayerG.glsl\";\n"
-	"	pixVersion = 2.0;\n"
-	"};\n"
-	"@endtsexample\n\n"
+   "	pixVersion = 2.0;\n"
+   "};\n"
+   "@endtsexample\n\n"
 
-	"@ingroup Shaders\n");
+   "@ingroup Shaders\n");
 
 ShaderData::ShaderData()
 {
@@ -70,9 +70,9 @@ ShaderData::ShaderData()
    for( int i = 0; i < NumTextures; ++i)
       mRTParams[i] = false;
 
-   mDXVertexShaderName = StringTable->EmptyString();
-   mDXPixelShaderName = StringTable->EmptyString();
-   mDXGeometryShaderName = StringTable->EmptyString();
+   mVertexShaderFile = StringTable->EmptyString();
+   mPixelShaderFile = StringTable->EmptyString();
+   mGeometryShaderFile = StringTable->EmptyString();
 
    mOGLVertexShaderName = StringTable->EmptyString();
    mOGLPixelShaderName = StringTable->EmptyString();
@@ -82,19 +82,19 @@ ShaderData::ShaderData()
 void ShaderData::initPersistFields()
 {
    docsURL;
-   addField("DXVertexShaderFile", TypeStringFilename, Offset(mDXVertexShaderName, ShaderData),
+   addField("DXVertexShaderFile", TypeStringFilename, Offset(mVertexShaderFile, ShaderData),
       "@brief %Path to the DirectX vertex shader file to use for this ShaderData.\n\n"
       "It must contain only one program and no pixel shader, just the vertex shader."
       "It can be either an HLSL or assembly level shader. HLSL's must have a "
       "filename extension of .hlsl, otherwise its assumed to be an assembly file.");
 
-   addField("DXPixelShaderFile", TypeStringFilename, Offset(mDXPixelShaderName, ShaderData),
+   addField("DXPixelShaderFile", TypeStringFilename, Offset(mPixelShaderFile, ShaderData),
       "@brief %Path to the DirectX pixel shader file to use for this ShaderData.\n\n"
       "It must contain only one program and no vertex shader, just the pixel "
       "shader. It can be either an HLSL or assembly level shader. HLSL's "
       "must have a filename extension of .hlsl, otherwise its assumed to be an assembly file.");
 
-   addField("DXGeometryShaderFile", TypeStringFilename, Offset(mDXGeometryShaderName, ShaderData),
+   addField("DXGeometryShaderFile", TypeStringFilename, Offset(mGeometryShaderFile, ShaderData),
       "@brief %Path to the DirectX geometry shader file to use for this ShaderData.\n\n"
       "It can be either an HLSL or assembly level shader. HLSL's must have a "
       "filename extension of .hlsl, otherwise its assumed to be an assembly file.");
@@ -251,43 +251,19 @@ GFXShader* ShaderData::_createShader( const Vector<GFXShaderMacro> &macros )
    for(int i = 0; i < ShaderData::NumTextures; ++i)
       samplers[i] = mSamplerNames[i][0] == '$' ? mSamplerNames[i] : "$"+mSamplerNames[i];
 
-   // Initialize the right shader type.
-   switch( GFX->getAdapterType() )
-   {
-      case Direct3D11:
-      {
-         if (mDXVertexShaderName != String::EmptyString)
-            shader->setShaderStageFile(GFXShaderStage::VERTEX_SHADER, mDXVertexShaderName);
-         if (mDXPixelShaderName != String::EmptyString)
-            shader->setShaderStageFile(GFXShaderStage::PIXEL_SHADER, mDXPixelShaderName);
-         if (mDXGeometryShaderName != String::EmptyString)
-            shader->setShaderStageFile(GFXShaderStage::GEOMETRY_SHADER, mDXGeometryShaderName);
-         success = shader->init( pixver,
-                                 macros,
-                                 samplers);
-         break;
-      }
+   if (mVertexShaderFile != StringTable->EmptyString())
+      shader->setShaderStageFile(GFXShaderStage::VERTEX_SHADER, mVertexShaderFile);
 
-      case OpenGL:
-      {
-         if(mOGLVertexShaderName != String::EmptyString)
-            shader->setShaderStageFile(GFXShaderStage::VERTEX_SHADER, mOGLVertexShaderName);
-         if (mOGLPixelShaderName != String::EmptyString)
-            shader->setShaderStageFile(GFXShaderStage::PIXEL_SHADER, mOGLPixelShaderName);
-         if (mOGLGeometryShaderName != String::EmptyString)
-            shader->setShaderStageFile(GFXShaderStage::GEOMETRY_SHADER, mOGLGeometryShaderName);
+   if (mPixelShaderFile != StringTable->EmptyString())
+      shader->setShaderStageFile(GFXShaderStage::PIXEL_SHADER, mPixelShaderFile);
 
-         success = shader->init( pixver,
-                                 macros,
-                                 samplers);
-         break;
-      }
+   if (mGeometryShaderFile != StringTable->EmptyString())
+      shader->setShaderStageFile(GFXShaderStage::GEOMETRY_SHADER, mGeometryShaderFile);
 
-      default:
-         // Other device types are assumed to not support shaders.
-         success = false;
-         break;
-   }
+   success = shader->init(pixver,
+                        macros,
+                        samplers,
+                        true);
 
 #if defined(TORQUE_DEBUG)
    //Assert Sampler registers
@@ -411,12 +387,12 @@ bool ShaderData::_checkDefinition(GFXShader *shader)
 }
 
 DefineEngineMethod( ShaderData, reload, void, (),,
-				   "@brief Rebuilds all the vertex and pixel shader instances created from this ShaderData.\n\n"
+               "@brief Rebuilds all the vertex and pixel shader instances created from this ShaderData.\n\n"
 
-				   "@tsexample\n"
-				   "// Rebuild the shader instances from ShaderData CloudLayerShader\n"
-				   "CloudLayerShader.reload();\n"
-				   "@endtsexample\n\n")
+               "@tsexample\n"
+               "// Rebuild the shader instances from ShaderData CloudLayerShader\n"
+               "CloudLayerShader.reload();\n"
+               "@endtsexample\n\n")
 {
-	object->reloadShaders();
+   object->reloadShaders();
 }
