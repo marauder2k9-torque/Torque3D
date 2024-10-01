@@ -30,6 +30,8 @@
 #include <SPIRV/GlslangToSpv.h>
 #include <spirv-cross/spirv_cross.hpp>
 #include <spirv-cross/spirv_glsl.hpp>
+#include <spirv-cross/spirv_hlsl.hpp>
+#include <glslang/MachineIndependent/Initialize.h>
 
 Vector<GFXShaderMacro> GFXShader::smGlobalMacros;
 bool GFXShader::smLogErrors = true;
@@ -104,6 +106,10 @@ static TBuiltInResource defaultResources() {
    TBuiltInResource resource;
    resource.limits.generalVariableIndexing = 1;
    resource.limits.generalUniformIndexing = 1;
+   resource.maxGeometryOutputVertices = 256;
+   resource.maxGeometryTotalOutputComponents = 1024;
+   resource.maxGeometryInputComponents = 64;
+   resource.maxGeometryOutputComponents = 128;
    return resource;
 }
 
@@ -167,6 +173,25 @@ bool GFXShader::requireSPIRVRecompile(Torque::Path& shaderFile)
    return true;
 }
 
+bool GFXShader::requireAPIRecompile(Torque::Path& apiFile, Torque::Path& spvFile)
+{
+   if (!Torque::FS::IsFile(spvFile))
+   {
+      // no spv file to compile something bad happened
+      return false;
+   }
+
+   // check if apifile exists and is newer than the spv file.
+   if (Torque::FS::IsFile(apiFile))
+   {
+      S32 ret = checkFile(apiFile, spvFile);
+      if (ret == 1)
+         return false;
+   }
+
+   return true;
+}
+
 /// <summary>
 /// Checks all files set to this shader to see if spv recompile is required.
 /// </summary>
@@ -188,6 +213,63 @@ bool GFXShader::checkSpirvRecompile()
    if (!mGeometryBaseFile.isEmpty())
    {
       if (requireSPIRVRecompile(mGeometryBaseFile))
+         return true;
+   }
+
+   return false;
+}
+
+bool GFXShader::checkApiRecompile()
+{
+   Torque::Path spvPath, apiPath;
+   String ext;
+
+   switch (GFX->getAdapterType())
+   {
+   case Direct3D11:
+      ext = "hlsl";
+      break;
+   case OpenGL:
+      ext = "glsl";
+      break;
+   default:
+      return false;
+      break;
+   }
+
+   if (!mVertexBaseFile.isEmpty())
+   {
+      spvPath = mVertexBaseFile;
+      spvPath.setExtension("spv");
+
+      apiPath = "data:/" + ext + "/" + mVertexBaseFile.getFileName();
+      apiPath.setExtension(ext);
+
+      if (requireAPIRecompile(apiPath, spvPath))
+         return true;
+   }
+
+   if (!mPixelBaseFile.isEmpty())
+   {
+      spvPath = mPixelBaseFile;
+      spvPath.setExtension("spv");
+
+      apiPath = "data:/" + mPixelBaseFile.getFileName();
+      apiPath.setExtension(ext);
+
+      if (requireAPIRecompile(apiPath, spvPath))
+         return true;
+   }
+
+   if (!mGeometryBaseFile.isEmpty())
+   {
+      spvPath = mGeometryBaseFile;
+      spvPath.setExtension("spv");
+
+      apiPath = "data:/" + mGeometryBaseFile.getFileName();
+      apiPath.setExtension(ext);
+
+      if (requireAPIRecompile(apiPath, spvPath))
          return true;
    }
 
@@ -250,10 +332,9 @@ bool GFXShader::convertToSpirv()
    }
 
    // Link the program after all shaders have been added
-   if (!program->link(EShMsgDefault))
+   if (!program->link(static_cast<EShMessages>(EShMessages::EShMsgReadHlsl | EShMessages::EShMsgSpvRules | EShMessages::EShMsgVulkanRules)))
    {
-      Con::errorf("%s", program->getInfoLog());
-      return false;
+      Con::warnf("%s", program->getInfoLog());
    }
 
    // now recompile each stage to spv
@@ -297,6 +378,66 @@ bool GFXShader::convertToSpirv()
    return true;
 }
 
+bool GFXShader::compileAPIFile(const Torque::Path& inputBaseFile)
+{
+   // at this point we should definitely have a spv file. just load it.
+   Torque::Path spv;
+   
+   U32 stream_sz = 0;
+   FileStream shaderStream;
+   // check each stage and parse for glslang
+   spv = inputBaseFile;
+   spv.setExtension("spv");
+
+   if (!shaderStream.open(spv, Torque::FS::File::Read))
+   {
+      Con::printf("Failed to load SPV: %s", spv.getFullFileName().c_str());
+   }
+
+   stream_sz = shaderStream.getStreamSize();
+
+   std::vector<uint32_t> spirvStream(stream_sz);
+
+   shaderStream.read(stream_sz, reinterpret_cast<char*>(spirvStream.data()));
+
+   if (GFX->getAdapterType() == Direct3D11)
+   {
+      Torque::Path apiPath;
+      String ext("hlsl");
+      apiPath = "data:/" + ext + "/" + spv.getFileName();
+      apiPath.setExtension(ext);
+
+      if(!saveAPI(compileSPIRVtoHLSL(spirvStream), apiPath))
+      {
+         Con::printf("Failed to compile API: %s", apiPath.getFullFileName().c_str());
+      }
+   }
+   else if (GFX->getAdapterType() == OpenGL)
+   {
+
+   }
+
+   return false;
+}
+
+String GFXShader::compileSPIRVtoHLSL(const std::vector<uint32_t>& spirv)
+{
+   spirv_cross::CompilerHLSL hlslCompiler(reinterpret_cast<const uint32_t*>(spirv.data()), spirv.size() / 4);
+
+   // Set HLSL options (optional)
+   spirv_cross::CompilerHLSL::Options options;
+   options.shader_model = 51;  // Set the HLSL shader model (e.g., 50 for SM5.0)
+   options.point_size_compat = true;  // Enable point size compatibility for geometry shaders
+   options.point_coord_compat = true; // Ensure point coord compatibility for geometry shaders
+   options.use_entry_point_name = true;
+
+   hlslCompiler.set_hlsl_options(options);
+
+   // Perform conversion
+   String hlslCode = String::ToString(hlslCompiler.compile().c_str());
+   return hlslCode;
+}
+
 /// <summary>
 /// Sets up our shaders for cross api compilation using glslang as intermediate.
 /// </summary>
@@ -311,6 +452,36 @@ bool GFXShader::_setupShaders()
       if (!convertToSpirv())
       {
          //return false;
+      }
+   }
+
+   bool recompAPI = checkApiRecompile();
+
+   if (recompAPI)
+   {
+      // check each stage and parse for glslang
+      if (mStages & (U32)GFXShaderStage::VERTEX_SHADER)
+      {
+         if (!compileAPIFile(mVertexBaseFile))
+         {
+
+         }
+      }
+
+      if (mStages & (U32)GFXShaderStage::PIXEL_SHADER)
+      {
+         if (!compileAPIFile(mPixelBaseFile))
+         {
+
+         }
+      }
+
+      if (mStages & (U32)GFXShaderStage::GEOMETRY_SHADER)
+      {
+         if (!compileAPIFile(mGeometryBaseFile))
+         {
+
+         }
       }
    }
 
@@ -492,9 +663,18 @@ bool GFXShader::parseShader(const String& shaderFile, EShLanguage stage, glslang
    shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_0);
 
    TBuiltInResource res = defaultResources();
+
+   glslang::SpvVersion spv_version{};
+   spv_version.spv = SPV_VERSION;
+   spv_version.vulkanRelaxed = true; // be maximally permissive, allowing certain OpenGL in Vulkan
+
+   glslang::TBuiltIns builtins{};
+   builtins.initialize(460, ECompatibilityProfile, spv_version);
+   builtins.initialize(res, 460, ECompatibilityProfile, spv_version, stage);
+
    CustomIncluder includer(curFile.getRootAndPath());
 
-   if (!shader.parse(&res, 100, false, EShMsgDefault, includer))
+   if (!shader.parse(&res, 100, false, static_cast<EShMessages>(EShMessages::EShMsgReadHlsl | EShMessages::EShMsgSpvRules | EShMessages::EShMsgVulkanRules), includer))
    {
       Con::errorf("Failed to Parse Shader: %s", curFile.getFullFileName().c_str());
       Con::errorf("%s", shader.getInfoLog());
@@ -522,6 +702,20 @@ bool GFXShader::saveSPIRV(const std::vector<uint32_t>& spirv, Torque::Path& outp
    }
 
    stream.write(spirv.size() * sizeof(uint32_t), spirv.data());
+   stream.close();
+
+   return true;
+}
+
+bool GFXShader::saveAPI(const String& apiCode, Torque::Path& output)
+{
+   FileStream stream;
+   if (!stream.open(output, Torque::FS::File::Write))
+   {
+      Con::printf("Failed to open SPIR-V output file for writing: %s", output.getFullFileName().c_str());
+      return false;
+   }
+   stream.writeText(apiCode.c_str());
    stream.close();
 
    return true;

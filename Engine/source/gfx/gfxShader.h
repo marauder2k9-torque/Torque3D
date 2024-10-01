@@ -414,16 +414,24 @@ protected:
    // CHECKERS
    S32 checkFile(Torque::Path& fileA, Torque::Path& fileB);
    bool requireSPIRVRecompile(Torque::Path& shaderFile);
+   bool requireAPIRecompile(Torque::Path& apiFile, Torque::Path& spvFile);
    bool checkSpirvRecompile();
+   bool checkApiRecompile();
    //---------
 
    // Compile functions
    bool convertToSpirv();
    bool parseShader(const String& shaderFile, EShLanguage stage, glslang::TShader& shader);
+   bool compileAPIFile(const Torque::Path& inputBaseFile);
+   String compileSPIRVtoHLSL(const std::vector<uint32_t>& spirv);
    //---------
+
+   // read functions
+   
 
    // save functions
    bool saveSPIRV(const std::vector<uint32_t>& spirv, Torque::Path& output);
+   bool saveAPI(const String& apiCode, Torque::Path& output);
    //---------
 };
 
