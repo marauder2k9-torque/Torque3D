@@ -35,6 +35,8 @@
 #include "platform/threads/mutex.h"
 #include "zlib/zlib.h"
 
+#define STB_TRUETYPE_IMPLEMENTATION
+#include "gfx/bitmap/loaders/stb/stb_truetype.h"
 
 GFX_ImplementTextureProfile(GFXFontTextureProfile,
                             GFXTextureProfile::DiffuseMap, 
