@@ -85,7 +85,7 @@ float4 main(Conn IN) : TORQUE_TARGET0
                     
                 // }
                 toColor = IN.color;
-                sdf = abs(sdf) / borderSize;
+                sdf = abs(sdf) - borderSize;
             } 
             
         } 

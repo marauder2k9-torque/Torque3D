@@ -80,7 +80,7 @@ void main()
                     
                 // }
                 toColor = color;
-                sdf = abs(sdf) / borderSize;
+                sdf = abs(sdf) - borderSize;
             } 
             
         } 
