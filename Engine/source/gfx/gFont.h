@@ -40,6 +40,9 @@
 #include "gfx/gfxTextureHandle.h"
 #endif
 
+#ifndef __STB_INCLUDE_STB_TRUETYPE_H__
+#include "gfx/bitmap/loaders/stb/stb_truetype.h"
+#endif // !__STB_INCLUDE_STB_TRUETYPE_H__
 
 GFX_DeclareTextureProfile(GFXFontTextureProfile);
 #define Font_Table_MAX 65536
