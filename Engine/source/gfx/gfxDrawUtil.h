@@ -31,6 +31,10 @@
 #include "math/mPolyhedron.h"
 #endif
 
+#ifndef _GFXPRIMITIVEBUFFER_H_
+#include "gfx/gfxPrimitiveBuffer.h"
+#endif
+
 class FontRenderBatcher;
 class Frustum;
 
@@ -41,6 +45,39 @@ class Frustum;
 /// (line, box, rect, billboard, text).
 class GFXDrawUtil
 {
+   struct DrawBatch
+   {
+      GFXTextureObject* texture;                // Texture for the batch
+      GFXStateBlockWeakRef stateBlock;          // stateblock for the batch
+      GFXShaderWeakRef shader;                  // Shader for the batch
+      GFXShaderConstBufferRef constBuffer;      // Shader constants
+      GFXPrimitiveType primitiveType;           // Primitive type
+      Vector<GFXVertexPCT> vertices;            // Batched vertices
+      Vector<U32> indices;                      // Batched indices
+      GFXVertexBufferHandle<GFXVertexPCT> vertexBuffer;  // Vertex buffer handle
+      GFXPrimitiveBufferHandle indexBuffer;            // Index buffer handle
+      bool useGenericShader;                    // Use generic shader.
+
+      bool operator ==(const DrawBatch& a) const {
+         if (texture == a.texture &&
+            stateBlock == a.stateBlock &&
+            primitiveType == a.primitiveType)
+         {
+            if (useGenericShader && a.useGenericShader) {
+               return true;
+            }
+            else
+            {
+               if (shader == a.shader)
+               {
+                  return true;
+               }
+            }
+         }
+         return false;
+      }
+   };
+
 public:
    GFXDrawUtil(GFXDevice *);
    ~GFXDrawUtil();
@@ -93,14 +130,14 @@ public:
    //-----------------------------------------------------------------------------
    // Draw Text
    //-----------------------------------------------------------------------------
-   U32 drawText( GFont *font, const Point2I &ptDraw, const UTF8 *in_string, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
+   U32 drawText(  GFont *font, const Point2I &ptDraw, const UTF8 *in_string, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
    U32 drawTextN( GFont *font, const Point2I &ptDraw, const UTF8 *in_string, U32 n, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
-   U32 drawText( GFont *font, const Point2I &ptDraw, const UTF16 *in_string, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
+   U32 drawText(  GFont *font, const Point2I &ptDraw, const UTF16 *in_string, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
    U32 drawTextN( GFont *font, const Point2I &ptDraw, const UTF16 *in_string, U32 n, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
 
-   U32 drawText( GFont *font, const Point2F &ptDraw, const UTF8 *in_string, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
+   U32 drawText(  GFont *font, const Point2F &ptDraw, const UTF8 *in_string, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
    U32 drawTextN( GFont *font, const Point2F &ptDraw, const UTF8 *in_string, U32 n, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
-   U32 drawText( GFont *font, const Point2F &ptDraw, const UTF16 *in_string, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
+   U32 drawText(  GFont *font, const Point2F &ptDraw, const UTF16 *in_string, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
    U32 drawTextN( GFont *font, const Point2F &ptDraw, const UTF16 *in_string, U32 n, const ColorI *colorTable = NULL, const U32 maxColorIndex = 9, F32 rot = 0.f );
 
    //-----------------------------------------------------------------------------
@@ -194,7 +231,7 @@ protected:
    GFXStateBlockRef mBitmapStretchLinearSB;
    GFXStateBlockRef mBitmapStretchWrapSB;
    GFXStateBlockRef mBitmapStretchWrapLinearSB;
-   GFXStateBlockRef mRectFillSB;
+   GFXStateBlockRef mGUIShapeSB;
 
    FontRenderBatcher* mFontRenderBatcher;
 

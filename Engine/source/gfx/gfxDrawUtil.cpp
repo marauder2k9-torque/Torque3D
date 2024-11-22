@@ -85,11 +85,11 @@ void GFXDrawUtil::_setupStateBlocks()
    bitmapStretchSR.samplers[0].addressModeW = GFXAddressWrap;
    mBitmapStretchWrapSB = mDevice->createStateBlock(bitmapStretchSR);
 
-   GFXStateBlockDesc rectFill;
-   rectFill.setCullMode(GFXCullNone);
-   rectFill.setZReadWrite(false);
-   rectFill.setBlend(true, GFXBlendSrcAlpha, GFXBlendInvSrcAlpha);
-   mRectFillSB = mDevice->createStateBlock(rectFill);
+   GFXStateBlockDesc guiSBDesc;
+   guiSBDesc.setCullMode(GFXCullNone);
+   guiSBDesc.setZReadWrite(false);
+   guiSBDesc.setBlend(true, GFXBlendSrcAlpha, GFXBlendInvSrcAlpha);
+   mGUIShapeSB = mDevice->createStateBlock(guiSBDesc);
 
    // Find ShaderData
    ShaderData* shaderData;
@@ -489,52 +489,7 @@ void GFXDrawUtil::drawRect( const RectF &rect, const ColorI &color )
 
 void GFXDrawUtil::drawRect( const Point2F &upperLeft, const Point2F &lowerRight, const ColorI &color )
 {
-   //
-   // Convert Box   a----------x
-   //               |          |
-   //               x----------b
-   //
-   // Into Triangle-Strip Outline
-   //               v0-----------v2
-   //               | a         x |
-   //               |  v1-----v3  |
-   //               |   |     |   |
-   //               |  v7-----v5  |
-   //               | x         b |
-   //               v6-----------v4
-   //
-
-   // NorthWest and NorthEast facing offset vectors
-   // These adjust the thickness of the line, it'd be neat if one day
-   // they were passed in as arguments.
-   Point2F nw(-0.5f,-0.5f); /*  \  */
-   Point2F ne(0.5f,-0.5f); /*  /  */
-
-   GFXVertexBufferHandle<GFXVertexPCT> verts (mDevice, 10, GFXBufferTypeVolatile );
-   verts.lock();
-
-   F32 ulOffset = 0.5f - mDevice->getFillConventionOffset();
-
-   verts[0].point.set( upperLeft.x + ulOffset + nw.x, upperLeft.y + ulOffset + nw.y, 0.0f );
-   verts[1].point.set( upperLeft.x + ulOffset - nw.x, upperLeft.y + ulOffset - nw.y, 0.0f );
-   verts[2].point.set( lowerRight.x + ulOffset + ne.x, upperLeft.y + ulOffset + ne.y, 0.0f);
-   verts[3].point.set( lowerRight.x + ulOffset - ne.x, upperLeft.y + ulOffset - ne.y, 0.0f);
-   verts[4].point.set( lowerRight.x + ulOffset - nw.x, lowerRight.y + ulOffset - nw.y, 0.0f);
-   verts[5].point.set( lowerRight.x + ulOffset + nw.x, lowerRight.y + ulOffset + nw.y, 0.0f);
-   verts[6].point.set( upperLeft.x + ulOffset - ne.x, lowerRight.y + ulOffset - ne.y, 0.0f);
-   verts[7].point.set( upperLeft.x + ulOffset + ne.x, lowerRight.y + ulOffset + ne.y, 0.0f);
-   verts[8].point.set( upperLeft.x + ulOffset + nw.x, upperLeft.y + ulOffset + nw.y, 0.0f ); // same as 0
-   verts[9].point.set( upperLeft.x + ulOffset - nw.x, upperLeft.y + ulOffset - nw.y, 0.0f ); // same as 1
-
-   for (S32 i = 0; i < 10; i++)
-      verts[i].color = color;
-
-   verts.unlock();
-   mDevice->setVertexBuffer( verts );
-
-   mDevice->setStateBlock(mRectFillSB);
-   mDevice->setupGenericShaders();
-   mDevice->drawPrimitive( GFXTriangleStrip, 0, 8 );
+   drawRectFill(upperLeft, lowerRight, ColorI(0,0,0,0), 1.0f, color);
 }
 
 //-----------------------------------------------------------------------------
@@ -557,7 +512,7 @@ void GFXDrawUtil::drawRectFill(const RectI& rect, const ColorI& color, const F32
 
 void GFXDrawUtil::drawRectFill(const Point2F& upperLeft, const Point2F& lowerRight, const ColorI& color, const F32& borderSize,const ColorI& borderColor)
 {
-   // draw a rounded rect with 0 radiuse.
+   // draw a rounded rect with 0 radius.
    drawRoundedRect(0.0f, upperLeft, lowerRight, color, borderSize, borderColor);
 }
 
@@ -598,7 +553,7 @@ void GFXDrawUtil::drawRoundedRect(const F32& cornerRadius,
    verts.unlock();
    mDevice->setVertexBuffer(verts);
 
-   mDevice->setStateBlock(mRectFillSB);
+   mDevice->setStateBlock(mGUIShapeSB);
 
    Point2F topLeftCorner(upperLeft.x + nw.x + ulOffset, upperLeft.y + nw.y + ulOffset);
    Point2F bottomRightCorner(lowerRight.x - nw.x + ulOffset, lowerRight.y - nw.y + ulOffset);
@@ -670,7 +625,7 @@ void GFXDrawUtil::draw2DSquare( const Point2F &screenPoint, F32 width, F32 spinA
    verts.unlock();
    mDevice->setVertexBuffer( verts );
 
-   mDevice->setStateBlock(mRectFillSB);
+   mDevice->setStateBlock(mGUIShapeSB);
    mDevice->setupGenericShaders();
 
    mDevice->drawPrimitive( GFXTriangleStrip, 0, 2 );
@@ -710,7 +665,7 @@ void GFXDrawUtil::drawCircleFill(const Point2F& upperLeft, const Point2F& lowerR
    verts.unlock();
    mDevice->setVertexBuffer(verts);
 
-   mDevice->setStateBlock(mRectFillSB);
+   mDevice->setStateBlock(mGUIShapeSB);
 
    Point2F topLeftCorner(upperLeft.x + nw.x + ulOffset, upperLeft.y + nw.y + ulOffset);
    Point2F bottomRightCorner(lowerRight.x - nw.x + ulOffset, lowerRight.y - nw.y + ulOffset);
@@ -778,7 +733,7 @@ void GFXDrawUtil::drawLine( F32 x1, F32 y1, F32 z1, F32 x2, F32 y2, F32 z2, cons
    verts.unlock();
 
    mDevice->setVertexBuffer( verts );
-   mDevice->setStateBlock( mRectFillSB );
+   mDevice->setStateBlock( mGUIShapeSB );
    mDevice->setupGenericShaders();
    mDevice->drawPrimitive( GFXLineList, 0, 1 );
 }
@@ -816,7 +771,7 @@ void GFXDrawUtil::drawThickLine(F32 x1, F32 y1, F32 z1, F32 x2, F32 y2, F32 z2, 
    verts.unlock();
 
    mDevice->setVertexBuffer(verts);
-   mDevice->setStateBlock(mRectFillSB);
+   mDevice->setStateBlock(mGUIShapeSB);
    GFX->setShader(mThickLineShader);
    GFX->setShaderConstBuffer(mThickLineShaderConsts);
 

@@ -206,5 +206,6 @@ public:
 };
 
 typedef StrongRefPtr<GFXStateBlock> GFXStateBlockRef;
+typedef WeakRefPtr<GFXStateBlock> GFXStateBlockWeakRef;
 
 #endif 
