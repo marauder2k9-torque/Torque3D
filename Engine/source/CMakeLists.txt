@@ -82,7 +82,8 @@ if(TORQUE_SFX_OPENAL AND NOT TORQUE_DEDICATED)
 endif()
 # Handle GFX
 torqueAddSourceDirectories("gfx" "gfx/Null" "gfx/test" "gfx/bitmap" "gfx/bitmap/loaders" "gfx/bitmap/loaders/ies"
-                             "gfx/util" "gfx/video" "gfx/sim" )
+                             "gfx/util" "gfx/video" "gfx/sim" 
+                           "gfx2")
 
 # add the stb headers
 set(TORQUE_INCLUDE_DIRECTORIES ${TORQUE_INCLUDE_DIRECTORIES} "gfx/bitmap/loaders/stb")
@@ -92,7 +93,7 @@ if (TORQUE_OPENGL)
 endif (TORQUE_OPENGL)
 
 if (WIN32 AND TORQUE_D3D11)
-  torqueAddSourceDirectories("gfx/D3D11")
+  torqueAddSourceDirectories("gfx/D3D11" "gfx2/DX11")
 endif (WIN32 AND TORQUE_D3D11)
 
 # Handle core
