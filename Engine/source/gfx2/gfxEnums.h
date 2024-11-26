@@ -237,54 +237,54 @@ enum class GFXResourceType {
 
    // Read-Write textures
 
-   // Read-write 2D texture
+   // Read-write 2D texture (Pixel and Compute ONLY)
    // HLSL: RWTexture2D<T>
    // GLSL: image2D
    RWTexture2D,
 
-   // Read-write array of 2D textures
+   // Read-write array of 2D textures (Pixel and Compute ONLY)
    // HLSL: RWTexture2DArray<T>
    // GLSL: image2DArray
    RWTexture2DArray,
 
-   // Read-write 3D texture
+   // Read-write 3D texture (Pixel and Compute ONLY)
    // HLSL: RWTexture3D<T>
    // GLSL: image3D
    RWTexture3D,
 
-   // Read-write cube map texture
+   // Read-write cube map texture (Pixel and Compute ONLY)
    // HLSL: RWTextureCube<T>
    // GLSL: imageCube
    RWTextureCube,
 
-   // Read-write array of cube maps
+   // Read-write array of cube maps (Pixel and Compute ONLY)
    // HLSL: RWTextureCubeArray<T>
    // GLSL: imageCubeArray
    RWTextureCubeArray,
 
-   // Read-write 1D texture
+   // Read-write 1D texture (Pixel and Compute ONLY)
    // HLSL: RWTexture1D<T>
    // GLSL: image1D
    RWTexture1D,
 
-   // Read-write array of 1D textures
+   // Read-write array of 1D textures (Pixel and Compute ONLY)
    // HLSL: RWTexture1DArray<T>
    // GLSL: image1DArray
    RWTexture1DArray,
 
    // Other resource types
 
-   // Sampler state
+   // Sampler state (sample can only be invoked in pixel shaders)
    // HLSL: SamplerState, SamplerComparisonState
    // GLSL: Integrated with sampler2D, samplerCube, etc.
    Sampler,
 
-   // Read-write structured buffer
+   // Read-write structured buffer (Pixel and Compute ONLY)
    // HLSL: RWStructuredBuffer<T>, AppendStructuredBuffer<T>, ConsumeStructuredBuffer<T>
    // GLSL: buffer block (SSBO - Shader Storage Buffer Object)
    RWStructuredBuffer,
 
-   // Raw or byte-address buffer
+   // Raw or byte-address buffer (Pixel and Compute ONLY)
    // HLSL: ByteAddressBuffer, StructuredBuffer<T>
    // GLSL: buffer block (SSBO - Shader Storage Buffer Object)
    Buffer,

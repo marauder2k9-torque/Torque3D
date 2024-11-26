@@ -193,7 +193,7 @@ struct GFXRenderStateDesc {
    /// Creates a hash using all the variables in the struct. This
    /// is then used for comparisons later.
    /// </summary>
-   /// <returns>U32 hash of all the values.</returns>
+   /// <returns> <c>U32</c> hash of all the values.</returns>
    U32 getHashValue() const {
       U32 crc = 0;
 
