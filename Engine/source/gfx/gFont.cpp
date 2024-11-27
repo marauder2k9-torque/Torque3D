@@ -139,6 +139,12 @@ Resource<GFont> GFont::create(const String &faceName, U32 size, const char *cach
 
    // Otherwise attempt to have the platform generate a new font
    PlatformFont *platFont = createPlatformFont(faceName, size, charset);
+
+   String fontPath;
+   if (platFont->getFontFilePath(faceName, fontPath))
+   {
+      Con::printf("Font file path: %s", fontPath.c_str());
+   }
    
    if (platFont == NULL)
    {
@@ -373,6 +379,113 @@ void GFont::addSheet()
     mCurX = 0;
     mCurY = 0;
     mCurSheet = mTextureSheets.size() - 1;
+}
+
+Vector<U32> GFont::getCharsetCharacters(FontCharset charset)
+{
+   Vector<U32> characters;
+
+   switch (charset)
+   {
+   case TGE_ANSI_CHARSET:
+      for (U32 i = 32; i <= 255; ++i)   // ANSI range
+         characters.push_back(i);
+      break;
+
+   case TGE_SYMBOL_CHARSET:
+      for (U32 i = 0x2200; i <= 0x22FF; ++i) // Mathematical symbols
+         characters.push_back(i);
+      break;
+
+   case TGE_SHIFTJIS_CHARSET:
+      for (U32 i = 0x3040; i <= 0x30FF; ++i) // Hiragana and Katakana
+         characters.push_back(i);
+      for (U32 i = 0x4E00; i <= 0x9FAF; ++i) // Common Kanji
+         characters.push_back(i);
+      break;
+
+   case TGE_HANGEUL_CHARSET:
+   case TGE_HANGUL_CHARSET:
+      for (U32 i = 0xAC00; i <= 0xD7AF; ++i) // Hangul syllables
+         characters.push_back(i);
+      break;
+
+   case TGE_GB2312_CHARSET:
+      for (U32 i = 0x4E00; i <= 0x9FAF; ++i) // Common Simplified Chinese
+         characters.push_back(i);
+      break;
+
+   case TGE_CHINESEBIG5_CHARSET:
+      for (U32 i = 0x4E00; i <= 0x9FAF; ++i) // Common Traditional Chinese
+         characters.push_back(i);
+      break;
+
+   case TGE_OEM_CHARSET:
+      for (U32 i = 32; i <= 255; ++i)   // Typically similar to ANSI
+         characters.push_back(i);
+      break;
+
+   case TGE_JOHAB_CHARSET:
+      for (U32 i = 0x1100; i <= 0x11FF; ++i) // Hangul Jamo
+         characters.push_back(i);
+      break;
+
+   case TGE_HEBREW_CHARSET:
+      for (U32 i = 0x0590; i <= 0x05FF; ++i) // Hebrew
+         characters.push_back(i);
+      break;
+
+   case TGE_ARABIC_CHARSET:
+      for (U32 i = 0x0600; i <= 0x06FF; ++i) // Arabic
+         characters.push_back(i);
+      break;
+
+   case TGE_GREEK_CHARSET:
+      for (U32 i = 0x0370; i <= 0x03FF; ++i) // Greek and Coptic
+         characters.push_back(i);
+      break;
+
+   case TGE_TURKISH_CHARSET:
+      for (U32 i = 0x0100; i <= 0x017F; ++i) // Extended Latin for Turkish
+         characters.push_back(i);
+      break;
+
+   case TGE_VIETNAMESE_CHARSET:
+      for (U32 i = 0x0100; i <= 0x024F; ++i) // Latin Extended Additional
+         characters.push_back(i);
+      break;
+
+   case TGE_THAI_CHARSET:
+      for (U32 i = 0x0E00; i <= 0x0E7F; ++i) // Thai
+         characters.push_back(i);
+      break;
+
+   case TGE_EASTEUROPE_CHARSET:
+      for (U32 i = 0x0100; i <= 0x024F; ++i) // Latin Extended-A and -B
+         characters.push_back(i);
+      break;
+
+   case TGE_RUSSIAN_CHARSET:
+      for (U32 i = 0x0400; i <= 0x04FF; ++i) // Cyrillic
+         characters.push_back(i);
+      break;
+
+   case TGE_MAC_CHARSET:
+      for (U32 i = 32; i <= 255; ++i)   // MacRoman encoding
+         characters.push_back(i);
+      break;
+
+   case TGE_BALTIC_CHARSET:
+      for (U32 i = 0x0100; i <= 0x017F; ++i) // Latin Extended-A (Baltic region)
+         characters.push_back(i);
+      break;
+
+   default:
+      Con::errorf("Invalid charset specified.");
+      break;
+   }
+
+   return characters;
 }
 
 //-----------------------------------------------------------------------------

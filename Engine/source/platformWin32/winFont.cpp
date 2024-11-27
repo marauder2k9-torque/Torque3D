@@ -199,6 +199,68 @@ bool WinFont::isValidChar(const UTF8 *str) const
     return isValidChar(oneUTF8toUTF32(str));
 }
 
+bool WinFont::getFontFilePath(const char* name, String& fontPath) const
+{
+   if (!name || strlen(name) == 0)
+      return false;
+
+   // Normalize the font name
+   String nameStr = name;
+   nameStr = nameStr.trim();
+
+#ifdef UNICODE
+   const wchar_t* n = nameStr.utf16(); // Convert to wide characters
+#else
+   const char* n = nameStr.c_str();
+#endif
+
+   // Create a temporary logical font
+   HFONT hFont = CreateFont(
+      0, 0, 0, 0, FW_NORMAL, 0, 0, 0, DEFAULT_CHARSET, OUT_TT_PRECIS,
+      CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_DONTCARE, n);
+   if (!hFont)
+   {
+      Con::errorf("Failed to create font for name: %s", name);
+      return false;
+   }
+
+   // Create a compatible device context
+   HDC hdc = CreateCompatibleDC(NULL);
+   if (!hdc)
+   {
+      DeleteObject(hFont);
+      Con::errorf("Failed to create device context.");
+      return false;
+   }
+
+   SelectObject(hdc, hFont);
+
+   // Retrieve the font's file path
+   const size_t size = ::GetFontData(hdc, 0, 0, NULL, 0);
+   char* buffer = new char[size];
+   TCHAR* filePath = new TCHAR[size];
+   DWORD result = GetFontData(hdc, 0, 0, filePath, size);
+
+   if (result == GDI_ERROR)
+   {
+      Con::errorf("Failed to retrieve font data for name: %s", name);
+      DeleteObject(hFont);
+      DeleteDC(hdc);
+      return false;
+   }
+
+#ifdef UNICODE
+   fontPath = String::ToString(filePath); // Assign wide string directly
+#else
+   fontPath = String(filePath); // Assign ANSI string directly
+#endif
+
+   // Clean up resources
+   DeleteObject(hFont);
+   DeleteDC(hdc);
+
+   return true;
+}
 
 PlatformFont::CharInfo &WinFont::getCharInfo(const UTF16 ch) const
 {

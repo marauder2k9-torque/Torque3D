@@ -53,7 +53,15 @@ public:
    enum Constants 
    {
       TabWidthInSpaces = 3,
-      TextureSheetSize = 256,
+      TextureSheetSize = 512,
+   };
+
+   struct GlyphInfo
+   {
+      F32 xAdvance;           // Advance in x-direction after rendering this glyph
+      F32 xOffset, yOffset;   // Offset of the glyph in the texture
+      F32 width, height;      // Size of the glyph in the texture
+      F32 u0, v0, u1, v1;     // Texture coordinates for the glyph
    };
 
 public:
@@ -134,6 +142,7 @@ protected:
    void addBitmap(PlatformFont::CharInfo &charInfo);
    void addSheet(void);
    void assignSheet(S32 sheetNum, GBitmap *bmp);
+   Vector<U32> getCharsetCharacters(FontCharset charset);
 
    void *mMutex;
 
@@ -164,6 +173,7 @@ private:
 
    /// Index remapping
    S32             mRemapTable[Font_Table_MAX];
+   HashTable<U32, GlyphInfo> mCharTable;
 };
 
 inline U32 GFont::getCharXIncrement(const UTF16 in_charIndex)

@@ -40,6 +40,7 @@ public:
     // PlatformFont virtual methods
     bool isValidChar(const UTF16 ch) const override;
     bool isValidChar(const UTF8 *str) const override;
+    bool getFontFilePath(const char* name, String& fontPath) const override;
 
     inline U32 getFontHeight() const override
     {

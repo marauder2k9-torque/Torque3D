@@ -74,6 +74,8 @@ public:
    };
    
    virtual ~PlatformFont() {}
+
+   virtual bool getFontFilePath(const char* name, String& fontPath) const = 0;
    
    /// Is the specified character valid for rendering?
    virtual bool isValidChar(const UTF16 ch) const = 0;
