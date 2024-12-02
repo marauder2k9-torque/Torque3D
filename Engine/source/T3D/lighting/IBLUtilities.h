@@ -46,25 +46,57 @@ namespace IBLUtilities
 
    void SaveCubeMap(String outputPath, GFXCubemapHandle &cubemap);
 
-   void bakeReflection(String outputPath, S32 resolution);
+   //------------------------------------------------
+   // Spherical harmonics functions
+   //------------------------------------------------
+   /// <summary>
+   /// Generates a random direction converting from spherical to cartesian.
+   /// </summary>
+   /// <returns>The cartesian direction as a <c>VectorF</c></returns>
+   VectorF randomDirectionOnSphere();
 
-   LinearColorF decodeSH(Point3F normal, const LinearColorF SHTerms[9], const F32 SHConstants[5]);
+   /// <summary>
+   /// Generates a random direction on a specified cubemap face.
+   /// </summary>
+   /// <param name="face">The face id for the cubemap.</param>
+   /// <param name="cubemapResolution">The cubemap resolution (note assumed square resolution)</param>
+   /// <returns>The normalized cartesian direction as a <c>VectorF</c>.</returns>
+   VectorF getRandomDirectionFromCubemapFace(const U32 face, const U32 cubemapResolution);
 
-   MatrixF getSideMatrix(U32 side);
+   /// <summary>
+   /// Gets the uv coordinates this direction is pointing towards.
+   /// </summary>
+   /// <param name="direction">The direction in cartesian.</param>
+   /// <param name="face">The face ID.</param>
+   /// <param name="cubemapResolution">The cubemap resolution (assumed square).</param>
+   /// <returns>The uv coords of the direction in the cubemap as a <c>Point2I</c></returns>
+   Point2F getPixelFromCubemapDirection(const VectorF& direction, const U32 face, const U32 cubemapResolution);
 
-   F32 harmonics(U32 termId, Point3F normal);
+   /// <summary>
+   /// Gets the Spherical Harmonic index.
+   /// </summary>
+   /// <param name="l">The l component.</param>
+   /// <param name="m">The m component.</param>
+   /// <returns>The index of the sh in the vector.</returns>
+   U32 getSHIndex(S32 l, S32 m);
 
-   LinearColorF sampleSide(GBitmap* cubeFaceBitmaps[6], const U32& cubemapResolution, const U32& termindex, const U32& sideIndex);
+   /// <summary>
+   /// Evaluats the sh basis from the direction for this coefficient.
+   /// </summary>
+   /// <param name="l">The l component.</param>
+   /// <param name="m">The m component.</param>
+   /// <param name="direction">The direction in cartesian.</param>
+   /// <returns>An <c>F32</c> value representing the sh basis.</returns>
+   F32 evaluateSHBasis(S32 l, S32 m, const VectorF& direction);
 
-   //
-   //SH Calculations
-   // From http://sunandblackcat.com/tipFullView.php?l=eng&topicid=32&topic=Spherical-Harmonics-From-Cube-Texture
-   // With shader decode logic from https://github.com/nicknikolov/cubemap-sh
-   void calculateSHTerms(GFXCubemapHandle cubemap, LinearColorF SHTerms[9], F32 SHConstants[5]);
-
-   F32 texelSolidAngle(F32 aU, F32 aV, U32 width, U32 height);
-
-   F32 areaElement(F32 x, F32 y);
+   /// <summary>
+   /// Calculates the associated polynormal for this coefficient.
+   /// </summary>
+   /// <param name="l">The l component.</param>
+   /// <param name="m">The m component.</param>
+   /// <param name="cosTheta"></param>
+   /// <returns>The associated polynormal for the coefficent as <c>F32</c>.</returns>
+   F32 associatedPolynormal(S32 l, S32 m, F32 cosTheta);
 };
 
 #endif

@@ -531,5 +531,19 @@ inline F64 mSquared( F64 n )
    return n * n;
 }
 
+/// <summary>
+/// Iterative factorial function. Returns a U64 so we can go to a hard max of 20.
+/// </summary>
+/// <param name="n">The input n to be used for the factorial (do not use higher than 20)</param>
+/// <returns>the factorial of the input number as a <c>U64</c></returns>
+inline U64 mFact(U32 n)
+{
+   U64 result = 1;
+   for (U32 i = 1; i <= n; ++i)
+      result *= i;
+
+   return result;
+}
+
 
 #endif //_MMATHFN_H_

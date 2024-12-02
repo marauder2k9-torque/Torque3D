@@ -118,6 +118,35 @@ namespace CubemapSaver
          return false;
       }
 
-      return false;
+      GFXCubemap* pCubemap = cubemap.getPointer();
+      const U32 faceSize = pCubemap->getSize();
+      const U32 mipLevels = pCubemap->getMipMapLevels();
+
+      GFXFormat targetFmt = pCubemap->getFormat();
+      //setup render targets
+      GFXTexHandle pTextures[CubeFaces];
+
+      for (U32 face = 0; face < CubeFaces; face++)
+      {
+         pTextures[face].set(faceSize, faceSize, targetFmt,
+            &GFXTexturePersistentProfile, avar("%s() - (line %d)", __FUNCTION__, __LINE__),
+            mipLevels, GFXTextureManager::AA_MATCH_BACKBUFFER);
+
+         // yep t3d has funky z up, need to change the face order
+         GFX->copyResource(pTextures[face], pCubemap, GFXCubemap::zUpFaceIndex(face));
+      }
+
+      const bool hasMips = mipLevels > 1 ? true : false;
+      for (U32 i = 0; i < CubeFaces; i++)
+      {
+         faceBitmaps[i] = new GBitmap(faceSize, faceSize, hasMips, targetFmt);
+         bool result = pTextures[i].copyToBmp(faceBitmaps[i]);
+         if (!result)
+         {
+            Con::errorf("CubemapSaver: cubemap number %u failed to copy", i);
+         }
+      }
+
+      return true;
    }
 }
