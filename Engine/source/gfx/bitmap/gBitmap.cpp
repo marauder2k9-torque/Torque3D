@@ -42,14 +42,19 @@ Vector<GBitmap::Registration>   GBitmap::sRegistrations( __FILE__, __LINE__ );
 
 
 GBitmap::GBitmap()
- : mInternalFormat(GFXFormatR8G8B8),
+   : mInternalFormat(GFXFormatR8G8B8),
    mBits(NULL),
    mByteSize(0),
    mWidth(0),
    mHeight(0),
    mBytesPerPixel(0),
    mNumMipLevels(0),
-   mHasTransparency(false)
+   mHasTransparency(false),
+   mIsHDR(false),
+   mAverageBrightness(0.0f),
+   mBrightestColor(LinearColorF::BLACK),
+   mAmbientColor(LinearColorF::BLACK),
+   mBrightestPixel(Point2I::Zero)
 {
    std::fill_n(mMipLevelOffsets, c_maxMipLevels, 0xffffffff);
 }
@@ -69,6 +74,12 @@ GBitmap::GBitmap(const GBitmap& rCopy)
    dMemcpy(mMipLevelOffsets, rCopy.mMipLevelOffsets, sizeof(mMipLevelOffsets));
 
    mHasTransparency = rCopy.mHasTransparency;
+
+   mIsHDR = rCopy.mIsHDR;
+   mAmbientColor = rCopy.mAmbientColor;
+   mAverageBrightness = rCopy.mAverageBrightness;
+   mBrightestColor = rCopy.mBrightestColor;
+   mBrightestPixel = rCopy.mBrightestPixel;
 }
 
 
@@ -1187,6 +1198,26 @@ bool GBitmap::write(Stream& io_rStream) const
       io_rStream.write(mMipLevelOffsets[i]);
 
    return (io_rStream.getStatus() == Stream::Ok);
+}
+
+VectorF GBitmap::getBrightestDirection()
+{
+   VectorF brightestDir(0.0f);
+
+   if (mIsHDR) // spherical to 3d direction for hdr.
+   {
+      // Calculate the spherical coordinates (latitude and longitude) of the brightest pixel
+      F32 longitude = (mBrightestPixel.x / F32(getWidth())) * 2.0f * M_PI_F - M_PI_F;
+      F32 latitude = (mBrightestPixel.y / F32(getHeight())) * M_PI_F - M_2PI_F;
+
+      // Convert spherical coordinates to a 3D direction vector
+
+      brightestDir.x = cos(latitude) * cos(longitude);
+      brightestDir.y = sin(latitude);
+      brightestDir.z = cos(latitude) * sin(longitude);
+   }
+
+   return brightestDir;
 }
 
 //------------------------------------------------------------------------------

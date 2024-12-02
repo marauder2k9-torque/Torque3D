@@ -29,6 +29,8 @@
 #include "gfx/bitmap/gBitmap.h"
 #include "gfx/bitmap/imageUtils.h"
 #include "gfx/bitmap/loaders/ies/ies_loader.h"
+#include "math/mPoint3.h"
+#include "core/color.h"
 
 #ifdef __clang__
 #define STBIWDEF static inline
@@ -250,9 +252,66 @@ bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
 
    if (ext.equal("hdr"))
    {
-      // force load to 4 channel.
+      stbi_hdr_to_ldr_scale(2.2f);
       float* data = stbi_loadf(path.getFullPath().c_str(), &x, &y, &n, 0);
 
+      if (data == nullptr)
+      {
+         Con::errorf("Failed to load HDR image: %s", path.getFullPath().c_str());
+         return false;
+      }
+
+      // Initialize variables for max brightness and brightest pixel coordinates
+      F32 avgBrightness = 0.0f;
+      F32 totalBrightnes = 0.0f;
+      F32 maxBrightness = 0.0f;
+      U32 brightestX = 0, brightestY = 0;
+      LinearColorF brightestColor(LinearColorF::BLACK);
+      LinearColorF ambientColor(LinearColorF::BLACK);
+      F32 totalPixels = x * y;
+      // Iterate over all pixels to find the brightest pixel
+      for (U32 py = 0; py < y; ++py)
+      {
+         for (U32 px = 0; px < x; ++px)
+         {
+            F32 r = data[(py * x + px) * n + 0];
+            F32 g = data[(py * x + px) * n + 1];
+            F32 b = data[(py * x + px) * n + 2];
+
+            // Calculate brightness (luminance)
+            F32 brightness = r * 0.3f + g * 0.59f + b * 0.11f;
+
+            // Update max brightness and store pixel coordinates
+            avgBrightness += brightness;
+            if (brightness > maxBrightness)
+            {
+               maxBrightness = brightness;
+               brightestX = px;
+               brightestY = py;
+               brightestColor = LinearColorF(r, g, b);
+            }
+
+            // accumulate rgb for ambient calc.
+            ambientColor.red += r;
+            ambientColor.green += g;
+            ambientColor.blue += b;
+
+            totalBrightnes += brightness;
+         }
+      }
+      // sun brightness.
+      avgBrightness /= totalPixels;
+
+      // sun ambient colour
+      ambientColor.red /= totalPixels;
+      ambientColor.green /= totalPixels;
+      ambientColor.blue /= totalPixels;
+
+      // sun colour
+      brightestColor.red /= maxBrightness;
+      brightestColor.green /= maxBrightness;
+      brightestColor.blue /= maxBrightness;
+      
       unsigned char* dataChar = stbi__hdr_to_ldr(data, x, y, n);
       bitmap->deleteImage();
       // actually allocate the bitmap space...
@@ -266,7 +325,13 @@ bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
 
       dMemcpy(pBase, dataChar, rowBytes);
 
-      //stbi_image_free(data);
+      bitmap->setIsHDR(true);
+      bitmap->setBrightestPixel(Point2I(brightestX, brightestY));
+      bitmap->setAverageBrightness(avgBrightness);
+      bitmap->setAmbientColor(ambientColor);
+      bitmap->setBrightestColor(brightestColor);
+
+      //stbi_image_free(data); // freed in stbi__hdr_to_ldr
       stbi_image_free(dataChar);
 
       FrameAllocator::setWaterMark(prevWaterMark);

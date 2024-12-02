@@ -39,6 +39,7 @@
 #include "materials/processedMaterial.h"
 #include "gfx/gfxDebugEvent.h"
 #include "math/util/matrixSet.h"
+#include "materials/matInstance.h"
 
 IMPLEMENT_CO_NETOBJECT_V1(SkySphere);
 
@@ -52,7 +53,7 @@ ConsoleDocClass(SkySphere,
 
 SkySphere::SkySphere()
 {
-   mTypeMask |= EnvironmentObjectType | StaticObjectType;
+   mTypeMask |= EnvironmentObjectType | StaticObjectType | LightObjectType;
    mNetFlags.set(Ghostable | ScopeAlways);
 
    INIT_ASSET(Material);
@@ -68,6 +69,20 @@ SkySphere::SkySphere()
 
    mFogBandMat = NULL;
    mFogBandMatInst = NULL;
+
+   mDirty = true;
+   
+   mUseHDRLight = false;
+   mLightBrightness = 1.0f;
+   mCastShadows = true;
+   mStaticRefreshFreq = 8;
+   mDynamicRefreshFreq = 8;
+   mLightDirection = VectorF::Zero;
+   mLightAmbientColor.set(0, 0, 0, 1.0f);
+   mLightColor.set(0, 0, 0, 1.0f);
+
+   mLight = LightManager::createLightInfo();
+   mLight->setType(LightInfo::Vector);
 }
 
 SkySphere::~SkySphere()
@@ -116,12 +131,29 @@ void SkySphere::initPersistFields()
    docsURL;
    addGroup("Sky Sphere");
 
-   INITPERSISTFIELD_MATERIALASSET(Material, SkySphere, "The name of a cubemap material for the sky box.");
+      INITPERSISTFIELD_MATERIALASSET(Material, SkySphere, "The name of a cubemap material for the sky box.");
 
-   addField("fogBandHeight", TypeF32, Offset(mFogBandHeight, SkySphere),
-      "The height (0-1) of the fog band from the horizon to the top of the SkySphere.");
+      addField("fogBandHeight", TypeF32, Offset(mFogBandHeight, SkySphere),
+         "The height (0-1) of the fog band from the horizon to the top of the SkySphere.");
+
+      addField("useHDRLight", TypeBool, Offset(mUseHDRLight, SkySphere),
+         "Adds a light to the scene using the hdr image applied in the SkySphere material.", LightingMask);
 
    endGroup("Sky Sphere");
+
+   addGroup("Lighting");
+
+      addField("castShadows", TypeBool, Offset(mCastShadows, SkySphere), "Enables/disables shadows cast by objects due to SkySphere light.", LightingMask);
+      addField("staticRefreshFreq", TypeS32, Offset(mStaticRefreshFreq, SkySphere), "static shadow refresh rate (milliseconds)", LightingMask);
+      addField("dynamicRefreshFreq", TypeS32, Offset(mDynamicRefreshFreq, SkySphere), "dynamic shadow refresh rate (milliseconds)", LightingMask);
+      addField("brightness", TypeF32, Offset(mLightBrightness, SkySphere), "The brightness of the SkySphere's light object.", LightingMask);
+      addField("LightColor", TypeColorF, Offset(mLightColor, SkySphere), "Color of light cast by the light.", LightingMask);
+      addField("AmbientColor", TypeColorF, Offset(mLightAmbientColor, SkySphere), "Ambient color of the hdr.", LightingMask);
+
+   endGroup("Lighting");
+
+   // Now inject any light manager specific fields.
+   LightManager::initLightFields();
 
    Parent::initPersistFields();
 }
@@ -140,6 +172,21 @@ U32 SkySphere::packUpdate(NetConnection* conn, U32 mask, BitStream* stream)
 
    stream->write(mFogBandHeight);
 
+   if(stream->writeFlag(mask * LightingMask))
+   {
+      stream->writeFlag(mUseHDRLight);
+      stream->write(mLightBrightness);
+      stream->write(mLightAmbientColor);
+      stream->write(mLightColor);
+      stream->writeCompressedPoint(mLightDirection);
+
+      stream->writeFlag(mCastShadows);
+      stream->write(mStaticRefreshFreq);
+      stream->write(mDynamicRefreshFreq);
+
+      mLight->packExtended(stream);
+   }
+
    return retMask;
 }
 
@@ -156,6 +203,28 @@ void SkySphere::unpackUpdate(NetConnection* conn, BitStream* stream)
 
    F32 bandHeight = 0;
    stream->read(&bandHeight);
+
+   if (stream->readFlag())
+   {
+      mUseHDRLight = stream->readFlag();
+
+      stream->read(&mLightBrightness);
+      stream->read(&mLightAmbientColor);
+      stream->read(&mLightColor);
+
+      stream->readCompressedPoint(&mLightDirection);
+
+      mCastShadows = stream->readFlag();
+      stream->read(&mStaticRefreshFreq);
+      stream->read(&mDynamicRefreshFreq);
+
+      mLight->unpackExtended(stream);
+
+      if (isProperlyAdded())
+      {
+         mDirty = true;
+      }
+   }
 
    // If this flag has changed
    // we need to update the vertex buffer.
@@ -242,6 +311,28 @@ void SkySphere::_renderObject(ObjectRenderInst* ri, SceneRenderState* state, Bas
    }
 }
 
+void SkySphere::_updateLight()
+{
+   mLight->setBrightness(mLightBrightness);
+   mLight->setDirection(mLightDirection);
+   mLight->setAmbient(mLightAmbientColor);
+   mLight->setColor(mLightColor);
+   mLight->setCastShadows(mCastShadows);
+   mLight->setStaticRefreshFreq(mStaticRefreshFreq);
+   mLight->setDynamicRefreshFreq(mDynamicRefreshFreq);
+}
+
+void SkySphere::submitLights(LightManager* lm, bool staticLighting)
+{
+   if (mDirty)
+   {
+      _updateLight();
+      mDirty = false;
+   }
+
+   lm->setSpecialLight(LightManager::slSunLightType, mLight);
+}
+
 void SkySphere::clearVectors()
 {
    tmpVertices.clear();
@@ -309,6 +400,7 @@ void SkySphere::BuildFinalFogVert()
       finalFogVertex.push_back(temp);
    }
 }
+
 
 void SkySphere::_initRender()
 {
@@ -625,6 +717,24 @@ void SkySphere::_updateMaterial()
    {
       _initMaterial();
    }
+
+   if (mMatInstance)
+   {
+      MatInstance* matInst = dynamic_cast<MatInstance*>(mMatInstance);
+      GFXTextureObject* hdrTexture = matInst->getProcessedMaterial()->getStageTexture(0, MFT_DiffuseMap);
+      GBitmap* hdrBitmap = hdrTexture->getBitmap();
+
+      if (hdrBitmap->isHDR()) // get the info and make it ready.
+      {
+         mLightColor = hdrBitmap->getBrightestColor();
+         mLightAmbientColor = hdrBitmap->getAmbientColor();
+         mLightDirection = hdrBitmap->getBrightestDirection();
+         mLightDirection.normalize();
+         mLightBrightness = hdrBitmap->getAverageBrightness();
+         mDirty = true;
+      }
+   }
+   
 }
 
 BaseMatInstance* SkySphere::_getMaterialInstance()

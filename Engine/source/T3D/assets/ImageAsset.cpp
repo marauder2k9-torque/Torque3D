@@ -121,7 +121,7 @@ ImplementEnumType(ImageAssetType,
 { ImageAsset::Glow,        "Glow",        "" },
 { ImageAsset::Particle,    "Particle",    "" },
 { ImageAsset::Decal,       "Decal",       "" },
-{ ImageAsset::Cubemap,     "Cubemap",       "" },
+{ ImageAsset::Cubemap,     "Cubemap",     "" },
 
 EndImplementEnumType;
 
@@ -168,7 +168,7 @@ void ImageAsset::initPersistFields()
       &setImageFileName, &getImageFileName, "Path to the image file.");
 
    addField("useMips", TypeBool, Offset(mUseMips, ImageAsset), "Should the image use mips? (Currently unused).");
-   addField("isHDRImage", TypeBool, Offset(mIsHDRImage, ImageAsset), "Is the image in an HDR format? (Currently unused)");
+   addField("isHDRImage", TypeBool, Offset(mIsHDRImage, ImageAsset), "Is the image in an HDR format?");
 
    addField("imageType", TypeImageAssetType, Offset(mImageType, ImageAsset), "What the main use-case for the image is for.");
 }

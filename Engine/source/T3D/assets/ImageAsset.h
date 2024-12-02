@@ -142,7 +142,7 @@ public:
 
    static StringTableEntry getImageTypeNameFromType(ImageTypes type);
    static ImageTypes getImageTypeFromName(StringTableEntry name);
-
+   bool isHDR() { return mIsHDRImage; } // needed to set to a different profile
    void setImageType(ImageTypes type) { mImageType = type; }
    ImageTypes getImageType() { return mImageType; }
 
@@ -393,7 +393,10 @@ public: \
       }\
       if (get##name(index) != StringTable->EmptyString() && m##name##Name[index] != StringTable->insert("texhandle"))\
       {\
-         m##name[index].set(get##name(index), m##name##Profile[index], avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));\
+         if(m##name##Asset[index]->isHDR())\
+            m##name[index].set(get##name(index), &GFXTexturePersistentSRGBProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));\
+         else\
+            m##name[index].set(get##name(index), m##name##Profile[index], avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));\
       }\
       else\
       {\

@@ -47,6 +47,14 @@
 #include "gfx/gfxPrimitiveBuffer.h"
 #endif
 
+#ifndef _LIGHTINFO_H_
+#include "lighting/lightInfo.h"
+#endif
+
+#ifndef _LIGHTFLAREDATA_H_
+#include "T3D/lightFlareData.h"
+#endif
+
 #include "T3D/assets/MaterialAsset.h"
 
 struct SkyMatParams
@@ -56,11 +64,16 @@ struct SkyMatParams
 
 class MatrixSet;
 
-class SkySphere : public SceneObject
+class SkySphere : public SceneObject, public ISceneLight
 {
    typedef SceneObject Parent;
 
 public:
+   enum MaskBits
+   {
+      LightingMask = Parent::NextFreeMask,
+      NextFreeMask = Parent::NextFreeMask << 1
+   };
 
    SkySphere();
    virtual ~SkySphere();
@@ -87,6 +100,8 @@ public:
    /// Our render delegate.
    void _renderObject(ObjectRenderInst* ri, SceneRenderState* state, BaseMatInstance* mi);
 
+   void _updateLight();
+
    void clearVectors();
 
    void addVertex(Point3F vert);
@@ -100,6 +115,10 @@ public:
    void BuildFinalVert();
 
    void BuildFinalFogVert();
+
+   // ISceneLight
+   void submitLights(LightManager* lm, bool staticLighting) override;
+   LightInfo* getLight() override { return mLight; }
 
    /// Prepares rendering structures and geometry.
    void _initRender();
@@ -168,6 +187,18 @@ protected:
    void _initMaterial();
 
    BaseMatInstance* _getMaterialInstance();
+
+   // HDR Lighting.
+   bool         mUseHDRLight;
+   LightInfo*   mLight;
+   LinearColorF mLightColor;
+   LinearColorF mLightAmbientColor;
+   VectorF      mLightDirection;
+   F32          mLightBrightness;
+   bool         mCastShadows;
+   S32          mStaticRefreshFreq;
+   S32          mDynamicRefreshFreq;
+   bool         mDirty;
 
 };
 

@@ -42,12 +42,15 @@
 #ifndef _PROFILER_H_
 #include "platform/profiler.h"
 #endif
+
+#ifndef _COLOR_H_
+#include "core/color.h"
+#endif
 //-------------------------------------- Forward decls.
 class Stream;
 class RectI;
 class Point2I;
 class ColorI;
-class LinearColorF;
 
 //------------------------------------------------------------------------------
 //-------------------------------------- GBitmap
@@ -273,6 +276,71 @@ public:
 
    static Vector<Registration>   sRegistrations;
 
+
+   // HDR funcs
+   /// <summary>
+   /// Set this bitmap to a hdr bitmap. This should only ever be called from importers.
+   /// </summary>
+   /// <param name="hdr"><c>bool</c> to set this image to a hdr image.</param>
+   void setIsHDR(bool hdr) { mIsHDR = hdr; }
+
+   /// <summary>
+   /// Set the average brightness for this image, luminance value.
+   /// </summary>
+   /// <param name="val">The average brightness of this image as a luminance val.</param>
+   void setAverageBrightness(F32 val) { mAverageBrightness = val; }
+
+   /// <summary>
+   /// Set the point of the brightest pixel on this texture.
+   /// </summary>
+   /// <param name="pixel">The pixel coordinates.</param>
+   void setBrightestPixel(const Point2I& pixel) { mBrightestPixel = pixel; }
+
+   /// <summary>
+   /// Set the brightest color (normalized by the maximum brightness of the image)
+   /// </summary>
+   /// <param name="col">The color of the brightest pixel.</param>
+   void setBrightestColor(const LinearColorF& col) { mBrightestColor = col; }
+
+   /// <summary>
+   /// Set the ambient color of this image. This is best set as the average color
+   /// of the bitmap.
+   /// </summary>
+   /// <param name="col">The color that is the average of the image.</param>
+   void setAmbientColor(const LinearColorF& col) { mAmbientColor = col; }
+
+   // Getters
+   /// <summary>
+   /// Gets the average brightness of the image.
+   /// </summary>
+   /// <returns><c>F32</c> value of the average brightness.</returns>
+   F32 getAverageBrightness() const { return mAverageBrightness; }
+
+   /// <summary>
+   /// Gets the brightest color of the image.
+   /// </summary>
+   /// <returns><c>LinearColorF</c> value that represents the brightest color.</returns>
+   LinearColorF getBrightestColor() { return mBrightestColor; }
+
+   /// <summary>
+   /// Gets the ambient color of the image.
+   /// </summary>
+   /// <returns><c>LinearColorF</c> value that represents the ambient color.</returns>
+   LinearColorF getAmbientColor() { return mAmbientColor; }
+
+   /// <summary>
+   /// Gets converts the coordinates of the image:
+   /// if hdr they are converted from spherical to a 3d direction vector.
+   /// </summary>
+   /// <returns><c>VectorF</c> that represents the brightest direction.</returns>
+   VectorF getBrightestDirection();
+
+   /// <summary>
+   /// Returns whether this bitmap is of a hdr image.
+   /// </summary>
+   /// <returns><c>true</c> if this is a hdr otherwise false.</returns>
+   bool isHDR() { return mIsHDR; }
+
 private:
    GFXFormat mInternalFormat;
 
@@ -288,6 +356,13 @@ private:
    bool mHasTransparency;
 
    static const U32 csFileVersion;
+
+   // HDR Values
+   bool mIsHDR;
+   F32 mAverageBrightness;
+   Point2I mBrightestPixel;
+   LinearColorF mBrightestColor;
+   LinearColorF mAmbientColor;
 };
 
 //------------------------------------------------------------------------------

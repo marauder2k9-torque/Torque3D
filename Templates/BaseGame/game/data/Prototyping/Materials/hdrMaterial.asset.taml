@@ -1,0 +1,14 @@
+<MaterialAsset
+    AssetName="hdrMaterial"
+    materialDefinitionName="hdrMaterial"
+    VersionId="1">
+    <Material
+        Name="hdrMaterial"
+        mapTo="hdrMaterial"
+        originalAssetName="hdrMaterial">
+        <Material.Stages>
+            <Stages_beginarray
+                DiffuseMapAsset="Prototyping:rogland_clear_night_4k_image"/>
+        </Material.Stages>
+    </Material>
+</MaterialAsset>
