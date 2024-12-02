@@ -50,10 +50,17 @@ namespace IBLUtilities
       GFXShaderConstHandle* irrFaceSC = irrShader->getShaderConstHandle("$face");
 
 #if 1
+      GFXShaderConstHandle* irrSHCoef = irrShader->getShaderConstHandle("$shCoefficients");
+
+      static AlignedArray<Point4F> mSHArray(9, sizeof(Point4F));
+      dMemset(mSHArray.getBuffer(), 0, mSHArray.getBufferSize());
       // Testing for sh generation only.
-      const U32 samples = 167;
-      const F32 weight = 4.0f * M_PI_F / samples;
+      const U32 samples = 167 * 6;
       LinearColorF shCoefficients[9];
+
+      for (U32 i = 0; i < 9; ++i) {
+         shCoefficients[i] = LinearColorF::BLACK; // Initialize coefficients to 0
+      }
 
       GBitmap* cubeFaceBitmaps[6];
 
@@ -66,36 +73,38 @@ namespace IBLUtilities
 
       // Total number of samples processed
       U32 totalSamples = 0;
-
+      F32 weight = (1.0f / (width * width));
       for (U32 face = 0; face < 6; ++face)
       {
-         for (U32 i = 0; i < 167; ++i)
+         for (U32 x = 0; x < width; ++x)
          {
-            // Generate a random direction to sample.
-            VectorF randomDir = getRandomDirectionFromCubemapFace(face, width);
-            Point2F uvCoords = getPixelFromCubemapDirection(randomDir, face, width);
+            for (U32 y = 0; y < width; ++y)
+            {
+               VectorF pixDir = getCubeDir(face, Point2F(x, y));
+               LinearColorF sampleColor = cubeFaceBitmaps[face]->sampleTexel(x, y);
 
-            LinearColorF sampleColor = cubeFaceBitmaps[face]->sampleTexel(uvCoords.x, uvCoords.y);
-
-            // Evaluate the SH basis functions for the sample direction
-            for (S32 l = 0; l <= 2; l++) // First 3 bands
-            {  
-               for (S32 m = -l; m <= l; m++)
+               // Evaluate the SH basis functions for the sample direction
+               for (S32 l = 0; l <= 2; l++) // First 3 bands
                {
-                  F32 shBasis = evaluateSHBasis(l, m, randomDir);
-                  shCoefficients[getSHIndex(l,m)] += sampleColor * shBasis * weight;
+                  for (S32 m = -l; m <= l; m++)
+                  {
+                     F32 shBasis = evaluateSHBasis(l, m, pixDir);
+                     shCoefficients[getSHIndex(l, m)] += sampleColor * shBasis * weight;
+                  }
                }
             }
-            totalSamples++;
          }
+         totalSamples++;
       }
 
       for (U32 i = 0; i < 9; ++i)
       {
-         shCoefficients[i] /= F32(totalSamples);
+         shCoefficients[i] *= (4.0f * M_PI_F) / F32(totalSamples);
          Con::printf("SHCoefficents: %i r:%g g:%g b:%g", i, shCoefficients[i].red, shCoefficients[i].green, shCoefficients[i].blue);
+         mSHArray[i] = Point4F(shCoefficients[i]);
       }
 
+      irrConsts->setSafe(irrSHCoef, mSHArray);
 #endif
 
       GFXStateBlockDesc desc;
@@ -421,6 +430,46 @@ namespace IBLUtilities
       }
 
       return uv;
+   }
+
+   VectorF getCubeDir(const U32 face, const Point2F& uv)
+   {
+      // Convert UV to [-1, 1] range
+      float u = 2.0f * uv.x - 1.0f; // Map [0, 1] -> [-1, 1]
+      float v = 2.0f * uv.y - 1.0f; // Map [0, 1] -> [-1, 1]
+
+      VectorF dir;
+
+      // Map the UV coordinates to a direction based on the face
+      switch (face)
+      {
+      case 0: // +X
+         dir = VectorF(1.0f, -v, -u);
+         break;
+      case 1: // -X
+         dir = VectorF(-1.0f, -v, u);
+         break;
+      case 2: // +Y
+         dir = VectorF(u, 1.0f, v);
+         break;
+      case 3: // -Y
+         dir = VectorF(u, -1.0f, -v);
+         break;
+      case 4: // +Z
+         dir = VectorF(u, -v, 1.0f);
+         break;
+      case 5: // -Z
+         dir = VectorF(-u, -v, -1.0f);
+         break;
+      default:
+         dir = VectorF(0.0f, 0.0f, 0.0f); // Fallback, should never happen
+         break;
+      }
+
+      // Normalize the direction vector to ensure it's a unit vector
+      dir.normalizeSafe();
+
+      return dir;
    }
 
 };
