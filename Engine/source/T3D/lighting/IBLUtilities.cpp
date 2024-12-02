@@ -54,8 +54,6 @@ namespace IBLUtilities
 
       static AlignedArray<Point4F> mSHArray(9, sizeof(Point4F));
       dMemset(mSHArray.getBuffer(), 0, mSHArray.getBufferSize());
-      // Testing for sh generation only.
-      const U32 samples = 167 * 6;
       LinearColorF shCoefficients[9];
 
       for (U32 i = 0; i < 9; ++i) {
@@ -69,7 +67,6 @@ namespace IBLUtilities
          return;
 
       U32 width = cubeFaceBitmaps[0]->getWidth(); // assumed square texture and all faces matching.
-      cubeFaceBitmaps[0]->sampleTexel(1, 1);
 
       // Total number of samples processed
       U32 totalSamples = 0;
