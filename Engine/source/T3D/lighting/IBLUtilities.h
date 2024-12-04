@@ -96,9 +96,10 @@ namespace IBLUtilities
    /// <param name="m">The m component.</param>
    /// <param name="cosTheta"></param>
    /// <returns>The associated polynormal for the coefficent as <c>F32</c>.</returns>
-   F32 associatedPolynormal(S32 l, S32 m, F32 cosTheta);
+   F32 associatedPolynormal(S32 l, S32 m, F32 x);
 
    VectorF getCubeDir(const U32 face, const Point2F& uv);
+   F32 getSolidAngle(const U32 width, F32 u, F32 v, VectorF direction);
 };
 
 #endif

@@ -49,7 +49,7 @@ namespace IBLUtilities
       GFXShaderConstBufferRef irrConsts = irrShader->allocConstBuffer();
       GFXShaderConstHandle* irrFaceSC = irrShader->getShaderConstHandle("$face");
 
-#if 1
+#if 0
       GFXShaderConstHandle* irrSHCoef = irrShader->getShaderConstHandle("$shCoefficients");
 
       static AlignedArray<Point4F> mSHArray(9, sizeof(Point4F));
@@ -70,33 +70,38 @@ namespace IBLUtilities
 
       // Total number of samples processed
       U32 totalSamples = 0;
-      F32 weight = (1.0f / (width * width));
+      F32 weight = 1.0 / (width);
+      F32 totalSolidAngle = 0.0f;
       for (U32 face = 0; face < 6; ++face)
       {
          for (U32 x = 0; x < width; ++x)
          {
             for (U32 y = 0; y < width; ++y)
             {
-               VectorF pixDir = getCubeDir(face, Point2F(x, y));
+               VectorF pixDir = getCubeDir(face, Point2F(x + 0.5f, y + 0.5f));
                LinearColorF sampleColor = cubeFaceBitmaps[face]->sampleTexel(x, y);
+
+               F32 solidAngle = getSolidAngle(width, F32(x + 0.5), F32(y + 0.5), pixDir);
 
                // Evaluate the SH basis functions for the sample direction
                for (S32 l = 0; l <= 2; l++) // First 3 bands
                {
-                  for (S32 m = -l; m <= l; m++)
+                  for (S32 m = -l; m <= l; m++) // Loop over valid m values
                   {
                      F32 shBasis = evaluateSHBasis(l, m, pixDir);
-                     shCoefficients[getSHIndex(l, m)] += sampleColor * shBasis * weight;
+                     shCoefficients[getSHIndex(l, m)] += sampleColor * shBasis * solidAngle;
                   }
                }
+               totalSamples++;
+               totalSolidAngle += solidAngle;
             }
          }
-         totalSamples++;
+         
       }
 
       for (U32 i = 0; i < 9; ++i)
       {
-         shCoefficients[i] *= (4.0f * M_PI_F) / F32(totalSamples);
+         shCoefficients[i] *= (4.0f * M_PI_F);   // Apply the 4 * pi scaling factor
          Con::printf("SHCoefficents: %i r:%g g:%g b:%g", i, shCoefficients[i].red, shCoefficients[i].green, shCoefficients[i].blue);
          mSHArray[i] = Point4F(shCoefficients[i]);
       }
@@ -274,67 +279,76 @@ namespace IBLUtilities
 
    F32 evaluateSHBasis(S32 l, S32 m, const VectorF& direction)
    {
-      F32 phi = mAtan2(direction.y, direction.x); // azimuth angle
-      F32 theta = mAcos(direction.z);             // elevation angle
+      F32 x = direction.x;
+      F32 y = direction.y;
+      F32 z = direction.z;
 
-      F32 p_lm = associatedPolynormal(l, m, mCos(theta));
-
-      F32 n_lm = mSqrt((2.0f * l + 1.0f) / (4.0f * M_PI_F) * mFact(l - mAbs(m)) / mFact(l + mAbs(m)));
-
-      if (m == 0)
-      {
-         return n_lm * p_lm;
+      if (l == 0 && m == 0) {
+         // Y00
+         return 0.282095f; // 1 / (2 * sqrt(pi))
       }
-      else if (m > 0)
-      {
-         return mSqrt(2.0f) * n_lm * p_lm * mCos(m * phi);
+      else if (l == 1) {
+         // Y1m
+         switch (m) {
+         case -1: return -0.488603f * y; // -sqrt(3/(4pi)) * y
+         case  0: return  0.488603f * z; // sqrt(3/(4pi)) * z
+         case  1: return -0.488603f * x; // -sqrt(3/(4pi)) * x
+         }
       }
-      else // m < 0
-      {
-         return mSqrt(2.0f) * n_lm * p_lm * mSin(mAbs(m) * phi);
-      }
-   }
-
-   F32 associatedPolynormal(S32 l, S32 m, F32 cosTheta)
-   {
-      F32 pmm = 1.0f;
-
-      if (m > 0)
-      {
-         F32 mx2 = mSqrt((1.0f - cosTheta) * (1.0f + cosTheta));
-         F32 fac = 1.0f;
-
-         for (U32 i = 1; i <= m; ++i)
-         {
-            pmm *= -fac * mx2;
-            fac += 2.0f;
+      else if (l == 2) {
+         // Y2m
+         switch (m) {
+         case -2: return  1.092548f * x * y;              // sqrt(15/pi) * xy
+         case -1: return -1.092548f * y * z;              // -sqrt(15/pi) * yz
+         case  0: return  0.315392f * (3.0f * z * z - 1); // sqrt(5/pi) * (3z^2 - 1) / 4
+         case  1: return -1.092548f * x * z;              // -sqrt(15/pi) * xz
+         case  2: return  0.546274f * (x * x - y * y);    // sqrt(15/pi) * (x^2 - y^2) / 2
          }
       }
 
-      if (l == m)
-         return pmm;
+      return 0.0f; // Default case (should not reach here)
+   }
 
-      F32 pmm1 = cosTheta * (2.0f * m + 1.0f) * pmm;
+   F32 associatedPolynormal(S32 l, S32 m, F32 x)
+   {
+      // Initialize P_0^0 and P_1^0
+      F32 P_mm = 1.0f;
 
-      if (l == m + 1)
-         return pmm1;
-
-      F32 pll = 0.0f;
-
-      for (U32 ll = m + 2; ll <= l; ++ll)
+      // Compute the initial P_mm for |m| > 0
+      if (m > 0)
       {
-         pll = ((2.0f * ll - 1.0f) * cosTheta * pmm1 - (ll + m - 1.0f) * pmm) / (ll - m);
-         pmm = pmm1;
-         pmm1 = pll;
+         F32 sqrtTerm = mSqrt(1.0f - x * x); // sin(theta)
+         for (S32 i = 1; i <= m; ++i)
+         {
+            P_mm *= -sqrtTerm * (2.0f * i - 1);
+         }
       }
 
-      return pll;
+      // If l == m, we're done
+      if (l == m)
+         return P_mm;
+
+      // Compute P_l^m using recurrence for l > m
+      F32 P_mm1 = x * (2.0f * m + 1.0f) * P_mm; // P_m+1^m
+      if (l == m + 1)
+         return P_mm1;
+
+      F32 P_lm = 0.0f; // Temporary variable for P_l^m
+      for (S32 i = m + 2; i <= l; ++i)
+      {
+         P_lm = ((2.0f * i - 1.0f) * x * P_mm1 - (i + m - 1.0f) * P_mm) / (i - m);
+         P_mm = P_mm1;
+         P_mm1 = P_lm;
+      }
+
+      return P_lm;
+
    }
 
    VectorF randomDirectionOnSphere()
    {
       // Generate random azimuthal angle (theta) in the range [0, 2 * M_PI]
-      F32 theta = mRandF(0.0f, 2.0f * M_PI);  // Azimuthal angle, 0 to 2 * PI
+      F32 theta = mRandF(0.0f, 2.0f * M_PI_F);  // Azimuthal angle, 0 to 2 * PI
 
       // Generate random polar angle (phi) in the range [-PI / 2, PI / 2]
       F32 phi = mRandF(-M_PI_F / 2, M_PI_F / 2);  // Polar angle, -PI/2 to PI/2
@@ -432,8 +446,8 @@ namespace IBLUtilities
    VectorF getCubeDir(const U32 face, const Point2F& uv)
    {
       // Convert UV to [-1, 1] range
-      float u = 2.0f * uv.x - 1.0f; // Map [0, 1] -> [-1, 1]
-      float v = 2.0f * uv.y - 1.0f; // Map [0, 1] -> [-1, 1]
+      F32 u = 2.0f * uv.x - 1.0f; // Map [0, 1] -> [-1, 1]
+      F32 v = 2.0f * uv.y - 1.0f; // Map [0, 1] -> [-1, 1]
 
       VectorF dir;
 
@@ -464,9 +478,19 @@ namespace IBLUtilities
       }
 
       // Normalize the direction vector to ensure it's a unit vector
-      dir.normalizeSafe();
-
+      dir.normalize();
       return dir;
+   }
+
+   F32 getSolidAngle(const U32 width, F32 u, F32 v, VectorF direction)
+   {
+      const F32 texel = 1.0f / width;
+      F32 s = (u * 2 * texel) - 1.0f;
+      F32 t = (v * 2 * texel) - 1.0f;
+
+      // Compute Jacobian determinant for the texel
+      F32 ret = (texel * texel) / (direction.lenSquared() * mSqrt(direction.lenSquared()));
+      return ret;
    }
 
 };
