@@ -65,6 +65,7 @@ torqueAddSourceDirectories( "T3D" "T3D/assets" "T3D/decal" "T3D/examples" "T3D/f
 #                          "T3D/components" "T3D/sceneComponent" "T3D/systems" "T3D/gameOBjects" 
                            "T3D/sfx" "T3D/turret" "T3D/vehicles")
 
+torqueAddSourceDirectories("T3D/assets_refactor")
 # Handle TS
 torqueAddSourceDirectories("ts" "ts/collada" "ts/assimp" "ts/loader" "ts/arch")
 
