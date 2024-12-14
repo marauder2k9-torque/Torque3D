@@ -38,7 +38,9 @@ private:
    bool              mIsHDR;
    GFXTexHandle      mTextureHandle;
    TextureTypes      mTextureType;
+   HashMap<GFXTextureProfile*, GFXTexHandle> mResourceMap;
 
+   void generateTexture(void);
 public:
    TextureAsset();
    virtual ~TextureAsset();
@@ -54,6 +56,24 @@ public:
    void                    setImageFile(StringTableEntry pImageFile);
    inline StringTableEntry getImageFile(void) const { return mTextureFile; };
 
+   void                    setGenMips(const bool pGenMips);
+   inline bool             getGenMips(void) const { return mGenMips; };
+
+   void                    setTextureHDR(const bool pIsHDR);
+   inline bool             getTextureHDR(void) const { return mIsHDR; };
+
+   inline GFXTexHandle&    getTexture(void) { return mTextureHandle; }
+   GFXTexHandle            getTexture(GFXTextureProfile* requestedProfile);
+
+   inline U32              getTextureWidth(void) const { return mTextureHandle->getWidth(); }
+   inline U32              getTextureHeight(void) const { return mTextureHandle->getHeight(); }
+   inline U32              getTextureDepth(void) const { return mTextureHandle->getDepth(); }
+
+   inline U32              getTextureBitmapWidth(void) const { return mTextureHandle->getBitmapWidth(); }
+   inline U32              getTextureBitmapHeight(void) const { return mTextureHandle->getBitmapHeight(); }
+   inline U32              getTextureBitmapDepth(void) const { return mTextureHandle->getBitmapDepth(); }
+   bool                    isAssetValid(void) const override { return !mTextureHandle.isNull(); }
+
    /// Declare Console Object.
    DECLARE_CONOBJECT(TextureAsset);
 
@@ -65,13 +85,20 @@ protected:
    /// Taml callbacks.
    void onTamlPreWrite(void) override;
    void onTamlPostWrite(void) override;
-   void onTamlCustomWrite(TamlCustomNodes& customNodes) override;
-   void onTamlCustomRead(const TamlCustomNodes& customNodes) override;
 
 protected:
+   // Texture file 
    static bool setTextureFile(void* obj, StringTableEntry index, StringTableEntry data) { static_cast<TextureAsset*>(obj)->setImageFile(data); return false; }
    static const char* getTextureFile(void* obj, StringTableEntry data) { return static_cast<TextureAsset*>(obj)->getImageFile(); }
    static bool writeTextureFile(void* obj, StringTableEntry pFieldName) { return static_cast<TextureAsset*>(obj)->getImageFile() != StringTable->EmptyString(); }
+
+   // Gen mips?
+   static bool setGenMips(void* obj, StringTableEntry index, StringTableEntry data) { static_cast<TextureAsset*>(obj)->setGenMips(dAtob(data)); return false; }
+   static bool writeGenMips(void* obj, StringTableEntry pFieldName) { return static_cast<TextureAsset*>(obj)->getGenMips() == true; }
+
+   // Texture Is Hdr?
+   static bool setTextureHDR(void* obj, StringTableEntry index, StringTableEntry data) { static_cast<TextureAsset*>(obj)->setTextureHDR(dAtob(data)); return false; }
+   static bool writeTextureHDR(void* obj, StringTableEntry pFieldName) { return static_cast<TextureAsset*>(obj)->getTextureHDR() == true; }
 
 };
 

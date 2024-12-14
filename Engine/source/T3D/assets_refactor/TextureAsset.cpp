@@ -2,6 +2,10 @@
 #include "console/consoleTypes.h"
 #include "assets/assetManager.h"
 #include "assets/assetPtr.h"
+#include "gfx/gfxDevice.h"
+#include "gfx/gfxTextureManager.h"
+#include "gfx/bitmap/gBitmap.h"
+#include "core/util/str.h"
 
 #include "platform/profiler.h"
 
@@ -80,7 +84,7 @@ TextureAsset::TextureAsset()
       mIsHDR(false),
       mTextureHandle(NULL)
 {
-
+   mLoadedState = AssetErrCode::NotLoaded;
 }
 
 TextureAsset::~TextureAsset()
@@ -92,8 +96,10 @@ void TextureAsset::initPersistFields()
    // Asset Base fields
    Parent::initPersistFields();
 
-   addProtectedField("TextureFile", TypeAssetLooseFilePath, Offset(mTextureFile, TextureAsset), &setTextureFile, &getTextureFile, "Path to the texture image.");
-
+   addProtectedField("TextureFile", TypeAssetLooseFilePath, Offset(mTextureFile, TextureAsset), &setTextureFile, &getTextureFile, defaultProtectedWriteFn, "Path to the texture image.");
+   addProtectedField("GenMips", TypeBool, Offset(mIsHDR, TextureAsset), &setGenMips, &defaultProtectedGetFn, &writeGenMips, "Generate mip maps?");
+   addProtectedField("isHDR", TypeBool, Offset(mIsHDR, TextureAsset), &setTextureHDR, &defaultProtectedGetFn, &writeTextureHDR, "HDR Image?");
+   addField("TextureType", TypeTextureType, Offset(mTextureType, TextureAsset), "The texture type eg:Albedo.");
 }
 
 bool TextureAsset::onAdd()
@@ -138,3 +144,125 @@ void TextureAsset::setImageFile(StringTableEntry pImageFile)
 
    refreshAsset();
 }
+
+void TextureAsset::setGenMips(const bool pGenMips)
+{
+   if (pGenMips == mGenMips)
+      return;
+
+   mGenMips = pGenMips;
+
+   refreshAsset();
+}
+
+
+void TextureAsset::setTextureHDR(const bool pIsHDR)
+{
+   if (pIsHDR == mIsHDR)
+      return;
+
+   mIsHDR = pIsHDR;
+
+   refreshAsset();
+}
+
+GFXTexHandle TextureAsset::getTexture(GFXTextureProfile* requestedProfile)
+{
+   if (mResourceMap.contains(requestedProfile))
+   {
+      return mResourceMap.find(requestedProfile)->value;
+   }
+   else
+   {
+      //If we don't have an existing map case to the requested format, we'll just create it and insert it in
+      GFXTexHandle newTex = TEXMGR->createTexture(mTextureFile, requestedProfile);
+      if (newTex)
+      {
+         mResourceMap.insert(requestedProfile, newTex);
+         return newTex;
+      }
+   }
+
+   return nullptr;
+}
+
+void TextureAsset::initializeAsset(void)
+{
+   // Call parent.
+   Parent::initializeAsset();
+
+   // Ensure the image-file is expanded.
+   mTextureFile = expandAssetFilePath(mTextureFile);
+
+   // Generate texture
+   generateTexture();
+}
+
+void TextureAsset::onAssetRefresh(void)
+{
+   // Ignore if not yet added to the sim.
+   if (!isProperlyAdded())
+      return;
+
+   // Call parent.
+   Parent::onAssetRefresh();
+
+   // Generate texture
+   generateTexture();
+}
+
+void TextureAsset::onTamlPreWrite(void)
+{
+   // Call parent.
+   Parent::onTamlPreWrite();
+
+   // Ensure the image-file is collapsed.
+   mTextureFile = collapseAssetFilePath(mTextureFile);
+}
+
+void TextureAsset::onTamlPostWrite(void)
+{
+   // Call parent.
+   Parent::onTamlPostWrite();
+
+   // Ensure the image-file is expanded.
+   mTextureFile = expandAssetFilePath(mTextureFile);
+}
+
+void TextureAsset::generateTexture(void)
+{
+   StringBuilder str;
+   str.append("TextureAssetProfile");
+   // implement some defaults, eventually SRGB should be optional.
+   U32 flags = GFXTextureProfile::Static | GFXTextureProfile::SRGB;
+
+   str.append("STATICSRGB");
+
+   // dont want mips?
+   if (!mGenMips)
+   {
+      flags |= GFXTextureProfile::NoMipmap;
+      str.append("NOMIP");
+   }
+
+   GFXTextureProfile::Types type = GFXTextureProfile::Types::DiffuseMap;
+
+   if (mTextureType == TextureTypes::Normal) {
+      str.append("NORMAL");
+      type = GFXTextureProfile::Types::NormalMap;
+   }
+   else
+   {
+      str.append("DIFFUSE");
+   }
+
+   GFXTextureProfile* tempProfile = new GFXTextureProfile(str.end(), type, flags);
+
+   mTextureHandle = TEXMGR->createTexture(mTextureFile, tempProfile);
+
+   if (mTextureHandle.isValid())
+      mLoadedState = AssetErrCode::Ok;
+   else
+      mLoadedState = AssetErrCode::Failed;
+}
+
