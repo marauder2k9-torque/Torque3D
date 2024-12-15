@@ -16,6 +16,7 @@
 IMPLEMENT_CONOBJECT(TextureAsset);
 
 ConsoleType(TextureAssetPtr, TypeTextureAssetPtr, AssetPtr<TextureAsset>, ASSET_ID_FIELD_PREFIX)
+ImplementConsoleTypeCasters(TypeTextureAssetPtr, AssetPtr<TextureAsset>)
 
 //-----------------------------------------------------------------------------
 

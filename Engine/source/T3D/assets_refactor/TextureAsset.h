@@ -104,7 +104,7 @@ protected:
 
 //-----------------------------------------------------------------------------
 
-DefineConsoleType(TypeTextureAssetPtr, TextureAsset)
+DefineUnmappedConsoleType(TypeTextureAssetPtr, AssetPtr<TextureAsset>)
 
 //-----------------------------------------------------------------------------
 
