@@ -109,4 +109,37 @@ DefineUnmappedConsoleType(TypeTextureAssetPtr, AssetPtr<TextureAsset>)
 //-----------------------------------------------------------------------------
 
 
+//-----------------------------------------------------------------------------
+// MACROS
+//-----------------------------------------------------------------------------
+
+#pragma region Singular Asset Macros
+
+#define DECLARE_TEXTUREASSET(className, name, profile) public: \
+AssetPtr<TextureAsset> m##name##Asset;\
+GFXTextureProfile*   m##name##Profile = &profile;\
+void                 set##name( const char* pAssetId );\
+inline const AssetPtr<TextureAsset>& get##name(void) const { return m##name##Asset; }\
+protected:\
+static bool _set##name##Data(void* obj, const char* index, const char* data) { static_cast<className*>(obj)->set##name##(data); return false; }\
+
+#define INITPERSISTFIELD_TEXTUREASSET(name, consoleClass, docs) \
+   addProtectedField(assetText(name, Asset), TypeTextureAssetPtr, Offset(m##name##Asset, consoleClass), &_set##name##Data, &defaultProtectedGetFn, assetDoc(name, asset docs.));
+
+#define INIT_TEXTUREASSET(name) \
+   m##name##Asset = NULL;
+
+#define PACK_TEXTUREASSET(netconn, name)\
+   if (stream->writeFlag(m##name##Asset.notNull()))\
+   {\
+      NetStringHandle assetIdStr = m##name##Asset.getAssetId();\
+      netconn->packNetStringHandleU(stream, assetIdStr);\
+   }\
+
+#define UNPACK_TEXTUREASSET(netconn, name)\
+   if (stream->readFlag())\
+   {\
+      m##name##Asset.setAssetId(StringTable->insert(netconn->unpackNetStringHandleU(stream).getString()));\
+   }
+
 #endif // !_TEXTURE_ASSET_H_

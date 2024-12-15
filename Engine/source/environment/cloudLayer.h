@@ -39,7 +39,9 @@
 #include "materials/matInstance.h"
 #endif
 
-#include "T3D/assets/ImageAsset.h"
+#ifndef _TEXTURE_ASSET_H_
+#include "T3D/assets_refactor/TextureAsset.h"
+#endif
 
 GFXDeclareVertexFormat( GFXCloudVertex )
 {
@@ -97,8 +99,7 @@ protected:
    static U32 smVertCount;
    static U32 smTriangleCount;
 
-   DECLARE_IMAGEASSET(CloudLayer, Texture, onImageChanged, GFXStaticTextureSRGBProfile);
-   DECLARE_ASSET_NET_SETGET(CloudLayer, Texture, CloudLayerMask);
+   DECLARE_TEXTUREASSET(CloudLayer, Texture, GFXStaticTextureSRGBProfile);
 
    GFXShaderRef mShader;
 
