@@ -531,5 +531,6 @@ inline F64 mSquared( F64 n )
    return n * n;
 }
 
+inline void mSwap(F32& a, F32& b) { F32 temp = b; b = a; a = temp; }
 
 #endif //_MMATHFN_H_

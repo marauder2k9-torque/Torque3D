@@ -31,6 +31,43 @@ public:
       ImageTypeCount = 11
    };
 
+   class Frame
+   {
+   public:
+      Frame() {}
+      Frame(const S32 pixelOffsetX, const S32 pixelOffsetY,
+            const U32 pixelWidth, const U32 pixelHeight,
+            const F32 texelWidthScale, const F32 texelHeightScale,
+            StringTableEntry inRegionName = StringTable->EmptyString())
+      {
+         pixelOffset.set(pixelOffsetY, pixelOffsetY);
+         pixelSize.set(pixelWidth, pixelHeight);
+
+         texelLower.set(pixelOffsetX * texelWidthScale, pixelOffsetY * texelHeightScale);
+         texelSize.set(pixelWidth * texelWidthScale, pixelHeight * texelHeightScale);
+         texelUpper.set(texelLower.x + texelSize.x, texelLower.y + texelSize.y);
+
+         if (inRegionName != StringTable->EmptyString()) {
+            regionName = StringTable->insert(inRegionName);
+         }
+      }
+
+      void setFlip(bool flipX, bool flipY)
+      {
+         if (flipX) mSwap(texelLower.x, texelUpper.x);
+         if (flipY) mSwap(texelLower.y, texelUpper.y);
+      }
+
+      Point2I pixelOffset;
+      Point2I pixelSize;
+
+      Point2F texelLower;
+      Point2F texelUpper;
+      Point2F texelSize;
+
+      StringTableEntry regionName;
+   };
+
 private:
 
    StringTableEntry  mTextureFile;
