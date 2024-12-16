@@ -6,6 +6,7 @@
 #include "gfx/gfxTextureManager.h"
 #include "gfx/bitmap/gBitmap.h"
 #include "core/util/str.h"
+#include "core/volume.h"
 
 #include "platform/profiler.h"
 
@@ -90,6 +91,10 @@ TextureAsset::TextureAsset()
 
 TextureAsset::~TextureAsset()
 {
+   if (mLoadedState == Ok)
+      Torque::FS::RemoveChangeNotification(mTextureFile, this, &TextureAsset::_onFileChanged);
+
+   SAFE_DELETE(mTextureHandle);
 }
 
 void TextureAsset::initPersistFields()
@@ -129,6 +134,8 @@ void TextureAsset::copyTo(SimObject* object)
    AssertFatal(pAsset != NULL, "TextureAsset::copyTo() - Object is not the correct type.");
 
    pAsset->setImageFile(getImageFile());
+   pAsset->setGenMips(getGenMips());
+   pAsset->setTextureHDR(getTextureHDR());   
 }
 
 void TextureAsset::setImageFile(StringTableEntry pImageFile)
@@ -140,6 +147,10 @@ void TextureAsset::setImageFile(StringTableEntry pImageFile)
 
    if (pImageFile == mTextureFile)
       return;
+
+   // if we previously loaded, remove the listener for the file.
+   if(mLoadedState == Ok)
+      Torque::FS::RemoveChangeNotification(mTextureFile, this, &TextureAsset::_onFileChanged);
 
    mTextureFile = getOwned() ? expandAssetFilePath(pImageFile) : StringTable->insert(pImageFile);
 
@@ -169,18 +180,28 @@ void TextureAsset::setTextureHDR(const bool pIsHDR)
 
 GFXTexHandle TextureAsset::getTexture(GFXTextureProfile* requestedProfile)
 {
-   if (mResourceMap.contains(requestedProfile))
+   load();
+
+   if (mLoadedState == Ok)
    {
-      return mResourceMap.find(requestedProfile)->value;
-   }
-   else
-   {
-      //If we don't have an existing map case to the requested format, we'll just create it and insert it in
-      GFXTexHandle newTex = TEXMGR->createTexture(mTextureFile, requestedProfile);
-      if (newTex)
+      if (mResourceMap.contains(requestedProfile))
       {
-         mResourceMap.insert(requestedProfile, newTex);
-         return newTex;
+         return mResourceMap.find(requestedProfile)->value;
+      }
+      else
+      {
+         //If we don't have an existing map case to the requested format, we'll just create it and insert it in
+         GFXTexHandle newTex = TEXMGR->createTexture(mTextureFile, requestedProfile);
+         if (newTex)
+         {
+            mResourceMap.insert(requestedProfile, newTex);
+            return newTex;
+         }
+         else
+         {
+            // return successfully generated texture instead.
+            return mTextureHandle;
+         }
       }
    }
 
@@ -194,9 +215,6 @@ void TextureAsset::initializeAsset(void)
 
    // Ensure the image-file is expanded.
    mTextureFile = expandAssetFilePath(mTextureFile);
-
-   // Generate texture
-   generateTexture();
 }
 
 void TextureAsset::onAssetRefresh(void)
@@ -207,9 +225,36 @@ void TextureAsset::onAssetRefresh(void)
 
    // Call parent.
    Parent::onAssetRefresh();
+}
 
-   // Generate texture
+U32 TextureAsset::load()
+{
+   if (mLoadedState == Ok)
+      return;
+
+   if (!Torque::FS::IsFile(mTextureFile))
+   {
+      Con::errorf("ImageAsset::initializeAsset: Attempted to load file %s but it was not valid!", mTextureFile);
+      mLoadedState = BadFileReference;
+      return mLoadedState;
+   }
+   else
+   {
+      Torque::FS::AddChangeNotification(mTextureFile, this, &TextureAsset::_onFileChanged);
+   }
+
    generateTexture();
+
+   return mLoadedState;
+}
+
+
+void TextureAsset::_onFileChanged(const Torque::Path& path)
+{
+   if (path != Torque::Path(mTextureFile))
+      return;
+
+   refreshAsset();
 }
 
 void TextureAsset::onTamlPreWrite(void)

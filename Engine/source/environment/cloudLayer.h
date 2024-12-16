@@ -52,7 +52,7 @@ GFXDeclareVertexFormat( GFXCloudVertex )
    Point2F texCoord;
 };
 
-class CloudLayer : public SceneObject
+class CloudLayer : public SceneObject, protected AssetPtrCallback
 {
    typedef SceneObject Parent;
 
@@ -91,6 +91,7 @@ public:
 protected:
 
    void _initBuffers();
+   void onAssetRefreshed(AssetPtrBase* pAssetPtrBase) override;
 
 protected:
 

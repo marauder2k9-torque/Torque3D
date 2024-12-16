@@ -53,6 +53,9 @@ public:
    void onRemove() override;
    void copyTo(SimObject* object) override;
 
+   // asset Base load
+   U32 load() override;
+
    void                    setImageFile(StringTableEntry pImageFile);
    inline StringTableEntry getImageFile(void) const { return mTextureFile; };
 
@@ -62,7 +65,7 @@ public:
    void                    setTextureHDR(const bool pIsHDR);
    inline bool             getTextureHDR(void) const { return mIsHDR; };
 
-   inline GFXTexHandle&    getTexture(void) { return mTextureHandle; }
+   inline GFXTexHandle&    getTexture(void) { load(); return mTextureHandle; }
    GFXTexHandle            getTexture(GFXTextureProfile* requestedProfile);
 
    inline U32              getTextureWidth(void) const { return mTextureHandle->getWidth(); }
@@ -81,6 +84,7 @@ protected:
    // Asset Base callback
    void initializeAsset(void) override;
    void onAssetRefresh(void) override;
+   void _onFileChanged(const Torque::Path& path);
 
    /// Taml callbacks.
    void onTamlPreWrite(void) override;
@@ -115,6 +119,15 @@ DefineUnmappedConsoleType(TypeTextureAssetPtr, AssetPtr<TextureAsset>)
 
 #pragma region Singular Asset Macros
 
+/*! Macro for declaring an asset.
+* 
+* This will add a function set<name>(const char* pAssetId) to the class
+* which must be filled in for the classes handling of asset changes.
+* 
+* @param className The class we want to add this asset to.
+* @param name The name of the Asset variable
+* @param profile The GFXTextureProfile we want to use with this texture asset.
+*/
 #define DECLARE_TEXTUREASSET(className, name, profile) public: \
 AssetPtr<TextureAsset> m##name##Asset;\
 GFXTextureProfile*   m##name##Profile = &profile;\

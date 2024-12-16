@@ -114,6 +114,8 @@ CloudLayer::CloudLayer()
    mHeight = 4.0f;
 
    INIT_TEXTUREASSET(Texture);
+
+   mTextureAsset.registerRefreshNotify(this);
 }
 
 IMPLEMENT_CO_NETOBJECT_V1( CloudLayer );
@@ -336,6 +338,12 @@ void CloudLayer::setTexture(const char* pAssetId)
    setMaskBits(CloudLayerMask);
 }
 
+void CloudLayer::onAssetRefreshed(AssetPtrBase* pAssetPtrBase)
+{
+   // check asset is valid and we have a resource.
+
+}
+
 void CloudLayer::renderObject( ObjectRenderInst *ri, SceneRenderState *state, BaseMatInstance *mi )
 {
    GFXTransformSaver saver;
@@ -500,3 +508,4 @@ void CloudLayer::_initBuffers()
 
    mPB.unlock();   
 }
+
