@@ -20,35 +20,20 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef IMAGE_ASSET_H
-#include "ImageAsset.h"
-#endif
-
-#ifndef _ASSET_MANAGER_H_
-#include "assets/assetManager.h"
-#endif
-
-#ifndef _CONSOLETYPES_H_
+#include "platform/platform.h"
 #include "console/consoleTypes.h"
-#endif
-
-#ifndef _TAML_
-#include "persistence/taml/taml.h"
-#endif
-
-#ifndef _ASSET_PTR_H_
+#include "assets/assetManager.h"
 #include "assets/assetPtr.h"
-#endif
+#include "gfx/gfxDevice.h"
+#include "gfx/gfxTextureManager.h"
+#include "gfx/bitmap/gBitmap.h"
+#include "core/util/str.h"
+#include "core/volume.h"
 
-#include "gfx/gfxStringEnumTranslate.h"
-
-#include "ImageAssetInspectors.h"
-
-// Debug Profiling.
 #include "platform/profiler.h"
 
-#include "T3D/assets/assetImporter.h"
-#include "gfx/gfxDrawUtil.h"
+#include "T3D/assets/ImageAsset.h"
+#include "T3D/assets/ImageAssetInspectors.h"
 
 //-----------------------------------------------------------------------------
 
@@ -58,17 +43,15 @@ StringTableEntry ImageAsset::smNoImageAssetFallback = NULL;
 
 IMPLEMENT_CONOBJECT(ImageAsset);
 
-ConsoleType(ImageAssetPtr, TypeImageAssetPtr, const char*, "")
+ConsoleType(ImageAssetPtr, TypeImageAssetPtr, AssetPtr<ImageAsset>, ASSET_ID_FIELD_PREFIX)
+ImplementConsoleTypeCasters(TypeImageAssetPtr, AssetPtr<ImageAsset>)
 
 //-----------------------------------------------------------------------------
 
 ConsoleGetType(TypeImageAssetPtr)
 {
-   // Fetch asset Id.
-   return *((const char**)(dptr));
+   return(*((AssetPtr<ImageAsset>*)dptr)).getAssetId();
 }
-
-//-----------------------------------------------------------------------------
 
 ConsoleSetType(TypeImageAssetPtr)
 {
@@ -76,42 +59,35 @@ ConsoleSetType(TypeImageAssetPtr)
    if (argc == 1)
    {
       // Yes, so fetch field value.
-      *((const char**)dptr) = StringTable->insert(argv[0]);
+      const char* pFieldValue = argv[0];
+
+      // Fetch asset pointer.
+      AssetPtr<ImageAsset>* pAssetPtr = dynamic_cast<AssetPtr<ImageAsset>*>((AssetPtrBase*)(dptr));
+
+      // Is the asset pointer the correct type?
+      if (pAssetPtr == NULL)
+      {
+         // No, so fail.
+         Con::warnf("(TypeImageAssetPtr) - Failed to set asset Id '%d'.", pFieldValue);
+         return;
+      }
+
+      // Set asset.
+      pAssetPtr->setAssetId(pFieldValue);
 
       return;
    }
 
    // Warn.
-   Con::warnf("(TypeImageAssetPtr) - Cannot set multiple args to a single asset.");
+   Con::warnf("(TypeTextureAssetPtr) - Cannot set multiple args to a single asset.");
 }
 
-ConsoleType(assetIdString, TypeImageAssetId, const char*, "")
-
-ConsoleGetType(TypeImageAssetId)
-{
-   // Fetch asset Id.
-   return *((const char**)(dptr));
-}
-
-ConsoleSetType(TypeImageAssetId)
-{
-   // Was a single argument specified?
-   if (argc == 1)
-   {
-      *((const char**)dptr) = StringTable->insert(argv[0]);
-
-      return;
-   }
-
-   // Warn.
-   Con::warnf("(TypeAssetId) - Cannot set multiple args to a single asset.");
-}
 //-----------------------------------------------------------------------------
 
 ImplementEnumType(ImageAssetType,
    "Type of mesh data available in a shape.\n"
    "@ingroup gameObjects")
-{ ImageAsset::Albedo, "Albedo", "" },
+{ ImageAsset::Albedo,      "Albedo",      "" },
 { ImageAsset::Normal,      "Normal",      "" },
 { ImageAsset::ORMConfig,   "ORMConfig",   "" },
 { ImageAsset::GUI,         "GUI",         "" },
@@ -121,7 +97,7 @@ ImplementEnumType(ImageAssetType,
 { ImageAsset::Glow,        "Glow",        "" },
 { ImageAsset::Particle,    "Particle",    "" },
 { ImageAsset::Decal,       "Decal",       "" },
-{ ImageAsset::Cubemap,     "Cubemap",       "" },
+{ ImageAsset::Cubemap,     "Cubemap",     "" },
 
 EndImplementEnumType;
 
@@ -131,18 +107,21 @@ const String ImageAsset::mErrCodeStrings[] =
    "UnKnown"
 };
 //-----------------------------------------------------------------------------
-ImageAsset::ImageAsset() : AssetBase(), mIsValidImage(false), mUseMips(true), mIsHDRImage(false), mImageType(Albedo)
+ImageAsset::ImageAsset() :
+   mImageFile(StringTable->EmptyString()),
+   mUseMips(true),
+   mIsHDRImage(false),
+   mImageType(Albedo),
+   mTextureHandle(NULL)
 {
-   mImageFileName = StringTable->EmptyString();
-   mImagePath = StringTable->EmptyString();
    mLoadedState = AssetErrCode::NotLoaded;
-   mChangeSignal.notify(this, &ImageAsset::onAssetRefresh);
 }
 
 //-----------------------------------------------------------------------------
 
 ImageAsset::~ImageAsset()
 {
+   SAFE_DELETE(mTextureHandle);
 }
 
 
@@ -164,223 +143,203 @@ void ImageAsset::initPersistFields()
    // Call parent.
    Parent::initPersistFields();
 
-   addProtectedField("imageFile", TypeAssetLooseFilePath, Offset(mImageFileName, ImageAsset),
-      &setImageFileName, &getImageFileName, "Path to the image file.");
+   addProtectedField("imageFile", TypeAssetLooseFilePath, Offset(mImageFile, ImageAsset), &setImageFile, &getImageFile, &writeImageFile, "Path to the image file.");
 
-   addField("useMips", TypeBool, Offset(mUseMips, ImageAsset), "Should the image use mips? (Currently unused).");
-   addField("isHDRImage", TypeBool, Offset(mIsHDRImage, ImageAsset), "Is the image in an HDR format? (Currently unused)");
+   addProtectedField("useMips", TypeBool, Offset(mUseMips, ImageAsset), &setGenMips, &defaultProtectedGetFn, &writeGenMips, "Generate mip maps?");
+   addProtectedField("isHDRImage", TypeBool, Offset(mIsHDRImage, ImageAsset), &setTextureHDR, &defaultProtectedGetFn, &writeTextureHDR, "HDR Image?");
 
    addField("imageType", TypeImageAssetType, Offset(mImageType, ImageAsset), "What the main use-case for the image is for.");
 }
-
-//------------------------------------------------------------------------------
-//Utility function to 'fill out' bindings and resources with a matching asset if one exists
-U32 ImageAsset::getAssetByFilename(StringTableEntry fileName, AssetPtr<ImageAsset>* imageAsset)
+bool ImageAsset::onAdd()
 {
-   AssetQuery query;
-   S32 foundAssetcount = AssetDatabase.findAssetLooseFile(&query, fileName);
-   if (foundAssetcount == 0)
-   {
-      //Didn't work, so have us fall back to a placeholder asset
-      imageAsset->setAssetId(ImageAsset::smNoImageAssetFallback);
+   // Call Parent.
+   if (!Parent::onAdd())
+      return false;
 
-      if (imageAsset->isNull())
-      {
-         //Well that's bad, loading the fallback failed.
-         Con::warnf("ImageAsset::getAssetByFilename - Finding of asset associated with file %s failed with no fallback asset", fileName);
-         return AssetErrCode::Failed;
-      }
-
-      //handle noshape not being loaded itself
-      if ((*imageAsset)->mLoadedState == BadFileReference)
-      {
-         Con::warnf("ImageAsset::getAssetByFilename - Finding of associated with file %s failed, and fallback asset reported error of Bad File Reference.", fileName);
-         return AssetErrCode::BadFileReference;
-      }
-
-      Con::warnf("ImageAsset::getAssetByFilename - Finding of associated with file %s failed, utilizing fallback asset", fileName);
-
-      (*imageAsset)->mLoadedState = AssetErrCode::UsingFallback;
-      return AssetErrCode::UsingFallback;
-   }
-   else
-   {
-      //acquire and bind the asset, and return it out
-      imageAsset->setAssetId(query.mAssetList[0]);
-      return (*imageAsset)->load();
-   }
+   return true;
 }
 
-StringTableEntry ImageAsset::getAssetIdByFilename(StringTableEntry fileName)
+void ImageAsset::onRemove()
 {
-   if (fileName == StringTable->EmptyString())
-      return StringTable->EmptyString();
-
-   StringTableEntry imageAssetId = ImageAsset::smNoImageAssetFallback;
-
-   AssetQuery query;
-   S32 foundAssetcount = AssetDatabase.findAssetLooseFile(&query, fileName);
-   if (foundAssetcount != 0)
-   {
-      //acquire and bind the asset, and return it out
-      imageAssetId = query.mAssetList[0];
-   }
-   else
-   {
-      AssetPtr<ImageAsset> imageAsset = imageAssetId; //ensures the fallback is loaded
-   }
-
-   return imageAssetId;
+   // Call Parent.
+   Parent::onRemove();
 }
 
-U32 ImageAsset::getAssetById(StringTableEntry assetId, AssetPtr<ImageAsset>* imageAsset)
+void ImageAsset::initializeAsset(void)
 {
-   (*imageAsset) = assetId;
+   // Call parent.
+   Parent::initializeAsset();
 
-   if (imageAsset->notNull())
-   {
-      return (*imageAsset)->load();
-   }
-   else
-   {
-      if (imageAsset->isNull())
-      {
-         return AssetErrCode::Failed;
-      }
+   // Ensure the image-file is expanded.
+   mImageFile = expandAssetFilePath(mImageFile);
+}
 
-      //handle fallback not being loaded itself
-      if ((*imageAsset)->mLoadedState == BadFileReference)
-      {
-         Con::warnf("ImageAsset::getAssetById - Finding of asset with id %s failed, and fallback asset reported error of Bad File Reference.", assetId);
-         return AssetErrCode::BadFileReference;
-      }
+void ImageAsset::onAssetRefresh(void)
+{
+   // Ignore if not yet added to the sim.
+   if (!isProperlyAdded())
+      return;
 
-      Con::warnf("ImageAsset::getAssetById - Finding of asset with id %s failed, utilizing fallback asset", assetId);
+   // Call parent.
+   Parent::onAssetRefresh();
 
-      (*imageAsset)->mLoadedState = AssetErrCode::UsingFallback;
-      return AssetErrCode::UsingFallback;
-   }
+   mLoadedState = NotLoaded;
 }
 
 //------------------------------------------------------------------------------
+
 void ImageAsset::copyTo(SimObject* object)
 {
    // Call to parent.
    Parent::copyTo(object);
+
+   ImageAsset* pAsset = static_cast<ImageAsset*>(object);
+
+   // Sanity!
+   AssertFatal(pAsset != NULL, "ImageAsset::copyTo() - Object is not the correct type.");
+
+   pAsset->setImageFile(getImageFile());
+   pAsset->setGenMips(getGenMips());
+   pAsset->setTextureHDR(getTextureHDR());
+}
+
+void ImageAsset::setImageFile(StringTableEntry pImageFile)
+{
+   // Sanity!
+   AssertFatal(pImageFile != NULL, "Cannot use a NULL image file.");
+
+   pImageFile = StringTable->insert(pImageFile);
+
+   if (pImageFile == mImageFile)
+      return;
+
+   // if we previously loaded, remove the listener for the file.
+   if (mLoadedState == Ok)
+      Torque::FS::RemoveChangeNotification(mImageFile, this, &ImageAsset::_onFileChanged);
+
+   mImageFile = getOwned() ? expandAssetFilePath(pImageFile) : StringTable->insert(pImageFile);
+
+   refreshAsset();
+}
+
+void ImageAsset::setGenMips(const bool pGenMips)
+{
+   if (pGenMips == mUseMips)
+      return;
+
+   mUseMips = pGenMips;
+
+   refreshAsset();
+}
+
+
+void ImageAsset::setTextureHDR(const bool pIsHDR)
+{
+   if (pIsHDR == mIsHDRImage)
+      return;
+
+   mIsHDRImage = pIsHDR;
+
+   refreshAsset();
 }
 
 U32 ImageAsset::load()
 {
-   if (mLoadedState == AssetErrCode::Ok) return mLoadedState;
-   if (mImagePath)
-   {
-      if (!Torque::FS::IsFile(mImagePath))
-      {
-         Con::errorf("ImageAsset::initializeAsset: Attempted to load file %s but it was not valid!", mImageFileName);
-         mLoadedState = BadFileReference;
-         return mLoadedState;
-      }
+   if (mLoadedState == Ok)
+      return;
 
-      mLoadedState = Ok;
-      mIsValidImage = true;
+   if (!Torque::FS::IsFile(mImageFile))
+   {
+      Con::errorf("ImageAsset::initializeAsset: Attempted to load file %s but it was not valid!", mImageFile);
+      mLoadedState = BadFileReference;
       return mLoadedState;
    }
-   mLoadedState = BadFileReference;
+   else
+   {
+      Torque::FS::AddChangeNotification(mImageFile, this, &ImageAsset::_onFileChanged);
+   }
 
-   mIsValidImage = false;
+   generateTexture();
+
    return mLoadedState;
 }
 
-void ImageAsset::initializeAsset()
-{
-   ResourceManager::get().getChangedSignal().notify(this, &ImageAsset::_onResourceChanged);
-
-   mImagePath = getOwned() ? expandAssetFilePath(mImageFileName) : mImagePath;
-}
-
-void ImageAsset::onAssetRefresh()
-{
-   mImagePath = getOwned() ? expandAssetFilePath(mImageFileName) : mImagePath;
-
-   AssetManager::typeAssetDependsOnHash::Iterator assetDependenciesItr = mpOwningAssetManager->getDependedOnAssets()->find(mpAssetDefinition->mAssetId);
-   // Iterate all dependencies.
-   while (assetDependenciesItr != mpOwningAssetManager->getDependedOnAssets()->end() && assetDependenciesItr->key == mpAssetDefinition->mAssetId)
-   {
-      StringTableEntry assetId = assetDependenciesItr->value;
-      AssetBase* dependent = AssetDatabase.acquireAsset<AssetBase>(assetId);
-      dependent->refreshAsset();
-   }
-}
 
 void ImageAsset::_onResourceChanged(const Torque::Path& path)
 {
-   if (path != Torque::Path(mImagePath))
+   if (path != Torque::Path(mImageFile))
       return;
 
    refreshAsset();
 }
 
-void ImageAsset::setImageFileName(const char* pScriptFile)
-{
-   // Sanity!
-   AssertFatal(pScriptFile != NULL, "Cannot use a NULL image file.");
-
-   // Update.
-   mImageFileName = StringTable->insert(pScriptFile, true);
-
-   // Refresh the asset.
-   refreshAsset();
-}
-
 GFXTexHandle ImageAsset::getTexture(GFXTextureProfile* requestedProfile)
 {
-   if (mResourceMap.contains(requestedProfile))
+   load();
+
+   if (mLoadedState == Ok)
    {
-      mLoadedState = Ok;
-      return mResourceMap.find(requestedProfile)->value;
-   }
-   else
-   {
-      //If we don't have an existing map case to the requested format, we'll just create it and insert it in
-      GFXTexHandle newTex = TEXMGR->createTexture(mImagePath, requestedProfile);
-      if (newTex)
+      if (mResourceMap.contains(requestedProfile))
       {
-         mResourceMap.insert(requestedProfile, newTex);
-         mLoadedState = Ok;
-         return newTex;
+         return mResourceMap.find(requestedProfile)->value;
       }
       else
-         mLoadedState = BadFileReference;
+      {
+         //If we don't have an existing map case to the requested format, we'll just create it and insert it in
+         GFXTexHandle newTex = TEXMGR->createTexture(mImageFile, requestedProfile);
+         if (newTex)
+         {
+            mResourceMap.insert(requestedProfile, newTex);
+            return newTex;
+         }
+         else
+         {
+            // return successfully generated texture instead.
+            return mTextureHandle;
+         }
+      }
    }
-
-   //if (mTexture.isValid())
-   //   return mTexture;
 
    return nullptr;
 }
 
-const char* ImageAsset::getImageInfo()
+void ImageAsset::generateTexture(void)
 {
-   if (mIsValidImage)
+   StringBuilder str;
+   str.append("GFX");
+   // implement some defaults, eventually SRGB should be optional.
+   U32 flags = GFXTextureProfile::Static | GFXTextureProfile::SRGB;
+
+   str.append("StaticSRGB");
+
+   // dont want mips?
+   if (!mUseMips)
    {
-      static const U32 bufSize = 2048;
-      char* returnBuffer = Con::getReturnBuffer(bufSize);
-
-      GFXTexHandle newTex = TEXMGR->createTexture(mImagePath, &GFXStaticTextureSRGBProfile);
-      if (newTex)
-      {
-         dSprintf(returnBuffer, bufSize, "%s %d %d %d", GFXStringTextureFormat[newTex->getFormat()], newTex->getHeight(), newTex->getWidth(), newTex->getDepth());
-         newTex = nullptr;
-      }
-      else
-      {
-         dSprintf(returnBuffer, bufSize, "ImageAsset::getImageInfo() - Failed to get image info for %s", getAssetId());
-      }
-
-      return returnBuffer;
+      flags |= GFXTextureProfile::NoMipmap;
+      str.append("NOMIP");
    }
 
-   return "";
+   GFXTextureProfile::Types type = GFXTextureProfile::Types::DiffuseMap;
+
+   if (mImageType == ImageTypes::Normal) {
+      str.append("NORMAL");
+      type = GFXTextureProfile::Types::NormalMap;
+   }
+   else
+   {
+      str.append("DIFFUSE");
+   }
+
+   GFXTextureProfile* tempProfile = new GFXTextureProfile(str.end(), type, flags);
+
+   mTextureHandle = TEXMGR->createTexture(mImageFile, tempProfile);
+
+   if (mTextureHandle.isValid())
+      mLoadedState = AssetErrCode::Ok;
+   else
+      mLoadedState = AssetErrCode::Failed;
+
+   ResourceManager::get().getChangedSignal().notify(this, &ImageAsset::_onResourceChanged);
 }
 
 const char* ImageAsset::getImageTypeNameFromType(ImageAsset::ImageTypes type)
@@ -409,7 +368,7 @@ const char* ImageAsset::getImageTypeNameFromType(ImageAsset::ImageTypes type)
    return _names[type];
 }
 
-ImageAsset::ImageTypes ImageAsset::getImageTypeFromName(const char* name)
+ImageAsset::ImageTypes ImageAsset::getImageTypeFromName(StringTableEntry name)
 {
    if (dStrIsEmpty(name))
    {
@@ -432,32 +391,45 @@ ImageAsset::ImageTypes ImageAsset::getImageTypeFromName(const char* name)
    return (ImageTypes)ret;
 }
 
-DefineEngineMethod(ImageAsset, getImagePath, const char*, (), ,
-   "Gets the image filepath of this asset.\n"
-   "@return File path of the image file.")
+void ImageAsset::_onFileChanged(const Torque::Path& path)
 {
-   return object->getImagePath();
+   if (path != Torque::Path(mImageFile))
+      return;
+
+   refreshAsset();
 }
 
-DefineEngineMethod(ImageAsset, getImageInfo, const char*, (), ,
-   "Gets the info and properties of the image.\n"
-   "@return The info/properties of the image.")
+void ImageAsset::_onResourceChanged(const Torque::Path& path)
 {
-   return object->getImageInfo();
+   if (path != Torque::Path(mImageFile))
+      return;
+
+   refreshAsset();
 }
 
-#ifdef TORQUE_TOOLS
-DefineEngineStaticMethod(ImageAsset, getAssetIdByFilename, const char*, (const char* filePath), (""),
-   "Queries the Asset Database to see if any asset exists that is associated with the provided file path.\n"
-   "@return The AssetId of the associated asset, if any.")
+void ImageAsset::onTamlPreWrite(void)
 {
-   return ImageAsset::getAssetIdByFilename(StringTable->insert(filePath));
+   // Call parent.
+   Parent::onTamlPreWrite();
+
+   // Ensure the image-file is collapsed.
+   mImageFile = collapseAssetFilePath(mImageFile);
 }
+
+void ImageAsset::onTamlPostWrite(void)
+{
+   // Call parent.
+   Parent::onTamlPostWrite();
+
+   // Ensure the image-file is expanded.
+   mImageFile = expandAssetFilePath(mImageFile);
+}
+
 
 //-----------------------------------------------------------------------------
 // GuiInspectorTypeAssetId
 //-----------------------------------------------------------------------------
-
+/*
 IMPLEMENT_CONOBJECT(GuiInspectorTypeImageAssetPtr);
 
 ConsoleDocClass(GuiInspectorTypeImageAssetPtr,
@@ -544,24 +516,6 @@ GuiControl* GuiInspectorTypeImageAssetPtr::constructEditControl()
 
    mPreviewBorderButton->setField("Command", szBuffer); //clicking the preview does the same thing as the edit button, for simplicity
    addObject(mPreviewBorderButton);
-
-   //
-   // Create "Open in Editor" button
-   /*mEditButton = new GuiBitmapButtonCtrl();
-
-   dSprintf(szBuffer, sizeof(szBuffer), "AssetBrowser.editAsset(%d.getText());", retCtrl->getId());
-   mEditButton->setField("Command", szBuffer);
-
-   mEditButton->setText("Edit");
-   mEditButton->setSizing(horizResizeLeft, vertResizeAspectTop);
-
-   mEditButton->setDataField(StringTable->insert("Profile"), NULL, "ToolsGuiButtonProfile");
-   mEditButton->setDataField(StringTable->insert("tooltipprofile"), NULL, "GuiToolTipProfile");
-   mEditButton->setDataField(StringTable->insert("hovertime"), NULL, "1000");
-   mEditButton->setDataField(StringTable->insert("tooltip"), NULL, "Open this asset in the Image Editor");
-
-   mEditButton->registerObject();
-   addObject(mEditButton);*/
 
    //
    mUseHeightOverride = true;
@@ -759,5 +713,5 @@ void GuiInspectorTypeImageAssetId::consoleInit()
 
    ConsoleBaseType::getType(TypeImageAssetId)->setInspectorFieldType("GuiInspectorTypeImageAssetId");
 }
+*/
 
-#endif
