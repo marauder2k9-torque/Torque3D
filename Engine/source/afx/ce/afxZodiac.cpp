@@ -78,8 +78,7 @@ bool afxZodiacData::sPreferDestinationGradients = false;
 
 afxZodiacData::afxZodiacData()
 {
-   INIT_ASSET(Texture);
-
+  INIT_IMAGEASSET(Texture);
   radius_xy = 1;
   vert_range.set(0.0f, 0.0f);
   start_ang = 0;
@@ -120,8 +119,7 @@ afxZodiacData::afxZodiacData()
 
 afxZodiacData::afxZodiacData(const afxZodiacData& other, bool temp_clone) : GameBaseData(other, temp_clone)
 {
-   CLONE_ASSET(Texture);
-
+  mTextureAsset = other.mTextureAsset;
   radius_xy = other.radius_xy;
   vert_range = other.vert_range;
   start_ang = other.start_ang;
@@ -270,7 +268,7 @@ void afxZodiacData::packData(BitStream* stream)
 
   merge_zflags();
 
-  PACKDATA_ASSET(Texture);
+  PACKDATA_IMAGEASSET(Texture);
   stream->write(radius_xy);
   stream->write(vert_range.x);
   stream->write(vert_range.y);
@@ -295,7 +293,7 @@ void afxZodiacData::unpackData(BitStream* stream)
 {
   Parent::unpackData(stream);
 
-  UNPACKDATA_ASSET(Texture);
+  UNPACKDATA_IMAGEASSET(Texture);
   stream->read(&radius_xy);
   stream->read(&vert_range.x);
   stream->read(&vert_range.y);
@@ -342,9 +340,8 @@ void afxZodiacData::onStaticModified(const char* slot, const char* newValue)
 
 void afxZodiacData::onPerformSubstitutions() 
 {
-   if (mTextureAssetId != StringTable->EmptyString())
+   if (mTextureAsset->getAssetId() != StringTable->EmptyString())
    {
-      mTextureAsset = mTextureAssetId;
       if (mTextureAsset.notNull())
       {
          if (getTexture() != StringTable->EmptyString() && mTextureName != StringTable->insert("texhandle"))

@@ -56,8 +56,6 @@ public:
     FACES_BITS = 3
   };
 
-  void onImageChanged() {}
-
 public:
    DECLARE_IMAGEASSET(afxZodiacPlaneData, Texture, onImageChanged, AFX_GFXZodiacTextureProfile);
    DECLARE_ASSET_SETGET(afxZodiacPlaneData, Texture);

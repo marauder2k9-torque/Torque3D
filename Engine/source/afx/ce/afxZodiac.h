@@ -56,11 +56,10 @@ public:
 
   static void convertGradientRangeFromDegrees(Point2F& gradrange, const Point2F& gradrange_deg);
 
-  void onImageChanged() {}
+public:
+   DECLARE_IMAGEASSET(afxZodiacData, Texture, AFX_GFXZodiacTextureProfile);
 
 public:
-   DECLARE_IMAGEASSET(afxZodiacData, Texture, onImageChanged, AFX_GFXZodiacTextureProfile);
-   DECLARE_ASSET_SETGET(afxZodiacData, Texture);
 
   F32               radius_xy;
   Point2F           vert_range;
@@ -108,16 +107,16 @@ public:
   /*C*/             afxZodiacData();
   /*C*/             afxZodiacData(const afxZodiacData&, bool = false);
 
-  bool      onAdd() override;
-  void      packData(BitStream*) override;
-  void      unpackData(BitStream*) override;
+  bool              onAdd() override;
+  void              packData(BitStream*) override;
+  void              unpackData(BitStream*) override;
 
   bool              preload(bool server, String &errorStr) override;
 
-  void      onStaticModified(const char* slotName, const char* newValue = NULL) override;
+  void              onStaticModified(const char* slotName, const char* newValue = NULL) override;
 
-  void      onPerformSubstitutions() override;
-  bool      allowSubstitutions() const override { return true; }
+  void              onPerformSubstitutions() override;
+  bool              allowSubstitutions() const override { return true; }
 
   F32               calcRotationAngle(F32 elapsed, F32 rate_factor=1.0f);
 
