@@ -47,11 +47,8 @@ public:
    };
 
 public:
-   DECLARE_IMAGEASSET(afxBillboardData, Texture, onChangeTexture, GFXStaticTextureSRGBProfile);
-   DECLARE_ASSET_SETGET(afxBillboardData, Texture);
 
-
-  LinearColorF            color;
+  LinearColorF      color;
   Point2F           texCoords[4];
   Point2F           dimensions;
   S32               blendStyle; 
@@ -74,6 +71,9 @@ public:
   void onChangeTexture() {}
 
   DECLARE_CONOBJECT(afxBillboardData);
+
+  DECLARE_IMAGEASSET(afxBillboardData, Texture, GFXStaticTextureSRGBProfile);
+
 };
 
 typedef afxBillboardData::BlendStyle afxBillboard_BlendStyle;

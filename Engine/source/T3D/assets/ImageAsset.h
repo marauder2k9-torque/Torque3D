@@ -198,15 +198,15 @@ DefineEnumType(ImageAssetType);
 * @param profile The GFXTextureProfile we want to use with this texture asset.
 */
 #define DECLARE_IMAGEASSET(className, name, profile) public: \
-AssetPtr<TextureAsset> m##name##Asset;\
+AssetPtr<ImageAsset> m##name##Asset;\
 GFXTextureProfile*   m##name##Profile = &profile;\
 void                 set##name( const char* pAssetId );\
-inline const AssetPtr<TextureAsset>& get##name(void) const { return m##name##Asset; }\
+inline const AssetPtr<ImageAsset>& get##name(void) const { return m##name##Asset; }\
 protected:\
 static bool _set##name##Data(void* obj, const char* index, const char* data) { static_cast<className*>(obj)->set##name##(data); return false; }\
 
 #define INITPERSISTFIELD_IMAGEASSET(name, consoleClass, docs) \
-   addProtectedField(assetText(name, Asset), TypeTextureAssetPtr, Offset(m##name##Asset, consoleClass), &_set##name##Data, &defaultProtectedGetFn, assetDoc(name, asset docs.));
+   addProtectedField(assetText(name, Asset), TypeImageAssetPtr, Offset(m##name##Asset, consoleClass), &_set##name##Data, &defaultProtectedGetFn, assetDoc(name, asset docs.));
 
 #define INIT_IMAGEASSET(name) \
    m##name##Asset = NULL;
@@ -222,4 +222,16 @@ static bool _set##name##Data(void* obj, const char* index, const char* data) { s
    if (stream->readFlag())\
    {\
       m##name##Asset.setAssetId(StringTable->insert(netconn->unpackNetStringHandleU(stream).getString()));\
+   }
+
+#define PACKDATA_IMAGEASSET(name)\
+   if (stream->writeFlag(m##name##Asset.notNull()))\
+   {\
+      stream->writeString(m##name##Asset.getAssetId());\
+   }\
+
+#define UNPACKDATA_IMAGEASSET(name)\
+   if (stream->readFlag())\
+   {\
+      m##name##Asset.setAssetId(StringTable->insert(stream->readSTString()));\
    }

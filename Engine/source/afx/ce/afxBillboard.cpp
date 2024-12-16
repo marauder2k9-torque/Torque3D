@@ -51,7 +51,7 @@ ConsoleDocClass( afxBillboardData,
 afxBillboardData::afxBillboardData()
 {
   color.set(1.0f, 1.0f, 1.0f, 1.0f);
-  INIT_ASSET(Texture);
+  INIT_IMAGEASSET(Texture);
   dimensions.set(1.0f, 1.0f);
   texCoords[0].set(0.0f, 0.0f);
   texCoords[1].set(0.0f, 1.0f);
@@ -66,7 +66,7 @@ afxBillboardData::afxBillboardData(const afxBillboardData& other, bool temp_clon
   : GameBaseData(other, temp_clone)
 {
   color = other.color;
-  CLONE_ASSET(Texture);
+  mTextureAsset = other.mTextureAsset;
   dimensions = other.dimensions;
   texCoords[0] = other.texCoords[0];
   texCoords[1] = other.texCoords[1];
@@ -124,7 +124,7 @@ void afxBillboardData::packData(BitStream* stream)
 	Parent::packData(stream);
 
   stream->write(color);
-  PACKDATA_ASSET(Texture);
+  PACKDATA_IMAGEASSET(Texture);
 
   mathWrite(*stream, dimensions);
   mathWrite(*stream, texCoords[0]);
@@ -141,7 +141,7 @@ void afxBillboardData::unpackData(BitStream* stream)
   Parent::unpackData(stream);
 
   stream->read(&color);
-  UNPACKDATA_ASSET(Texture);
+  UNPACKDATA_IMAGEASSET(Texture);
   mathRead(*stream, &dimensions);
   mathRead(*stream, &texCoords[0]);
   mathRead(*stream, &texCoords[1]);
@@ -150,6 +150,15 @@ void afxBillboardData::unpackData(BitStream* stream)
 
   srcBlendFactor = (GFXBlend) stream->readInt(4);
   dstBlendFactor = (GFXBlend) stream->readInt(4);
+}
+
+void afxBillboardData::setTexture(const char* pAssetId)
+{
+   // Ignore no change.
+   if (mTextureAsset.getAssetId() == StringTable->insert(pAssetId))
+      return;
+
+   mTextureAsset = pAssetId;
 }
 
 bool afxBillboardData::preload(bool server, String &errorStr)
