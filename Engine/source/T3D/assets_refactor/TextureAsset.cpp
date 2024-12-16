@@ -225,6 +225,8 @@ void TextureAsset::onAssetRefresh(void)
 
    // Call parent.
    Parent::onAssetRefresh();
+
+   mLoadedState = NotLoaded;
 }
 
 U32 TextureAsset::load()

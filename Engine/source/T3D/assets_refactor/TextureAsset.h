@@ -34,11 +34,11 @@ public:
    class Frame
    {
    public:
-      Frame() {}
       Frame(const S32 pixelOffsetX, const S32 pixelOffsetY,
             const U32 pixelWidth, const U32 pixelHeight,
             const F32 texelWidthScale, const F32 texelHeightScale,
             StringTableEntry inRegionName = StringTable->EmptyString())
+         : regionName(inRegionName)
       {
          pixelOffset.set(pixelOffsetY, pixelOffsetY);
          pixelSize.set(pixelWidth, pixelHeight);
@@ -46,10 +46,6 @@ public:
          texelLower.set(pixelOffsetX * texelWidthScale, pixelOffsetY * texelHeightScale);
          texelSize.set(pixelWidth * texelWidthScale, pixelHeight * texelHeightScale);
          texelUpper.set(texelLower.x + texelSize.x, texelLower.y + texelSize.y);
-
-         if (inRegionName != StringTable->EmptyString()) {
-            regionName = StringTable->insert(inRegionName);
-         }
       }
 
       void setFlip(bool flipX, bool flipY)
