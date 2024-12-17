@@ -51,6 +51,7 @@ ConsoleType(ImageAssetPtr, TypeImageAssetPtr, const char*, ASSET_ID_FIELD_PREFIX
 
 ConsoleGetType(TypeImageAssetPtr)
 {
+   // Fetch asset Id.
    return *((const char**)(dptr));
 }
 
@@ -59,14 +60,10 @@ ConsoleSetType(TypeImageAssetPtr)
    // Was a single argument specified?
    if (argc == 1)
    {
-      // Was a single argument specified?
-      if (argc == 1)
-      {
-         // Yes, so fetch field value.
-         *((const char**)dptr) = StringTable->insert(argv[0]);
+      // Yes, so fetch field value.
+      *((const char**)dptr) = StringTable->insert(argv[0]);
 
-         return;
-      }
+      return;
    }
 
    // Warn.
