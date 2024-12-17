@@ -29,6 +29,7 @@
 #include "gfx/bitmap/gBitmap.h"
 #include "core/util/str.h"
 #include "core/volume.h"
+#include "gfx/gfxStringEnumTranslate.h"
 
 #include "gfx/gfxDrawUtil.h"
 #include "platform/profiler.h"
@@ -475,7 +476,7 @@ void ImageAsset::onTamlPreWrite(void)
    Parent::onTamlPreWrite();
 
    // Ensure the image-file is collapsed.
-   mImageFile = collapseAssetFilePath(mImageFile);
+   mImageFile = getOwned() ? collapseAssetFilePath(mImageFile) : mImageFile;
 }
 
 void ImageAsset::onTamlPostWrite(void)
@@ -484,10 +485,55 @@ void ImageAsset::onTamlPostWrite(void)
    Parent::onTamlPostWrite();
 
    // Ensure the image-file is expanded.
-   mImageFile = expandAssetFilePath(mImageFile);
+   mImageFile = getOwned() ? expandAssetFilePath(mImageFile) : mImageFile;
 }
 
+const char* ImageAsset::getImageInfo()
+{
+   if (isAssetValid())
+   {
+      static const U32 bufSize = 2048;
+      char* returnBuffer = Con::getReturnBuffer(bufSize);
 
+      GFXTexHandle newTex = TEXMGR->createTexture(mImageFile, &GFXStaticTextureSRGBProfile);
+      if (newTex)
+      {
+         dSprintf(returnBuffer, bufSize, "%s %d %d %d", GFXStringTextureFormat[newTex->getFormat()], newTex->getHeight(), newTex->getWidth(), newTex->getDepth());
+         newTex = nullptr;
+      }
+      else
+      {
+         dSprintf(returnBuffer, bufSize, "ImageAsset::getImageInfo() - Failed to get image info for %s", getAssetId());
+      }
+
+      return returnBuffer;
+   }
+
+   return "";
+}
+
+DefineEngineMethod(ImageAsset, getImagePath, const char*, (), ,
+   "Gets the image filepath of this asset.\n"
+   "@return File path of the image file.")
+{
+   return object->getImageFile();
+}
+
+DefineEngineMethod(ImageAsset, getImageInfo, const char*, (), ,
+   "Gets the info and properties of the image.\n"
+   "@return The info/properties of the image.")
+{
+   return object->getImageInfo();
+}
+
+#ifdef TORQUE_TOOLS
+DefineEngineStaticMethod(ImageAsset, getAssetIdByFilename, const char*, (const char* filePath), (""),
+   "Queries the Asset Database to see if any asset exists that is associated with the provided file path.\n"
+   "@return The AssetId of the associated asset, if any.")
+{
+   return ImageAsset::getAssetIdByFilename(StringTable->insert(filePath));
+}
+#endif
 //-----------------------------------------------------------------------------
 // GuiInspectorTypeAssetId
 //-----------------------------------------------------------------------------

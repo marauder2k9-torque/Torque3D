@@ -31,12 +31,4 @@ public:
    void setPreviewImage(StringTableEntry assetId);
 };
 
-class GuiInspectorTypeImageAssetId : public GuiInspectorTypeImageAssetPtr
-{
-   typedef GuiInspectorTypeImageAssetPtr Parent;
-public:
-
-   DECLARE_CONOBJECT(GuiInspectorTypeImageAssetId);
-   static void consoleInit();
-};
 #endif

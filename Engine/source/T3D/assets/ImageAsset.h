@@ -68,6 +68,39 @@ public:
       ImageTypeCount = 11
    };
 
+   class Frame
+   {
+   public:
+      Frame(const S32 pixelOffsetX, const S32 pixelOffsetY,
+         const U32 pixelWidth, const U32 pixelHeight,
+         const F32 texelWidthScale, const F32 texelHeightScale,
+         StringTableEntry inRegionName = StringTable->EmptyString())
+         : regionName(inRegionName)
+      {
+         pixelOffset.set(pixelOffsetY, pixelOffsetY);
+         pixelSize.set(pixelWidth, pixelHeight);
+
+         texelLower.set(pixelOffsetX * texelWidthScale, pixelOffsetY * texelHeightScale);
+         texelSize.set(pixelWidth * texelWidthScale, pixelHeight * texelHeightScale);
+         texelUpper.set(texelLower.x + texelSize.x, texelLower.y + texelSize.y);
+      }
+
+      void setFlip(bool flipX, bool flipY)
+      {
+         if (flipX) mSwap(texelLower.x, texelUpper.x);
+         if (flipY) mSwap(texelLower.y, texelUpper.y);
+      }
+
+      Point2I pixelOffset;
+      Point2I pixelSize;
+
+      Point2F texelLower;
+      Point2F texelUpper;
+      Point2F texelSize;
+
+      StringTableEntry regionName;
+   };
+
    static StringTableEntry smNoImageAssetFallback;
 
    enum ImageAssetErrCode
@@ -149,6 +182,9 @@ public:
    static StringTableEntry getAssetIdByFilename(StringTableEntry fileName);
    static U32 getAssetById(StringTableEntry assetId, AssetPtr<ImageAsset>* imageAsset);
    static U32 getAssetById(String assetId, AssetPtr<ImageAsset>* imageAsset) { return getAssetById(assetId.c_str(), imageAsset); };
+
+
+   const char* getImageInfo();
 
 protected:
    // Asset Base callback
@@ -347,20 +383,20 @@ public: \
    \
    bool _set##name(StringTableEntry _in, const U32& index)\
    {\
+      if (_in == NULL || _in == StringTable->EmptyString())\
+      {\
+         m##name##Name[index] = StringTable->EmptyString();\
+         m##name##AssetId[index] = StringTable->EmptyString();\
+         m##name##Asset[index] = NULL;\
+         m##name[index].free();\
+         m##name[index] = NULL;\
+         return true;\
+      }\
       if(m##name##AssetId[index] != _in || m##name##Name[index] != _in)\
       {\
          if(index >= sm##name##Count || index < 0)\
             return false;\
-         if (_in == NULL || _in == StringTable->EmptyString())\
-         {\
-            m##name##Name[index] = StringTable->EmptyString();\
-            m##name##AssetId[index] = StringTable->EmptyString();\
-            m##name##Asset[index] = NULL;\
-            m##name[index].free();\
-            m##name[index] = NULL;\
-            return true;\
-         }\
-         else if(_in[0] == '$' || _in[0] == '#')\
+         if(_in[0] == '$' || _in[0] == '#')\
          {\
             m##name##Name[index] = _in;\
             m##name##AssetId[index] = StringTable->EmptyString();\
