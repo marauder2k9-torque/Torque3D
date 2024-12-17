@@ -652,31 +652,6 @@ S32 PersistenceManager::getPropertyIndex(ParsedObject* parsedObject, const char*
    return propertyIndex;
 }
 
-S32 PersistenceManager::getSpecialPropertyAtOffset(ParsedObject* parsedObject, const char* fieldName, U32 offsetPos)
-{
-   S32 propertyIndex = -1;
-
-   if (!parsedObject)
-      return propertyIndex;
-
-   U32 hitCount = -1;
-   for (U32 i = 0; i < parsedObject->properties.size(); i++)
-   {
-      if (dStricmp(fieldName, parsedObject->properties[i].name) == 0)
-      {
-         hitCount++;
-
-         if (hitCount == offsetPos)
-         {
-            propertyIndex = i;
-            break;
-         }
-      }
-   }
-
-   return propertyIndex;
-}
-
 char* PersistenceManager::getObjectIndent(ParsedObject* object)
 {
    char* indent = Con::getReturnBuffer(2048);
@@ -1386,335 +1361,166 @@ void PersistenceManager::updateObject(SimObject* object, ParsedObject* parentObj
       if ( f->type >= AbstractClassRep::ARCFirstCustomField || f->flag.test(AbstractClassRep::FieldFlags::FIELD_ComponentInspectors))
          continue;
 
-      if (f->flag.test(AbstractClassRep::FIELD_SpecialtyArrayField))
+      for(U32 j = 0; S32(j) < f->elementCount; j++)
       {
-         U32 fieldArraySize = object->getSpecialFieldSize(f->pFieldname);
+         const char* value = getFieldValue(object, f->pFieldname, j);
 
-         for(U32 j = 0; j < fieldArraySize; j++)
+         // Make sure we got a value
+         if (!value)
+            continue;
+
+         // Let's see if this field is already in the file
+         S32 propertyIndex = getPropertyIndex(parsedObject, f->pFieldname, j);
+
+         if (propertyIndex > -1)
          {
-            const char* value = object->getSpecialFieldOut(f->pFieldname, j);
+            ParsedProperty& prop = parsedObject->properties[propertyIndex];
 
-            // Make sure we got a value
-            if (!value)
+            // If this field is on the remove list then remove it and continue
+            if (findRemoveField(object, f->pFieldname, j) || !object->writeField(f->pFieldname, value))
+            {
+               removeField( parsedObject->properties[ propertyIndex ] );
+               dFree( value );
                continue;
-
-            // Let's see if this field is already in the file
-            S32 propertyIndex = getSpecialPropertyAtOffset(parsedObject, f->pFieldname, j);
-
-            if (propertyIndex > -1)
-            {
-               ParsedProperty& prop = parsedObject->properties[propertyIndex];
-
-               // If this field is on the remove list then remove it and continue
-               if (findRemoveField(object, f->pFieldname, j))
-               {
-                  removeField(parsedObject->properties[propertyIndex]);
-                  dFree(value);
-                  continue;
-               }
-
-               // Run the parsed value through the console system conditioners so
-               // that it will better match the data we got back from the object.
-               const char* evalue = Con::getFormattedData(f->type, prop.value, f->table, f->flag);
-
-               // If our data doesn't match then we get to update it.
-               //
-               // As for copy-sources, we just assume here that if a property setting
-               // is there in the file, the user does not want it inherited from the copy-source
-               // even in the case the actual values are identical.
-
-               if (dStricmp(value, evalue) != 0)
-               {
-                  if (value[0] == '\0' &&
-                     dStricmp(getFieldValue(defaultObject, f->pFieldname, j), value) == 0 &&
-                     (!object->getCopySource() || dStricmp(getFieldValue(object->getCopySource(), f->pFieldname, j), value) == 0))
-                  {
-                     removeField(prop);
-                  }
-                  else
-                  {
-                     // TODO: This should be wrapped in a helper method... probably.
-                     // Detect and collapse relative path information
-                     if (f->type == TypeFilename ||
-                        f->type == TypeStringFilename ||
-                        f->type == TypeImageFilename ||
-                        f->type == TypePrefabFilename ||
-                        f->type == TypeShapeFilename ||
-                        f->type == TypeSoundFilename)
-                     {
-                        char fnBuf[1024];
-                        Con::collapseScriptFilename(fnBuf, 1024, value);
-
-                        updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, fnBuf, true);
-                     }
-                     else if (f->type == TypeCommand || f->type == TypeString || f->type == TypeRealString)
-                     {
-                        char cmdBuf[1024];
-                        expandEscape(cmdBuf, value);
-
-                        updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, cmdBuf, true);
-                     }
-                     else
-                        updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, value, true);
-                  }
-               }
             }
-            else
+
+            // Run the parsed value through the console system conditioners so
+            // that it will better match the data we got back from the object.
+            const char* evalue = Con::getFormattedData(f->type, prop.value, f->table, f->flag);
+
+            // If our data doesn't match then we get to update it.
+            //
+            // As for copy-sources, we just assume here that if a property setting
+            // is there in the file, the user does not want it inherited from the copy-source
+            // even in the case the actual values are identical.
+            
+            if( dStricmp(value, evalue) != 0 )
             {
-               // No need to process a removed field that doesn't exist in the file
-               if (findRemoveField(object, f->pFieldname, j))
+               if( value[ 0 ] == '\0' &&
+                   dStricmp( getFieldValue( defaultObject, f->pFieldname, j ), value ) == 0 &&
+                   ( !object->getCopySource() || dStricmp( getFieldValue( object->getCopySource(), f->pFieldname, j ), value ) == 0 ) )
                {
-                  dFree(value);
-                  continue;
-               }
-
-               bool mustUpdate = false;
-
-               // If we didn't find the property in the ParsedObject
-               // then we need to compare against the default value
-               // for this property and save it out if it is different
-
-               const char* defaultValue = defaultObject->getSpecialFieldOut(f->pFieldname, j);
-               if (!defaultValue || dStricmp(value, defaultValue) != 0)
-               {
-                  // Value differs.  Check whether it also differs from the
-                  // value in the copy source if there is one.
-
-                  if (object->getCopySource())
-                  {
-                     const char* copySourceValue = getFieldValue(object->getCopySource(), f->pFieldname, j);
-                     if (!copySourceValue || dStricmp(copySourceValue, value) != 0)
-                        mustUpdate = true;
-
-                     if (copySourceValue)
-                        dFree(copySourceValue);
-                  }
-                  else
-                     mustUpdate = true;
+                  removeField( prop );
                }
                else
                {
-                  // Value does not differ.  If it differs from the copy source's value,
-                  // though, we still want to write it out as otherwise we'll see the
-                  // copy source's value override us.
-
-                  if (object->getCopySource())
-                  {
-                     const char* copySourceValue = getFieldValue(object->getCopySource(), f->pFieldname, j);
-                     if (copySourceValue && dStricmp(copySourceValue, value) != 0)
-                        mustUpdate = true;
-
-                     if (copySourceValue)
-                        dFree(copySourceValue);
-                  }
-               }
-
-               // The default value for most string type fields is
-               // NULL so we can't just continue here or we'd never ever
-               // write them out...
-               //
-               //if (!defaultValue)
-               //   continue;
-
-               // If the object's value is different from the default
-               // value then add it to the ParsedObject's newLines                        
-               if (mustUpdate)
-               {
                   // TODO: This should be wrapped in a helper method... probably.
                   // Detect and collapse relative path information
-                  if (f->type == TypeFilename ||
-                     f->type == TypeStringFilename ||
-                     f->type == TypeImageFilename ||
-                     f->type == TypePrefabFilename ||
-                     f->type == TypeShapeFilename ||
-                     f->type == TypeSoundFilename)
+                  if (f->type == TypeFilename       ||
+                      f->type == TypeStringFilename ||
+                      f->type == TypeImageFilename  ||
+                      f->type == TypePrefabFilename ||
+                      f->type == TypeShapeFilename  ||
+                      f->type == TypeSoundFilename )
                   {
                      char fnBuf[1024];
                      Con::collapseScriptFilename(fnBuf, 1024, value);
 
-                     newLines.push_back(createNewProperty(f->pFieldname, fnBuf, f->elementCount > 1, j));
+                     updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, fnBuf, true);
                   }
-                  else if (f->type == TypeCommand)
+                  else if (f->type == TypeCommand || f->type == TypeString || f->type == TypeRealString)
                   {
                      char cmdBuf[1024];
                      expandEscape(cmdBuf, value);
 
-                     newLines.push_back(createNewProperty(f->pFieldname, cmdBuf, f->elementCount > 1, j));
+                     updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, cmdBuf, true);
                   }
                   else
-                     newLines.push_back(createNewProperty(f->pFieldname, value, f->elementCount > 1, j));
+                     updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, value, true);
                }
-
-               if (defaultValue)
-                  dFree(defaultValue);
             }
-
-            //dFree(value);
          }
-      }
-      else
-      {
-         for (U32 j = 0; S32(j) < f->elementCount; j++)
+         else
          {
-            const char* value = getFieldValue(object, f->pFieldname, j);
-
-            // Make sure we got a value
-            if (!value)
-               continue;
-
-            // Let's see if this field is already in the file
-            S32 propertyIndex = getPropertyIndex(parsedObject, f->pFieldname, j);
-
-            if (propertyIndex > -1)
+            // No need to process a removed field that doesn't exist in the file
+            if (findRemoveField(object, f->pFieldname, j) || !object->writeField(f->pFieldname, value))
             {
-               ParsedProperty& prop = parsedObject->properties[propertyIndex];
+               dFree( value );
+               continue;
+            }
+            
+            bool mustUpdate = false;
 
-               // If this field is on the remove list then remove it and continue
-               if (findRemoveField(object, f->pFieldname, j) || !object->writeField(f->pFieldname, value))
+            // If we didn't find the property in the ParsedObject
+            // then we need to compare against the default value
+            // for this property and save it out if it is different
+
+            const char* defaultValue = getFieldValue(defaultObject, f->pFieldname, j);
+            if( !defaultValue || dStricmp( value, defaultValue ) != 0 )
+            {
+               // Value differs.  Check whether it also differs from the
+               // value in the copy source if there is one.
+               
+               if( object->getCopySource() )
                {
-                  removeField(parsedObject->properties[propertyIndex]);
-                  dFree(value);
-                  continue;
+                  const char* copySourceValue = getFieldValue( object->getCopySource(), f->pFieldname, j );
+                  if( !copySourceValue || dStricmp( copySourceValue, value ) != 0 )
+                     mustUpdate = true;
+                     
+                  if( copySourceValue )
+                     dFree( copySourceValue );
                }
-
-               // Run the parsed value through the console system conditioners so
-               // that it will better match the data we got back from the object.
-               const char* evalue = Con::getFormattedData(f->type, prop.value, f->table, f->flag);
-
-               // If our data doesn't match then we get to update it.
-               //
-               // As for copy-sources, we just assume here that if a property setting
-               // is there in the file, the user does not want it inherited from the copy-source
-               // even in the case the actual values are identical.
-
-               if (dStricmp(value, evalue) != 0)
-               {
-                  if (value[0] == '\0' &&
-                     dStricmp(getFieldValue(defaultObject, f->pFieldname, j), value) == 0 &&
-                     (!object->getCopySource() || dStricmp(getFieldValue(object->getCopySource(), f->pFieldname, j), value) == 0))
-                  {
-                     removeField(prop);
-                  }
-                  else
-                  {
-                     // TODO: This should be wrapped in a helper method... probably.
-                     // Detect and collapse relative path information
-                     if (f->type == TypeFilename ||
-                        f->type == TypeStringFilename ||
-                        f->type == TypeImageFilename ||
-                        f->type == TypePrefabFilename ||
-                        f->type == TypeShapeFilename ||
-                        f->type == TypeSoundFilename)
-                     {
-                        char fnBuf[1024];
-                        Con::collapseScriptFilename(fnBuf, 1024, value);
-
-                        updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, fnBuf, true);
-                     }
-                     else if (f->type == TypeCommand || f->type == TypeString || f->type == TypeRealString)
-                     {
-                        char cmdBuf[1024];
-                        expandEscape(cmdBuf, value);
-
-                        updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, cmdBuf, true);
-                     }
-                     else
-                        updateToken(prop.valueLine, prop.valuePosition, prop.endPosition - prop.valuePosition, value, true);
-                  }
-               }
+               else
+                  mustUpdate = true;
             }
             else
             {
-               // No need to process a removed field that doesn't exist in the file
-               if (findRemoveField(object, f->pFieldname, j) || !object->writeField(f->pFieldname, value))
+               // Value does not differ.  If it differs from the copy source's value,
+               // though, we still want to write it out as otherwise we'll see the
+               // copy source's value override us.
+               
+               if( object->getCopySource() )
                {
-                  dFree(value);
-                  continue;
-               }
-
-               bool mustUpdate = false;
-
-               // If we didn't find the property in the ParsedObject
-               // then we need to compare against the default value
-               // for this property and save it out if it is different
-
-               const char* defaultValue = getFieldValue(defaultObject, f->pFieldname, j);
-               if (!defaultValue || dStricmp(value, defaultValue) != 0)
-               {
-                  // Value differs.  Check whether it also differs from the
-                  // value in the copy source if there is one.
-
-                  if (object->getCopySource())
-                  {
-                     const char* copySourceValue = getFieldValue(object->getCopySource(), f->pFieldname, j);
-                     if (!copySourceValue || dStricmp(copySourceValue, value) != 0)
-                        mustUpdate = true;
-
-                     if (copySourceValue)
-                        dFree(copySourceValue);
-                  }
-                  else
+                  const char* copySourceValue = getFieldValue( object->getCopySource(), f->pFieldname, j );
+                  if( copySourceValue && dStricmp( copySourceValue, value ) != 0 )
                      mustUpdate = true;
+                     
+                  if( copySourceValue )
+                     dFree( copySourceValue );
                }
-               else
-               {
-                  // Value does not differ.  If it differs from the copy source's value,
-                  // though, we still want to write it out as otherwise we'll see the
-                  // copy source's value override us.
-
-                  if (object->getCopySource())
-                  {
-                     const char* copySourceValue = getFieldValue(object->getCopySource(), f->pFieldname, j);
-                     if (copySourceValue && dStricmp(copySourceValue, value) != 0)
-                        mustUpdate = true;
-
-                     if (copySourceValue)
-                        dFree(copySourceValue);
-                  }
-               }
-
-               // The default value for most string type fields is
-               // NULL so we can't just continue here or we'd never ever
-               // write them out...
-               //
-               //if (!defaultValue)
-               //   continue;
-
-               // If the object's value is different from the default
-               // value then add it to the ParsedObject's newLines                        
-               if (mustUpdate)
-               {
-                  // TODO: This should be wrapped in a helper method... probably.
-                  // Detect and collapse relative path information
-                  if (f->type == TypeFilename ||
-                     f->type == TypeStringFilename ||
-                     f->type == TypeImageFilename ||
-                     f->type == TypePrefabFilename ||
-                     f->type == TypeShapeFilename ||
-                     f->type == TypeSoundFilename)
-                  {
-                     char fnBuf[1024];
-                     Con::collapseScriptFilename(fnBuf, 1024, value);
-
-                     newLines.push_back(createNewProperty(f->pFieldname, fnBuf, f->elementCount > 1, j));
-                  }
-                  else if (f->type == TypeCommand)
-                  {
-                     char cmdBuf[1024];
-                     expandEscape(cmdBuf, value);
-
-                     newLines.push_back(createNewProperty(f->pFieldname, cmdBuf, f->elementCount > 1, j));
-                  }
-                  else
-                     newLines.push_back(createNewProperty(f->pFieldname, value, f->elementCount > 1, j));
-               }
-
-               if (defaultValue)
-                  dFree(defaultValue);
             }
 
-            dFree(value);
+            // The default value for most string type fields is
+            // NULL so we can't just continue here or we'd never ever
+            // write them out...
+            //
+            //if (!defaultValue)
+            //   continue;
+
+            // If the object's value is different from the default
+            // value then add it to the ParsedObject's newLines                        
+            if ( mustUpdate )
+            {
+               // TODO: This should be wrapped in a helper method... probably.
+               // Detect and collapse relative path information
+               if (f->type == TypeFilename       ||
+                   f->type == TypeStringFilename ||
+                   f->type == TypeImageFilename  ||
+                   f->type == TypePrefabFilename ||
+                   f->type == TypeShapeFilename  ||
+                   f->type == TypeSoundFilename )
+               {
+                  char fnBuf[1024];
+                  Con::collapseScriptFilename(fnBuf, 1024, value);
+
+                  newLines.push_back(createNewProperty(f->pFieldname, fnBuf, f->elementCount > 1, j));
+               }
+               else if (f->type == TypeCommand)
+               {
+                  char cmdBuf[1024];
+                  expandEscape(cmdBuf, value);
+
+                  newLines.push_back(createNewProperty(f->pFieldname, cmdBuf, f->elementCount > 1, j));
+               }
+               else
+                  newLines.push_back(createNewProperty(f->pFieldname, value, f->elementCount > 1, j));              
+            }
+
+            if (defaultValue)
+               dFree( defaultValue );
          }
+
+         dFree( value );
       }
    }
 

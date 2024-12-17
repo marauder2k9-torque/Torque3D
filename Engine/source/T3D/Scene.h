@@ -1,5 +1,5 @@
 #pragma once
-#ifndef SCENE_H
+
 #include "console/engineAPI.h"
 
 #ifndef _NETOBJECT_H_
@@ -9,16 +9,8 @@
 #ifndef _ITICKABLE_H_
 #include "core/iTickable.h"
 #endif
-#ifndef _SCENEOBJECT_H_
-#include "scene/sceneObject.h"
-#endif
 
-#ifndef GAME_MODE_H
-#include "gameMode.h"
-#endif
-#ifndef SUB_SCENE_H
-#include "SubScene.h"
-#endif
+#include "scene/sceneObject.h"
 
 /// Scene
 /// This object is effectively a smart container to hold and manage any relevent scene objects and data
@@ -27,12 +19,15 @@ class Scene : public NetObject, public virtual ITickable
 {
    typedef NetObject Parent;
 
+   bool mIsSubScene;
+
    Scene* mParentScene;
 
-   Vector<SubScene*> mSubScenes;
+   Vector<Scene*> mSubScenes;
 
-   Vector<SimObject*> mPermanentObjects;
-   Vector<SimObject*> mDynamicObjects;
+   Vector<SceneObject*> mPermanentObjects;
+
+   Vector<SceneObject*> mDynamicObjects;
 
    S32 mSceneId;
 
@@ -42,8 +37,7 @@ class Scene : public NetObject, public virtual ITickable
 
    bool mEditPostFX;
 
-   StringTableEntry mGameModesNames;
-   Vector<GameMode*> mGameModesList;
+   StringTableEntry mGameModeName;
 
 protected:
    static Scene * smRootScene;
@@ -69,8 +63,8 @@ public:
    void addObject(SimObject* object) override;
    void removeObject(SimObject* object) override;
 
-   void addDynamicObject(SimObject* object);
-   void removeDynamicObject(SimObject* object);
+   void addDynamicObject(SceneObject* object);
+   void removeDynamicObject(SceneObject* object);
    void clearDynamicObjects() { mDynamicObjects.clear(); }
 
    void dumpUtilizedAssets();
@@ -86,14 +80,12 @@ public:
    void unpackUpdate(NetConnection *conn, BitStream *stream) override;
 
    //
-   Vector<SceneObject*> getObjectsByClass(String className);
+   Vector<SceneObject*> getObjectsByClass(String className, bool checkSubscenes);
 
    void getUtilizedAssetsFromSceneObject(SimObject* object, Vector<StringTableEntry>* usedAssetsList);
 
    template <class T>
-   Vector<T*> getObjectsByClass();
-
-   void loadAtPosition(const Point3F& position);
+   Vector<T*> getObjectsByClass(bool checkSubscenes);
 
    static Scene *getRootScene() 
    { 
@@ -104,13 +96,11 @@ public:
    }
 
    static Vector<Scene*> smSceneList;
-
-   DECLARE_CALLBACK(void, onSaving, (const char* fileName));
 };
 
 
 template <class T>
-Vector<T*> Scene::getObjectsByClass()
+Vector<T*> Scene::getObjectsByClass(bool checkSubscenes)
 {
    Vector<T*> foundObjects;
 
@@ -131,6 +121,18 @@ Vector<T*> Scene::getObjectsByClass()
          foundObjects.push_back(curObject);
    }
 
+   if (checkSubscenes)
+   {
+      for (U32 i = 0; i < mSubScenes.size(); i++)
+      {
+         Vector<T*> appendList = mSubScenes[i]->getObjectsByClass<T>(true);
+
+         for (U32 a = 0; a < appendList.size(); a++)
+         {
+            foundObjects.push_back(appendList[a]);
+         }
+      }
+   }
+
    return foundObjects;
 }
-#endif
