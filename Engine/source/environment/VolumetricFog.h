@@ -162,8 +162,7 @@ class VolumetricFog : public SceneObject
       F32 mInvScale;
    
       // Fog Modulation data
-      DECLARE_IMAGEASSET(VolumetricFog, Texture, onImageChanged, GFXStaticTextureSRGBProfile);
-      DECLARE_ASSET_NET_SETGET(VolumetricFog, Texture, FogModulationMask);
+      DECLARE_IMAGEASSET(VolumetricFog, Texture, GFXStaticTextureSRGBProfile);
 
       bool mIsTextured;
       F32 mTexTiles;
@@ -220,8 +219,6 @@ class VolumetricFog : public SceneObject
       void _leaveFog(ShapeBase *control);
 
       static bool _setShapeAsset(void* obj, const char* index, const char* data);
-
-      void onImageChanged() {}
    
    public:
       // Public methods

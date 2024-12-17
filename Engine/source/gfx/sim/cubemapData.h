@@ -73,16 +73,13 @@ public:
    GFXTexHandle* getCubeFaceTexture(U32 faceIdx) { return &mCubeMapFace[faceIdx]; }
 
 protected:
-   DECLARE_IMAGEASSET(CubemapData, CubeMap, onCubemapChanged, GFXStaticTextureSRGBProfile);
-   DECLARE_ASSET_SETGET(CubemapData, CubeMap);
+   DECLARE_IMAGEASSET(CubemapData, CubeMap, GFXStaticTextureSRGBProfile);
 
    DECLARE_IMAGEASSET_ARRAY(CubemapData, CubeMapFace, 6);
    DECLARE_IMAGEASSET_ARRAY_SETGET(CubemapData, CubeMapFace);
 
    GFXTexHandle mDepthBuff;
    GFXTextureTargetRef mRenderTarget;
-
-   void onCubemapChanged() {}
 };
 
 #endif // CUBEMAPDATA

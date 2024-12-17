@@ -47,7 +47,7 @@ CubemapData::CubemapData()
       INIT_IMAGEASSET_ARRAY(CubeMapFace, GFXStaticTextureSRGBProfile, i);
    }
 
-   INIT_ASSET(CubeMap);
+   INIT_IMAGEASSET(CubeMap);
 }
 
 CubemapData::~CubemapData()
@@ -116,9 +116,9 @@ void CubemapData::createMap()
    {
        bool initSuccess = true;
        //check mCubeMapFile first
-       if (getCubeMap() != StringTable->EmptyString())
+       if (mCubeMapAsset->getAssetId() != StringTable->EmptyString())
        {
-          mCubemap = TEXMGR->createCubemap(getCubeMap());
+          mCubemap = TEXMGR->createCubemap(mCubeMapAsset->getImageFile());
           return;
        }
        else
@@ -150,9 +150,9 @@ void CubemapData::updateFaces()
 	for( U32 i=0; i<6; i++ )
    {
       //check mCubeMapFile first
-      if (getCubeMap() != StringTable->EmptyString())
+      if (mCubeMapAsset->getAssetId() != StringTable->EmptyString())
       {
-         mCubemap = TEXMGR->createCubemap(getCubeMap());
+         mCubemap = TEXMGR->createCubemap(mCubeMapAsset->getImageFile());
          return;
       }
       else
@@ -176,7 +176,7 @@ void CubemapData::updateFaces()
 
 void CubemapData::setCubemapFile(FileName newCubemapFile)
 {
-   mCubeMapName = newCubemapFile;
+   mCubeMapAsset->setImageFile(newCubemapFile.c_str());
 }
 
 void CubemapData::setCubeFaceFile(U32 index, FileName newFaceFile)

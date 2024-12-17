@@ -71,6 +71,40 @@ public:
       if (errCode > ImageAssetErrCode::Extended) return "undefined error";
       return mErrCodeStrings[errCode - Parent::Extended];
    };
+
+   class Frame
+   {
+   public:
+      Frame(const S32 pixelOffsetX, const S32 pixelOffsetY,
+         const U32 pixelWidth, const U32 pixelHeight,
+         const F32 texelWidthScale, const F32 texelHeightScale,
+         StringTableEntry inRegionName = StringTable->EmptyString())
+         : regionName(inRegionName)
+      {
+         pixelOffset.set(pixelOffsetY, pixelOffsetY);
+         pixelSize.set(pixelWidth, pixelHeight);
+
+         texelLower.set(pixelOffsetX * texelWidthScale, pixelOffsetY * texelHeightScale);
+         texelSize.set(pixelWidth * texelWidthScale, pixelHeight * texelHeightScale);
+         texelUpper.set(texelLower.x + texelSize.x, texelLower.y + texelSize.y);
+      }
+
+      void setFlip(bool flipX, bool flipY)
+      {
+         if (flipX) mSwap(texelLower.x, texelUpper.x);
+         if (flipY) mSwap(texelLower.y, texelUpper.y);
+      }
+
+      Point2I pixelOffset;
+      Point2I pixelSize;
+
+      Point2F texelLower;
+      Point2F texelUpper;
+      Point2F texelSize;
+
+      StringTableEntry regionName;
+   };
+
 private:
 
    StringTableEntry  mImageFile;
@@ -235,3 +269,17 @@ static bool _set##name##Data(void* obj, const char* index, const char* data) { s
    {\
       m##name##Asset.setAssetId(StringTable->insert(stream->readSTString()));\
    }
+
+#define DEF_IMAGEASSET_BINDS(className, name)\
+DefineEngineMethod(className, get##name, StringTableEntry, (), , "get name")\
+{\
+   return object->get##name()->getAssetId(); \
+}\
+DefineEngineMethod(className, get##name##Asset, StringTableEntry, (), , assetText(name, asset reference))\
+{\
+   return object->m##name##Asset->getAssetId(); \
+}\
+DefineEngineMethod(className, set##name, void, (const char* assetName), , assetText(name,assignment. first tries asset then flat file.))\
+{\
+   object->set##name(StringTable->insert(assetName));\
+}

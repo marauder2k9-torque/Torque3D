@@ -61,19 +61,18 @@ GuiBitmapCtrl::GuiBitmapCtrl(void)
    mAngle(0),
    mWrap( false )
 {
-   INIT_ASSET(Bitmap);
+   INIT_IMAGEASSET(Bitmap);
 }
 
-bool GuiBitmapCtrl::setBitmapName( void *object, const char *index, const char *data )
+void GuiBitmapCtrl::setBitmap(const char* pAssetId)
 {
-   // Prior to this, you couldn't do bitmap.bitmap = "foo.jpg" and have it work.
-   // With protected console types you can now call the setBitmap function and
-   // make it load the image.
-   static_cast<GuiBitmapCtrl *>( object )->setBitmap( data );
+   // Ignore no change.
+   if (mBitmapAsset.getAssetId() == StringTable->insert(pAssetId))
+      return;
 
-   // Return false because the setBitmap method will assign 'mBitmapName' to the
-   // argument we are specifying in the call.
-   return false;
+   mBitmapAsset = pAssetId;
+
+   mBitmapAsset->getTexture(mBitmapProfile);
 }
 
 void GuiBitmapCtrl::initPersistFields()
@@ -81,8 +80,7 @@ void GuiBitmapCtrl::initPersistFields()
    docsURL;
    addGroup( "Bitmap" );
 
-      addField("Bitmap", TypeImageFilename, Offset(mBitmapName, GuiBitmapCtrl), assetDoc(Bitmap, docs), AbstractClassRep::FIELD_HideInInspectors);
-      addField("BitmapAsset", TypeImageAssetId, Offset(mBitmapAssetId, GuiBitmapCtrl), assetDoc(Bitmap, asset docs.));
+      INITPERSISTFIELD_IMAGEASSET(Bitmap, GuiBitmapCtrl, "The bitmap asset");
 
       addField("color", TypeColorI, Offset(mColor, GuiBitmapCtrl),"color mul");
       addField( "wrap",   TypeBool,     Offset( mWrap, GuiBitmapCtrl ),
@@ -101,52 +99,34 @@ bool GuiBitmapCtrl::onWake()
       return false;
    setActive(true);
 
-   if (mBitmapName != StringTable->insert("texhandle"))
-      setBitmap(getBitmap());
    return true;
 }
 
 void GuiBitmapCtrl::onSleep()
 {
-   if ( mBitmapName != StringTable->insert("texhandle") )
-      mBitmap = NULL;
-
    Parent::onSleep();
 }
 
 //-------------------------------------
 void GuiBitmapCtrl::inspectPostApply()
 {
-   //This is a little bit of a 'special case' handling for this class
-   //Because we don't do the normal protectedField setup for the bitmapName/bitmapAsset fields
-   //which would automatically update the internal values and bound content, we'll do it here manually
-   //to ensure it's updated before we force a refresh, which would thrash the new values
-   if (mBitmapName != StringTable->insert("texhandle"))
-   {
-      _setBitmap(mBitmapAssetId);
-   }
-   else
-   {
-      setBitmap(getBitmap());
-   }
-
    // if the extent is set to (0,0) in the gui editor and appy hit, this control will
    // set it's extent to be exactly the size of the bitmap (if present)
    Parent::inspectPostApply();
 
-   if (!mWrap && (getExtent().x == 0) && (getExtent().y == 0) && mBitmap)
+   if (!mWrap && (getExtent().x == 0) && (getExtent().y == 0) && mBitmapAsset.notNull())
    {
-      setExtent( mBitmap->getWidth(), mBitmap->getHeight());
+      setExtent(mBitmapAsset->getTextureBitmapWidth(), mBitmapAsset->getTextureBitmapHeight());
    }
 }
 
-void GuiBitmapCtrl::setBitmap( const char *name, bool resize )
+void GuiBitmapCtrl::setBitmapResize( const char *name, bool resize )
 {
-   _setBitmap(StringTable->insert(name));
+   setBitmap(StringTable->insert(name));
 
-   if (mBitmap && resize)
+   if (mBitmapAsset && resize)
    {
-      setExtent(mBitmap->getWidth(), mBitmap->getHeight());
+      setExtent(mBitmapAsset->getTextureBitmapWidth(), mBitmapAsset->getTextureBitmapHeight());
       updateSizing();
    }
 
@@ -162,23 +142,9 @@ void GuiBitmapCtrl::updateSizing()
    parentResized( fakeBounds, fakeBounds);
 }
 
-void GuiBitmapCtrl::setBitmapHandle(GFXTexHandle handle, bool resize)
-{
-   mBitmap = handle;
-
-   mBitmapName = StringTable->insert("texhandle");
-
-   // Resize the control to fit the bitmap
-   if (resize) 
-   {
-      setExtent(mBitmap->getWidth(), mBitmap->getHeight());
-      updateSizing();
-   }
-}
-
 void GuiBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
 {
-   if (mBitmap)
+   if (mBitmapAsset->isAssetValid())
    {
       GFX->getDrawUtil()->clearBitmapModulation();
       GFX->getDrawUtil()->setBitmapModulation(mColor);
@@ -188,7 +154,7 @@ void GuiBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
          // not tile correctly when rendered with GFX->drawBitmapTile(). The non POT
          // bitmap will be padded by the hardware, and we'll see lots of slack
          // in the texture. So... lets do what we must: draw each repeat by itself:
- 			GFXTextureObject* texture = mBitmap;
+ 			GFXTextureObject* texture = mBitmapAsset->getTexture(mBitmapProfile);
 			RectI srcRegion;
 			RectI dstRegion;
 			F32 xdone = ((F32)getExtent().x/(F32)texture->mBitmapSize.x)+1;
@@ -211,11 +177,11 @@ void GuiBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
 		else
       {
          RectI rect(offset, getExtent());
-         GFX->getDrawUtil()->drawBitmapStretch(mBitmap, rect, GFXBitmapFlip_None, GFXTextureFilterLinear, false, mAngle);
+         GFX->getDrawUtil()->drawBitmapStretch(mBitmapAsset->getTexture(mBitmapProfile), rect, GFXBitmapFlip_None, GFXTextureFilterLinear, false, mAngle);
       }
    }
 
-   if (mProfile->mBorder || !mBitmap)
+   if (mProfile->mBorder || !mBitmapAsset->isAssetValid())
    {
       RectI rect(offset.x, offset.y, getExtent().x, getExtent().y);
       GFX->getDrawUtil()->drawRect(rect, mProfile->mBorderColor);
@@ -226,10 +192,10 @@ void GuiBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
 
 void GuiBitmapCtrl::setValue(S32 x, S32 y)
 {
-   if (mBitmap)
+   if (mBitmapAsset->isAssetValid())
    {
-		x += mBitmap->getWidth() / 2;
-		y += mBitmap->getHeight() / 2;
+		x += mBitmapAsset->getTextureBitmapWidth() / 2;
+		y += mBitmapAsset->getTextureBitmapHeight() / 2;
   	}
   	while (x < 0)
   		x += 256;
@@ -247,9 +213,6 @@ DefineEngineMethod( GuiBitmapCtrl, setValue, void, ( S32 x, S32 y ),,
 {
    object->setValue(x, y);
 }
-
-
-//
 
 static ConsoleDocFragment _sGuiBitmapCtrlSetBitmap1(
    "@brief Assign an image to the control.\n\n"
@@ -275,33 +238,13 @@ DefineEngineMethod( GuiBitmapCtrl, setBitmap, void, ( const char * fileRoot, boo
 {
    char filename[1024];
    Con::expandScriptFilename(filename, sizeof(filename), fileRoot);
-   object->setBitmap(filename, resize );
+   object->setBitmapResize(filename, resize );
 }
 
 DefineEngineMethod(GuiBitmapCtrl, getBitmap, const char*, (),,
    "Gets the current bitmap set for this control.\n\n"
    "@hide")
 {
-   return object->getBitmap();
+   return object->mBitmapAsset->getAssetId();
 }
 
-DefineEngineMethod( GuiBitmapCtrl, setNamedTexture, bool, (String namedtexture),,
-   "@brief Set a texture as the image.\n\n"
-   "@param namedtexture The name of the texture (NamedTexTarget).\n"
-   "@return true if the texture exists." )
-{
-   GFXTexHandle theTex;
-   NamedTexTarget *namedTarget = NULL;
-   namedTarget = NamedTexTarget::find(namedtexture.c_str());
-   if ( namedTarget )
-   {
-      theTex = namedTarget->getTexture( 0 );
-   }
-   
-   if ( theTex.isValid() )
-   {
-      object->setBitmapHandle( theTex , false );
-      return true; //a new texture was set correctly
-   }
-   return false; //we couldn't change the texture
-}

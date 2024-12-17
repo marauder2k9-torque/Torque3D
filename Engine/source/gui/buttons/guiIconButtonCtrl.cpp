@@ -86,7 +86,7 @@ ConsoleDocClass( GuiIconButtonCtrl,
 
 GuiIconButtonCtrl::GuiIconButtonCtrl()
 {
-   INIT_ASSET(Bitmap);
+   INIT_IMAGEASSET(Bitmap);
    mTextLocation = TextLocLeft;
    mIconLocation = IconLocLeft;
    mTextMargin = 4;
@@ -127,7 +127,6 @@ void GuiIconButtonCtrl::initPersistFields()
    docsURL;
    addField( "buttonMargin",     TypePoint2I,   Offset( mButtonMargin, GuiIconButtonCtrl ),"Margin area around the button.\n");
 
-   addProtectedField( "iconBitmap", TypeImageFilename,  Offset( mBitmapName, GuiIconButtonCtrl ), &_setBitmapData, &defaultProtectedGetFn, "Bitmap file for the icon to display on the button.\n", AbstractClassRep::FIELD_HideInInspectors);
    INITPERSISTFIELD_IMAGEASSET(Bitmap, GuiIconButtonCtrl, "Bitmap file for the icon to display on the button.\n");
 
    addField( "iconLocation",     TYPEID< IconLocation >(), Offset( mIconLocation, GuiIconButtonCtrl ),"Where to place the icon on the control. Options are 0 (None), 1 (Left), 2 (Right), 3 (Center).\n");
@@ -148,7 +147,7 @@ bool GuiIconButtonCtrl::onWake()
       return false;
    setActive(true);
 
-   setBitmap(mBitmapName);
+   setBitmap(mBitmapAsset->getAssetId());
 
    if( mProfile )
       mProfile->constructBitmapArray();
@@ -181,8 +180,8 @@ bool GuiIconButtonCtrl::resize(const Point2I &newPosition, const Point2I &newExt
 
    if ( mIconLocation != IconLocNone )
    {      
-      autoExtent.y = mBitmap.getHeight() + mButtonMargin.y * 2;
-      autoExtent.x = mBitmap.getWidth() + mButtonMargin.x * 2;
+      autoExtent.y = mBitmapAsset->getTextureBitmapHeight() + mButtonMargin.y * 2;
+      autoExtent.x = mBitmapAsset->getTextureBitmapWidth() + mButtonMargin.x * 2;
    }
 
    if ( mTextLocation != TextLocNone && mButtonText && mButtonText[0] )
@@ -204,12 +203,17 @@ bool GuiIconButtonCtrl::resize(const Point2I &newPosition, const Point2I &newExt
    return Parent::resize( newPosition, autoExtent );
 }
 
-void GuiIconButtonCtrl::setBitmap(const char *name)
+void GuiIconButtonCtrl::setBitmap(const char * pAssetId)
 {
    if(!isAwake())
       return;
 
-   _setBitmap(getBitmap());
+   // Ignore no change.
+   if (mBitmapAsset.getAssetId() == StringTable->insert(pAssetId))
+      return;
+
+   mBitmapAsset = pAssetId;
+   mBitmapAsset->getTexture(mBitmapProfile);
 
    // So that extent is recalculated if autoSize is set.
    resize( getPosition(), getExtent() );
@@ -299,13 +303,13 @@ void GuiIconButtonCtrl::renderButton( Point2I &offset, const RectI& updateRect )
    RectI iconRect( 0, 0, 0, 0 );
 
    // Render the icon
-   if ( mBitmap && mIconLocation != GuiIconButtonCtrl::IconLocNone )
+   if ( mBitmapAsset->isAssetValid() && mIconLocation != GuiIconButtonCtrl::IconLocNone)
    {
       // Render the normal bitmap
       drawer->clearBitmapModulation();
 
       // Size of the bitmap
-      Point2I textureSize(mBitmap->getWidth(), mBitmap->getHeight());
+      Point2I textureSize(mBitmapAsset->getTextureBitmapWidth(), mBitmapAsset->getTextureBitmapHeight());
 
       // Reduce the size with the margin (if set)
       textureSize.x = textureSize.x - (mBitmapMargin * 2);
@@ -332,7 +336,7 @@ void GuiIconButtonCtrl::renderButton( Point2I &offset, const RectI& updateRect )
             iconRect.point.y = offset.y + ( getHeight() - textureSize.y ) / 2;
          }
 
-         drawer->drawBitmapStretch(mBitmap, iconRect );
+         drawer->drawBitmapStretch(mBitmapAsset->getTexture(mBitmapProfile), iconRect );
 
       } 
       else
@@ -366,7 +370,7 @@ void GuiIconButtonCtrl::renderButton( Point2I &offset, const RectI& updateRect )
             iconRect.point.y = offset.y + (getHeight() / 2) - (iconRect.extent.y / 2) + mButtonMargin.y;
          }
 
-         drawer->drawBitmapStretch( mBitmap, iconRect );
+         drawer->drawBitmapStretch(mBitmapAsset->getTexture(mBitmapProfile), iconRect );
       }
    }
 
@@ -383,7 +387,7 @@ void GuiIconButtonCtrl::renderButton( Point2I &offset, const RectI& updateRect )
       if ( mTextLocation == TextLocRight )
       {
          Point2I start( mTextMargin, ( getHeight() - mProfile->mFont->getHeight() ) / 2 );
-         if (mBitmap && mIconLocation != IconLocNone )
+         if (mBitmapAsset->isAssetValid() && mIconLocation != IconLocNone)
          {
             start.x = iconRect.extent.x + mButtonMargin.x + mTextMargin;
          }
@@ -403,7 +407,7 @@ void GuiIconButtonCtrl::renderButton( Point2I &offset, const RectI& updateRect )
       if ( mTextLocation == TextLocCenter )
       {
          Point2I start;
-         if (mBitmap && mIconLocation == IconLocLeft )
+         if (mBitmapAsset->isAssetValid() && mIconLocation == IconLocLeft )
          {
             start.set( ( getWidth() - textWidth - iconRect.extent.x ) / 2 + iconRect.extent.x, 
                        ( getHeight() - mProfile->mFont->getHeight() ) / 2 );
@@ -468,4 +472,4 @@ void GuiIconButtonCtrl::renderBitmapArray(RectI &bounds, S32 state)
    }
 }
 
-DEF_ASSET_BINDS(GuiIconButtonCtrl, Bitmap);
+DEF_IMAGEASSET_BINDS(GuiIconButtonCtrl, Bitmap);

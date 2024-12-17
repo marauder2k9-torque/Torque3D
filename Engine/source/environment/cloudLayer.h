@@ -97,8 +97,7 @@ protected:
    static U32 smVertCount;
    static U32 smTriangleCount;
 
-   DECLARE_IMAGEASSET(CloudLayer, Texture, onImageChanged, GFXStaticTextureSRGBProfile);
-   DECLARE_ASSET_NET_SETGET(CloudLayer, Texture, CloudLayerMask);
+   DECLARE_IMAGEASSET(CloudLayer, Texture, GFXStaticTextureSRGBProfile);
 
    GFXShaderRef mShader;
 

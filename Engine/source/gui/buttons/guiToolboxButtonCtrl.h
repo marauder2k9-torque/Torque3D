@@ -39,19 +39,12 @@ private:
 
 protected:
 
-   DECLARE_IMAGEASSET(GuiToolboxButtonCtrl, NormalBitmap, onNormalImageChanged, GFXDefaultGUIProfile);
-   DECLARE_ASSET_SETGET(GuiToolboxButtonCtrl, NormalBitmap);
-   DECLARE_IMAGEASSET(GuiToolboxButtonCtrl, LoweredBitmap, onLoweredImageChanged, GFXDefaultGUIProfile);
-   DECLARE_ASSET_SETGET(GuiToolboxButtonCtrl, LoweredBitmap);
-   DECLARE_IMAGEASSET(GuiToolboxButtonCtrl, HoverBitmap, onHoverImageChanged, GFXDefaultGUIProfile);
-   DECLARE_ASSET_SETGET(GuiToolboxButtonCtrl, HoverBitmap);
+   DECLARE_IMAGEASSET(GuiToolboxButtonCtrl, NormalBitmap, GFXDefaultGUIProfile);
+   DECLARE_IMAGEASSET(GuiToolboxButtonCtrl, LoweredBitmap, GFXDefaultGUIProfile);
+   DECLARE_IMAGEASSET(GuiToolboxButtonCtrl, HoverBitmap, GFXDefaultGUIProfile);
 
    void renderButton(GFXTexHandle &texture, Point2I &offset, const RectI& updateRect);
    void renderStateRect( GFXTexHandle &texture, const RectI& rect );
-
-   void onNormalImageChanged() {}
-   void onLoweredImageChanged() {}
-   void onHoverImageChanged() {}
 
 public:   
    DECLARE_CONOBJECT(GuiToolboxButtonCtrl);
@@ -63,11 +56,6 @@ public:
    bool onWake() override;
    void onSleep() override;
    void inspectPostApply() override;
-
-   void setNormalBitmap( StringTableEntry bitmapName );
-   void setLoweredBitmap( StringTableEntry bitmapName );
-   void setHoverBitmap( StringTableEntry bitmapName );
-   
 
    void onRender(Point2I offset, const RectI &updateRect) override;
 };

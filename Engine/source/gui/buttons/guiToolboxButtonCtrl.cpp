@@ -43,9 +43,9 @@ ConsoleDocClass( GuiToolboxButtonCtrl,
 //-------------------------------------
 GuiToolboxButtonCtrl::GuiToolboxButtonCtrl()
 {
-   INIT_ASSET(NormalBitmap);
-   INIT_ASSET(LoweredBitmap);
-   INIT_ASSET(HoverBitmap);
+   INIT_IMAGEASSET(NormalBitmap);
+   INIT_IMAGEASSET(LoweredBitmap);
+   INIT_IMAGEASSET(HoverBitmap);
 
    setMinExtent(Point2I(16,16));
    setExtent(48, 48);
@@ -75,9 +75,9 @@ bool GuiToolboxButtonCtrl::onWake()
 
    setActive( true );
    
-   setNormalBitmap( getNormalBitmap() );
-   setLoweredBitmap( getLoweredBitmap() );
-   setHoverBitmap( getHoverBitmap() );
+   setNormalBitmap( mNormalBitmapAsset->getAssetId() );
+   setLoweredBitmap( mLoweredBitmapAsset->getAssetId() );
+   setHoverBitmap( mHoverBitmapAsset->getAssetId() );
 
    return true;
 }
@@ -96,40 +96,52 @@ void GuiToolboxButtonCtrl::inspectPostApply()
    // set it's extent to be exactly the size of the normal bitmap (if present)
    Parent::inspectPostApply();
 
-   if ((getWidth() == 0) && (getHeight() == 0) && mNormalBitmap)
+   if ((getWidth() == 0) && (getHeight() == 0) && mNormalBitmapAsset.notNull())
    {
-      setExtent(mNormalBitmap->getWidth(), mNormalBitmap->getHeight());
+      setExtent(mNormalBitmapAsset->getTextureBitmapWidth(), mNormalBitmapAsset->getTextureBitmapHeight());
    }
 }
 
 
 //-------------------------------------
-void GuiToolboxButtonCtrl::setNormalBitmap( StringTableEntry bitmapName )
+void GuiToolboxButtonCtrl::setNormalBitmap(const char* pAssetId)
 {
-   _setNormalBitmap(bitmapName);
-   
-   if(!isAwake())
+   if (!isAwake())
       return;
-   
+
+   // Ignore no change.
+   if (mNormalBitmapAsset.getAssetId() != StringTable->insert(pAssetId))
+      mNormalBitmapAsset = pAssetId;
+
+   mNormalBitmapAsset->getTexture(mNormalBitmapProfile);
+
    setUpdate();
 }   
 
-void GuiToolboxButtonCtrl::setLoweredBitmap( StringTableEntry bitmapName )
+void GuiToolboxButtonCtrl::setLoweredBitmap(const char* pAssetId)
 {
-   _setLoweredBitmap(bitmapName);
-   
-   if(!isAwake())
+   if (!isAwake())
       return;
-   
+
+   // Ignore no change.
+   if (mLoweredBitmapAsset.getAssetId() != StringTable->insert(pAssetId))
+      mLoweredBitmapAsset = pAssetId;
+
+   mLoweredBitmapAsset->getTexture(mLoweredBitmapProfile);
+
    setUpdate();
 }   
 
-void GuiToolboxButtonCtrl::setHoverBitmap( StringTableEntry bitmapName )
+void GuiToolboxButtonCtrl::setHoverBitmap(const char* pAssetId)
 {
-   _setHoverBitmap(bitmapName);
-
    if(!isAwake())
       return;
+
+   // Ignore no change.
+   if (mHoverBitmapAsset.getAssetId() != StringTable->insert(pAssetId))
+      mHoverBitmapAsset = pAssetId;
+
+   mHoverBitmapAsset->getTexture(mHoverBitmapProfile);
 
    setUpdate();
 }   
@@ -144,15 +156,15 @@ void GuiToolboxButtonCtrl::onRender(Point2I offset, const RectI& updateRect)
    {
       RectI r(offset, getExtent());
       if ( mDepressed  || mStateOn )
-         renderStateRect( mLoweredBitmap , r );
+         renderStateRect(mLoweredBitmapAsset->getTexture(mLoweredBitmapProfile), r );
       else if ( mHighlighted )
-         renderStateRect( mHoverBitmap , r );
+         renderStateRect(mHoverBitmapAsset->getTexture(mHoverBitmapProfile), r );
    }
 
    // Now render the image
-   if( mNormalBitmap )
+   if( mNormalBitmapAsset->isAssetValid() )
    {
-      renderButton(mNormalBitmap, offset, updateRect );
+      renderButton(mNormalBitmapAsset->getTexture(mNormalBitmapProfile), offset, updateRect );
       return;
    }
 
@@ -194,6 +206,6 @@ void GuiToolboxButtonCtrl::renderButton(GFXTexHandle &texture, Point2I &offset, 
    }
 }
 
-DEF_ASSET_BINDS(GuiToolboxButtonCtrl, NormalBitmap);
-DEF_ASSET_BINDS(GuiToolboxButtonCtrl, LoweredBitmap);
-DEF_ASSET_BINDS(GuiToolboxButtonCtrl, HoverBitmap);
+DEF_IMAGEASSET_BINDS(GuiToolboxButtonCtrl, NormalBitmap);
+DEF_IMAGEASSET_BINDS(GuiToolboxButtonCtrl, LoweredBitmap);
+DEF_IMAGEASSET_BINDS(GuiToolboxButtonCtrl, HoverBitmap);

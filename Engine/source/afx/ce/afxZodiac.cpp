@@ -50,6 +50,15 @@ void afxZodiacData::convertGradientRangeFromDegrees(Point2F& gradrange, const Po
     gradrange.set(y, x);
 }
 
+void afxZodiacData::setTexture(const char* pAssetId)
+{
+   // Ignore no change.
+   if (mTextureAsset.getAssetId() == StringTable->insert(pAssetId))
+      return;
+
+   mTextureAsset = pAssetId;
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~~//
@@ -340,21 +349,6 @@ void afxZodiacData::onStaticModified(const char* slot, const char* newValue)
 
 void afxZodiacData::onPerformSubstitutions() 
 {
-   if (mTextureAsset->getAssetId() != StringTable->EmptyString())
-   {
-      if (mTextureAsset.notNull())
-      {
-         if (getTexture() != StringTable->EmptyString() && mTextureName != StringTable->insert("texhandle"))
-         {
-            if (mTextureAsset.notNull())
-            {
-               mTextureAsset->getChangedSignal().notify(this, &afxZodiacData::onImageChanged);
-            }
-               
-            mTexture.set(getTexture(), mTextureProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
-         }
-      }
-   }
 }
 
 F32 afxZodiacData::calcRotationAngle(F32 elapsed, F32 rate_factor)

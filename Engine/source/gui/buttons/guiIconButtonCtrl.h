@@ -42,8 +42,7 @@ private:
 
 protected:
 
-   DECLARE_IMAGEASSET(GuiIconButtonCtrl, Bitmap, onImageChanged, GFXDefaultGUIProfile);
-   DECLARE_ASSET_SETGET(GuiIconButtonCtrl, Bitmap);
+   DECLARE_IMAGEASSET(GuiIconButtonCtrl, Bitmap, GFXDefaultGUIProfile);
 
    S32               mIconLocation;
    S32               mTextLocation;
@@ -109,14 +108,7 @@ public:
    void onStaticModified(const char* slotName, const char* newValue = NULL) override;
    bool resize(const Point2I &newPosition, const Point2I &newExtent) override;
 
-   void setBitmap(const char *name);
-
-   //  Used to set the optional error bitmap
-   void setErrorBitmap(const char *name);
-
    void onRender(Point2I offset, const RectI &updateRect) override;
-
-   void onImageChanged() {}
 };
 
 typedef GuiIconButtonCtrl::TextLocation GuiIconButtonTextLocation;
