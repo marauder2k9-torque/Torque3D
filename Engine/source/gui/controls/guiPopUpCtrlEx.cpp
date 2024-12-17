@@ -352,15 +352,15 @@ GuiPopUpMenuCtrlEx::~GuiPopUpMenuCtrlEx()
 void GuiPopUpMenuCtrlEx::initPersistFields(void)
 {
    docsURL;
-   addField("maxPopupHeight",           TypeS32,          Offset(mMaxPopupHeight, GuiPopUpMenuCtrlEx), "Length of menu when it extends");
-   addField("sbUsesNAColor",            TypeBool,         Offset(mRenderScrollInNA, GuiPopUpMenuCtrlEx), "Deprecated" "@internal");
-   addField("reverseTextList",          TypeBool,         Offset(mReverseTextList, GuiPopUpMenuCtrlEx), "Reverses text list if popup extends up, instead of down");
+   addField("maxPopupHeight",           TypeS32,           Offset(mMaxPopupHeight, GuiPopUpMenuCtrlEx), "Length of menu when it extends");
+   addField("sbUsesNAColor",            TypeBool,          Offset(mRenderScrollInNA, GuiPopUpMenuCtrlEx), "Deprecated" "@internal");
+   addField("reverseTextList",          TypeBool,          Offset(mReverseTextList, GuiPopUpMenuCtrlEx), "Reverses text list if popup extends up, instead of down");
 
-   addProtectedField("bitmap",          TypeImageFilename,     Offset(mBitmapName, GuiPopUpMenuCtrlEx), _setBitmaps, &defaultProtectedGetFn, "File name of bitmap to use");
-   addProtectedField("bitmapAsset", TypeImageAssetId, Offset(mBitmapAssetId, GuiPopUpMenuCtrlEx), _setBitmaps, &defaultProtectedGetFn, "Name of bitmap asset to use");
+   addProtectedField("bitmap",          TypeImageFilename, Offset(mBitmapName, GuiPopUpMenuCtrlEx), _setBitmaps, &defaultProtectedGetFn, "File name of bitmap to use");
+   addProtectedField("bitmapAsset",     TypeImageAssetPtr, Offset(mBitmapAssetId, GuiPopUpMenuCtrlEx), _setBitmaps, &defaultProtectedGetFn, "Name of bitmap asset to use");
 
-   addField("bitmapBounds",             TypePoint2I,      Offset(mBitmapBounds, GuiPopUpMenuCtrlEx), "Boundaries of bitmap displayed");
-   addField("hotTrackCallback",         TypeBool,         Offset(mHotTrackItems, GuiPopUpMenuCtrlEx),
+   addField("bitmapBounds",             TypePoint2I,       Offset(mBitmapBounds, GuiPopUpMenuCtrlEx), "Boundaries of bitmap displayed");
+   addField("hotTrackCallback",         TypeBool,          Offset(mHotTrackItems, GuiPopUpMenuCtrlEx),
       "Whether to provide a 'onHotTrackItem' callback when a list item is hovered over");
 
    addField("allowTextSearch", TypeBool, Offset(mTextSearchItems, GuiPopUpMenuCtrlEx), "If true, will enable a text edit field so you can search filter the dropdown list");

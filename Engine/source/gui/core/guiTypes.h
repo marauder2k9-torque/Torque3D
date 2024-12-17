@@ -475,10 +475,6 @@ public:
    {
       if (mBitmapAssetId != _in || mBitmapName != _in)
       {
-         if (mBitmapAsset.notNull())
-         {
-            mBitmapAsset->getChangedSignal().remove(this, &GuiControlProfile::onBitmapChanged); 
-         }
          if (_in == StringTable->EmptyString())
          {
             mBitmapName = StringTable->EmptyString(); 
@@ -500,13 +496,13 @@ public:
          
          if (AssetDatabase.isDeclaredAsset(_in))
          {
-            mBitmapAssetId = _in; 
-            
-            U32 assetState = ImageAsset::getAssetById(mBitmapAssetId, &mBitmapAsset); 
-            
+            mBitmapAssetId = _in;
+
+            U32 assetState = ImageAsset::getAssetById(mBitmapAssetId, &mBitmapAsset);
+
             if (ImageAsset::Ok == assetState)
             {
-               mBitmapName = StringTable->EmptyString(); 
+               mBitmapName = StringTable->EmptyString();
             }
          }
          else
@@ -528,14 +524,7 @@ public:
             }
          }
       }
-      if (getBitmap() != StringTable->EmptyString() && mBitmapName != StringTable->insert("texhandle"))
-      {
-         if (mBitmapAsset.notNull())
-         {
-            mBitmapAsset->getChangedSignal().notify(this, &GuiControlProfile::onBitmapChanged);
-         }
-      }
-      else
+      if (getBitmap() == StringTable->EmptyString() && mBitmapName == StringTable->insert("texhandle"))
       {
          mBitmap.free();
          mBitmap = NULL;
@@ -551,8 +540,8 @@ public:
    
    const StringTableEntry getBitmap() const
    {
-      if (mBitmapAsset && (mBitmapAsset->getImageFileName() != StringTable->EmptyString()))
-         return  Platform::makeRelativePathName(mBitmapAsset->getImagePath(), Platform::getMainDotCsDir());
+      if (mBitmapAsset && (mBitmapAsset->getImageFile() != StringTable->EmptyString()))
+         return  Platform::makeRelativePathName(mBitmapAsset->getImageFile(), Platform::getMainDotCsDir());
       else if (mBitmapAssetId != StringTable->EmptyString())
          return mBitmapAssetId;
       else if (mBitmapName != StringTable->EmptyString())

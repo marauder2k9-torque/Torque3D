@@ -97,7 +97,7 @@ AccumulationVolume::~AccumulationVolume()
 void AccumulationVolume::initPersistFields()
 {
    docsURL;
-   addProtectedField("textureAsset", TypeImageAssetId, Offset(mTextureAssetId, AccumulationVolume),
+   addProtectedField("textureAsset", TypeImageAssetPtr, Offset(mTextureAssetId, AccumulationVolume),
       &_setTexture, &defaultProtectedGetFn, "Accumulation texture.");
    addProtectedField( "texture", TypeStringFilename, Offset( mTextureName, AccumulationVolume ),
          &_setTexture, &defaultProtectedGetFn, "Accumulation texture." );

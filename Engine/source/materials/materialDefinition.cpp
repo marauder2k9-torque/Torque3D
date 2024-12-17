@@ -669,7 +669,7 @@ void Material::_mapMaterial()
          }
          else if (!mDiffuseMapAsset->isNull())
          {
-            mMapTo = mDiffuseMapAsset[0]->getImageFileName();
+            mMapTo = mDiffuseMapAsset[0]->getImageFile();
          }
       }
    }

@@ -181,4 +181,10 @@ public:
     bool notNull( void ) const override { return !mpAsset.isNull(); }
 };
 
+template< typename T >
+struct TypeTraits< AssetPtr< T > > : public _TypeTraits< AssetPtr< T > >
+{
+   typedef typename TypeTraits< T >::BaseType BaseType;
+};
+
 #endif // _ASSET_PTR_H_

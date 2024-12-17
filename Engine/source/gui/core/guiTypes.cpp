@@ -203,7 +203,7 @@ bool GuiControlProfile::protectedSetBitmap( void *object, const char *index, con
       {
          if (profile->mBitmapAsset.notNull() && profile->getBitmap() != StringTable->insert("texHandle"))
          {
-            profile->mBitmap.set(profile->mBitmapAsset->getImagePath(), profile->mBitmapProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
+            profile->mBitmap.set(profile->mBitmapAsset->getImageFile(), profile->mBitmapProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
          }
 
          //verify the bitmap
@@ -431,17 +431,11 @@ void GuiControlProfile::initPersistFields()
    endGroup( "Text" );
    
    addGroup( "Misc" );
-#ifdef TORQUE_SHOW_LEGACY_FILE_FIELDS
-   addProtectedField("bitmap", TypeImageFilename, Offset(mBitmapName, GuiControlProfile),
-      &GuiControlProfile::protectedSetBitmap, &defaultProtectedGetFn,
-      "Texture to use for rendering control.");
-#else
-   addProtectedField("bitmap", TypeImageFilename, Offset(mBitmapName, GuiControlProfile),
-      &GuiControlProfile::protectedSetBitmap, &defaultProtectedGetFn,
-      "Texture to use for rendering control.", AbstractClassRep::FIELD_HideInInspectors);
-#endif
 
-      addProtectedField("bitmapAsset", TypeImageAssetId, Offset(mBitmapAssetId, GuiControlProfile),
+      addProtectedField("bitmap", TypeImageFilename, Offset(mBitmapName, GuiControlProfile),
+         &GuiControlProfile::protectedSetBitmap, &defaultProtectedGetFn,
+         "Texture to use for rendering control.", AbstractClassRep::FIELD_HideInInspectors);
+      addProtectedField("bitmapAsset", TypeImageAssetPtr, Offset(mBitmapAssetId, GuiControlProfile),
          &GuiControlProfile::protectedSetBitmap, &defaultProtectedGetFn,
          "Texture to use for rendering control.");
 
@@ -648,7 +642,7 @@ void GuiControlProfile::incLoadCount()
       {
          if (mBitmapAsset.notNull() && getBitmap() != StringTable->insert("texHandle"))
          {
-            mBitmap.set(mBitmapAsset->getImagePath(), mBitmapProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
+            mBitmap.set(mBitmapAsset->getImageFile(), mBitmapProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
          }
 
          //verify the bitmap
