@@ -160,7 +160,7 @@ public:
    void                    setTextureHDR(const bool pIsHDR);
    inline bool             getTextureHDR(void) const { return mIsHDRImage; };
 
-   inline GFXTexHandle&    getTexture(void) { load(); return mTextureHandle; }
+   inline GFXTexHandle&    getTexture(void) { load(); generateTexture(); return mTextureHandle; }
    GFXTexHandle            getTexture(GFXTextureProfile* requestedProfile);
 
    static StringTableEntry getImageTypeNameFromType(ImageTypes type);

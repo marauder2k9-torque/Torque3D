@@ -125,6 +125,7 @@ public:
    inline bool operator!=(const GFXTextureProfile &in_Cmp) const { return !(*this == in_Cmp); }
 
    // Accessors
+   String generateName(Types type, U32 flags, Compression compression);
    String getName() const { return mName; };
    Types getType() const { return (Types)(mProfile & (BIT(TypeBits) - 1)); }
    const Compression getCompression() const { return (Compression)((mProfile >> (FlagBits + TypeBits)) & (BIT(CompressionBits + 1) - 1)); };
@@ -185,7 +186,7 @@ private:
       CompressionBits = 3,
    };
 
-   String    mName;        ///< Name of this profile...
+   String mName;           ///< Name of this profile...
    U32 mDownscale;         ///< Amount to shift textures of this type down, if any.
    U32 mProfile;           ///< Stores a munged version of the profile data.
    U32 mActiveCount;       ///< Count of textures of this profile type allocated.

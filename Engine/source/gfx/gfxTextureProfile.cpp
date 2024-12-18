@@ -90,8 +90,8 @@ GFXTextureProfile *GFXTextureProfile::smHead = NULL;
 U32 GFXTextureProfile::smProfileCount = 0;
 
 GFXTextureProfile::GFXTextureProfile(const String &name, Types type, U32 flag, Compression compression)
-:  mName( name )
 {
+   mName = generateName(type, flag, compression);
    // Take type, flag, and compression and produce a munged profile word.
    mProfile = (type & (BIT(TypeBits + 1) - 1)) |
              ((flag & (BIT(FlagBits + 1) - 1)) << TypeBits) | 
@@ -108,6 +108,60 @@ GFXTextureProfile::GFXTextureProfile(const String &name, Types type, U32 flag, C
                   || (!testFlag(Dynamic) &&  testFlag(Static)), 
                   "GFXTextureProfile::GFXTextureProfile - Cannot have a texture profile be both static and dynamic!");
    mDownscale = 0;
+}
+
+String GFXTextureProfile::generateName(Types type, U32 flag, Compression compression)
+{
+   StringBuilder str;
+   str.append("GFX");
+
+   // Add type to name.
+   switch (type)
+   {
+   case GFXTextureProfile::DiffuseMap:
+      str.append("Diffuse");
+      break;
+   case GFXTextureProfile::NormalMap:
+      str.append("Normal");
+      break;
+   case GFXTextureProfile::AlphaMap:
+      str.append("Alpha");
+      break;
+   case GFXTextureProfile::LuminanceMap:
+      str.append("Luminance");
+      break;
+   default:
+      str.append("NoType");
+      break;
+   }
+
+   // Add flags to the name
+   if (flag & PreserveSize)   str.append("_PreserveSize");
+   if (flag & NoMipmap)       str.append("_NoMipmap");
+   if (flag & SystemMemory)   str.append("_SystemMemory");
+   if (flag & RenderTarget)   str.append("_RenderTarget");
+   if (flag & Dynamic)        str.append("_Dynamic");
+   if (flag & Static)         str.append("_Static");
+   if (flag & NoPadding)      str.append("_NoPadding");
+   if (flag & KeepBitmap)     str.append("_KeepBitmap");
+   if (flag & ZTarget)        str.append("_ZTarget");
+   if (flag & SRGB)           str.append("_SRGB");
+   if (flag & Pooled)         str.append("_Pooled");
+   if (flag & NoDiscard)      str.append("_NoDiscard");
+   if (flag & NoModify)       str.append("_NoModify");
+
+   // Add compression to the name
+   switch (compression)
+   {
+      case NONE: str.append("_NONE"); break;
+      case BC1:  str.append("_BC1");  break;
+      case BC2:  str.append("_BC2");  break;
+      case BC3:  str.append("_BC3");  break;
+      case BC4:  str.append("_BC4");  break;
+      case BC5:  str.append("_BC5");  break;
+   }
+
+   return str.end();
 }
 
 void GFXTextureProfile::init()

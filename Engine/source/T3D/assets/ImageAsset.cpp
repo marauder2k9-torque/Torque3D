@@ -349,8 +349,10 @@ GFXTexHandle ImageAsset::getTexture(GFXTextureProfile* requestedProfile)
       }
       else
       {
+
          //If we don't have an existing map case to the requested format, we'll just create it and insert it in
-         GFXTexHandle newTex = TEXMGR->createTexture(mImageFile, requestedProfile);
+         GFXTexHandle newTex;
+         newTex.set(mImageFile, requestedProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
          if (newTex)
          {
             mLoadedState = AssetErrCode::Ok;
@@ -367,32 +369,25 @@ GFXTexHandle ImageAsset::getTexture(GFXTextureProfile* requestedProfile)
 
 void ImageAsset::generateTexture(void)
 {
-   StringBuilder str;
-   str.append("GFX");
    // implement some defaults, eventually SRGB should be optional.
    U32 flags = GFXTextureProfile::Static | GFXTextureProfile::SRGB;
-
-   str.append("StaticSRGB");
 
    // dont want mips?
    if (!mUseMips)
    {
       flags |= GFXTextureProfile::NoMipmap;
-      str.append("NOMIP");
    }
 
    GFXTextureProfile::Types type = GFXTextureProfile::Types::DiffuseMap;
 
    if (mImageType == ImageTypes::Normal) {
-      str.append("NORMAL");
       type = GFXTextureProfile::Types::NormalMap;
    }
-   else
-   {
-      str.append("DIFFUSE");
-   }
 
-   mTextureHandle.set(mImageFile, &GFXStaticTextureSRGBProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
+   GFXTextureProfile* genProfile = new GFXTextureProfile("ImageAssetGennedProfile", type, flags);
+
+   mTextureHandle.set(mImageFile, genProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
+   mResourceMap.insert(genProfile, mTextureHandle);
 
    if (mTextureHandle.isValid())
       mLoadedState = AssetErrCode::Ok;
