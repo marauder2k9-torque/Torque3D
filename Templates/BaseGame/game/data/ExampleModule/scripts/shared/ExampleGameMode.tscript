@@ -1,11 +1,5 @@
-function ExampleGameMode::onCreateGame()
-{
-   // Note: The Game object will be cleaned up by MissionCleanup.  Therefore its lifetime is
-   // limited to that of the mission.
-   new ScriptObject(ExampleGameMode){};
-
-   return ExampleGameMode;
-}
+if(!isObject(ExampleGameMode))
+   new GameMode(ExampleGameMode){};
 
 //-----------------------------------------------------------------------------
 // The server has started up so do some game start up
@@ -157,6 +151,30 @@ function ExampleGameMode::onClientLeaveGame(%this, %client)
 function ExampleGameMode::onInitialControlSet(%this)
 {
    
+}
+
+function ExampleGameMode::onSceneLoaded(%this)
+{
+   echo("===================================");
+   echo("ExampleGameMode - Scene is loaded");  
+}
+
+function ExampleGameMode::onSceneUnloaded(%this)
+{
+   echo("===================================");
+   echo("ExampleGameMode - Scene is unloaded");  
+}
+
+function ExampleGameMode::onSubsceneLoaded(%this)
+{
+   echo("===================================");
+   echo("ExampleGameMode - Subscene is loaded");  
+}
+
+function ExampleGameMode::onSubsceneUnloaded(%this)
+{
+   echo("===================================");
+   echo("ExampleGameMode - Subscene is unloaded");  
 }
 
 function ExampleGameMode::spawnCamera(%this, %client, %spawnPoint)
