@@ -641,38 +641,6 @@ void GuiInspectorGroup::addInspectorField(StringTableEntry name, StringTableEntr
 {
    S32 fieldType = -1;
 
-   if (typeName == StringTable->insert("int"))
-      fieldType = TypeS32;
-   else if (typeName == StringTable->insert("float"))
-      fieldType = TypeF32;
-   else if (typeName == StringTable->insert("vector"))
-      fieldType = TypePoint3F;
-   else if (typeName == StringTable->insert("vector2"))
-      fieldType = TypePoint2F;
-   else if (typeName == StringTable->insert("material"))
-      fieldType = TypeMaterialAssetId;
-   else if (typeName == StringTable->insert("image"))
-      fieldType = TypeImageAssetPtr;
-   else if (typeName == StringTable->insert("shape"))
-      fieldType = TypeShapeAssetId;
-   else if (typeName == StringTable->insert("sound"))
-      fieldType = TypeSoundAssetId;
-   else if (typeName == StringTable->insert("bool"))
-      fieldType = TypeBool;
-   else if (typeName == StringTable->insert("object"))
-      fieldType = TypeSimObjectPtr;
-   else if (typeName == StringTable->insert("string"))
-      fieldType = TypeString;
-   else if (typeName == StringTable->insert("colorI"))
-      fieldType = TypeColorI;
-   else if (typeName == StringTable->insert("colorF"))
-      fieldType = TypeColorF;
-   else if (typeName == StringTable->insert("ease"))
-      fieldType = TypeEaseF;
-   else if (typeName == StringTable->insert("command"))
-      fieldType = TypeCommand;
-   else if (typeName == StringTable->insert("filename"))
-      fieldType = TypeStringFilename;
    String typeNameTyped = typeName;
    if (!typeNameTyped.startsWith("Type"))
       typeNameTyped = String("Type") + typeNameTyped;

@@ -176,36 +176,6 @@ void GuiVariableInspector::addField(const char* name, const char* label, const c
    //find the field type
    S32 fieldTypeMask = -1;
 
-   if (newField->mFieldTypeName == StringTable->insert("int"))
-      fieldTypeMask = TypeS32;
-   else if (newField->mFieldTypeName == StringTable->insert("float"))
-      fieldTypeMask = TypeF32;
-   else if (newField->mFieldTypeName == StringTable->insert("vector"))
-      fieldTypeMask = TypePoint3F;
-   else if (newField->mFieldTypeName == StringTable->insert("vector2"))
-      fieldTypeMask = TypePoint2F;
-   else if (newField->mFieldTypeName == StringTable->insert("material"))
-      fieldTypeMask = TypeMaterialAssetId;
-   else if (newField->mFieldTypeName == StringTable->insert("image"))
-      fieldTypeMask = TypeImageAssetPtr;
-   else if (newField->mFieldTypeName == StringTable->insert("shape"))
-      fieldTypeMask = TypeShapeAssetId;
-   else if (newField->mFieldTypeName == StringTable->insert("bool"))
-      fieldTypeMask = TypeBool;
-   else if (newField->mFieldTypeName == StringTable->insert("object"))
-      fieldTypeMask = TypeSimObjectPtr;
-   else if (newField->mFieldTypeName == StringTable->insert("string"))
-      fieldTypeMask = TypeString;
-   else if (newField->mFieldTypeName == StringTable->insert("colorI"))
-      fieldTypeMask = TypeColorI;
-   else if (newField->mFieldTypeName == StringTable->insert("colorF"))
-      fieldTypeMask = TypeColorF;
-   else if (newField->mFieldTypeName == StringTable->insert("ease"))
-      fieldTypeMask = TypeEaseF;
-   else if (newField->mFieldTypeName == StringTable->insert("command"))
-      fieldTypeMask = TypeCommand;
-   else if (newField->mFieldTypeName == StringTable->insert("filename"))
-      fieldTypeMask = TypeStringFilename;
    String typeNameTyped = typeName;
    if (!typeNameTyped.startsWith("Type"))
       typeNameTyped = String("Type") + typeNameTyped;
