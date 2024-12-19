@@ -21,6 +21,9 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 #pragma once
+#ifndef _IMAGE_ASSET_H_
+#define _IMAGE_ASSET_H_
+
 
 #ifndef _ASSET_BASE_H_
 #include "assets/assetBase.h"
@@ -569,3 +572,23 @@ if (m##name##AssetId[index] != StringTable->EmptyString())\
 
 #pragma endregion
 
+#pragma region Refactor Asset Macros
+
+#define DECLARE_IMAGEASSET_REFACTOR(className, name, profile)                                                                                                                 \
+private:                                                                                                                                                                      \
+   AssetPtr<ImageAsset> m##name##Asset;                                                                                                                                       \
+public:                                                                                                                                                                       \
+   void _set##name(StringTableEntry _in);                                                                                                                                     \
+   inline StringTableEntry _get##name(void) const { return m##name##Asset->getAssetId(); }                                                                                    \
+   GFXTexHandle get##name() { return m##name##Asset.notNull() ? m##name##Asset->getTexture(&profile) : NULL; }                                                                \
+                                                                                                                                                                              \
+   static bool _set##name##Data(void* obj, const char* index, const char* data) { static_cast<className*>(obj)->_set##name(_getStringTable()->insert(data)); return false;}   \
+   static const char* _get##name##Data(void* obj, StringTableEntry data) { return static_cast<className*>(obj)->_get##name(); }
+
+#define INITPERSISTFIELD_IMAGEASSET_REFACTOR(name, consoleClass, docs)                                                                                                        \
+   addProtectedField(assetText(name, Asset), TypeImageAssetPtr, Offset(m##name##Asset, consoleClass), _set##name##Data, _get##name##Data, assetDoc(name, asset docs.));
+
+#pragma endregion
+
+
+#endif // !_IMAGE_ASSET_H_

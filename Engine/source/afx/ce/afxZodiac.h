@@ -43,7 +43,6 @@ GFX_DeclareTextureProfile(AFX_GFXZodiacTextureProfile);
 class afxZodiacData : public GameBaseData, public afxZodiacDefs
 {
   typedef GameBaseData  Parent;
-  AssetPtr<ImageAsset> mTextureAsset;
 public:
   enum BlendType
   {
@@ -56,17 +55,8 @@ public:
 
   static void convertGradientRangeFromDegrees(Point2F& gradrange, const Point2F& gradrange_deg);
 
-  void onImageChanged() {}
-
 public:
-   void _setTexture(StringTableEntry _in);
-
-   static bool _setTextureData(void* obj, const char* index, const char* data) {
-      static_cast<afxZodiacData*>(obj)->_setTexture(_getStringTable()->insert(data)); return false;
-   };
-
-   GFXTexHandle getTexture() { return mTextureAsset.notNull() ? mTextureAsset->getTexture(&AFX_GFXZodiacTextureProfile) : NULL; }
-
+   DECLARE_IMAGEASSET_REFACTOR(afxZodiacData, Texture, AFX_GFXZodiacTextureProfile)
 
   F32               radius_xy;
   Point2F           vert_range;

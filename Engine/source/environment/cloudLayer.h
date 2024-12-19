@@ -61,7 +61,6 @@ class CloudLayer : public SceneObject
    };  
 
    #define TEX_COUNT 3
-   AssetPtr<ImageAsset> mTextureAsset;
 public:
 
    CloudLayer();
@@ -99,9 +98,7 @@ protected:
 
 public:
 
-   void _setTexture(StringTableEntry _in);
-
-   static bool _setTextureData(void* obj, const char* index, const char* data) { static_cast<CloudLayer*>(obj)->_setTexture(_getStringTable()->insert(data)); return false; };
+   DECLARE_IMAGEASSET_REFACTOR(CloudLayer,Texture, GFXStaticTextureSRGBProfile)
 
    GFXShaderRef mShader;
 

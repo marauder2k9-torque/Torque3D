@@ -190,8 +190,8 @@ void CloudLayer::initPersistFields()
    docsURL;
    addGroup( "CloudLayer" );
 
-   addProtectedField("TextureAsset", TypeImageAssetPtr, Offset(mTextureAsset, CloudLayer), _setTextureData, &defaultProtectedGetFn, "Textureasset \"An RGBA texture which should contain normals and opacity (density).\".");;
-      
+   INITPERSISTFIELD_IMAGEASSET_REFACTOR(Texture, CloudLayer, "An RGBA texture which should contain normals and opacity (density).")
+
       addArray( "Textures", TEX_COUNT );
 
          addField( "texScale", TypeF32, Offset( mTexScale, CloudLayer ), TEX_COUNT,

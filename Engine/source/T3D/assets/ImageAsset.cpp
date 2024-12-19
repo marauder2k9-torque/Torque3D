@@ -51,8 +51,9 @@ ConsoleTypeTemplate(ImageAssetPtr, TypeImageAssetPtr, ImageAsset, AssetPtr, ASSE
 
 ConsoleGetTypeTemplate(TypeImageAssetPtr, ImageAsset)
 {
-   // Fetch asset Id.
-   return (*((AssetPtr<ImageAsset>*)dptr)).getAssetId();
+   // Fetch asset pointer.
+   AssetPtr<ImageAsset>* pAssetPtr = dynamic_cast<AssetPtr<ImageAsset>*>((AssetPtrBase*)(dptr));
+   return pAssetPtr->getAssetId();
 }
 
 ConsoleSetTypeTemplate(TypeImageAssetPtr, ImageAsset)

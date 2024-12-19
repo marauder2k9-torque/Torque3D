@@ -40,7 +40,9 @@
 #include "T3D/assets/SoundAsset.h"
 #endif
 
+#ifndef _IMAGE_ASSET_H_
 #include "T3D/assets/ImageAsset.h"
+#endif
 
 #include "gfx/gfxDevice.h"
 #include "platform/input/event.h"
@@ -348,8 +350,7 @@ class GuiCursor : public SimObject
 private:
    typedef SimObject Parent;
 
-   DECLARE_IMAGEASSET(GuiCursor, Bitmap, onImageChanged, GFXGuiCursorProfile);
-   DECLARE_ASSET_SETGET(GuiCursor, Bitmap);
+   DECLARE_IMAGEASSET_REFACTOR(GuiCursor, Bitmap, GFXGuiCursorProfile)
 
    Point2I mHotSpot;
    Point2F mRenderOffset;

@@ -73,13 +73,21 @@ GFX_ImplementTextureProfile(GFXDefaultGUIProfile,
                             GFXTextureProfile::NONE);
 
 
+void GuiCursor::_setBitmap(StringTableEntry _in)
+{
+   // Ignore no change.
+   if (mBitmapAsset.getAssetId() == StringTable->insert(_in))
+      return;
+
+   // Update.
+   mBitmapAsset = _in;
+}
+
 GuiCursor::GuiCursor()
 {
    mHotSpot.set(0,0);
    mRenderOffset.set(0.0f,0.0f);
    mExtent.set(1,1);
-
-   INIT_ASSET(Bitmap);
 }
 
 GuiCursor::~GuiCursor()
@@ -92,8 +100,8 @@ void GuiCursor::initPersistFields()
    addField("hotSpot",     TypePoint2I,   Offset(mHotSpot, GuiCursor), "The location of the cursor's hot spot (which pixel carries the click).");
    addField("renderOffset",TypePoint2F,   Offset(mRenderOffset, GuiCursor), "Offset of the bitmap, where 0 signifies left edge of the bitmap, 1, the right. Similarly for the Y-component.");
 
-   addProtectedField("bitmapName",  TypeImageFilename,  Offset(mBitmapName, GuiCursor), _setBitmapData, &defaultProtectedGetFn, "File name of the bitmap for the cursor.");
-   INITPERSISTFIELD_IMAGEASSET(Bitmap, GuiCursor, "name of the bitmap for the cursor.");
+   INITPERSISTFIELD_IMAGEASSET_REFACTOR(Bitmap, GuiCursor, "name of the bitmap for the cursor.")
+
    Parent::initPersistFields();
 }
 
@@ -114,21 +122,23 @@ void GuiCursor::onRemove()
 
 void GuiCursor::render(const Point2I &pos)
 {
-   if (mBitmap)
+   if (mBitmapAsset.notNull())
    {
-      mExtent.set(mBitmap->getWidth(), mBitmap->getHeight());
+      // load
+      mBitmapAsset->getTexture(&GFXGuiCursorProfile);
+
+      mExtent.set(mBitmapAsset->getTextureBitmapWidth(), mBitmapAsset->getTextureBitmapHeight());
+      // Render the cursor centered according to dimensions of texture
+      S32 texWidth = mBitmapAsset->getTextureBitmapWidth();
+      S32 texHeight = mBitmapAsset->getTextureBitmapHeight();
+
+      Point2I renderPos = pos;
+      renderPos.x -= (S32)(texWidth * mRenderOffset.x);
+      renderPos.y -= (S32)(texHeight * mRenderOffset.y);
+
+      GFX->getDrawUtil()->clearBitmapModulation();
+      GFX->getDrawUtil()->drawBitmap(mBitmapAsset->getTexture(&GFXGuiCursorProfile), renderPos);
    }
-
-   // Render the cursor centered according to dimensions of texture
-   S32 texWidth = mBitmap.getWidth();
-   S32 texHeight = mBitmap.getHeight();
-
-   Point2I renderPos = pos;
-   renderPos.x -= (S32)( texWidth  * mRenderOffset.x );
-   renderPos.y -= (S32)( texHeight * mRenderOffset.y );
-
-   GFX->getDrawUtil()->clearBitmapModulation();
-   GFX->getDrawUtil()->drawBitmap(mBitmap, renderPos);
 }
 
 //------------------------------------------------------------------------------

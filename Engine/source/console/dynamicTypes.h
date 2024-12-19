@@ -416,8 +416,7 @@ const EngineTypeInfo* _MAPTYPE() { return TYPE< T >(); }
    extern const char* castConsoleTypeToString( const nativeType<templateType>& arg );        \
    template <typename templateType>                                                          \
    extern bool castConsoleTypeFromString( nativeType<templateType>& arg, const char *str );  \
-   template <typename templateType> S32 TYPEID< nativeType<templateType> >();                \
-   template<> inline const EngineTypeInfo* _MAPTYPE< nativeType<templateType> >() { return NULL; }
+   template <typename templateType> S32 TYPEID< nativeType<templateType> >();                
 
 #define ConsoleTypeTemplate(typeName, type, templateType, nativeType, typePrefix)                           \
    S32 type;                                                                                                \

@@ -35,7 +35,6 @@
 class afxZodiacPlaneData : public GameBaseData, public afxZodiacDefs
 {
   typedef GameBaseData  Parent;
-  AssetPtr<ImageAsset> mTextureAsset;
 public:
   enum BlendType
   {
@@ -59,13 +58,8 @@ public:
   void onImageChanged() {}
 
 public:
-   void _setTexture(StringTableEntry _in);
 
-   static bool _setTextureData(void* obj, const char* index, const char* data) {
-      static_cast<afxZodiacPlaneData*>(obj)->_setTexture(_getStringTable()->insert(data)); return false;
-   };
-
-   GFXTexHandle getTexture() { return mTextureAsset.notNull() ? mTextureAsset->getTexture(&AFX_GFXZodiacTextureProfile) : NULL; }
+  DECLARE_IMAGEASSET_REFACTOR(afxZodiacPlaneData, Texture, AFX_GFXZodiacTextureProfile)
 
   F32               radius_xy;
   F32               start_ang;
@@ -118,7 +112,7 @@ class afxZodiacPlane : public GameBase, public afxZodiacDefs
 
 private:
   afxZodiacPlaneData*   mDataBlock;
-  LinearColorF                color;
+  LinearColorF          color;
   F32                   radius;
   bool                  is_visible;
 
@@ -133,15 +127,15 @@ public:
   /*C*/                 afxZodiacPlane();
   /*D*/                 ~afxZodiacPlane();
 
-  bool          onNewDataBlock(GameBaseData* dptr, bool reload) override;
-  bool          onAdd() override;
-  void          onRemove() override;
+  bool                  onNewDataBlock(GameBaseData* dptr, bool reload) override;
+  bool                  onAdd() override;
+  void                  onRemove() override;
 
   void                  setRadius(F32 rad) { radius = rad; }
   void                  setColor(const LinearColorF& clr) { color = clr; }
   void                  setVisibility(bool flag) { is_visible = flag; }
 
-  void          prepRenderImage(SceneRenderState*) override;
+  void                  prepRenderImage(SceneRenderState*) override;
                                         
   void                  _renderZodiacPlane(ObjectRenderInst*, SceneRenderState*, BaseMatInstance*);
 
