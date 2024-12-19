@@ -112,8 +112,6 @@ CloudLayer::CloudLayer()
    mTexOffset[0] = mTexOffset[1] = mTexOffset[2] = Point2F::Zero;
 
    mHeight = 4.0f;
-
-   INIT_ASSET(Texture);
 }
 
 IMPLEMENT_CO_NETOBJECT_V1( CloudLayer );
@@ -130,8 +128,6 @@ bool CloudLayer::onAdd()
    resetWorldBox();
 
    addToScene();
-
-   LOAD_IMAGEASSET(Texture);
 
    if ( isClientObject() )
    {
@@ -194,7 +190,7 @@ void CloudLayer::initPersistFields()
    docsURL;
    addGroup( "CloudLayer" );
 
-      INITPERSISTFIELD_IMAGEASSET(Texture, CloudLayer, "An RGBA texture which should contain normals and opacity (density).");
+   addProtectedField("TextureAsset", TypeImageAssetPtr, Offset(mTextureAsset, CloudLayer), _setTextureData, &defaultProtectedGetFn, "Textureasset \"An RGBA texture which should contain normals and opacity (density).\".");;
       
       addArray( "Textures", TEX_COUNT );
 
@@ -243,7 +239,9 @@ U32 CloudLayer::packUpdate( NetConnection *conn, U32 mask, BitStream *stream )
 {
    U32 retMask = Parent::packUpdate( conn, mask, stream );
 
-   PACK_ASSET(conn, Texture);
+   if (stream->writeFlag(mTextureAsset.notNull())) {
+      NetStringHandle assetIdStr = mTextureAsset.getAssetId(); conn->packNetStringHandleU(stream, assetIdStr);
+   }
    
    for ( U32 i = 0; i < TEX_COUNT; i++ )
    {
@@ -265,10 +263,9 @@ void CloudLayer::unpackUpdate( NetConnection *conn, BitStream *stream )
 {
    Parent::unpackUpdate( conn, stream );
 
-   UNPACK_ASSET(conn, Texture);
-
-   if(mTextureAssetId != StringTable->EmptyString())
-      mTextureAsset = mTextureAssetId;
+   if (stream->readFlag()) {
+      mTextureAsset.setAssetId(_getStringTable()->insert(conn->unpackNetStringHandleU(stream).getString()));
+   }
 
    for ( U32 i = 0; i < TEX_COUNT; i++ )
    {
@@ -493,4 +490,14 @@ void CloudLayer::_initBuffers()
    }
 
    mPB.unlock();   
+}
+
+void CloudLayer::_setTexture(StringTableEntry _in)
+{
+   // Ignore no change.
+   if (mTextureAsset.getAssetId() == StringTable->insert(_in))
+      return;
+
+   // Update.
+   mTextureAsset = _in;
 }
