@@ -579,9 +579,9 @@ private:                                                                        
    AssetPtr<ImageAsset> m##name##Asset;                                                                                                                                       \
 public:                                                                                                                                                                       \
    void _set##name(StringTableEntry _in);                                                                                                                                     \
-   inline StringTableEntry _get##name(void) const { return m##name##Asset->getAssetId(); }                                                                                    \
+   inline StringTableEntry _get##name(void) const { return m##name##Asset.getAssetId(); }                                                                                     \
    GFXTexHandle get##name() { return m##name##Asset.notNull() ? m##name##Asset->getTexture(&profile) : NULL; }                                                                \
-                                                                                                                                                                              \
+   AssetPtr<ImageAsset> get##name##Asset(void) { return m##name##Asset; }                                                                                                     \
    static bool _set##name##Data(void* obj, const char* index, const char* data) { static_cast<className*>(obj)->_set##name(_getStringTable()->insert(data)); return false;}   \
    static const char* _get##name##Data(void* obj, StringTableEntry data) { return static_cast<className*>(obj)->_get##name(); }
 

@@ -39,8 +39,7 @@ class GuiBitmapCtrl : public GuiControl
    
       /// Name of the bitmap file.  If this is 'texhandle' the bitmap is not loaded
       /// from a file but rather set explicitly on the control.
-      DECLARE_IMAGEASSET(GuiBitmapCtrl, Bitmap, onImageChanged, GFXDefaultGUIProfile);
-      DECLARE_ASSET_SETGET(GuiBitmapCtrl, Bitmap);
+      DECLARE_IMAGEASSET_REFACTOR(GuiBitmapCtrl, Bitmap, GFXDefaultGUIProfile)
             
       Point2I mStartPoint;
       ColorI   mColor;
@@ -49,23 +48,20 @@ class GuiBitmapCtrl : public GuiControl
       /// If true, bitmap tiles inside control.  Otherwise stretches.
       bool mWrap;
 
-      static bool setBitmapName( void *object, const char *index, const char *data );
-      static const char *getBitmapName( void *obj, const char *data );
-
-      void onImageChanged() {}
-
    public:
-      
+      GFXTexHandle mBitmap;
+      StringTableEntry mBitmapName;
+
       GuiBitmapCtrl();
       static void initPersistFields();
-
-      void setBitmap(const char *name,bool resize = false);
-      void setBitmapHandle(GFXTexHandle handle, bool resize = false);
 
       // GuiControl.
       bool onWake() override;
       void onSleep() override;
       void inspectPostApply() override;
+
+      void setBitmap(const char* name, bool resize = true);
+      void setBitmapHandle(GFXTexHandle handle, bool resize = false);
 
       void updateSizing();
 

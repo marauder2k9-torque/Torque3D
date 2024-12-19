@@ -157,7 +157,6 @@ bool GuiMissionAreaCtrl::onWake()
 
 void GuiMissionAreaCtrl::onSleep()
 {
-   mBitmap = NULL;
    mMissionArea = 0;
    mTerrainBlock = 0;
 

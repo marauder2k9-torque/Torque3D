@@ -59,21 +59,10 @@ GuiBitmapCtrl::GuiBitmapCtrl(void)
  : mStartPoint( 0, 0 ),
    mColor(ColorI::WHITE),
    mAngle(0),
-   mWrap( false )
+   mWrap( false ),
+   mBitmap(NULL),
+   mBitmapName(StringTable->EmptyString())
 {
-   INIT_ASSET(Bitmap);
-}
-
-bool GuiBitmapCtrl::setBitmapName( void *object, const char *index, const char *data )
-{
-   // Prior to this, you couldn't do bitmap.bitmap = "foo.jpg" and have it work.
-   // With protected console types you can now call the setBitmap function and
-   // make it load the image.
-   static_cast<GuiBitmapCtrl *>( object )->setBitmap( data );
-
-   // Return false because the setBitmap method will assign 'mBitmapName' to the
-   // argument we are specifying in the call.
-   return false;
 }
 
 void GuiBitmapCtrl::initPersistFields()
@@ -81,9 +70,7 @@ void GuiBitmapCtrl::initPersistFields()
    docsURL;
    addGroup( "Bitmap" );
 
-      addField("Bitmap", TypeImageFilename, Offset(mBitmapName, GuiBitmapCtrl), assetDoc(Bitmap, docs), AbstractClassRep::FIELD_HideInInspectors);
-      addField("BitmapAsset", TypeImageAssetPtr, Offset(mBitmapAssetId, GuiBitmapCtrl), assetDoc(Bitmap, asset docs.));
-
+      INITPERSISTFIELD_IMAGEASSET_REFACTOR(Bitmap, GuiBitmapCtrl, "The bitmap to render in this BitmapCtrl.")
       addField("color", TypeColorI, Offset(mColor, GuiBitmapCtrl),"color mul");
       addField( "wrap",   TypeBool,     Offset( mWrap, GuiBitmapCtrl ),
          "If true, the bitmap is tiled inside the control rather than stretched to fit." );
@@ -101,42 +88,24 @@ bool GuiBitmapCtrl::onWake()
       return false;
    setActive(true);
 
-   if (mBitmapName != StringTable->insert("texhandle"))
-      setBitmap(getBitmap());
    return true;
 }
 
 void GuiBitmapCtrl::onSleep()
 {
-   if ( mBitmapName != StringTable->insert("texhandle") )
-      mBitmap = NULL;
-
    Parent::onSleep();
 }
 
 //-------------------------------------
 void GuiBitmapCtrl::inspectPostApply()
 {
-   //This is a little bit of a 'special case' handling for this class
-   //Because we don't do the normal protectedField setup for the bitmapName/bitmapAsset fields
-   //which would automatically update the internal values and bound content, we'll do it here manually
-   //to ensure it's updated before we force a refresh, which would thrash the new values
-   if (mBitmapName != StringTable->insert("texhandle"))
-   {
-      _setBitmap(mBitmapAssetId);
-   }
-   else
-   {
-      setBitmap(getBitmap());
-   }
-
    // if the extent is set to (0,0) in the gui editor and appy hit, this control will
    // set it's extent to be exactly the size of the bitmap (if present)
    Parent::inspectPostApply();
 
-   if (!mWrap && (getExtent().x == 0) && (getExtent().y == 0) && mBitmap)
+   if (!mWrap && (getExtent().x == 0) && (getExtent().y == 0) && mBitmapAsset.notNull())
    {
-      setExtent( mBitmap->getWidth(), mBitmap->getHeight());
+      setExtent(mBitmap->getWidth(), mBitmap->getHeight());
    }
 }
 
@@ -144,7 +113,7 @@ void GuiBitmapCtrl::setBitmap( const char *name, bool resize )
 {
    _setBitmap(StringTable->insert(name));
 
-   if (mBitmap && resize)
+   if (mBitmapAsset.notNull() && resize)
    {
       setExtent(mBitmap->getWidth(), mBitmap->getHeight());
       updateSizing();
@@ -153,13 +122,14 @@ void GuiBitmapCtrl::setBitmap( const char *name, bool resize )
    setUpdate();
 }
 
-void GuiBitmapCtrl::updateSizing()
+void GuiBitmapCtrl::_setBitmap(StringTableEntry _in)
 {
-   if(!getParent())
+   if (mBitmapAsset.getAssetId() == _in)
       return;
-   // updates our bounds according to our horizSizing and verSizing rules
-   RectI fakeBounds( getPosition(), getParent()->getExtent());
-   parentResized( fakeBounds, fakeBounds);
+
+   mBitmapAsset = _in;
+
+   mBitmap = mBitmapAsset->getTexture(&GFXDefaultGUIProfile);
 }
 
 void GuiBitmapCtrl::setBitmapHandle(GFXTexHandle handle, bool resize)
@@ -169,11 +139,20 @@ void GuiBitmapCtrl::setBitmapHandle(GFXTexHandle handle, bool resize)
    mBitmapName = StringTable->insert("texhandle");
 
    // Resize the control to fit the bitmap
-   if (resize) 
+   if (resize)
    {
       setExtent(mBitmap->getWidth(), mBitmap->getHeight());
       updateSizing();
    }
+}
+
+void GuiBitmapCtrl::updateSizing()
+{
+   if(!getParent())
+      return;
+   // updates our bounds according to our horizSizing and verSizing rules
+   RectI fakeBounds( getPosition(), getParent()->getExtent());
+   parentResized( fakeBounds, fakeBounds);
 }
 
 void GuiBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
@@ -226,10 +205,10 @@ void GuiBitmapCtrl::onRender(Point2I offset, const RectI &updateRect)
 
 void GuiBitmapCtrl::setValue(S32 x, S32 y)
 {
-   if (mBitmap)
+   if (mBitmapAsset.notNull())
    {
-		x += mBitmap->getWidth() / 2;
-		y += mBitmap->getHeight() / 2;
+		x += mBitmapAsset->getTextureBitmapWidth() / 2;
+		y += mBitmapAsset->getTextureBitmapHeight() / 2;
   	}
   	while (x < 0)
   		x += 256;
@@ -282,7 +261,7 @@ DefineEngineMethod(GuiBitmapCtrl, getBitmap, const char*, (),,
    "Gets the current bitmap set for this control.\n\n"
    "@hide")
 {
-   return object->getBitmap();
+   return object->_getBitmap();
 }
 
 DefineEngineMethod( GuiBitmapCtrl, setNamedTexture, bool, (String namedtexture),,
