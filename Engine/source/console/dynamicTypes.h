@@ -410,4 +410,42 @@ const EngineTypeInfo* _MAPTYPE() { return TYPE< T >(); }
 
 /// @}
 
+#define DefineConsoleTypeTemplate(type, templateType, nativeType)                            \
+   extern S32 type;                                                                          \
+   template <typename templateType>                                                          \
+   extern const char* castConsoleTypeToString( const nativeType<templateType>& arg );        \
+   template <typename templateType>                                                          \
+   extern bool castConsoleTypeFromString( nativeType<templateType>& arg, const char *str );  \
+   template <typename templateType> S32 TYPEID< nativeType<templateType> >();                \
+   template<> inline const EngineTypeInfo* _MAPTYPE< nativeType<templateType> >() { return NULL; }
+
+#define ConsoleTypeTemplate(typeName, type, templateType, nativeType, typePrefix)                           \
+   S32 type;                                                                                                \
+   template <typename templateType>                                                                         \
+   class ConsoleType##type : public ConsoleBaseType                                                         \
+   {                                                                                                        \
+   public:                                                                                                  \
+      typedef nativeType<templateType> T;                                                                   \
+      ConsoleType##type()                                                                                   \
+         : ConsoleBaseType( sizeof( nativeType<templateType> ), &type, #type )                              \
+      {                                                                                                     \
+         mTypeInfo = _MAPTYPE< nativeType<templateType> >();                                                \
+      }                                                                                                     \
+      virtual void setData(void *dptr, S32 argc, const char **argv, const EnumTable *tbl, BitSet32 flag);   \
+      virtual const char *getData(void *dptr, const EnumTable *tbl, BitSet32 flag );                        \
+      virtual const char *getTypeClassName() { return #typeName ; }                                         \
+      virtual void       *getNativeVariable() { T* var = new T; return (void*)var; }                        \
+      virtual void        deleteNativeVariable(void* var) { T* nativeVar = reinterpret_cast<T*>(var); delete nativeVar; } \
+      virtual StringTableEntry getTypePrefix( void ) const { return StringTable->insert( typePrefix ); } \
+   };                                                                                  \
+   template <typename templateType> ConsoleType##type<templateType> gConsoleType##type##Instance;
+
+#define ConsoleGetTypeTemplate(type, templateType)                                     \
+   template <typename templateType>                                                   \
+   const char *ConsoleType##type<templateType>::getData(void *dptr, const EnumTable *tbl, BitSet32 flag)
+
+#define ConsoleSetTypeTemplate(type, templateType)                                    \
+   template <typename templateType>                                                   \
+   void ConsoleType##type<templateType>::setData(void *dptr, S32 argc, const char **argv, const EnumTable *tbl, BitSet32 flag)
+
 #endif

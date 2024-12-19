@@ -334,7 +334,7 @@ void CloudLayer::renderObject( ObjectRenderInst *ri, SceneRenderState *state, Ba
 {
    GFXTransformSaver saver;
 
-   if (!mTextureAsset || !mTextureAsset->isAssetValid())
+   if (!mTextureAsset)
       return;
 
    const Point3F &camPos = state->getCameraPosition();
@@ -385,7 +385,7 @@ void CloudLayer::renderObject( ObjectRenderInst *ri, SceneRenderState *state, Ba
 
    mShaderConsts->setSafe( mExposureSC, mExposure );
 
-   GFX->setTexture( mNormalHeightMapSC->getSamplerRegister(), getTextureResource());
+   GFX->setTexture( mNormalHeightMapSC->getSamplerRegister(), mTextureAsset->getTexture(&GFXStaticTextureSRGBProfile));
    GFX->setVertexBuffer( mVB );            
    GFX->setPrimitiveBuffer( mPB );
 

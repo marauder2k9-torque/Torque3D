@@ -213,7 +213,9 @@ protected:
 
 //-----------------------------------------------------------------------------
 
-DefineConsoleType(TypeImageAssetPtr, ImageAsset)
+/// DefineConsoleType(TypeImageAssetPtr, ImageAsset)
+
+DefineConsoleTypeTemplate(TypeImageAssetPtr, ImageAsset, AssetPtr)
 
 //-----------------------------------------------------------------------------
 

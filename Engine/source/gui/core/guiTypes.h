@@ -475,7 +475,7 @@ public:
    {
       if (mBitmapAssetId != _in || mBitmapName != _in)
       {
-         if (_in == StringTable->EmptyString())
+         if (_in == StringTable->EmptyString() || _in == NULL)
          {
             mBitmapName = StringTable->EmptyString(); 
             mBitmapAssetId = StringTable->EmptyString(); 

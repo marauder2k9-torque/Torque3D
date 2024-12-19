@@ -45,23 +45,37 @@ StringTableEntry ImageAsset::smNoImageAssetFallback = NULL;
 
 IMPLEMENT_CONOBJECT(ImageAsset);
 
-ConsoleType(ImageAssetPtr, TypeImageAssetPtr, const char*, ASSET_ID_FIELD_PREFIX)
+ConsoleTypeTemplate(ImageAssetPtr, TypeImageAssetPtr, ImageAsset, AssetPtr, ASSET_ID_FIELD_PREFIX)
 
 //-----------------------------------------------------------------------------
 
-ConsoleGetType(TypeImageAssetPtr)
+ConsoleGetTypeTemplate(TypeImageAssetPtr, ImageAsset)
 {
    // Fetch asset Id.
-   return *((const char**)(dptr));
+   return (*((AssetPtr<ImageAsset>*)dptr)).getAssetId();
 }
 
-ConsoleSetType(TypeImageAssetPtr)
+ConsoleSetTypeTemplate(TypeImageAssetPtr, ImageAsset)
 {
    // Was a single argument specified?
    if (argc == 1)
    {
       // Yes, so fetch field value.
-      *((const char**)dptr) = StringTable->insert(argv[0]);
+      const char* pFieldValue = argv[0];
+
+      // Fetch asset pointer.
+      AssetPtr<ImageAsset>* pAssetPtr = dynamic_cast<AssetPtr<ImageAsset>*>((AssetPtrBase*)(dptr));
+
+      // Is the asset pointer the correct type?
+      if (pAssetPtr == NULL)
+      {
+         // No, so fail.
+         Con::warnf("(TypeImageAssetPtr) - Failed to set asset Id '%d'.", pFieldValue);
+         return;
+      }
+
+      // Set asset.
+      pAssetPtr->setAssetId(pFieldValue);
 
       return;
    }

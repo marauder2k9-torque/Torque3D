@@ -86,6 +86,9 @@ private:
     SimObjectPtr<T> mpAsset;
 
 public:
+
+   
+
     AssetPtr() {}
     AssetPtr( const char* pAssetId )
     {
@@ -179,12 +182,6 @@ public:
     /// Validity.
     bool isNull( void ) const override { return mpAsset.isNull(); }
     bool notNull( void ) const override { return !mpAsset.isNull(); }
-};
-
-template< typename T >
-struct TypeTraits< AssetPtr< T > > : public _TypeTraits< AssetPtr< T > >
-{
-   typedef typename TypeTraits< T >::BaseType BaseType;
 };
 
 #endif // _ASSET_PTR_H_
