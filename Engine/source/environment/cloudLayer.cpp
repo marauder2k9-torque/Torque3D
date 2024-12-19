@@ -500,4 +500,5 @@ void CloudLayer::_setTexture(StringTableEntry _in)
 
    // Update.
    mTextureAsset = _in;
+   setMaskBits(CloudLayerMask);
 }

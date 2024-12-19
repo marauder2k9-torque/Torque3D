@@ -160,10 +160,14 @@ class VolumetricFog : public SceneObject
       VectorF mObjScale;
       F32 mMinDisplaySize;
       F32 mInvScale;
-   
+      AssetPtr<ImageAsset> mTextureAsset;
+
       // Fog Modulation data
-      DECLARE_IMAGEASSET(VolumetricFog, Texture, onImageChanged, GFXStaticTextureSRGBProfile);
-      DECLARE_ASSET_NET_SETGET(VolumetricFog, Texture, FogModulationMask);
+      void _setTexture(StringTableEntry _in);
+
+      static bool _setTextureData(void* obj, const char* index, const char* data) {
+         static_cast<VolumetricFog*>(obj)->_setTexture(_getStringTable()->insert(data)); return false;
+      };
 
       bool mIsTextured;
       F32 mTexTiles;
