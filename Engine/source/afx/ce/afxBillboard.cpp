@@ -51,7 +51,6 @@ ConsoleDocClass( afxBillboardData,
 afxBillboardData::afxBillboardData()
 {
   color.set(1.0f, 1.0f, 1.0f, 1.0f);
-  INIT_ASSET(Texture);
   dimensions.set(1.0f, 1.0f);
   texCoords[0].set(0.0f, 0.0f);
   texCoords[1].set(0.0f, 1.0f);
@@ -66,7 +65,7 @@ afxBillboardData::afxBillboardData(const afxBillboardData& other, bool temp_clon
   : GameBaseData(other, temp_clone)
 {
   color = other.color;
-  CLONE_ASSET(Texture);
+  mTextureAsset = other.mTextureAsset;
   dimensions = other.dimensions;
   texCoords[0] = other.texCoords[0];
   texCoords[1] = other.texCoords[1];
@@ -96,7 +95,7 @@ void afxBillboardData::initPersistFields()
     "The color assigned to the quadrangle geometry. The way it combines with the given "
     "texture varies according to the setting of the textureFunction field.");
 
-  INITPERSISTFIELD_IMAGEASSET(Texture, afxBillboardData, "An image to use as the billboard's texture.");
+  addProtectedField("TextureAsset", TypeImageAssetPtr, myOffset(mTextureAsset), _setTextureData, &defaultProtectedGetFn, "@brief Texture asset \"An image to use as the billboard's texture.\".");
 
   addField("dimensions",      TypePoint2F,    myOffset(dimensions),
     "A value-pair that specifies the horizontal and vertical dimensions of the billboard "
@@ -119,12 +118,25 @@ void afxBillboardData::initPersistFields()
   Parent::initPersistFields();
 }
 
+void afxBillboardData::_setTexture(StringTableEntry _in)
+{
+   // Ignore no change.
+   if (mTextureAsset.getAssetId() == StringTable->insert(_in))
+      return;
+
+   // Update.
+   mTextureAsset = _in;
+}
+
 void afxBillboardData::packData(BitStream* stream)
 {
 	Parent::packData(stream);
 
   stream->write(color);
-  PACKDATA_ASSET(Texture);
+
+  if (stream->writeFlag(mTextureAsset.notNull())) {
+     stream->writeString(mTextureAsset.getAssetId());
+  }
 
   mathWrite(*stream, dimensions);
   mathWrite(*stream, texCoords[0]);
@@ -141,7 +153,11 @@ void afxBillboardData::unpackData(BitStream* stream)
   Parent::unpackData(stream);
 
   stream->read(&color);
-  UNPACKDATA_ASSET(Texture);
+
+  if (stream->readFlag()) {
+     mTextureAsset = stream->readSTString();
+  }
+
   mathRead(*stream, &dimensions);
   mathRead(*stream, &texCoords[0]);
   mathRead(*stream, &texCoords[1]);

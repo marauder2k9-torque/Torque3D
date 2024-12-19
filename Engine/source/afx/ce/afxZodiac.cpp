@@ -50,6 +50,16 @@ void afxZodiacData::convertGradientRangeFromDegrees(Point2F& gradrange, const Po
     gradrange.set(y, x);
 }
 
+void afxZodiacData::_setTexture(StringTableEntry _in)
+{
+   // Ignore no change.
+   if (mTextureAsset.getAssetId() == StringTable->insert(_in))
+      return;
+
+   // Update.
+   mTextureAsset = _in;
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~~//
 //~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~~//
@@ -78,8 +88,6 @@ bool afxZodiacData::sPreferDestinationGradients = false;
 
 afxZodiacData::afxZodiacData()
 {
-   INIT_ASSET(Texture);
-
   radius_xy = 1;
   vert_range.set(0.0f, 0.0f);
   start_ang = 0;
@@ -120,8 +128,7 @@ afxZodiacData::afxZodiacData()
 
 afxZodiacData::afxZodiacData(const afxZodiacData& other, bool temp_clone) : GameBaseData(other, temp_clone)
 {
-   CLONE_ASSET(Texture);
-
+  mTextureAsset = other.mTextureAsset;
   radius_xy = other.radius_xy;
   vert_range = other.vert_range;
   start_ang = other.start_ang;
@@ -157,7 +164,7 @@ EndImplementEnumType;
 void afxZodiacData::initPersistFields()
 {
    docsURL;
-   INITPERSISTFIELD_IMAGEASSET(Texture, afxZodiacData, "An image to use as the zodiac's texture.");
+   addProtectedField("Texture""Asset", TypeImageAssetPtr, Offset(mTextureAsset, afxZodiacData), _setTextureData, &defaultProtectedGetFn, "@brief Textureasset \"An image to use as the zodiac's texture.\".");
   addField("radius",                TypeF32,        Offset(radius_xy,         afxZodiacData),
     "The zodiac's radius in scene units.");
   addField("verticalRange",         TypePoint2F,    Offset(vert_range,        afxZodiacData),
@@ -270,7 +277,10 @@ void afxZodiacData::packData(BitStream* stream)
 
   merge_zflags();
 
-  PACKDATA_ASSET(Texture);
+  if (stream->writeFlag(mTextureAsset.notNull())) {
+     stream->writeString(mTextureAsset.getAssetId());
+  }
+
   stream->write(radius_xy);
   stream->write(vert_range.x);
   stream->write(vert_range.y);
@@ -295,7 +305,10 @@ void afxZodiacData::unpackData(BitStream* stream)
 {
   Parent::unpackData(stream);
 
-  UNPACKDATA_ASSET(Texture);
+  if (stream->readFlag()) {
+     mTextureAsset = stream->readSTString();
+  }
+
   stream->read(&radius_xy);
   stream->read(&vert_range.x);
   stream->read(&vert_range.y);
@@ -342,15 +355,11 @@ void afxZodiacData::onStaticModified(const char* slot, const char* newValue)
 
 void afxZodiacData::onPerformSubstitutions() 
 {
-   if (mTextureAssetId != StringTable->EmptyString())
+   if (mTextureAsset->getAssetId() != StringTable->EmptyString())
    {
-      mTextureAsset = mTextureAssetId;
       if (mTextureAsset.notNull())
       {
-         if (getTexture() != StringTable->EmptyString() && mTextureName != StringTable->insert("texhandle"))
-         {
-            mTexture.set(getTexture(), mTextureProfile, avar("%s() - mTextureObject (line %d)", __FUNCTION__, __LINE__));
-         }
+         mTextureAsset->getTexture(&AFX_GFXZodiacTextureProfile);
       }
    }
 }

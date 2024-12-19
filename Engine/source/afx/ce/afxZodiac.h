@@ -43,7 +43,7 @@ GFX_DeclareTextureProfile(AFX_GFXZodiacTextureProfile);
 class afxZodiacData : public GameBaseData, public afxZodiacDefs
 {
   typedef GameBaseData  Parent;
-
+  AssetPtr<ImageAsset> mTextureAsset;
 public:
   enum BlendType
   {
@@ -59,8 +59,14 @@ public:
   void onImageChanged() {}
 
 public:
-   DECLARE_IMAGEASSET(afxZodiacData, Texture, onImageChanged, AFX_GFXZodiacTextureProfile);
-   DECLARE_ASSET_SETGET(afxZodiacData, Texture);
+   void _setTexture(StringTableEntry _in);
+
+   static bool _setTextureData(void* obj, const char* index, const char* data) {
+      static_cast<afxZodiacData*>(obj)->_setTexture(_getStringTable()->insert(data)); return false;
+   };
+
+   GFXTexHandle getTexture() { return mTextureAsset.notNull() ? mTextureAsset->getTexture(&AFX_GFXZodiacTextureProfile) : NULL; }
+
 
   F32               radius_xy;
   Point2F           vert_range;

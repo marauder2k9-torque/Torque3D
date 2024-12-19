@@ -51,8 +51,6 @@ ConsoleDocClass( afxZodiacPlaneData,
 
 afxZodiacPlaneData::afxZodiacPlaneData()
 {
-   INIT_ASSET(Texture);
-
   radius_xy = 1;
   start_ang = 0;
   ang_per_sec = 0;
@@ -71,8 +69,7 @@ afxZodiacPlaneData::afxZodiacPlaneData()
 afxZodiacPlaneData::afxZodiacPlaneData(const afxZodiacPlaneData& other, bool temp_clone)
   : GameBaseData(other, temp_clone)
 {
-   CLONE_ASSET(Texture);
-
+  mTextureAsset = other.mTextureAsset;
   radius_xy = other.radius_xy;
   start_ang = other.start_ang;
   ang_per_sec = other.ang_per_sec;
@@ -112,7 +109,8 @@ EndImplementEnumType;
 void afxZodiacPlaneData::initPersistFields()
 {
    docsURL;
-   INITPERSISTFIELD_IMAGEASSET(Texture, afxZodiacPlaneData, "An image to use as the zodiac's texture.");
+   addProtectedField("Texture""Asset", TypeImageAssetPtr, myOffset(mTextureAsset), _setTextureData, &defaultProtectedGetFn,
+      "@brief Textureasset \"An image to use as the zodiac's texture.\".");
 
   addField("radius",          TypeF32,        myOffset(radius_xy),
     "The zodiac's radius in scene units.");
@@ -166,7 +164,9 @@ void afxZodiacPlaneData::packData(BitStream* stream)
 
   merge_zflags();
 
-  PACKDATA_ASSET(Texture);
+  if (stream->writeFlag(mTextureAsset.notNull())) {
+     stream->writeString(mTextureAsset.getAssetId());
+  }
 
   stream->write(radius_xy);
   stream->write(start_ang);
@@ -185,7 +185,9 @@ void afxZodiacPlaneData::unpackData(BitStream* stream)
 {
   Parent::unpackData(stream);
 
-  UNPACKDATA_ASSET(Texture);
+  if (stream->readFlag()) {
+     mTextureAsset = stream->readSTString();
+  }
 
   stream->read(&radius_xy);
   stream->read(&start_ang);
@@ -216,6 +218,16 @@ F32 afxZodiacPlaneData::calcRotationAngle(F32 elapsed, F32 rate_factor)
   angle = mFmod(angle, 360.0f);
 
   return angle;
+}
+
+void afxZodiacPlaneData::_setTexture(StringTableEntry _in)
+{
+   // Ignore no change.
+   if (mTextureAsset.getAssetId() == StringTable->insert(_in))
+      return;
+
+   // Update.
+   mTextureAsset = _in;
 }
 
 void afxZodiacPlaneData::expand_zflags()

@@ -33,7 +33,7 @@
 class afxBillboardData : public GameBaseData, public afxEffectDefs
 {
   typedef GameBaseData  Parent;
-
+  AssetPtr<ImageAsset> mTextureAsset;
 public:
    // This enum specifies common blend settings with predefined values
    // for src/dst blend factors. 
@@ -47,9 +47,13 @@ public:
    };
 
 public:
-   DECLARE_IMAGEASSET(afxBillboardData, Texture, onChangeTexture, GFXStaticTextureSRGBProfile);
-   DECLARE_ASSET_SETGET(afxBillboardData, Texture);
+   void _setTexture(StringTableEntry _in);
 
+   static bool _setTextureData(void* obj, const char* index, const char* data) {
+      static_cast<afxBillboardData*>(obj)->_setTexture(_getStringTable()->insert(data)); return false;
+   };
+
+   GFXTexHandle getTexture() { return mTextureAsset.notNull() ? mTextureAsset->getTexture(&GFXStaticTextureSRGBProfile) : NULL; }
 
   LinearColorF            color;
   Point2F           texCoords[4];
