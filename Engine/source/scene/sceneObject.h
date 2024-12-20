@@ -768,9 +768,9 @@ class SceneObject : public NetObject, public ProcessObject
       /// @name Protected field getters/setters
       /// @{
 
-      static const char* _getRenderEnabled( void *object, const char *data );
+      static const char* _getRenderEnabled( void *object, const char* index, const char *data );
       static bool _setRenderEnabled( void *object, const char *index, const char *data );
-      static const char* _getSelectionEnabled( void *object, const char *data );
+      static const char* _getSelectionEnabled( void *object, const char *index, const char *data );;
       static bool _setSelectionEnabled( void *object, const char *index, const char *data );
       static bool _setFieldPosition( void *object, const char *index, const char *data );
       static bool _setFieldRotation( void *object, const char *index, const char *data );

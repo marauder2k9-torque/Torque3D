@@ -241,7 +241,7 @@ public:
    StringTableEntry getTypeHint() const override { return (getShapeAsset()) ? getShapeAsset()->getAssetName(): StringTable->EmptyString(); }
    static void consoleInit();
    static bool _setFieldSkin(void* object, const char* index, const char* data);
-   static const char* _getFieldSkin(void* object, const char* data);
+   static const char* _getFieldSkin(void* object, const char* index, const char* data);
 
    // Skinning
    void setSkinName(const char* name);

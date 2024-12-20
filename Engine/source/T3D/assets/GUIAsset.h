@@ -78,9 +78,9 @@ protected:
    void            onAssetRefresh(void) override;
 
    static bool setGUIFile(void *obj, const char *index, const char *data) { static_cast<GUIAsset*>(obj)->setGUIFile(data); return false; }
-   static const char* getGUIFile(void* obj, const char* data) { return static_cast<GUIAsset*>(obj)->getGUIFile(); }
+   static const char* getGUIFile(void *obj, const char *index, const char *data) { return static_cast<GUIAsset*>(obj)->getGUIFile(); }
    static bool setScriptFile(void *obj, const char *index, const char *data) { static_cast<GUIAsset*>(obj)->setScriptFile(data); return false; }
-   static const char* getScriptFile(void* obj, const char* data) { return static_cast<GUIAsset*>(obj)->getScriptFile(); }
+   static const char* getScriptFile(void *obj, const char *index, const char *data) { return static_cast<GUIAsset*>(obj)->getScriptFile(); }
 };
 
 DefineConsoleType(TypeGUIAssetPtr, GUIAsset)

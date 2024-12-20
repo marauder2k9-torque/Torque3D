@@ -164,7 +164,7 @@ bool NavPath::setProtectedTo(void *obj, const char *index, const char *data)
    }
 }
 
-const char *NavPath::getProtectedFrom(void *obj, const char *data)
+const char *NavPath::getProtectedFrom(void *obj, const char *index, const char *data)
 {
    NavPath *object = static_cast<NavPath*>(obj);
 
@@ -174,7 +174,7 @@ const char *NavPath::getProtectedFrom(void *obj, const char *data)
       return StringTable->EmptyString();
 }
 
-const char *NavPath::getProtectedTo(void *obj, const char *data)
+const char *NavPath::getProtectedTo(void *obj, const char *index, const char *data)
 {
    NavPath *object = static_cast<NavPath*>(obj);
 

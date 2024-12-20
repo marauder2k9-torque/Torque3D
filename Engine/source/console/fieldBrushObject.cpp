@@ -469,8 +469,12 @@ void FieldBrushObject::copyFields( SimObject* pSimObject, const char* fieldList 
                 {
                     for( U32 fieldElement = 0; S32(fieldElement) < staticField.elementCount; ++fieldElement )
                     {
+
+                        char* elementIdxBuffer = nullptr;
+                        elementIdxBuffer = Con::getArgBuffer(256);
+                        dSprintf(elementIdxBuffer, 256, "%i", fieldElement);
                         // Fetch Field Value.
-                        const char* fieldValue = (staticField.getDataFn)( pSimObject, Con::getData(staticField.type, (void *) (((const char *)pSimObject) + staticField.offset), fieldElement, staticField.table, staticField.flag) );
+                        const char* fieldValue = (staticField.getDataFn)( pSimObject, elementIdxBuffer, Con::getData(staticField.type, (void *) (((const char *)pSimObject) + staticField.offset), fieldElement, staticField.table, staticField.flag) );
 
                         // Field Value?
                         if ( fieldValue )

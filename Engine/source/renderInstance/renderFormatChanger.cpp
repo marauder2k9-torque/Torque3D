@@ -269,7 +269,7 @@ bool RenderFormatToken::_setFmt( void *object, const char *index, const char *da
    return true;
 }
 
-const char* RenderFormatToken::_getCopyPostEffect( void* object, const char* data )
+const char* RenderFormatToken::_getCopyPostEffect( void *object, const char *index, const char *data )
 {
    RenderFormatToken* token = reinterpret_cast< RenderFormatToken* >( object );
    if( token->mCopyPostEffect.isValid() )
@@ -277,7 +277,7 @@ const char* RenderFormatToken::_getCopyPostEffect( void* object, const char* dat
    return "0";
 }
 
-const char* RenderFormatToken::_getResolvePostEffect( void* object, const char* data )
+const char* RenderFormatToken::_getResolvePostEffect( void *object, const char *index, const char *data )
 {
    RenderFormatToken* token = reinterpret_cast< RenderFormatToken* >( object );
    if( token->mResolvePostEffect.isValid() )

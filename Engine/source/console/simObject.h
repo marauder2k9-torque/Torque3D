@@ -343,11 +343,11 @@ class SimObject: public ConsoleObject, public TamlCallbacks
       /// @}
 
       static bool _setCanSave( void* object, const char* index, const char* data );
-      static const char* _getCanSave( void* object, const char* data );
+      static const char* _getCanSave( void *object, const char *index, const char *data );
       
-      static const char* _getHidden( void* object, const char* data )
+      static const char* _getHidden( void *object, const char *index, const char *data )
          { if( static_cast< SimObject* >( object )->isHidden() ) return "1"; return "0"; }
-      static const char* _getLocked( void* object, const char* data )
+      static const char* _getLocked( void *object, const char *index, const char *data )
          { if( static_cast< SimObject* >( object )->isLocked() ) return "1"; return "0"; }
       static bool _setHidden( void* object, const char* index, const char* data )
          { static_cast< SimObject* >( object )->setHidden( dAtob( data ) ); return false; }
@@ -366,7 +366,7 @@ class SimObject: public ConsoleObject, public TamlCallbacks
          { return static_cast<SimObject*>(obj)->mCanSaveFieldDictionary == false; }
       static bool writeInternalName(void* obj, StringTableEntry pFieldName)          
          { SimObject* simObject = static_cast<SimObject*>(obj); return simObject->mInternalName != NULL && simObject->mInternalName != StringTable->EmptyString(); }
-      static bool setParentGroup(void* obj, const char* data);
+      static bool setParentGroup(void *obj, const char *index, const char *data);
       static bool writeParentGroup(void* obj, StringTableEntry pFieldName)           
          { return static_cast<SimObject*>(obj)->mGroup != NULL; }
       static bool writeSuperclass(void* obj, StringTableEntry pFieldName)            

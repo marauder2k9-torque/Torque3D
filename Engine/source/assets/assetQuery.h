@@ -56,7 +56,7 @@ protected:
     void onTamlCustomWrite( TamlCustomNodes& customNodes ) override;
     void onTamlCustomRead( const TamlCustomNodes& customNodes ) override;
 
-    static const char* getCount(void* obj, const char* data) { return Con::getIntArg(static_cast<AssetQuery*>(obj)->mAssetList.size()); }
+    static const char* getCount(void *obj, const char *index, const char *data) { return Con::getIntArg(static_cast<AssetQuery*>(obj)->mAssetList.size()); }
     static bool writeCount( void* obj, StringTableEntry pFieldName ) { return false; }
 
 public:

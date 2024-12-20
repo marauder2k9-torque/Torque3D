@@ -70,7 +70,7 @@ protected:
    void            onAssetRefresh(void) override;
 
    static bool setStateMachineFile(void *obj, const char *index, const char *data) { static_cast<StateMachineAsset*>(obj)->setStateMachineFile(data); return false; }
-   static const char* getStateMachineFile(void* obj, const char* data) { return static_cast<StateMachineAsset*>(obj)->getStateMachineFile(); }
+   static const char* getStateMachineFile(void *obj, const char *index, const char *data) { return static_cast<StateMachineAsset*>(obj)->getStateMachineFile(); }
 };
 
 DefineConsoleType(TypeStateMachineAssetPtr, StateMachineAsset)

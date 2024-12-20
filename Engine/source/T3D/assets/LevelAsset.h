@@ -120,22 +120,22 @@ public:
 
 protected:
    static bool setLevelFile(void* obj, const char* index, const char* data) { static_cast<LevelAsset*>(obj)->setLevelFile(data); return false; }
-   static const char* getLevelFile(void* obj, const char* data) { return static_cast<LevelAsset*>(obj)->getLevelFile(); }
+   static const char* getLevelFile(void *obj, const char *index, const char *data) { return static_cast<LevelAsset*>(obj)->getLevelFile(); }
 
    static bool setEditorFile(void* obj, const char* index, const char* data) { static_cast<LevelAsset*>(obj)->setEditorFile(data); return false; }
-   static const char* getEditorFile(void* obj, const char* data) { return static_cast<LevelAsset*>(obj)->getEditorFile(); }
+   static const char* getEditorFile(void *obj, const char *index, const char *data) { return static_cast<LevelAsset*>(obj)->getEditorFile(); }
    static bool setBakedSceneFile(void* obj, const char* index, const char* data) { static_cast<LevelAsset*>(obj)->setBakedSceneFile(data); return false; }
-   static const char* getBakedSceneFile(void* obj, const char* data) { return static_cast<LevelAsset*>(obj)->getBakedSceneFile(); }
+   static const char* getBakedSceneFile(void *obj, const char *index, const char *data) { return static_cast<LevelAsset*>(obj)->getBakedSceneFile(); }
 
    static bool setPostFXPresetFile(void* obj, const char* index, const char* data) { static_cast<LevelAsset*>(obj)->setPostFXPresetFile(data); return false; }
-   static const char* getPostFXPresetFile(void* obj, const char* data) { return static_cast<LevelAsset*>(obj)->getPostFXPresetFile(); }
+   static const char* getPostFXPresetFile(void *obj, const char *index, const char *data) { return static_cast<LevelAsset*>(obj)->getPostFXPresetFile(); }
    static bool setDecalsFile(void* obj, const char* index, const char* data) { static_cast<LevelAsset*>(obj)->setDecalsFile(data); return false; }
-   static const char* getDecalsFile(void* obj, const char* data) { return static_cast<LevelAsset*>(obj)->getDecalsFile(); }
+   static const char* getDecalsFile(void *obj, const char *index, const char *data) { return static_cast<LevelAsset*>(obj)->getDecalsFile(); }
 
    static bool setForestFile(void* obj, const char* index, const char* data) { static_cast<LevelAsset*>(obj)->setForestFile(data); return false; }
-   static const char* getForestFile(void* obj, const char* data) { return static_cast<LevelAsset*>(obj)->getForestFile(); }
+   static const char* getForestFile(void *obj, const char *index, const char *data) { return static_cast<LevelAsset*>(obj)->getForestFile(); }
    static bool setNavmeshFile(void* obj, const char* index, const char* data) { static_cast<LevelAsset*>(obj)->setNavmeshFile(data); return false; }
-   static const char* getNavmeshFile(void* obj, const char* data) { return static_cast<LevelAsset*>(obj)->getNavmeshFile(); }
+   static const char* getNavmeshFile(void *obj, const char *index, const char *data) { return static_cast<LevelAsset*>(obj)->getNavmeshFile(); }
 
 
    void            initializeAsset(void) override;

@@ -386,7 +386,7 @@ class SFXSource : public SimGroup
       
       // Console getters/setters.
       static bool _setDescription( void *obj, const char *index, const char *data );
-      static const char* _getDescription( void* obj, const char* data );
+      static const char* _getDescription( void* obj, const char* index, const char* data );
 
    public:
       

@@ -232,7 +232,7 @@ protected:
     /// Asset manifest.
     static bool             setAssetTagsManifest(void* obj, const char* index, const char* data)     { static_cast<ModuleDefinition*>(obj)->setAssetTagsManifest(data); return false; }
     static bool             writeAssetTagsManifest(void* obj, StringTableEntry pFieldName) { return static_cast<ModuleDefinition*>(obj)->getAssetTagsManifest() != StringTable->EmptyString(); }
-    static const char*      getScopeSet(void* obj, const char* data)                    { return Con::getIntArg(static_cast<ModuleDefinition*>(obj)->getScopeSet()); }
+    static const char*      getScopeSet(void *obj, const char *index, const char *data)                    { return Con::getIntArg(static_cast<ModuleDefinition*>(obj)->getScopeSet()); }
 
     static bool             setDependencies(void* obj, const char* index, const char* data)
     {
@@ -281,7 +281,7 @@ protected:
 
         return false;
     }
-    static const char*      getDependencies(void* obj, const char* data)
+    static const char*      getDependencies(void *obj, const char *index, const char *data)
     {
         // Fetch module dependencies.
         const ModuleDefinition::typeModuleDependencyVector& moduleDependencies = static_cast<ModuleDefinition*>(obj)->getDependencies();
@@ -331,7 +331,7 @@ protected:
         return pReturnBuffer;
     }
     static bool             writeDependencies( void* obj, StringTableEntry pFieldName ) { return static_cast<ModuleDefinition*>(obj)->getDependencies().size() > 0; }
-    static const char*      getSignature(void* obj, const char* data)                   { return static_cast<ModuleDefinition*>(obj)->getSignature(); }
+    static const char*      getSignature(void *obj, const char *index, const char *data)                   { return static_cast<ModuleDefinition*>(obj)->getSignature(); }
 };
 
 #endif // _MODULE_DEFINITION_H

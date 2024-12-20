@@ -71,7 +71,7 @@ public:
    // Text Property Accessors
    static bool setText(void *object, const char *index, const char *data) 
       { static_cast<GuiTextCtrl*>(object)->setText(data); return true; }
-   static const char* getTextProperty(void* obj, const char* data) 
+   static const char* getTextProperty(void *obj, const char *index, const char *data) 
       { return static_cast<GuiTextCtrl*>(obj)->getText(); }
 
 

@@ -261,7 +261,7 @@ bool GuiShapeEdPreview::setFieldThreadPos( void *object, const char *index, cons
    return false;
 }
 
-const char *GuiShapeEdPreview::getFieldThreadPos( void *object, const char *data )
+const char *GuiShapeEdPreview::getFieldThreadPos( void *object, const char *index, const char *data )
 {
    GuiShapeEdPreview* gui = static_cast<GuiShapeEdPreview*>( object );
    if ( gui && ( gui->mActiveThread >= 0 ) && gui->mThreads[gui->mActiveThread].key )
@@ -283,7 +283,7 @@ bool GuiShapeEdPreview::setFieldThreadDir( void *object, const char *index, cons
    return false;
 }
 
-const char *GuiShapeEdPreview::getFieldThreadDir( void *object, const char *data )
+const char *GuiShapeEdPreview::getFieldThreadDir( void *object, const char *index, const char *data )
 {
    GuiShapeEdPreview* gui = static_cast<GuiShapeEdPreview*>( object );
    if ( gui && ( gui->mActiveThread >= 0 ) )
@@ -300,7 +300,7 @@ bool GuiShapeEdPreview::setFieldThreadPingPong( void *object, const char *index,
    return false;
 }
 
-const char *GuiShapeEdPreview::getFieldThreadPingPong( void *object, const char *data )
+const char *GuiShapeEdPreview::getFieldThreadPingPong( void *object, const char *index, const char *data )
 {
    GuiShapeEdPreview* gui = static_cast<GuiShapeEdPreview*>( object );
    if ( gui && ( gui->mActiveThread >= 0 ) )

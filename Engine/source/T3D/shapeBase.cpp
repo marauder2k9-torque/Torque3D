@@ -1079,7 +1079,7 @@ bool ShapeBase::_setFieldSkin( void *object, const char *index, const char *data
    return false;
 }
 
-const char *ShapeBase::_getFieldSkin( void *object, const char *data )
+const char *ShapeBase::_getFieldSkin( void *object, const char *index, const char *data )
 {
    ShapeBase* shape = static_cast<ShapeBase*>( object );
    return shape ? shape->getSkinName() : "";

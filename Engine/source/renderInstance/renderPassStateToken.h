@@ -63,7 +63,7 @@ protected:
       reinterpret_cast< RenderPassStateBin* >( object )->mStateToken = stateToken;
       return false;
    }
-   static const char* _getStateToken( void* object, const char* data )
+   static const char* _getStateToken( void *object, const char *index, const char *data )
    {
       RenderPassStateBin* bin = reinterpret_cast< RenderPassStateBin* >( object );
       if( bin->mStateToken.isValid() )

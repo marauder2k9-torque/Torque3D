@@ -115,7 +115,7 @@ void ForcedMaterialMeshMgr::render(SceneRenderState * state)
    }
 }
 
-const char* ForcedMaterialMeshMgr::_getOverrideMat( void *object, const char *data )
+const char* ForcedMaterialMeshMgr::_getOverrideMat( void *object, const char *index, const char *data )
 {
    ForcedMaterialMeshMgr &mgr = *reinterpret_cast<ForcedMaterialMeshMgr *>( object );
    if( mgr.mOverrideMaterial.isValid() )

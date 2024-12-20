@@ -76,9 +76,9 @@ protected:
    void            onAssetRefresh(void) override;
 
    static bool setScriptFile(void *obj, const char *index, const char *data) { static_cast<GameObjectAsset*>(obj)->setScriptFile(data); return false; }
-   static const char* getScriptFile(void* obj, const char* data) { return static_cast<GameObjectAsset*>(obj)->getScriptFile(); }
+   static const char* getScriptFile(void *obj, const char *index, const char *data) { return static_cast<GameObjectAsset*>(obj)->getScriptFile(); }
    static bool setTAMLFile(void *obj, const char *index, const char *data) { static_cast<GameObjectAsset*>(obj)->setTAMLFile(data); return false; }
-   static const char* getTAMLFile(void* obj, const char* data) { return static_cast<GameObjectAsset*>(obj)->getTAMLFile(); }
+   static const char* getTAMLFile(void *obj, const char *index, const char *data) { return static_cast<GameObjectAsset*>(obj)->getTAMLFile(); }
 
    inline StringTableEntry getScriptFilePath(void) const { return mScriptPath; };
    inline StringTableEntry getTAMLFilePath(void) const { return mTAMLPath; };

@@ -504,7 +504,7 @@ bool FileDialog::setChangePath(void *object, const char *index, const char *data
    return true;
 };
 
-const char* FileDialog::getChangePath(void* obj, const char* data)
+const char* FileDialog::getChangePath(void *obj, const char *index, const char *data)
 {
    FileDialog *pDlg = static_cast<FileDialog*>(obj);
    if (pDlg->mData.mStyle & FileDialogData::FDS_CHANGEPATH)
@@ -606,7 +606,7 @@ bool OpenFileDialog::setMustExist(void *object, const char *index, const char *d
    return true;
 };
 
-const char* OpenFileDialog::getMustExist(void* obj, const char* data)
+const char* OpenFileDialog::getMustExist(void *obj, const char *index, const char *data)
 {
    OpenFileDialog *pDlg = static_cast<OpenFileDialog*>(obj);
    if (pDlg->mData.mStyle & FileDialogData::FDS_MUSTEXIST)
@@ -632,7 +632,7 @@ bool OpenFileDialog::setMultipleFiles(void *object, const char *index, const cha
    return true;
 };
 
-const char* OpenFileDialog::getMultipleFiles(void* obj, const char* data)
+const char* OpenFileDialog::getMultipleFiles(void *obj, const char *index, const char *data)
 {
    OpenFileDialog *pDlg = static_cast<OpenFileDialog*>(obj);
    if (pDlg->mData.mStyle & FileDialogData::FDS_MULTIPLEFILES)
@@ -728,7 +728,7 @@ bool SaveFileDialog::setOverwritePrompt(void *object, const char *index, const c
    return true;
 };
 
-const char* SaveFileDialog::getOverwritePrompt(void* obj, const char* data)
+const char* SaveFileDialog::getOverwritePrompt(void *obj, const char *index, const char *data)
 {
    SaveFileDialog *pDlg = static_cast<SaveFileDialog*>(obj);
    if (pDlg->mData.mStyle & FileDialogData::FDS_OVERWRITEPROMPT)

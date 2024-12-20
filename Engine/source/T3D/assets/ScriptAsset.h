@@ -82,7 +82,7 @@ protected:
    void            unloadAsset(void) override;
 
    static bool setScriptFile(void *obj, const char *index, const char *data) { static_cast<ScriptAsset*>(obj)->setScriptFile(data); return false; }
-   static const char* getScriptFile(void* obj, const char* data) { return static_cast<ScriptAsset*>(obj)->getScriptFile(); }
+   static const char* getScriptFile(void *obj, const char *index, const char *data) { return static_cast<ScriptAsset*>(obj)->getScriptFile(); }
 };
 
 DefineConsoleType(TypeScriptAssetPtr, ScriptAsset)

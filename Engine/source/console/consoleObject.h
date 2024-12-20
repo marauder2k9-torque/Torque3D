@@ -451,7 +451,7 @@ public:
 
    /// This is a function pointer typedef to support get/set callbacks for fields
    typedef bool (*SetDataNotify)( void *obj, const char *array, const char *data );
-   typedef const char *(*GetDataNotify)( void *obj, const char *data );
+   typedef const char *(*GetDataNotify)( void *obj, const char *array, const char *data );
 
    /// This is a function pointer typedef to support optional writing for fields.
    typedef bool(*WriteDataNotify)(void* obj, StringTableEntry pFieldName);
@@ -761,7 +761,7 @@ template< typename T > EnginePropertyTable& ConcreteAbstractClassRep< T >::smPro
 
 //------------------------------------------------------------------------------
 // Forward declaration of this function so  it can be used in the class
-const char *defaultProtectedGetFn( void *obj, const char *data );
+const char *defaultProtectedGetFn( void *obj, const char* index, const char *data );
 bool defaultProtectedWriteFn(void* obj, StringTableEntry pFieldName);
 
 //=============================================================================
@@ -1332,12 +1332,12 @@ inline bool defaultProtectedSetNotEmptyFn( void *object, const char *index, cons
    return data && data[0];
 }
 
-inline const char *defaultProtectedGetFn( void *obj, const char *data )
+inline const char *defaultProtectedGetFn( void *obj, const char* index, const char *data )
 {
    return data;
 }
 
-inline const char *emptyStringProtectedGetFn( void *obj, const char *data )
+inline const char *emptyStringProtectedGetFn( void *obj, const char* index, const char *data )
 {
    return "";
 }

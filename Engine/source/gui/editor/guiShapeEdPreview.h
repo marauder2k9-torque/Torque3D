@@ -142,11 +142,11 @@ protected:
    static bool setFieldThreadDir( void *object, const char *index, const char *data );
    static bool setFieldThreadPingPong( void *object, const char *index, const char *data );
 
-   static const char *getFieldThreadPos( void *object, const char *data );
-   static const char *getFieldThreadIn( void *object, const char *data );
-   static const char *getFieldThreadOut( void *object, const char *data );
-   static const char *getFieldThreadDir( void *object, const char *data );
-   static const char *getFieldThreadPingPong( void *object, const char *data );
+   static const char *getFieldThreadPos( void *object, const char *index, const char *data );;
+   static const char *getFieldThreadIn( void *object, const char *index, const char *data );;
+   static const char *getFieldThreadOut( void *object, const char *index, const char *data );;
+   static const char *getFieldThreadDir( void *object, const char *index, const char *data );;
+   static const char *getFieldThreadPingPong( void *object, const char *index, const char *data );;
 
    // Generic mouse event handlers
    void handleMouseDown(const GuiEvent& event, GizmoMode mode);

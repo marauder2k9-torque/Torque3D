@@ -96,7 +96,7 @@ protected:
    void onAssetRefresh(void) override;
 
    static bool setTerrainFileName(void *obj, const char *index, const char *data) { static_cast<TerrainAsset*>(obj)->setTerrainFileName(data); return false; }
-   static const char* getTerrainFileName(void* obj, const char* data) { return static_cast<TerrainAsset*>(obj)->getTerrainFileName(); }
+   static const char* getTerrainFileName(void *obj, const char *index, const char *data) { return static_cast<TerrainAsset*>(obj)->getTerrainFileName(); }
 };
 
 DefineConsoleType(TypeTerrainAssetPtr, TerrainAsset)

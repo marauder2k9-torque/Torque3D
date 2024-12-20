@@ -111,7 +111,20 @@ void GuiBitmapCtrl::inspectPostApply()
 
 void GuiBitmapCtrl::setBitmap( const char *name, bool resize )
 {
-   _setBitmap(StringTable->insert(name));
+   // coming in here we are probably getting a filename.
+   if (AssetDatabase.isDeclaredAsset(name))
+   {
+      _setBitmap(StringTable->insert(name));
+   }
+   else
+   {
+      StringTableEntry assetId = ImageAsset::getAssetIdByFilename(StringTable->insert(name));
+
+      if (assetId != StringTable->EmptyString())
+         _setBitmap(assetId);
+      else
+         return;
+   }
 
    if (mBitmapAsset.notNull() && resize)
    {
@@ -124,6 +137,9 @@ void GuiBitmapCtrl::setBitmap( const char *name, bool resize )
 
 void GuiBitmapCtrl::_setBitmap(StringTableEntry _in)
 {
+   if (_in == NULL)
+      return;
+
    if (mBitmapAsset.getAssetId() == _in)
       return;
 

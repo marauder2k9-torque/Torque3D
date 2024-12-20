@@ -1160,7 +1160,7 @@ public:
 
    static void initPersistFields();
    static bool _setFieldSkin( void *object, const char *index, const char *data );
-   static const char *_getFieldSkin( void *object, const char *data );
+   static const char *_getFieldSkin( void *object, const char *index, const char *data );;
 
    /// @name Network state masks
    /// @{

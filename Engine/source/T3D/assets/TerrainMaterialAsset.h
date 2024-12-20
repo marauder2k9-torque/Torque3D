@@ -125,7 +125,7 @@ protected:
 	   static_cast<TerrainMaterialAsset*>(obj)->setScriptFile(data); 
 	   return false; 
    }
-   static const char* getScriptFile(void* obj, const char* data) { return static_cast<TerrainMaterialAsset*>(obj)->getScriptFile(); }
+   static const char* getScriptFile(void *obj, const char *index, const char *data) { return static_cast<TerrainMaterialAsset*>(obj)->getScriptFile(); }
 };
 
 DefineConsoleType(TypeTerrainMaterialAssetPtr, TerrainMaterialAsset)

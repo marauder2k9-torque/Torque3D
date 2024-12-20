@@ -556,7 +556,7 @@ bool ProjectileData::setFadeDelay( void *obj, const char *index, const char *dat
    return false;
 }
 
-const char *ProjectileData::getScaledValue( void *obj, const char *data)
+const char *ProjectileData::getScaledValue( void *object, const char *index, const char *data )
 {
 
 	S32 value = dAtoi(data);

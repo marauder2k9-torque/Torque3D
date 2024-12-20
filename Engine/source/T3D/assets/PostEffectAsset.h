@@ -82,12 +82,12 @@ protected:
    void onAssetRefresh(void) override;
 
    static bool setScriptFile(void *obj, const char *index, const char *data) { static_cast<PostEffectAsset*>(obj)->setScriptFile(data); return false; }
-   static const char* getScriptFile(void* obj, const char* data) { return static_cast<PostEffectAsset*>(obj)->getScriptFile(); }
+   static const char* getScriptFile(void *obj, const char *index, const char *data) { return static_cast<PostEffectAsset*>(obj)->getScriptFile(); }
 
    static bool setHLSLShaderFile(void* obj, const char* index, const char* data) { static_cast<PostEffectAsset*>(obj)->setHLSLShaderFile(data); return false; }
-   static const char* getHLSLShaderFile(void* obj, const char* data) { return static_cast<PostEffectAsset*>(obj)->getHLSLShaderFile(); }
+   static const char* getHLSLShaderFile(void *obj, const char *index, const char *data) { return static_cast<PostEffectAsset*>(obj)->getHLSLShaderFile(); }
    static bool setGLSLShaderFile(void* obj, const char* index, const char* data) { static_cast<PostEffectAsset*>(obj)->setGLSLShaderFile(data); return false; }
-   static const char* getGLSLShaderFile(void* obj, const char* data) { return static_cast<PostEffectAsset*>(obj)->getGLSLShaderFile(); }
+   static const char* getGLSLShaderFile(void *obj, const char *index, const char *data) { return static_cast<PostEffectAsset*>(obj)->getGLSLShaderFile(); }
 };
 
 DefineConsoleType(TypePostEffectAssetPtr, PostEffectAsset)

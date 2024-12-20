@@ -991,7 +991,16 @@ void SimObject::assignFieldsFrom(SimObject *parent)
          S32 lastField = f->elementCount - 1;
          for(S32 j = 0; j <= lastField; j++)
          {
-            const char* fieldVal = (*f->getDataFn)( parent,  Con::getData(f->type, (void *) (((const char *)parent) + f->offset), j, f->table, f->flag));
+
+            //If we have an index worth mentioning, process it for pass-along as well to ensure we set stuff correctly
+            char* elementIdxBuffer = nullptr;
+            if (f->elementCount > 1)
+            {
+               elementIdxBuffer = Con::getArgBuffer(256);
+               dSprintf(elementIdxBuffer, 256, "%i", j);
+            }
+
+            const char* fieldVal = (*f->getDataFn)( parent, elementIdxBuffer, Con::getData(f->type, (void *) (((const char *)parent) + f->offset), j, f->table, f->flag));
 
             // Don't assign the field is the pointer is null or if
             // the field is not empty and writing it was disallowed.
@@ -1006,14 +1015,6 @@ void SimObject::assignFieldsFrom(SimObject *parent)
             const char* szBuffer = cbt->prepData( fieldVal, buffer, 2048 );
             dMemset( bufferSecure, 0, 2048 );
             dMemcpy( bufferSecure, szBuffer, dStrlen( szBuffer ) );
-
-            //If we have an index worth mentioning, process it for pass-along as well to ensure we set stuff correctly
-            char* elementIdxBuffer = nullptr;
-            if (f->elementCount > 1)
-            {
-               elementIdxBuffer = Con::getArgBuffer(256);
-               dSprintf(elementIdxBuffer, 256, "%i", j);
-            }
 
             if((*f->setDataFn)( this, elementIdxBuffer, bufferSecure ) )
                Con::setData(f->type, (void *) (((const char *)this) + f->offset), j, 1, &fieldVal, f->table);
@@ -1149,12 +1150,21 @@ const char *SimObject::getDataField(StringTableEntry slotName, const char *array
       S32 array1 = array ? dAtoi(array) : -1;
       const AbstractClassRep::Field *fld = findField(slotName);
 
+      char* elementIdxBuffer = nullptr;
+
       if(fld)
       {
          if(array1 == -1 && fld->elementCount == 1)
-            return (*fld->getDataFn)( this, Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), 0, fld->table, fld->flag) );
+
+            if (array1 > -1)
+            {
+               elementIdxBuffer = Con::getArgBuffer(256);
+               dSprintf(elementIdxBuffer, 256, "%i", array1);
+            }
+
+            return (*fld->getDataFn)( this, 0, Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), 0, fld->table, fld->flag) );
          if(array1 >= 0 && array1 < fld->elementCount)
-            return (*fld->getDataFn)( this, Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), array1, fld->table, fld->flag) );// + typeSizes[fld.type] * array1));
+            return (*fld->getDataFn)( this, elementIdxBuffer, Con::getData(fld->type, (void *) (((const char *)this) + fld->offset), array1, fld->table, fld->flag) );// + typeSizes[fld.type] * array1));
          return "";
       }
    }
@@ -2284,7 +2294,7 @@ bool SimObject::_setCanSave( void* object, const char* index, const char* data )
 
 //-----------------------------------------------------------------------------
 
-const char* SimObject::_getCanSave( void* object, const char* data )
+const char* SimObject::_getCanSave( void *object, const char *index, const char *data )
 {
    SimObject* obj = reinterpret_cast< SimObject* >( object );
    if( obj->getCanSave() )
@@ -2932,10 +2942,16 @@ DefineEngineMethod( SimObject, dump, void, ( bool detailed ), ( false ),
 
       for(U32 j = 0; S32(j) < f->elementCount; j++)
       {
+         char* elementIdxBuffer = nullptr;
+         if (f->elementCount > 1)
+         {
+            elementIdxBuffer = Con::getArgBuffer(256);
+            dSprintf(elementIdxBuffer, 256, "%i", j);
+         }
          // [neo, 07/05/2007 - #3000]
          // Some objects use dummy vars and projected fields so make sure we call the get functions 
          //const char *val = Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table, f->flag);                          
-         const char *val = (*f->getDataFn)( object, Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table, f->flag) );// + typeSizes[fld.type] * array1));
+         const char *val = (*f->getDataFn)( object, elementIdxBuffer, Con::getData(f->type, (void *) (((const char *)object) + f->offset), j, f->table, f->flag) );// + typeSizes[fld.type] * array1));
          
          ConsoleBaseType* conType = ConsoleBaseType::getType( f->type );
          const char* conTypeName = "<unknown>";

@@ -75,8 +75,8 @@ protected:
    virtual bool _handleGFXEvent(GFXDevice::GFXDeviceEventType event);
 
    static bool _setFmt( void *object, const char *index, const char *data );
-   static const char* _getCopyPostEffect( void* object, const char* data );
-   static const char* _getResolvePostEffect( void* object, const char* data );
+   static const char* _getCopyPostEffect( void *object, const char *index, const char *data );
+   static const char* _getResolvePostEffect( void *object, const char *index, const char *data );
    static bool _setCopyPostEffect( void* object, const char* index, const char* data );
    static bool _setResolvePostEffect( void* object, const char* index, const char* data );
    

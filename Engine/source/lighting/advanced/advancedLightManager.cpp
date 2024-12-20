@@ -198,7 +198,7 @@ void AdvancedLightManager::_addLightInfoEx( LightInfo *lightInfo )
 void AdvancedLightManager::_initLightFields()
 {
    #define DEFINE_LIGHT_FIELD( var, type, enum_ )                             \
-   static inline const char* _get##var##Field( void *obj, const char *data )  \
+   static inline const char* _get##var##Field( void *obj, const char *index, const char *data )  \
    {                                                                          \
       ShadowMapParams *p = _getShadowMapParams( obj );                        \
       if ( p )                                                                \
@@ -219,7 +219,7 @@ void AdvancedLightManager::_initLightFields()
    }
 
    #define DEFINE_LIGHTMAP_FIELD( var, type, enum_ )                          \
-   static inline const char* _get##var##Field( void *obj, const char *data )  \
+   static inline const char* _get##var##Field( void *obj, const char *index, const char *data )  \
    {                                                                          \
       LightMapParams *p = _getLightMapParams( obj );                          \
       if ( p )                                                                \

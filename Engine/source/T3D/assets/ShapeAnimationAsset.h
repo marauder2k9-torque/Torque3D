@@ -113,7 +113,7 @@ protected:
    void            onAssetRefresh(void) override;
 
    static bool setAnimationFile(void *obj, const char *index, const char *data) { static_cast<ShapeAnimationAsset*>(obj)->setAnimationFile(data); return false; }
-   static const char* getAnimationFile(void* obj, const char* data) { return static_cast<ShapeAnimationAsset*>(obj)->getAnimationFile(); }
+   static const char* getAnimationFile(void *obj, const char *index, const char *data) { return static_cast<ShapeAnimationAsset*>(obj)->getAnimationFile(); }
 
 public:
    StringTableEntry getAnimationFilename() { return mFileName; }

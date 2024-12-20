@@ -838,7 +838,7 @@ void SceneObject::setRenderEnabled( bool value )
 
 //-----------------------------------------------------------------------------
 
-const char* SceneObject::_getRenderEnabled( void* object, const char* data )
+const char* SceneObject::_getRenderEnabled( void *object, const char *index, const char *data )
 {
    SceneObject* obj = reinterpret_cast< SceneObject* >( object );
    if( obj->mObjectFlags.test( RenderEnabledFlag ) )
@@ -878,7 +878,7 @@ void SceneObject::setSelectionEnabled( bool value )
 
 //-----------------------------------------------------------------------------
 
-const char* SceneObject::_getSelectionEnabled( void* object, const char* data )
+const char* SceneObject::_getSelectionEnabled( void *object, const char *index, const char *data )
 {
    SceneObject* obj = reinterpret_cast< SceneObject* >( object );
    if( obj->mObjectFlags.test( SelectionEnabledFlag ) )

@@ -754,7 +754,7 @@ bool SFXSource::_setDescription( void* obj, const char* index, const char* data 
 
 //-----------------------------------------------------------------------------
 
-const char* SFXSource::_getDescription( void* obj, const char* data )
+const char* SFXSource::_getDescription( void* obj, const char* index, const char* data )
 {
    SFXSource* source = reinterpret_cast< SFXSource* >( obj );
    SFXDescription* description = source->mDescription;

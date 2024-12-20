@@ -131,7 +131,7 @@ protected:
    static bool setDefaultFile( void *object, const char *index, const char *data );
    static bool setFilters( void *object, const char *index, const char *data );
    static bool setChangePath( void *object, const char *index, const char *data );
-   static const char* getChangePath(void* obj, const char* data);
+   static const char* getChangePath(void *obj, const char *index, const char *data);
    ///
    /// @}
 
@@ -165,11 +165,11 @@ protected:
 
    /// Must Exist Property
    static bool setMustExist( void *object, const char *index, const char *data );
-   static const char*getMustExist(void* obj, const char* data);
+   static const char*getMustExist(void *obj, const char *index, const char *data);
 
    /// Multiple Files Property
    static bool setMultipleFiles( void *object, const char *index, const char *data );
-   static const char* getMultipleFiles(void* obj, const char* data);
+   static const char* getMultipleFiles(void *obj, const char *index, const char *data);
 };
 
 class OpenFolderDialog : public OpenFileDialog
@@ -202,7 +202,7 @@ public:
 protected:
    // Overwrite Prompt Property
    static bool setOverwritePrompt( void *object, const char *index, const char *data );
-   static const char* getOverwritePrompt(void* obj, const char* data);
+   static const char* getOverwritePrompt(void *obj, const char *index, const char *data);
 
 };
 

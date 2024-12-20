@@ -168,7 +168,7 @@ public:
    {
       static_cast<GuiTextEditCtrl*>(object)->setPlaceholderText(data); return true;
    }
-   static const char* getPlaceholderText(void* obj, const char* data)
+   static const char* getPlaceholderText(void *obj, const char *index, const char *data)
    {
       return static_cast<GuiTextEditCtrl*>(obj)->getPlaceholderText();
    }

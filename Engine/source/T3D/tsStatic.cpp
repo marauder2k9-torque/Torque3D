@@ -293,7 +293,7 @@ bool TSStatic::_setFieldSkin(void* object, const char* index, const char* data)
    return false;
 }
 
-const char* TSStatic::_getFieldSkin(void* object, const char* data)
+const char* TSStatic::_getFieldSkin(void* object, const char* index, const char* data)
 {
    TSStatic* ts = static_cast<TSStatic*>(object);
    return ts ? ts->mSkinNameHandle.getString() : "";

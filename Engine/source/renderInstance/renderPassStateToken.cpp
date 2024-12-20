@@ -78,7 +78,7 @@ static bool _set_enable( void *object, const char *index, const char *data )
    return false;
 }
 
-static const char *_get_enable(void* obj, const char* data)
+static const char *_get_enable(void *obj, const char *index, const char *data)
 {
    TORQUE_UNUSED(data);
    return reinterpret_cast<RenderPassStateToken *>(obj)->isEnabled() ? "true" : "false";

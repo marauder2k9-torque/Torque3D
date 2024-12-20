@@ -88,7 +88,7 @@ protected:
    void            onAssetRefresh(void) override;
 
    static bool setScriptFile(void *obj, const char *index, const char *data) { static_cast<CubemapAsset*>(obj)->setScriptFile(data); return false; }
-   static const char* getScriptFile(void* obj, const char* data) { return static_cast<CubemapAsset*>(obj)->getScriptFile(); }
+   static const char* getScriptFile(void *obj, const char *index, const char *data) { return static_cast<CubemapAsset*>(obj)->getScriptFile(); }
 };
 
 DefineConsoleType(TypeCubemapAssetPtr, CubemapAsset)

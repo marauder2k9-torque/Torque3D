@@ -141,7 +141,7 @@ public:
    static bool setLifetime( void *object, const char *index, const char *data );
    static bool setArmingDelay( void *object, const char *index, const char *data );
    static bool setFadeDelay( void *object, const char *index, const char *data );
-   static const char *getScaledValue( void *obj, const char *data);
+   static const char *getScaledValue( void *object, const char *index, const char *data );
    static S32 scaleValue( S32 value, bool down = true );
 
    static void initPersistFields();

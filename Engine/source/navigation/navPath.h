@@ -176,8 +176,8 @@ private:
    /// @{
    static bool setProtectedFrom(void *obj, const char *index, const char *data);
    static bool setProtectedTo(void *obj, const char *index, const char *data);
-   static const char *getProtectedFrom(void *obj, const char *data);
-   static const char *getProtectedTo(void *obj, const char *data);
+   static const char *getProtectedFrom(void *obj, const char *index, const char *data);
+   static const char *getProtectedTo(void *obj, const char *index, const char *data);
    /// @}
 };
 

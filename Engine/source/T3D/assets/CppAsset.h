@@ -71,13 +71,13 @@ protected:
 	void            onAssetRefresh(void) override;
 
    static bool setCppFile(void *obj, const char *index, const char *data) { static_cast<CppAsset*>(obj)->setCppFile(data); return false; }
-   static const char* getCppFile(void* obj, const char* data) { return static_cast<CppAsset*>(obj)->getCppFile(); }
+   static const char* getCppFile(void *obj, const char *index, const char *data) { return static_cast<CppAsset*>(obj)->getCppFile(); }
 
    inline StringTableEntry getCppFilePath(void) const { return mCodePath; };
    inline StringTableEntry getHeaderFilePath(void) const { return mHeaderPath; };
 
    static bool setHeaderFile(void *obj, const char *index, const char *data) { static_cast<CppAsset*>(obj)->setHeaderFile(data); return false; }
-   static const char* getHeaderFile(void* obj, const char* data) { return static_cast<CppAsset*>(obj)->getHeaderFile(); }
+   static const char* getHeaderFile(void *obj, const char *index, const char *data) { return static_cast<CppAsset*>(obj)->getHeaderFile(); }
 };
 
 DefineConsoleType(TypeCppAssetPtr, CppAsset)

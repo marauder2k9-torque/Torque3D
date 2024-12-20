@@ -198,15 +198,15 @@ protected:
    void            onAssetRefresh(void) override;
 
    static bool setShapeFile(void* obj, StringTableEntry index, StringTableEntry data) { static_cast<ShapeAsset*>(obj)->setShapeFile(data); return false; }
-   static const char* getShapeFile(void* obj, const char* data) { return static_cast<ShapeAsset*>(obj)->getShapeFile(); }
+   static const char* getShapeFile(void *obj, const char *index, const char *data) { return static_cast<ShapeAsset*>(obj)->getShapeFile(); }
 
    static bool setShapeConstructorFile(void* obj, const char* index, const char* data) { static_cast<ShapeAsset*>(obj)->setShapeConstructorFile(data); return false; }
-   static const char* getShapeConstructorFile(void* obj, const char* data) { return static_cast<ShapeAsset*>(obj)->getShapeConstructorFile(); }
+   static const char* getShapeConstructorFile(void *obj, const char *index, const char *data) { return static_cast<ShapeAsset*>(obj)->getShapeConstructorFile(); }
 
    static bool setDiffuseImposterFile(void* obj, StringTableEntry index, StringTableEntry data) { static_cast<ShapeAsset*>(obj)->setDiffuseImposterFile(data); return false; }
-   static const char* getDiffuseImposterFile(void* obj, const char* data) { return static_cast<ShapeAsset*>(obj)->getDiffuseImposterFile(); }
+   static const char* getDiffuseImposterFile(void *obj, const char *index, const char *data) { return static_cast<ShapeAsset*>(obj)->getDiffuseImposterFile(); }
    static bool setNormalImposterFile(void* obj, StringTableEntry index, StringTableEntry data) { static_cast<ShapeAsset*>(obj)->setNormalImposterFile(data); return false; }
-   static const char* getNormalImposterFile(void* obj, const char* data) { return static_cast<ShapeAsset*>(obj)->getNormalImposterFile(); }
+   static const char* getNormalImposterFile(void *obj, const char *index, const char *data) { return static_cast<ShapeAsset*>(obj)->getNormalImposterFile(); }
 };
 
 DefineConsoleType(TypeShapeAssetPtr, S32)
