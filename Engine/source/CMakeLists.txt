@@ -143,13 +143,16 @@ endif(TORQUE_D3D11)
 
 # Handle shadergen
 torqueAddSourceDirectories("shaderGen")
+torqueAddSourceDirectories("shaderGen/Nodes")
 
 if (WIN32 AND TORQUE_D3D11)
   torqueAddSourceDirectories("shaderGen/HLSL")
+  torqueAddSourceDirectories("shaderGen/Nodes/HLSL")
 endif (WIN32 AND TORQUE_D3D11)
 
 if (TORQUE_OPENGL)
   torqueAddSourceDirectories("shaderGen/GLSL")
+  torqueAddSourceDirectories("shaderGen/Nodes/GLSL")
 endif (TORQUE_OPENGL)
 
 # Handle terrain

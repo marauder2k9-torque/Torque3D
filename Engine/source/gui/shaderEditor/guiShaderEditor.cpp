@@ -786,40 +786,46 @@ GuiShaderNode* GuiShaderEditor::findHitNode(const Point2I& pt)
 
 bool GuiShaderEditor::findHitSocket(const Point2I& pt)
 {
-   Point2I parentOffset = localToGlobalCoord(getPosition()) + mViewOffset;
-   Point2I offsetPoint = pt + localToGlobalCoord(getPosition());
+   // Adjust the mouse position to account for panning
+   Point2I adjustedPt = pt - mViewOffset;
 
    for (GuiShaderNode* node : mCurrNodes)
    {
-      for (NodeInput* inNode : node->mInputNodes)
+      // Check input sockets
+      for (NodeInput* nodeInputSocket : node->mInputNodes)
       {
-         Point2I offSet = node->localToGlobalCoord(inNode->pos) + parentOffset;
-         RectI box(offSet.x, offSet.y, mNodeSize, mNodeSize);
+         // Calculate the global position of the input socket
+         Point2I globalPos = node->localToGlobalCoord(nodeInputSocket->pos) - mViewOffset;
 
-         S32 xt = offsetPoint.x - box.point.x;
-         S32 yt = offsetPoint.y - box.point.y;
-         if (xt >= 0 && yt >= 0 && xt < box.extent.x && yt < box.extent.y)
+         // Create a bounding box for the socket
+         RectI box(globalPos.x, globalPos.y, mNodeSize, mNodeSize);
+
+         // Check if the adjusted mouse position is within the socket's bounding box
+         if (box.pointInRect(adjustedPt))
          {
             mTempConnection = new NodeConnection();
             mTempConnection->nodeA = node;
-            mTempConnection->inSocket = inNode;
+            mTempConnection->inSocket = nodeInputSocket;
             setMouseMode(DragConnection);
             return true;
          }
       }
 
-      for (NodeOutput* outNode : node->mOutputNodes)
+      // Check output sockets
+      for (NodeOutput* nodeOutputSocket : node->mOutputNodes)
       {
-         Point2I offSet = node->localToGlobalCoord(outNode->pos) + parentOffset;
-         RectI box(offSet.x, offSet.y, mNodeSize, mNodeSize);
+         // Calculate the global position of the output socket
+         Point2I globalPos = node->localToGlobalCoord(nodeOutputSocket->pos) - mViewOffset;
 
-         S32 xt = offsetPoint.x - box.point.x;
-         S32 yt = offsetPoint.y - box.point.y;
-         if (xt >= 0 && yt >= 0 && xt < box.extent.x && yt < box.extent.y)
+         // Create a bounding box for the socket
+         RectI box(globalPos.x, globalPos.y, mNodeSize, mNodeSize);
+
+         // Check if the adjusted mouse position is within the socket's bounding box
+         if (box.pointInRect(adjustedPt))
          {
             mTempConnection = new NodeConnection();
             mTempConnection->nodeA = node;
-            mTempConnection->outSocket = outNode;
+            mTempConnection->outSocket = nodeOutputSocket;
             setMouseMode(DragConnection);
             return true;
          }
@@ -830,25 +836,27 @@ bool GuiShaderEditor::findHitSocket(const Point2I& pt)
 
 U32 GuiShaderEditor::finishConnection(const Point2I& pt)
 {
-   Point2I parentOffset = localToGlobalCoord(getPosition()) + mViewOffset;
-   Point2I offsetPoint = pt + localToGlobalCoord(getPosition());
+   // Adjust the mouse position to account for panning
+   Point2I adjustedPt = pt - mViewOffset;
 
    for (GuiShaderNode* node : mCurrNodes)
    {
-      for (NodeInput* inNode : node->mInputNodes)
+      for (NodeInput* nodeInputSocket : node->mInputNodes)
       {
-         Point2I offSet = node->localToGlobalCoord(inNode->pos) + parentOffset;
-         RectI box(offSet.x, offSet.y, mNodeSize, mNodeSize);
+         // Calculate the global position of the input socket
+         Point2I globalPos = node->localToGlobalCoord(nodeInputSocket->pos) - mViewOffset;
 
-         S32 xt = offsetPoint.x - box.point.x;
-         S32 yt = offsetPoint.y - box.point.y;
-         if (xt >= 0 && yt >= 0 && xt < box.extent.x && yt < box.extent.y)
+         // Create a bounding box for the socket
+         RectI box(globalPos.x, globalPos.y, mNodeSize, mNodeSize);
+
+         // Check if the adjusted mouse position is within the socket's bounding box
+         if (box.pointInRect(adjustedPt))
          {
             if (mTempConnection->nodeA == node || mTempConnection->inSocket != NULL)
                return false;
 
             NodeConnection* conn;
-            if(hasConnection(inNode, conn))
+            if(hasConnection(nodeInputSocket, conn))
             {
                Vector< NodeConnection* >::iterator i = T3D::find(mCurrConnections.begin(), mCurrConnections.end(), conn);
                if (i != mCurrConnections.end())
@@ -858,19 +866,22 @@ U32 GuiShaderEditor::finishConnection(const Point2I& pt)
             }
 
             mTempConnection->nodeB = node;
-            mTempConnection->inSocket = inNode;
+            mTempConnection->inSocket = nodeInputSocket;
             return 1;
          }
       }
 
-      for (NodeOutput* outNode : node->mOutputNodes)
+      // Check output sockets
+      for (NodeOutput* nodeOutputSocket : node->mOutputNodes)
       {
-         Point2I offSet = node->localToGlobalCoord(outNode->pos) + parentOffset;
-         RectI box(offSet.x, offSet.y, mNodeSize, mNodeSize);
+         // Calculate the global position of the output socket
+         Point2I globalPos = node->localToGlobalCoord(nodeOutputSocket->pos) - mViewOffset;
 
-         S32 xt = offsetPoint.x - box.point.x;
-         S32 yt = offsetPoint.y - box.point.y;
-         if (xt >= 0 && yt >= 0 && xt < box.extent.x && yt < box.extent.y)
+         // Create a bounding box for the socket
+         RectI box(globalPos.x, globalPos.y, mNodeSize, mNodeSize);
+
+         // Check if the adjusted mouse position is within the socket's bounding box
+         if (box.pointInRect(adjustedPt))
          {
             if (mTempConnection->nodeA == node || mTempConnection->outSocket != NULL)
                return false;
@@ -886,7 +897,7 @@ U32 GuiShaderEditor::finishConnection(const Point2I& pt)
             }
 
             mTempConnection->nodeB = node;
-            mTempConnection->outSocket = outNode;
+            mTempConnection->outSocket = nodeOutputSocket;
             return 2;
          }
       }
