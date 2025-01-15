@@ -84,15 +84,11 @@ public:
 
    ShaderFeature::Resources getResources(const MaterialFeatureData& fd) override;
 
-   // Sets textures and texture flags for current pass
-   void setTexData(  Material::StageData& stageDat,
-                     const MaterialFeatureData& fd,
-                     RenderPassData& passData,
-                     U32& texIndex) override;
+   // setTexData is not needed, we only do 1 pass and it is set from the processedNodeMaterial class.
 
    String getName() override
    {
-      return "Sampler Node:" + params->samplerName;
+      return "Texture Sampler";
    }
 };
 

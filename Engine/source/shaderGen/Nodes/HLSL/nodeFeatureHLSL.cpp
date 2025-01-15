@@ -73,8 +73,8 @@ Var* NodeFeatureHLSL::getNodeOutTexCoord( const char* name,
 void NodeTextureFeatureHLSL::processVert(Vector<ShaderComponent*>& componentList, const MaterialFeatureData& fd)
 {
    MultiLine* meta = new MultiLine;
-   getNodeOutTexCoord("texCoord",
-      "float2",
+   getNodeOutTexCoord(params->uvName,
+      params->uvType,
       meta,
       componentList);
    output = meta;
@@ -82,10 +82,37 @@ void NodeTextureFeatureHLSL::processVert(Vector<ShaderComponent*>& componentList
 
 void NodeTextureFeatureHLSL::processPix(Vector<ShaderComponent*>& componentList, const MaterialFeatureData& fd)
 {
+   // This is a very simplified version of the diffuseMapFeat
+   // since we dont know what this texture is to be used for we
+   // just sample it. Atlasing is handled in another node.
+
    // grab connector texcoord register
-   Var* inTex = getInTexCoord("texCoord", "float2", componentList);
+   Var* inTex = getInTexCoord(params->uvName, params->uvType, componentList);
 
+   Var* texSampler = new Var;
+   texSampler->setName(params->samplerName + "_sampler");
+   texSampler->setType("SamplerState");
+   texSampler->uniform = true;
+   texSampler->sampler = true;
+   texSampler->constNum = Var::getTexUnitNum();
 
+   Var* texTexture = new Var;
+   texTexture->setName(params->samplerName + "_tex");
+   texTexture->setType("Texture2D");
+   texTexture->uniform = true;
+   texTexture->texture = true;
+   texTexture->constNum = texSampler->constNum;
+
+   // Set the var to the samplerName so other nodes
+   // know what it is.
+   Var* texColor = new Var;
+   texColor->setName(params->samplerName);
+   texColor->setType("float4");
+   LangElement* colorDecl = new DecOp(texColor);
+
+   MultiLine* meta = new MultiLine;
+   meta->addStatement(new GenOp("@ = @.Sample(@, @);\r\n", colorDecl, texTexture, texSampler, inTex));
+   output = meta;
 }
 
 ShaderFeature::Resources NodeTextureFeatureHLSL::getResources(const MaterialFeatureData& fd)
@@ -95,8 +122,4 @@ ShaderFeature::Resources NodeTextureFeatureHLSL::getResources(const MaterialFeat
    res.numTexReg = 1;
 
    return res;
-}
-
-void NodeTextureFeatureHLSL::setTexData(Material::StageData& stageDat, const MaterialFeatureData& fd, RenderPassData& passData, U32& texIndex)
-{
 }
