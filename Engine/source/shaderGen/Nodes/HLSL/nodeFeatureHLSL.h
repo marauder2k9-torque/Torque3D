@@ -29,6 +29,15 @@ class NodeFeatureHLSL : public ShaderFeatureHLSL
 {
 public:
    NodeFeatureHLSL();
+
+   /// <summary>
+   /// Get the output texcoord.
+   /// </summary>
+   /// <param name="name">The name to call this out texCoord, note will be out_name.</param>
+   /// <param name="type">The type eg. float2.</param>
+   /// <param name="meta">The multi line.</param>
+   /// <param name="componentList">The component list.</param>
+   /// <returns>The Var for the texcoord.</returns>
    Var* getNodeOutTexCoord(const char* name, const char* type, MultiLine* meta, Vector<ShaderComponent*>& componentList);
 };
 

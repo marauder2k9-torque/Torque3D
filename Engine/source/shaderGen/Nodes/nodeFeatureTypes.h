@@ -16,10 +16,11 @@ struct NodeTextureFeatureParams
    String samplerName;
    String uvName;
    String uvType;
-
+   bool hasMips;
    NodeTextureFeatureParams()
    {
-      uvName = "texCoord";
+      hasMips = false;
+      uvName = "texCoord"; // torques default input uv.
    }
 };
 

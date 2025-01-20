@@ -39,14 +39,17 @@ Var* NodeFeatureHLSL::getNodeOutTexCoord( const char* name,
                                           MultiLine* meta,
                                           Vector<ShaderComponent*>& componentList)
 {
+   // The default input texcoord from torque needs to exist.
+   Var* inTex = getVertTexCoord("texCoord");
+   AssertFatal(inTex, "ShaderFeatureHLSL::getOutTexCoord - Unknown vertex input coord!");
+
+   // TODO: if we use spirv in future names for in and out must match so it can parse the structs
+   // correctly, they also have to match across all stages.
    String outTexName = String::ToString("out_%s", name);
    Var* texCoord = (Var*)LangElement::find(outTexName);
 
    if (!texCoord)
    {
-      Var* inTex = getVertTexCoord(name);
-      AssertFatal(inTex, "ShaderFeatureHLSL::getOutTexCoord - Unknown vertex input coord!");
-
       ShaderConnector* connectComp = dynamic_cast<ShaderConnector*>(componentList[C_CONNECTOR]);
 
       texCoord = connectComp->getElement(RT_TEXCOORD);
@@ -59,9 +62,6 @@ Var* NodeFeatureHLSL::getNodeOutTexCoord( const char* name,
       String statement = String::ToString("   @ = (%s)@;\r\n", type);
       meta->addStatement(new GenOp(statement, texCoord, inTex));
    }
-
-   AssertFatal(String::compare(type, (const char*)texCoord->type) == 0,
-      "ShaderFeatureHLSL::getOutTexCoord - Type mismatch!");
 
    return texCoord;
 }
@@ -85,6 +85,8 @@ void NodeTextureFeatureHLSL::processPix(Vector<ShaderComponent*>& componentList,
    // This is a very simplified version of the diffuseMapFeat
    // since we dont know what this texture is to be used for we
    // just sample it. Atlasing is handled in another node.
+   // TODO: Add support for texture types at the moment this just
+   // does a Texture2D but we require arrays 3d and cube.
 
    // grab connector texcoord register
    Var* inTex = getInTexCoord(params->uvName, params->uvType, componentList);
@@ -111,7 +113,36 @@ void NodeTextureFeatureHLSL::processPix(Vector<ShaderComponent*>& componentList,
    LangElement* colorDecl = new DecOp(texColor);
 
    MultiLine* meta = new MultiLine;
-   meta->addStatement(new GenOp("@ = @.Sample(@, @);\r\n", colorDecl, texTexture, texSampler, inTex));
+
+   // handle mips, this is set from the parameters at the moment.
+   // TODO: params should include mip bias as an input.
+   if (params->hasMips)
+   {
+      const bool is_sm3 = (GFX->getPixelShaderVersion() > 2.0f);
+      if (is_sm3)
+      {
+         // Figure out the mip level. (note only 1 should exist)
+         Var* mipLod = (Var*)LangElement::find("mipLod");
+         if (!mipLod)
+         {
+            mipLod = new Var;
+            mipLod->setName("mipLoad");
+            mipLod->setType("float");
+            LangElement* mipLodDecl = new DecOp(mipLod);
+
+            meta->addStatement(new GenOp("   // Calculate mip level.\r\n"));
+            meta->addStatement(new GenOp("   float2 _dx = ddx(@);\r\n", inTex));
+            meta->addStatement(new GenOp("   float2 _dy = ddy(@);\r\n", inTex));
+            meta->addStatement(new GenOp("   @ = 0.5 * log2(max(dot(_dx, _dx), dot(_dy, _dy)));\r\n", mipLodDecl));
+         }
+
+         meta->addStatement(new GenOp("   @ = @.SampleLevel(@, @, @);\r\n", colorDecl, texTexture, texSampler, inTex, mipLod));
+      }
+   }
+   else
+   {
+      meta->addStatement(new GenOp("   @ = @.Sample(@, @);\r\n", colorDecl, texTexture, texSampler, inTex));
+   }
    output = meta;
 }
 
