@@ -49,7 +49,7 @@ template<typename T> inline const T nullAsType(){ return nullptr; }
 /// @{
 
 #ifndef Offset
-#define Offset(x, cls) offsetof(cls, x)
+#define Offset(x, cls) ((::size_t)&reinterpret_cast<char const volatile&>((((cls*)0)->x)))
 #endif
 
 class GFXShader;
