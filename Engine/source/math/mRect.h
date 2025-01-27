@@ -53,6 +53,8 @@ class RectI
 
    void unionRects(const RectI&);
 
+   Point2I centre(void) const;
+
    S32   len_x() const;
    S32   len_y() const;
 
@@ -86,6 +88,8 @@ class RectF
          const Point2F& in_rExtent);
    RectF(const F32 in_left,  const F32 in_top,
          const F32 in_width, const F32 in_height);
+
+   Point2F centre(void) const;
 
    void set(const Point2F& in_rMin, const Point2F& in_rExtent);
    void set(const F32 in_left,  const F32 in_top,
@@ -257,6 +261,11 @@ inline void RectI::unionRects(const RectI& u)
    extent.y = maxy - miny;
 }
 
+inline Point2I RectI::centre(void) const
+{
+   return Point2I(point.x + (S32)(extent.x * 0.5f), point.y + (S32)(extent.y * 0.5f));
+}
+
 inline S32
 RectI::len_x() const
 {
@@ -300,6 +309,11 @@ RectF::RectF(const F32 in_left,  const F32 in_top,
    extent(in_width, in_height)
 {
    //
+}
+
+inline Point2F RectF::centre(void) const
+{
+   return Point2F(point.x + (extent.x * 0.5f), point.y + (extent.y * 0.5f));
 }
 
 inline F32

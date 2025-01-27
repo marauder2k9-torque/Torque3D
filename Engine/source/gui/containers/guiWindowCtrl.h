@@ -126,6 +126,9 @@ class GuiWindowCtrl : public GuiContainer
       bool mEdgeSnap; ///< Should this window snap to other windows edges?
 
       Point2I mButtonOffset;
+
+      bool mUseCameraScale;
+      Point2F mCameraSize;
             
       /// @}
       

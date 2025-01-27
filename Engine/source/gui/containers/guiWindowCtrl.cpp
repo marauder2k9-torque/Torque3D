@@ -32,6 +32,7 @@
 #include "gfx/gfxDrawUtil.h"
 #include "gui/containers/guiRolloutCtrl.h"
 #include "gui/editor/guiMenuBar.h"
+#include "gfx/gfxTransformSaver.h"
 
 IMPLEMENT_CONOBJECT( GuiWindowCtrl );
 
@@ -90,7 +91,9 @@ GuiWindowCtrl::GuiWindowCtrl()
       mCollapseGroupNum(-1),
       mIsCollapsed(false),
       mIsMouseResizing(false),
-      mButtonOffset(0, 3)
+      mButtonOffset(0, 3),
+      mCameraSize(160, 90),
+      mUseCameraScale(false)
 {
    // mTitleHeight will change in instanciation most likely...
    mTitleHeight = 24;
@@ -161,6 +164,10 @@ void GuiWindowCtrl::initPersistFields()
          "If true, the window will snap to the edges of other windows when moved close to them." );
       addField( "buttonOffset",      TypePoint2I,       Offset (mButtonOffset, GuiWindowCtrl),
          "Margin between window edge and the button(s).");
+      addField( "cameraSize",      TypePoint2F,       Offset (mCameraSize, GuiWindowCtrl),
+         "Scale for this view.");
+      addField("useCamera", TypeBool, Offset(mUseCameraScale, GuiWindowCtrl),
+         "Render with the cameras size.");
          
    endGroup( "Window" );
 
@@ -1462,8 +1469,34 @@ void GuiWindowCtrl::onRender(Point2I offset, const RectI &updateRect)
 
    if( !mMinimized )
    {
-      // Render the children
-      renderChildControls( offset, updateRect );
+      if (mUseCameraScale)
+      {
+         // Save the current transform state
+         GFXTransformSaver saver;
+         Point2I camPoint = Point2I::Zero;
+         Point2I camExtent = Point2I(
+            mCeil((mCameraSize.x)), // Calculate extent based on camera size
+            mCeil((mCameraSize.y))
+         );
+
+         RectI camAreaInt(camPoint, camExtent);
+
+         for (iterator i = begin(); i != end(); ++i)
+         {
+            GuiControl* child = dynamic_cast<GuiControl*>(*i);
+            if (child)
+            {
+               // because of the setClipRect calls we need to update the projection matrix.
+               GFX->setOrtho(0.0, (mCameraSize.x), (mCameraSize.y), 0.0, 0.0f, 5.0f);
+               child->onRender(Point2I::Zero + child->getPosition(), camAreaInt);
+            }
+         }
+      }
+      else
+      {
+         // Render the children
+         renderChildControls(offset, updateRect);
+      }
    }
 }
 
