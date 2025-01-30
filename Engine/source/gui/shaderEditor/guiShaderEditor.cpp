@@ -137,87 +137,6 @@ void GuiShaderEditor::onPreRender()
    setUpdate();
 }
 
-void GuiShaderEditor::renderNodes(Point2I offset, const RectI& updateRect)
-{
-   // Save the current clip rect
-   // so we can restore it at the end of this method.
-   RectI savedClipRect = GFX->getClipRect();
-
-   // offset is the upper-left corner of this control in screen coordinates
-   // updateRect is the intersection rectangle in screen coords of the control
-   // hierarchy.  This can be set as the clip rectangle in most cases.
-   RectI clipRect = updateRect;
-   clipRect.inset(2, 2);
-
-   GFXDrawUtil* drawer = GFX->getDrawUtil();
-
-   // render nodes in reverse order.
-   for (ShaderNodeVector::iterator i = mCurrNodes.end(); i-- != mCurrNodes.begin(); )
-   {
-      GuiShaderNode* node = *i;
-      // this is useful for sub node graphs.
-      if (node->isVisible())
-      {
-         Point2I childPos = offset + node->getPosition();
-         RectI childClip(childPos, node->getExtent() );
-
-         if (selectionContains(node))
-         {
-            node->mSelected = true;
-         }
-         else
-         {
-            node->mSelected = false;
-         }
-
-         if (childClip.intersect(clipRect))
-         {
-            GFX->setClipRect(childClip);
-            GFX->setStateBlock(mDefaultGuiSB);
-            node->renderNode(childPos, childClip, mNodeSize);
-         }
-
-         GFX->setClipRect(clipRect);
-         GFX->setStateBlock(mDefaultGuiSB);
-         for (NodeInput* input : node->mInputNodes)
-         {
-            Point2I pos = node->localToGlobalCoord(input->pos) + offset;
-
-            ColorI border = input->col;
-
-            ColorI fill = mProfile->mFillColor;
-            if (hasConnection(input))
-            {
-               fill = input->col;
-            }
-
-            RectI socketRect(pos, Point2I(mNodeSize, mNodeSize));
-            drawer->drawCircleFill(socketRect, fill, mNodeSize / 2, 1.0f, border);
-         }
-
-         for (NodeOutput* output : node->mOutputNodes)
-         {
-            Point2I pos = node->localToGlobalCoord(output->pos) + offset;
-
-            ColorI border = output->col;
-
-            ColorI fill = mProfile->mFillColor;
-            if (hasConnection(output))
-            {
-               fill = output->col;
-            }
-
-            RectI socketRect(pos, Point2I(mNodeSize, mNodeSize));
-            drawer->drawCircleFill(socketRect, fill, mNodeSize / 2, 1.0f, border);
-         }
-      }
-   }
-
-   // Restore the clip rect to what it was at the start
-   // of this method.
-   GFX->setClipRect(savedClipRect);
-}
-
 void GuiShaderEditor::renderConnections(Point2I offset, const RectI& updateRect)
 {
    // Save the current clip rect
@@ -258,12 +177,33 @@ void GuiShaderEditor::onRender(Point2I offset, const RectI& updateRect)
 
    GFXDrawUtil* drawer = GFX->getDrawUtil();
 
-   // render our nodes.
-   renderConnections(offset, updateRect);
-   renderNodes(offset, updateRect);
-
+   
+   
    if (mActive)
    {
+      renderConnections(offset, updateRect);
+
+      /// Basically copy what happens in renderChildControls.
+      RectI savedClipRect = GFX->getClipRect();
+      RectI clipRect = updateRect;
+      for (GuiShaderNode* node : mCurrNodes)
+      {
+         Point2I childPosition = offset + node->getPosition();
+         RectI childClip(childPosition, node->getExtent() + Point2I(1, 1));
+
+         if (childClip.intersect(clipRect))
+         {
+            GFX->setClipRect(childClip);
+            MatrixF proj = GFX->getProjectionMatrix();
+            proj.scale(Point3F(mZoomScale, mZoomScale, 0.0f));
+            GFX->setProjectionMatrix(proj);
+            GFX->setStateBlock(mDefaultGuiSB);
+            node->onRender(childPosition, childClip);
+         }
+      }
+
+      GFX->setClipRect(savedClipRect);
+
       if (mMouseDownMode == DragConnection)
       {
          // something went wrong.... fix it fix it fix it.
@@ -598,8 +538,10 @@ bool GuiShaderEditor::onMouseWheelUp(const GuiEvent& event)
    if (!mActive || !mAwake || !mVisible)
       return Parent::onMouseWheelUp(event);
 
-   mZoomScale *= 1.1f;
+   /*Point2I mousePos = globalToLocalCoord(event.mousePoint);
+   mViewOffset = mousePos;*/
 
+   mZoomScale *= 1.1f; // Zoom in
    return true;
 }
 
@@ -608,11 +550,12 @@ bool GuiShaderEditor::onMouseWheelDown(const GuiEvent& event)
    if (!mActive || !mAwake || !mVisible)
       return Parent::onMouseWheelDown(event);
 
-   mZoomScale *= 0.9f;
+   /*Point2I mousePos = globalToLocalCoord(event.mousePoint);
+   mViewOffset = mousePos;*/
 
+   mZoomScale *= 0.9f; // Zoom out
    return true;
 }
-
 RectI GuiShaderEditor::getSelectionBounds()
 {
 

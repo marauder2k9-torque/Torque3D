@@ -86,11 +86,8 @@ void GuiShaderNode::onRemove()
    Parent::onRemove();
 }
 
-void GuiShaderNode::renderNode(Point2I offset, const RectI& updateRect, const S32 nodeSize)
+void GuiShaderNode::onRender(Point2I offset, const RectI& updateRect)
 {
-   if (!mProfile)
-      return Parent::onRender(offset, updateRect);
-
    GFXDrawUtil* drawer = GFX->getDrawUtil();
 
    // draw background.
@@ -140,58 +137,9 @@ void GuiShaderNode::renderNode(Point2I offset, const RectI& updateRect, const S3
       break;
    }
 
-   RectI headRect;
-   U32 headerSize = 30;
-   headRect.point = offset;
-   headRect.extent = Point2I(getExtent().x, headerSize);
-   drawer->drawRoundedRect(15.0f, headRect, header);
-
-   // draw header text.
-   U32 strWidth = mProfile->mFont->getStrWidth(mTitle.c_str());
-   Point2I headerPos = Point2I((getExtent().x / 2) - (strWidth / 2), (headerSize / 2) - (mProfile->mFont->getFontSize() / 2));
-   drawer->setBitmapModulation(mProfile->mFontColor);
-   drawer->drawText(mProfile->mFont, headerPos + offset, mTitle);
-   drawer->clearBitmapModulation();
-
-   if (mInputNodes.size() > 0 || mOutputNodes.size() > 0)
-   {
-      U32 textPadX = nodeSize, textPadY = mProfile->mFont->getFontSize() + (nodeSize / 2);
-      Point2I slotPos(textPadX, headerSize + (nodeSize / 2));
-      drawer->setBitmapModulation(mProfile->mFontColor);
-      for (NodeInput* input : mInputNodes)
-      {
-         drawer->drawText(mProfile->mFont, slotPos + offset, input->name);
-
-         if (input->pos == Point2I::Zero || mPrevNodeSize != nodeSize)
-            input->pos = Point2I(-(nodeSize / 2) + 1, slotPos.y + ((mProfile->mFont->getFontSize() / 2) - (nodeSize / 2)));
-
-         slotPos.y += textPadY;
-      }
-
-      U32 inputY = slotPos.y;
-
-      slotPos = Point2I(getExtent().x, headerSize + (nodeSize / 2));
-      for (NodeOutput* output : mOutputNodes)
-      {
-         strWidth = mProfile->mFont->getStrWidth(output->name.c_str());
-         slotPos.x = getExtent().x - strWidth - textPadX;
-
-         drawer->drawText(mProfile->mFont, slotPos + offset, output->name);
-
-         if (output->pos == Point2I::Zero || mPrevNodeSize != nodeSize)
-            output->pos = Point2I(getExtent().x - (nodeSize / 2) - 1 , slotPos.y + ((mProfile->mFont->getFontSize() / 2) - (nodeSize / 2)));
-
-         slotPos.y += textPadY;
-      }
-      drawer->clearBitmapModulation();
-
-      U32 outputY = slotPos.y;
-
-      if (getExtent().y < slotPos.y || mPrevNodeSize != nodeSize)
-         setExtent(Point2I(getExtent().x, mMax(inputY, outputY)));
-
-      mPrevNodeSize = nodeSize;
-   }
+   winRect.inset(5, 5);
+   winRect.extent = Point2I(winRect.extent.x, 30);
+   drawer->drawRoundedRect(15.0f, winRect, header);
 }
 
 void GuiShaderNode::write(Stream& stream, U32 tabStop, U32 flags)

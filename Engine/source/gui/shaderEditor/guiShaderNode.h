@@ -144,7 +144,8 @@ public:
    bool onAdd() override;
    void onRemove() override;
 
-   void renderNode(Point2I offset, const RectI& updateRect, const S32 nodeSize);
+   void onRender(Point2I offset, const RectI& updateRect) override;
+
    // Serialization functions
    void write(Stream& stream, U32 tabStop = 0, U32 flags = 0) override;
    void read(Stream& stream);

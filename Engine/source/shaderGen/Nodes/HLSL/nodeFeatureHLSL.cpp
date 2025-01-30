@@ -114,35 +114,8 @@ void NodeTextureFeatureHLSL::processPix(Vector<ShaderComponent*>& componentList,
 
    MultiLine* meta = new MultiLine;
 
-   // handle mips, this is set from the parameters at the moment.
-   // TODO: params should include mip bias as an input.
-   if (params->hasMips)
-   {
-      const bool is_sm3 = (GFX->getPixelShaderVersion() > 2.0f);
-      if (is_sm3)
-      {
-         // Figure out the mip level. (note only 1 should exist)
-         Var* mipLod = (Var*)LangElement::find("mipLod");
-         if (!mipLod)
-         {
-            mipLod = new Var;
-            mipLod->setName("mipLoad");
-            mipLod->setType("float");
-            LangElement* mipLodDecl = new DecOp(mipLod);
-
-            meta->addStatement(new GenOp("   // Calculate mip level.\r\n"));
-            meta->addStatement(new GenOp("   float2 _dx = ddx(@);\r\n", inTex));
-            meta->addStatement(new GenOp("   float2 _dy = ddy(@);\r\n", inTex));
-            meta->addStatement(new GenOp("   @ = 0.5 * log2(max(dot(_dx, _dx), dot(_dy, _dy)));\r\n", mipLodDecl));
-         }
-
-         meta->addStatement(new GenOp("   @ = @.SampleLevel(@, @, @);\r\n", colorDecl, texTexture, texSampler, inTex, mipLod));
-      }
-   }
-   else
-   {
-      meta->addStatement(new GenOp("   @ = @.Sample(@, @);\r\n", colorDecl, texTexture, texSampler, inTex));
-   }
+   // mips handled automagically by sampler state.
+   meta->addStatement(new GenOp("   @ = @.Sample(@, @);\r\n", colorDecl, texTexture, texSampler, inTex));
    output = meta;
 }
 

@@ -84,7 +84,6 @@ protected:
    S32 mNodeSize;
    ShaderNodeVector mSelectedNodes;
 
-   void renderNodes(Point2I offset, const RectI& updateRect);
    void renderConnections(Point2I offset, const RectI& updateRect);
 
    // functions for handling mouse events.

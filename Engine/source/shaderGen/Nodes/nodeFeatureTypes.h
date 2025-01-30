@@ -7,6 +7,10 @@
 #include "shaderGen/featureType.h"
 #endif
 
+#ifndef _SHADERFEATURE_H_
+#include "shaderGen/shaderFeature.h"
+#endif
+
 //------------------------------------------------------------------
 // Structs for features.
 //------------------------------------------------------------------
@@ -16,10 +20,8 @@ struct NodeTextureFeatureParams
    String samplerName;
    String uvName;
    String uvType;
-   bool hasMips;
    NodeTextureFeatureParams()
    {
-      hasMips = false;
       uvName = "texCoord"; // torques default input uv.
    }
 };
@@ -29,5 +31,9 @@ struct NodeTextureFeatureParams
 // DeclareFeatureType(SNF_<featureName>);
 
 DeclareFeatureType(SNF_TextureFeature);
+
+//------------------------------------------------------------------
+// Shader var for cross api (write shadergen once).
+//------------------------------------------------------------------
 
 #endif // !_NODEFEATURETYPES_H_
