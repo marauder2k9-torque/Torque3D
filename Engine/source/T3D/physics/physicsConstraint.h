@@ -26,22 +26,25 @@
 #ifndef _T3D_PHYSICSCOMMON_H_
 #include "T3D/physics/physicsCommon.h"
 #endif
-
 #ifndef _T3D_PHYSICS_PHYSICSOBJECT_H_
 #include "T3D/physics/physicsObject.h"
+#endif
+#ifndef _REFBASE_H_
+#include "core/util/refBase.h"
 #endif
 
 class PhysicsBody;
 class PhysicsWorld;
 
-class PhysicsConstraint
+class PhysicsConstraint : public WeakRefBase
 {
 public:
    virtual ~PhysicsConstraint() {}
 
-   enum
+   enum ConstraintType
    {
       CT_FIXED = 0,
+      CT_DISTANCE,
       CT_SLIDER,
       CT_HINGE,
       CT_UNIVERSAL,
@@ -49,14 +52,12 @@ public:
       CT_6DOF,
       CT_CONE_TWIST,
       CT_GEAR,
-      CT_ROPE,
-      CT_PULLEY,
-      CT_SPRING
+      CT_PULLEY
    };
 
    virtual bool init(PhysicsBody* bodyA,
                      PhysicsBody* bodyB,
-                     U32 type,
+                     ConstraintType type,
                      PhysicsWorld* world) = 0;
 
    /// <summary>

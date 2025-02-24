@@ -20,14 +20,43 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#ifndef _STOCK_PHYSICS_ENGINE_H_
-#define _STOCK_PHYSICS_ENGINE_H_
+#include "stockEngineConstraints.h"
 
-/// This file is here to include everything required for the stock physics engine.
-#ifndef _STOCK_PHYSICS_CONSTRAINTS_H_
-#include "constraints/stockEngineConstraints.h"
-#endif // !_STOCK_PHYSICS_CONSTRAINTS_H_
+StockEngineGear::StockEngineGear(StockBody* bodyA, StockBody* bodyB, F32 gearRatio)
+{
+   mBodyA = bodyA;
+   mBodyB = bodyB;
+   mGearRatio = gearRatio;
+}
 
+void StockEngineGear::setGearRatio(F32 gearRatio)
+{
+   mGearRatio = gearRatio;
+}
 
+void StockEngineGear::solve()
+{
+   // Get the angular velocities of both bodies
+   VectorF angVelA = mBodyA->getAngVelocity();
+   VectorF angVelB = mBodyB->getAngVelocity();
 
-#endif
+   // Calculate the target angular velocity for body B based on body A's angular velocity and the gear ratio
+   VectorF targetAngVelB = angVelA * mGearRatio;
+
+   // Calculate the angular velocity error (how much the actual angular velocity of body B deviates from the target)
+   VectorF angularVelocityError = angVelB - targetAngVelB;
+
+   // Apply corrective torque to both bodies to align their angular velocities based on the gear ratio
+   VectorF correctiveTorque = -angularVelocityError;
+
+   // Apply corrective torque to body A (to slow it down) and body B (to speed it up) to match the gear ratio
+   mBodyA->applyTorque(-correctiveTorque);
+   mBodyB->applyTorque(correctiveTorque);
+}
+
+void StockEngineGear::destroy()
+{
+   mBodyA = nullptr;
+   mBodyB = nullptr;
+}
+
