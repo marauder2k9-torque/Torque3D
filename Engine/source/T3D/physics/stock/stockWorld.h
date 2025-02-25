@@ -42,6 +42,8 @@
 #include "T3D/physics/stock/stockBody.h"
 #endif
 
+class StockBody;
+
 class StockWorld : public PhysicsWorld
 {
 protected:

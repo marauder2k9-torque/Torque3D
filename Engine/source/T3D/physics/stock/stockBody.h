@@ -32,6 +32,12 @@
 #ifndef _PHYSICS_PHYSICSUSERDATA_H_
 #include "T3D/physics/physicsUserData.h"
 #endif
+#ifndef _T3D_PHYSICS_STOCKCOLLISION_H_
+#include "T3D/physics/stock/stockCollision.h"
+#endif // !_T3D_PHYSICS_STOCKCOLLISION_H_
+#ifndef _T3D_PHYSICS_STOCKWORLD_H_
+#include "T3D/physics/stock/stockWorld.h"
+#endif // !_T3D_PHYSICS_STOCKWORLD_H_
 #ifndef _REFBASE_H_
 #include "core/util/refBase.h"
 #endif
@@ -39,11 +45,17 @@
 #include "math/mMatrix.h"
 #endif
 
+class StockWorld;
+class StockCollision;
+
 class StockBody : public PhysicsBody // derived from physicsObject.
 {
 protected:
+   /// Holder to stock types.
+   StrongRefPtr<StockCollision> mColShape;
 
    /// Body Properties
+   MatrixF mWorldTransform;      /// World space transform
    F32 mMass;                    /// Mass of the body
    F32 mInvMass;                 /// Inverse mass (1/m)
    MatrixF mInertiaTensor;       /// Local space inertia tensor
@@ -53,12 +65,13 @@ protected:
    /// Motion Properties
    Point3F mLinVelocity;         /// Linear velocity
    Point3F mAngVelocity;         /// Angular velocity
-   Point3F mForceAccum;          /// Accumulated forces
-   Point3F mTorqueAccum;         /// Accumulated torque
    F32 mLinearDamping;           /// Reduces velocity over time
    F32 mAngularDamping;          /// Reduces rotation over time
    F32 mLinearThreshold;         /// Reduces rotation over time
    F32 mAngularThreshold;        /// Reduces rotation over time
+
+   Point3F mForceAccum;          /// Accumulated forces
+   Point3F mTorqueAccum;         /// Accumulated torque
 
    /// Material Properties
    F32 mRestitution;             /// Bounciness
@@ -71,6 +84,11 @@ protected:
 public:
    StockBody();
    virtual ~StockBody();
+
+   // update functions.
+   void stepVelocities(F32 dt);
+   void stepTransform(F32 dt);
+   void updateInertiaTensor();
 
    // PhysicsObject overrides
    PhysicsWorld* getWorld() override;
@@ -102,7 +120,9 @@ public:
                      F32 friction,
                      F32 staticFriction) override;
    void applyCorrection(const MatrixF& xfm) override;
-   void applyImpulse(const Point3F& origin, const Point3F& force) override;
+   void applyImpulse(const Point3F& origin, const Point3F& impulse) override;
+   void applyTorqueImpulse(const Point3F& torque);
+
    void applyTorque(const Point3F& torque) override;
    void applyForce(const Point3F& force) override;
    void findContact( SceneObject** contactObject,

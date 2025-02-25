@@ -75,7 +75,7 @@ protected:
 
 public:
    Octree(F32 minNodeSize = 1.0f);
-   Octree(F32 minNodeSize = 1.0f, const Box3F& rootBounds);
+   Octree(F32 minNodeSize = 1.0f, const Box3F& rootBounds = Box3F::Max);
    ~Octree();
 
    void insert(T obj, const Box3F& objBounds);
@@ -104,6 +104,7 @@ template<class T>
 inline Octree<T>::Octree(F32 minNodeSize)
    : mMinNodeSize(minNodeSize)
 {
+   mRootNode = new OctreeNode(Box3F::Max);
 }
 
 /// <summary>

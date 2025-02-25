@@ -87,8 +87,8 @@ void StockEngineHinge::solve()
    }
 
    // Apply the corrective torque to both bodies (using the cross product with the position vector)
-   mBodyA->applyTorque(-torque);
-   mBodyB->applyTorque(torque);
+   mBodyA->applyImpulse(mAnchor, -torque);
+   mBodyB->applyImpulse(mAnchor, torque);
 }
 
 void StockEngineHinge::destroy()

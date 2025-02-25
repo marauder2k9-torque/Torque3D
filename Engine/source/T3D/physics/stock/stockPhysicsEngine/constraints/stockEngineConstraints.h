@@ -35,6 +35,8 @@
 #include "math/mMath.h"
 #endif
 
+class StockBody;
+
 class StockEngineConstraint
 {
 protected:
@@ -77,6 +79,7 @@ protected:
    F32 mMaxDistance;
    F32 mMinDistance;
 public:
+
    StockEngineDistance(StockBody* bodyA, StockBody* bodyB, F32 minDistance = -1.0f, F32 maxDistance = 1.0f);
 
    /// <summary>
@@ -85,6 +88,11 @@ public:
    /// <param name="minDistance">Minimum distance float.</param>
    /// <param name="maxDistance">Maximum distance float.</param>
    void setLimits(F32 minDistance, F32 maxDistance);
+
+   /// <summary>
+   /// Set the world space anchor position.
+   /// </summary>
+   void setAnchor(const Point3F& anchor);
 
    /// <summary>
    /// Set the minimum distance.

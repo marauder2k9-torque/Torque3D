@@ -28,12 +28,19 @@ StockEngineDistance::StockEngineDistance(StockBody* bodyA, StockBody* bodyB, F32
    mBodyB = bodyB;
    mMinDistance = minDistance;
    mMaxDistance = maxDistance;
+
+   mAnchor = (mBodyA->getCMassPosition() + mBodyB->getCMassPosition()) * 0.5f;
 }
 
 void StockEngineDistance::setLimits(F32 minDistance, F32 maxDistance)
 {
    mMinDistance = minDistance;
    mMaxDistance = maxDistance;
+}
+
+void StockEngineDistance::setAnchor(const Point3F& anchor)
+{
+   mAnchor = anchor;
 }
 
 void StockEngineDistance::setMinDistance(F32 minDistance)
@@ -64,7 +71,7 @@ void StockEngineDistance::solve()
    if (currentDistance < 0.0001f)
       return;
 
-   VectorF direction = delta / currentDistance;  // Normalized direction
+   VectorF direction = delta / currentDistance;
 
    // Check constraint limits
    F32 displacement = 0.0f;
@@ -110,8 +117,8 @@ void StockEngineDistance::solve()
    }
 
    // Apply equal and opposite forces to the two bodies
-   mBodyA->applyForce(-force);
-   mBodyB->applyForce(force);
+   mBodyA->applyImpulse(mAnchor, -force);
+   mBodyB->applyImpulse(mAnchor, force);
 
 }
 

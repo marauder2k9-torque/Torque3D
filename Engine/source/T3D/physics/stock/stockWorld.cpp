@@ -49,8 +49,8 @@ StockWorld::~StockWorld()
    // Release the tick processing signals.
    if (mProcessList)
    {
-      //mProcessList->preTickSignal().remove(this, &BtWorld::getPhysicsResults);
-      //mProcessList->postTickSignal().remove(this, &BtWorld::tickPhysics);
+      //mProcessList->preTickSignal().remove(this, &StockWorld::getPhysicsResults);
+      //mProcessList->postTickSignal().remove(this, &StockWorld::tickPhysics);
       mProcessList = NULL;
    }
 }
@@ -63,8 +63,8 @@ bool StockWorld::initWorld(bool isServer, ProcessList* processList)
 {
    AssertFatal(processList, "StockWorld::initWorld() - We need a process list to create the world!");
    mProcessList = processList;
-   //mProcessList->preTickSignal().notify(this, &BtWorld::getPhysicsResults);
-   //mProcessList->postTickSignal().notify(this, &BtWorld::tickPhysics);
+   //mProcessList->preTickSignal().notify(this, &StockWorld::getPhysicsResults);
+   //mProcessList->postTickSignal().notify(this, &StockWorld::tickPhysics);
 
 
    mIsServer = isServer;
