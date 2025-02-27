@@ -28,8 +28,13 @@
 #include "console/consoleTypes.h"
 
 StockBody::StockBody()
-   : mColShape(NULL)
+   : mColShape(NULL),
+   mFriction(0.0f),
+   mStaticFriction(0.0f),
+   mRestitution(0.0f)
 {
+   mWorldTransform.identity();
+   mInterpWorldTransform.identity();
    mMass = 1.0f;
    mInvMass = 1.0f;
    mInertiaTensor.identity();
@@ -191,7 +196,8 @@ bool StockBody::init(PhysicsCollision* shape, F32 mass, U32 bodyFlags, SceneObje
    AssertFatal(dynamic_cast<StockCollision*>(shape), "StockBody::init - The collision shape is the wrong type!");
 
    mColShape = (StockCollision*)shape;
-   mWorldTransform = obj->getWorldTransform();
+   mWorldTransform = obj->getTransform();
+   mInterpWorldTransform = mWorldTransform;
    mUserData.setObject(obj);
    mUserData.setBody(this);
 

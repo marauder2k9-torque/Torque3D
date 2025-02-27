@@ -56,6 +56,7 @@ protected:
 
    /// Body Properties
    MatrixF mWorldTransform;      /// World space transform
+   MatrixF mInterpWorldTransform;      /// World space transform
    F32 mMass;                    /// Mass of the body
    F32 mInvMass;                 /// Inverse mass (1/m)
    MatrixF mInertiaTensor;       /// Local space inertia tensor
@@ -110,6 +111,12 @@ public:
    /// Clear our accumulated forces.
    /// </summary>
    void clearAccum();
+
+   /// <summary>
+   /// Get the interpolation matrix for this body.
+   /// </summary>
+   /// <returns>The interpolation matrix.</returns>
+   MatrixF& getInterpolationMatrix() { return mInterpWorldTransform; }
 
    // PhysicsObject overrides
    PhysicsWorld* getWorld() override;
