@@ -60,7 +60,7 @@ protected:
    F32 mInvMass;                 /// Inverse mass (1/m)
    MatrixF mInertiaTensor;       /// Local space inertia tensor
    MatrixF mInvInertiaTensor;    /// Inverse inertia tensor (1/I)
-   Point3F mCMassPosition;       /// Center of mass position
+   Point3F mCMassPosition;       /// Center of mass position (local space)
 
    /// Motion Properties
    Point3F mLinVelocity;         /// Linear velocity
@@ -86,9 +86,30 @@ public:
    virtual ~StockBody();
 
    // update functions.
+
+   /// <summary>
+   /// Step the velocities, this updates the velocity variables based on time step.
+   /// This also applies damping.
+   /// </summary>
+   /// <param name="dt">Delta time.</param>
    void stepVelocities(F32 dt);
-   void stepTransform(F32 dt);
+
+   /// <summary>
+   /// Predict our transform with the forces applied.
+   /// </summary>
+   /// <param name="dt">Delta time.</param>
+   /// <param name="predictedMatrix">The out predicted transform.</param>
+   void predictTransform(F32 dt, MatrixF& predictedMatrix);
+
+   /// <summary>
+   /// Update our intertia tensors.
+   /// </summary>
    void updateInertiaTensor();
+
+   /// <summary>
+   /// Clear our accumulated forces.
+   /// </summary>
+   void clearAccum();
 
    // PhysicsObject overrides
    PhysicsWorld* getWorld() override;

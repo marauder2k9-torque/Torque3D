@@ -58,7 +58,7 @@ protected:
       /// Checks if this node is a leaf.
       /// </summary>
       /// <returns>True if this node has no children, else false.</returns>
-      bool isLeaf() const { return children[0] == nullptr; }
+      bool isLeaf() const { return children[0] == NULL; }
 
       void insert(T object, const Box3F& objectBounds);
       void remove(T object);
@@ -67,7 +67,7 @@ protected:
       void queryAll(Vector<T>& results) const;
    };
 
-   OctreeNode* mRootNode = nullptr;
+   OctreeNode* mRootNode = NULL;
    F32 mMinNodeSize;  /// Smallest node size before stopping subdivision
    static constexpr int MAX_OBJECTS = 4; // 4 objects per node.
    static constexpr F32 MIN_NODE_SIZE = 1.0f;
@@ -125,7 +125,7 @@ inline Octree<T>::Octree(F32 minNodeSize, const Box3F& rootBounds)
 template<class T>
 inline Octree<T>::~Octree()
 {
-   delete mRootNode;
+   SAFE_DELETE(mRootNode);
 }
 
 /// <summary>
@@ -197,9 +197,10 @@ inline void Octree<T>::queryAll(Vector<T>& results) const
 template<class T>
 inline Octree<T>::OctreeNode::OctreeNode(const Box3F& b)
 {
-   for (OctreeNode* node : children)
+   bounds = b;
+   for (U32 i = 0; i < 8; i++)
    {
-      node = nullptr;
+      children[i] = NULL;
    }
 }
 
@@ -214,9 +215,9 @@ inline Octree<T>::OctreeNode::~OctreeNode()
       objs.clear();
 
    // clear any child nodes.
-   for (OctreeNode* node : children)
+   for (U32 i = 0; i < 8; i++)
    {
-      delete node;
+      SAFE_DELETE(children[i]);
    }
 }
 

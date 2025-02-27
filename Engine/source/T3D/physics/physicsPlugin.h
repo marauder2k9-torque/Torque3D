@@ -52,7 +52,7 @@ class PhysicsBody;
 class PhysicsWorld;
 class PhysicsPlayer;
 class PhysicsCollision;
-
+class PhysicsConstraint;
 
 typedef Delegate<PhysicsObject*( const SceneObject *)> CreatePhysicsObjectFn; 
 typedef Map<StringNoCase, CreatePhysicsObjectFn> CreateFnMap;
@@ -121,6 +121,8 @@ public:
    virtual PhysicsBody* createBody() = 0;
 
    virtual PhysicsPlayer* createPlayer() = 0;
+
+   virtual PhysicsConstraint* createConstraint() = 0;
 
    virtual bool isSimulationEnabled() const = 0;
    virtual void enableSimulation( const String &worldName, bool enable ) = 0;

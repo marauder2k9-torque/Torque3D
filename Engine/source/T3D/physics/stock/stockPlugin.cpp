@@ -41,10 +41,6 @@ PhysicsPlugin* StockPlugin::create()
    return new StockPlugin();
 }
 
-void StockPlugin::_onDebugDrawEnabled(bool enabled)
-{
-}
-
 StockPlugin::StockPlugin()
 {
 }
@@ -82,6 +78,11 @@ PhysicsBody* StockPlugin::createBody()
 }
 
 PhysicsPlayer* StockPlugin::createPlayer()
+{
+   return nullptr;
+}
+
+PhysicsConstraint* StockPlugin::createConstraint()
 {
    return nullptr;
 }

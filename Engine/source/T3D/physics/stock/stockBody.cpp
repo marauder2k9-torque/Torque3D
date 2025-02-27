@@ -79,7 +79,7 @@ void StockBody::stepVelocities(F32 dt)
    mAngVelocity *= (1.0f - mAngularDamping * dt);
 }
 
-void StockBody::stepTransform(F32 dt)
+void StockBody::predictTransform(F32 dt, MatrixF& predictedMatrix)
 {
    if (!isDynamic())
       return;
@@ -113,7 +113,7 @@ void StockBody::stepTransform(F32 dt)
    newRot.setMatrix(&newTransform);
    newTransform.setPosition(newPos);
 
-   setTransform(newTransform);
+   predictedMatrix = newTransform;
 }
 
 void StockBody::updateInertiaTensor()
@@ -129,6 +129,12 @@ void StockBody::updateInertiaTensor()
    mInvInertiaTensor = rotMatrix * mInvInertiaTensor * rotMatrix;
 }
 
+void StockBody::clearAccum()
+{
+   mForceAccum = Point3F::Zero;
+   mTorqueAccum = Point3F::Zero;
+}
+
 //-----------------------------------------------------------------------------
 // PHYSICS OBJECT OVERRIDES
 //-----------------------------------------------------------------------------
@@ -141,7 +147,6 @@ PhysicsWorld* StockBody::getWorld()
 void StockBody::setTransform(const MatrixF& xfm)
 {
    mWorldTransform = xfm;
-
    // Update our velocities and inertia.
    mLinVelocity = getLinVelocity();
    mAngVelocity = getAngVelocity();
@@ -150,7 +155,7 @@ void StockBody::setTransform(const MatrixF& xfm)
 
 MatrixF& StockBody::getTransform(MatrixF* outMatrix)
 {
-   *outMatrix = MatrixF::Identity;
+   *outMatrix = mWorldTransform;
    return *outMatrix;
 }
 

@@ -32,8 +32,6 @@
 
 class StockPlugin : public PhysicsPlugin
 {
-protected:
-   void _onDebugDrawEnabled(bool enabled) override;
 public:
 
    StockPlugin();
@@ -48,6 +46,7 @@ public:
    PhysicsCollision* createCollision() override;
    PhysicsBody* createBody() override;
    PhysicsPlayer* createPlayer() override;
+   PhysicsConstraint* createConstraint() override;
    bool isSimulationEnabled() const override;
    void enableSimulation(const String& worldName, bool enable) override;
    void setTimeScale(const F32 timeScale) override;
