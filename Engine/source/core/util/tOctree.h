@@ -313,7 +313,8 @@ inline void Octree<T>::OctreeNode::subdivide()
 template<class T>
 inline void Octree<T>::OctreeNode::insert(ObjectEntry& entry, const Box3F& objectBounds)
 {
-   if (!bounds.isOverlapped(objectBounds))
+   // If object is not fully contained in this node, keep it in the parent
+   if (!bounds.isContained(objectBounds))
    {
       if (parent)
       {
@@ -322,6 +323,7 @@ inline void Octree<T>::OctreeNode::insert(ObjectEntry& entry, const Box3F& objec
       return;
    }
 
+   // If this is a leaf and has space, add object here
    if (isLeaf() && objs.size() < MAX_OBJECTS)
    {
       entry.currentNode = this;
@@ -332,16 +334,25 @@ inline void Octree<T>::OctreeNode::insert(ObjectEntry& entry, const Box3F& objec
    if (isLeaf())
       subdivide();
 
-   // Loop through our children and add the entry to the node(s)
-   // its bounds overlaps.
+   bool insertedIntoChild = false;
+
+   // Try to insert into children
    for (OctreeNode* node : children)
    {
-      if (node->bounds.isOverlapped(objectBounds))
+      if (node->bounds.isContained(objectBounds))
+      {
          node->insert(entry, objectBounds);
+         insertedIntoChild = true;
+         break;
+      }
    }
 
-   entry.currentNode = this;
-   objs.push_back(entry.object);
+   // If the object spans multiple nodes, keep it in the parent
+   if (!insertedIntoChild)
+   {
+      entry.currentNode = this;
+      objs.push_back(entry.object);
+   }
 }
 
 /// <summary>
