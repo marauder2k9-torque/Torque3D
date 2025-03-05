@@ -1328,7 +1328,6 @@ bool NavMesh::testEdgeCover(const Point3F &pos, const VectorF &dir, CoverPointDa
 
 void NavMesh::renderToDrawer()
 {
-	mDbgDraw.clear();
    // Recast debug draw
    NetObject *no = getServerObject();
    if(no)
@@ -1337,11 +1336,8 @@ void NavMesh::renderToDrawer()
 
       if(n->nm)
       {
-         mDbgDraw.beginGroup(0);
          duDebugDrawNavMesh       (&mDbgDraw, *n->nm, 0);
-		 mDbgDraw.beginGroup(1);
          duDebugDrawNavMeshPortals(&mDbgDraw, *n->nm);
-		 mDbgDraw.beginGroup(2);
          duDebugDrawNavMeshBVTree (&mDbgDraw, *n->nm);
       }
    }
@@ -1394,16 +1390,8 @@ void NavMesh::render(ObjectRenderInst *ri, SceneRenderState *state, BaseMatInsta
          int alpha = 80;
          if(!n->isSelected() || !Con::getBoolVariable("$Nav::EditorOpen"))
             alpha = 20;
-		 mDbgDraw.overrideColor(duRGBA(255, 0, 0, alpha));
       }
-      else
-      {
-		  mDbgDraw.cancelOverride();
-      }
-      
-      if((!gEditingMission && n->mAlwaysRender) || (gEditingMission && Con::getBoolVariable("$Nav::Editor::renderMesh", 1))) mDbgDraw.renderGroup(0);
-      if(Con::getBoolVariable("$Nav::Editor::renderPortals")) mDbgDraw.renderGroup(1);
-      if(Con::getBoolVariable("$Nav::Editor::renderBVTree"))  mDbgDraw.renderGroup(2);
+
    }
 }
 
@@ -1444,10 +1432,8 @@ void NavMesh::renderTileData(duDebugDrawTorque &dd, U32 tile)
       return;
    if(nm)
    {
-      dd.beginGroup(0);
       if(mTileData[tile].chf) duDebugDrawCompactHeightfieldSolid(&dd, *mTileData[tile].chf);
 
-      dd.beginGroup(1);
       int col = duRGBA(255, 0, 255, 255);
       RecastPolyList &in = mTileData[tile].geom;
       dd.begin(DU_DRAW_LINES);

@@ -44,26 +44,28 @@ void NavContext::doResetTimers()
 {
    for(U32 i = 0; i < RC_MAX_TIMERS; i++)
    {
-      mTimers[i][0] = -1;
-      mTimers[i][1] = -1;
+      mAccTime[i] = -1;
    }
 }
 
 void NavContext::doStartTimer(const rcTimerLabel label)
 {
    // Store starting time.
-   mTimers[label][0] = Platform::getRealMilliseconds();
+   mStartTime[label] = Platform::getRealMilliseconds();
 }
 
 void NavContext::doStopTimer(const rcTimerLabel label)
 {
    // Compute final time based on starting time.
-   mTimers[label][1] = Platform::getRealMilliseconds() - mTimers[label][0];
+   const S32 endTime = Platform::getRealMilliseconds();
+   const S32 delta = endTime - mStartTime[label];
+   if (mAccTime[label] == -1)
+      mAccTime[label] = delta;
+   else
+      mAccTime[label] += delta;
 }
 
 int NavContext::doGetAccumulatedTime(const rcTimerLabel label) const
 {
-   return mTimers[label][1] == -1
-      ? Platform::getRealMilliseconds() - mTimers[label][0]
-      : mTimers[label][1];
+   return mAccTime[label];
 }

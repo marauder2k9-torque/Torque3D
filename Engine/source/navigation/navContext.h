@@ -28,6 +28,8 @@
 
 /// @brief Implements the rcContext interface in Torque.
 class NavContext: public rcContext {
+   S32 mStartTime[RC_MAX_TIMERS];
+   S32 mAccTime[RC_MAX_TIMERS];
 public:
    /// Default constructor.
    NavContext() : rcContext(true) { doResetTimers(); }
@@ -60,9 +62,6 @@ protected:
    /// @return The accumulated time of the timer, or -1 if timers are disabled or the timer has never been started.
    int doGetAccumulatedTime(const rcTimerLabel label) const override;
 
-private:
-   /// Store start time and final time for each timer.
-   S32 mTimers[RC_MAX_TIMERS][2];
 };
 
 #endif
