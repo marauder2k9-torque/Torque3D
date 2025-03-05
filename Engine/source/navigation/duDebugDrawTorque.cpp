@@ -61,7 +61,17 @@ void duDebugDrawTorque::texture(bool state)
 
 unsigned int duDebugDrawTorque::areaToCol(unsigned int area)
 {
-   return 0;
+   switch (area)
+   {
+      // Ground (0) : light blue
+      case GroundArea: return duRGBA(0, 192, 255, 255);
+      // Water : blue
+      case WaterArea: return duRGBA(0, 0, 255, 255);
+      // Road : brown
+      case OffMeshArea: return duRGBA(50, 20, 12, 255);
+      // Unexpected : red
+      default: return duRGBA(255, 0, 0, 255);
+   }
 }
 
 /// Begin drawing primitives.

@@ -37,6 +37,8 @@
 #include "gui/buttons/guiButtonCtrl.h"
 #include "gui/worldEditor/undoActions.h"
 #include "T3D/gameBase/gameConnection.h"
+#include <DetourDebugDraw.h>
+#include <RecastDebugDraw.h>
 
 IMPLEMENT_CONOBJECT(GuiNavEditorCtrl);
 
@@ -528,6 +530,9 @@ void GuiNavEditorCtrl::renderScene(const RectI & updateRect)
    // Get the camera position
    Point3F camPos;
    mat.getColumn(3,&camPos);
+
+   if(mMesh && mMesh->getNavMesh())
+      duDebugDrawNavMesh(&dd, *mMesh->getNavMesh(), 0);
 
    if(mMode == mLinkMode)
    {

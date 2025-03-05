@@ -249,9 +249,11 @@ public:
 
    void inspectPostApply() override;
 
+   dtNavMesh const* getNavMesh() { return nm; }
+
 protected:
 
-   dtNavMesh const* getNavMesh() { return nm; }
+   
 
 private:
    /// Generates a navigation mesh for the collection of objects in this
