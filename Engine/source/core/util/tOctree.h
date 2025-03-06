@@ -44,7 +44,7 @@
 /// Octree data structure for combining objects.
 /// </summary>
 /// <typeparam name="T">Object type to contain in the octree.</typeparam>
-template <class T>
+template <typename T>
 class Octree
 {
 protected:
@@ -78,8 +78,10 @@ protected:
       void query(const Box3F& region, Vector<T>& results) const;
       void queryAll(Vector<T>& results) const;
    };
+   
+   typedef typename OctreeNode::ObjectEntry ObjectEntry;
 
-   Map<T, typename Octree<T>::OctreeNode::ObjectEntry> entryMap;
+   Map<T, ObjectEntry> entryMap;
    OctreeNode* mRootNode = NULL;
    F32 mMinNodeSize;  /// Smallest node size before stopping subdivision
    static constexpr int MAX_OBJECTS = 4; // 4 objects per node.
@@ -102,7 +104,7 @@ public:
 /// Expand the root node if needed.
 /// </summary>
 /// <param name="objBounds">The entry bounds that will be expanding the root node.</param>
-template<class T>
+template<typename T>
 inline void Octree<T>::expandRoot(const Box3F& objBounds)
 {
    mRootNode->bounds.extend(objBounds.minExtents);
@@ -113,7 +115,7 @@ inline void Octree<T>::expandRoot(const Box3F& objBounds)
 /// Default constructor
 /// </summary>
 /// <param name="minNodeSize">Smallest node size allowed.</param>
-template<class T>
+template<typename T>
 inline Octree<T>::Octree(F32 minNodeSize)
    : mMinNodeSize(minNodeSize)
 {
@@ -125,7 +127,7 @@ inline Octree<T>::Octree(F32 minNodeSize)
 /// </summary>
 /// <param name="minNodeSize">Smallest node size allowed.</param>
 /// <param name="rootBounds">The size of the root node.</param>
-template<class T>
+template<typename T>
 inline Octree<T>::Octree(F32 minNodeSize, const Box3F& rootBounds)
    : mMinNodeSize(minNodeSize)
 {
@@ -135,7 +137,7 @@ inline Octree<T>::Octree(F32 minNodeSize, const Box3F& rootBounds)
 /// <summary>
 /// Deconstructor
 /// </summary>
-template<class T>
+template<typename T>
 inline Octree<T>::~Octree()
 {
    SAFE_DELETE(mRootNode);
@@ -146,7 +148,7 @@ inline Octree<T>::~Octree()
 /// </summary>
 /// <param name="obj">The entry to insert.</param>
 /// <param name="objBounds">The objects bounds in world space.</param>
-template<class T>
+template<typename T>
 inline void Octree<T>::insert(T obj, const Box3F& objBounds)
 {
    if (!mRootNode)
@@ -163,7 +165,7 @@ inline void Octree<T>::insert(T obj, const Box3F& objBounds)
    }
 
    // calls findOrInsert on the underlying hashtable.
-   OctreeNode::ObjectEntry& entry = entryMap[obj];
+   ObjectEntry& entry = entryMap[obj];
    entry.object = obj;
 
    mRootNode->insert(entry, objBounds);
@@ -173,7 +175,7 @@ inline void Octree<T>::insert(T obj, const Box3F& objBounds)
 /// Remove an entry from the octree.
 /// </summary>
 /// <param name="entry">The entry to be removed.</param>
-template<class T>
+template<typename T>
 inline void Octree<T>::remove(T object)
 {
    if (!mRootNode)
@@ -184,7 +186,7 @@ inline void Octree<T>::remove(T object)
       return;
 
    // else lets go.
-   OctreeNode::ObjectEntry& entry = entryMap[object];
+   ObjectEntry& entry = entryMap[object];
 
    // remove from its node.
    entry.currentNode->remove(entry);
@@ -193,7 +195,7 @@ inline void Octree<T>::remove(T object)
    entryMap.erase(object);
 }
 
-template<class T>
+template<typename T>
 inline void Octree<T>::update(T object, const Box3F& newBounds)
 {
    // no root node, get out!
@@ -205,7 +207,7 @@ inline void Octree<T>::update(T object, const Box3F& newBounds)
       return;
 
    // else lets go.
-   OctreeNode::ObjectEntry& entry = entryMap[object];
+   ObjectEntry& entry = entryMap[object];
 
    // remove from its current node.
    entry.currentNode->remove(entry);
@@ -215,14 +217,14 @@ inline void Octree<T>::update(T object, const Box3F& newBounds)
    entry.currentNode->insert(entry, newBounds);
 }
 
-template<class T>
+template<typename T>
 inline void Octree<T>::query(const Box3F& region, Vector<T>& results) const
 {
    if (mRootNode)
       mRootNode->query(region, results);
 }
 
-template<class T>
+template<typename T>
 inline void Octree<T>::queryAll(Vector<T>& results) const
 {
    if(mRootNode)
@@ -232,7 +234,7 @@ inline void Octree<T>::queryAll(Vector<T>& results) const
 ///-------------------------------------------------------------------
 /// OctreeNode functions
 ///-------------------------------------------------------------------
-template<class T>
+template<typename T>
 inline Octree<T>::OctreeNode::OctreeNode()
 {
    parent = NULL;
@@ -248,7 +250,7 @@ inline Octree<T>::OctreeNode::OctreeNode()
 /// Default constructor.
 /// </summary>
 /// <param name="b">The bounds for this node.</param>
-template<class T>
+template<typename T>
 inline Octree<T>::OctreeNode::OctreeNode(const Box3F& b, OctreeNode* parentNode)
 {
    bounds = b;
@@ -266,7 +268,7 @@ inline Octree<T>::OctreeNode::OctreeNode(const Box3F& b, OctreeNode* parentNode)
 /// <summary>
 /// Deconstructor
 /// </summary>
-template<class T>
+template<typename T>
 inline Octree<T>::OctreeNode::~OctreeNode()
 {
    // clear our objects.
@@ -284,7 +286,7 @@ inline Octree<T>::OctreeNode::~OctreeNode()
 /// <summary>
 /// Subdivide this node.
 /// </summary>
-template<class T>
+template<typename T>
 inline void Octree<T>::OctreeNode::subdivide()
 {
    Point3F center = bounds.getCenter();
@@ -310,7 +312,7 @@ inline void Octree<T>::OctreeNode::subdivide()
 /// Insert an entry from the octree node, subdivides the node if its obj vector is the max_objects size.
 /// </summary>
 /// <param name="entry">The entry to be removed.</param>
-template<class T>
+template<typename T>
 inline void Octree<T>::OctreeNode::insert(ObjectEntry& entry, const Box3F& objectBounds)
 {
    // If object is not fully contained in this node, keep it in the parent
@@ -359,7 +361,7 @@ inline void Octree<T>::OctreeNode::insert(ObjectEntry& entry, const Box3F& objec
 /// Remove an entry from the octree node.
 /// </summary>
 /// <param name="entry">The entry to be removed.</param>
-template<class T>
+template<typename T>
 inline void Octree<T>::OctreeNode::remove(ObjectEntry& entry)
 {
    // Current node is the first node that this object exists in.
@@ -377,7 +379,7 @@ inline void Octree<T>::OctreeNode::remove(ObjectEntry& entry)
    }
 }
 
-template<class T>
+template<typename T>
 inline void Octree<T>::OctreeNode::query(const Box3F& region, Vector<T>& results) const
 {
    // if we are not overlapped skip.
@@ -401,7 +403,7 @@ inline void Octree<T>::OctreeNode::query(const Box3F& region, Vector<T>& results
    }
 }
 
-template<class T>
+template<typename T>
 inline void Octree<T>::OctreeNode::queryAll(Vector<T>& results) const
 {
    for (const T& obj : objs)
