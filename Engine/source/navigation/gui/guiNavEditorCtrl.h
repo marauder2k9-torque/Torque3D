@@ -33,9 +33,12 @@
 #ifndef _GIZMO_H_
 #include "gui/worldEditor/gizmo.h"
 #endif
-
-#include "navMesh.h"
+#ifndef _NAVMESH_H_
+#include "navigation/navMesh.h"
+#endif
+#ifndef _AIPLAYER_H_
 #include "T3D/aiPlayer.h"
+#endif
 
 struct ObjectRenderInst;
 class SceneManager;

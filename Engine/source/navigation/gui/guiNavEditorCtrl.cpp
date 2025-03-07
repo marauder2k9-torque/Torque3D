@@ -22,8 +22,8 @@
 #include "torqueConfig.h"
 #ifdef TORQUE_TOOLS
 #include "platform/platform.h"
-#include "guiNavEditorCtrl.h"
-#include "duDebugDrawTorque.h"
+#include "navigation/gui/guiNavEditorCtrl.h"
+#include "navigation/duDebugDrawTorque.h"
 #include "console/engineAPI.h"
 
 #include "console/consoleTypes.h"
@@ -542,7 +542,7 @@ void GuiNavEditorCtrl::renderScene(const RectI & updateRect)
          desc.setBlend(false);
          desc.setZReadWrite(true ,true);
          MatrixF linkMat(true);
-		 linkMat.setPosition(mLinkStart);
+       linkMat.setPosition(mLinkStart);
          Point3F scale(0.8f, 0.8f, 0.8f);
          GFX->getDrawUtil()->drawTransform(desc, linkMat, &scale);
       }

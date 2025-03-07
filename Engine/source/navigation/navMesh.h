@@ -23,16 +23,15 @@
 #ifndef _NAVMESH_H_
 #define _NAVMESH_H_
 
-#include <queue>
-
 #include "scene/sceneObject.h"
 #include "collision/concretePolyList.h"
-#include "recastPolyList.h"
+#include "navigation/recastPolyList.h"
 #include "util/messaging/eventManager.h"
 
-#include "torqueRecast.h"
-#include "duDebugDrawTorque.h"
-#include "coverPoint.h"
+#include "navigation/torqueRecast.h"
+#include "navigation/duDebugDrawTorque.h"
+#include "navigation/coverPoint.h"
+
 
 #include <Recast.h>
 #include <DetourNavMesh.h>
@@ -40,10 +39,12 @@
 #include <DebugDraw.h>
 #include <DetourNavMeshQuery.h>
 
-/// @class NavMesh
-/// Represents a set of bounds within which a Recast navigation mesh is generated.
-/// @see NavMeshPolyList
-/// @see Trigger
+/**
+* @class NavMesh
+* @brief Represents a set of bounds within which a Recast navigation mesh is generated.
+* @see NavMeshPolyList
+* @see Trigger
+*/
 class NavMesh : public SceneObject {
    typedef SceneObject Parent;
    friend class NavPath;

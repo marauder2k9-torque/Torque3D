@@ -3,8 +3,10 @@ option(TORQUE_NAVIGATION "Enable Navigation module" ON)
 
 if(TORQUE_NAVIGATION)
   message("Enabling Navigation Module")
+  set(NAVIGATION_DIR "${CMAKE_SOURCE_DIR}/Engine/source/navigation")
+
+  moduleAddSourceDirectories(TORQUE_NAV_SOURCES "${NAVIGATION_DIR}" "${NAVIGATION_DIR}/gui" "${NAVIGATION_DIR}/gui/tools")
   
-  file(GLOB_RECURSE TORQUE_NAV_SOURCES "${CMAKE_SOURCE_DIR}/Engine/source/navigation/*.cpp" "${CMAKE_SOURCE_DIR}/Engine/source/navigation/*.h" )
   set(TORQUE_SOURCE_FILES ${TORQUE_SOURCE_FILES} ${TORQUE_NAV_SOURCES})
   set(TORQUE_LINK_LIBRARIES ${TORQUE_LINK_LIBRARIES} Detour DetourCrowd DebugUtils Recast DetourTileCache)
   set(TORQUE_COMPILE_DEFINITIONS ${TORQUE_COMPILE_DEFINITIONS} recast TORQUE_NAVIGATION_ENABLED)

@@ -23,6 +23,7 @@
 #include "navMesh.h"
 #include "navContext.h"
 #include <DetourDebugDraw.h>
+#include <DetourTileCache.h>
 #include <RecastDebugDraw.h>
 
 #include "math/mathUtils.h"
@@ -40,6 +41,59 @@
 #include "math/mathIO.h"
 
 #include "core/stream/fileStream.h"
+#include "zlib/zlib.h"
+
+/// <summary>
+/// This class is used as a callback compressor
+/// for the dtTileCacheBuilder, we should not call it directly.
+/// </summary>
+struct ZlibTileCacheCompressor : public dtTileCacheCompressor
+{
+   virtual ~ZlibTileCacheCompressor();
+
+   int maxCompressedSize(const int bufferSize) override
+   {
+      return (int)(bufferSize * 1.05f);
+   }
+
+   /// <summary>
+   /// Compresses a dtTileCache buffer.
+   /// </summary>
+   /// <param name="buffer">The input buffer.</param>
+   /// <param name="bufferSize">The input buffer size.</param>
+   /// <param name="compressed">The compressed buffer.</param>
+   /// <param name="">unused</param>
+   /// <param name="compressedSize">The size of the compressed buffer.</param>
+   /// <returns>DT_SUCCESS</returns>
+   dtStatus compress(const unsigned char* buffer, const int bufferSize,
+      unsigned char* compressed, const int /*maxCompressedSize*/, int* compressedSize) override
+   {
+      *compressedSize = compressBound((uLong)bufferSize);
+      int ret = compress2((Bytef*)compressed, (uLongf*)compressedSize, (Bytef*)buffer, static_cast<unsigned long long>(bufferSize), 9);
+
+      return ret < 0 ? DT_FAILURE : DT_SUCCESS;
+   }
+
+   /// <summary>
+   /// Uncompresses a compressed dtTileCache buffer.
+   /// </summary>
+   /// <param name="compressed">the compressed buffer.</param>
+   /// <param name="compressedSize">the compressed buffer size.</param>
+   /// <param name="buffer">destination buffer.</param>
+   /// <param name="uncompressedSize">the uncompressed size of the data.</param>
+   /// <param name="bufferSize">unused.</param>
+   /// <returns>DT_SUCCESS for good else DT_FAILURE.</returns>
+   dtStatus decompress(const unsigned char* compressed, const int compressedSize,
+      unsigned char* buffer, const int uncompressedSize, int* bufferSize) override
+   {
+      uncompress((Bytef*)buffer, (uLongf*)uncompressedSize, (Bytef*)compressed, static_cast<unsigned long long>(compressedSize));
+      return *bufferSize < 0 ? DT_FAILURE : DT_SUCCESS;
+   }
+};
+
+ZlibTileCacheCompressor::~ZlibTileCacheCompressor()
+{
+}
 
 extern bool gEditingMission;
 
@@ -93,83 +147,6 @@ EventManager *NavMesh::getEventManager()
       smEventManager->registerEvent("NavMeshObstacleRemoved");
    }
    return smEventManager;
-}
-
-DefineEngineFunction(getNavMeshEventManager, S32, (),,
-   "@brief Get the EventManager object for all NavMesh updates.")
-{
-   return NavMesh::getEventManager()->getId();
-}
-
-DefineEngineFunction(NavMeshUpdateAll, void, (S32 objid, bool remove), (0, false),
-   "@brief Update all NavMesh tiles that intersect the given object's world box.")
-{
-   SceneObject *obj;
-   if(!Sim::findObject(objid, obj))
-      return;
-   obj->mPathfindingIgnore = remove;
-   SimSet *set = NavMesh::getServerSet();
-   for(U32 i = 0; i < set->size(); i++)
-   {
-      NavMesh *m = dynamic_cast<NavMesh*>(set->at(i));
-      if (m)
-      {
-         m->cancelBuild();
-         m->buildTiles(obj->getWorldBox());
-      }
-   }
-}
-
-DefineEngineFunction(NavMeshUpdateAroundObject, void, (S32 objid, bool remove), (0, false),
-   "@brief Update all NavMesh tiles that intersect the given object's world box.")
-{
-   SceneObject *obj;
-   if (!Sim::findObject(objid, obj))
-      return;
-   obj->mPathfindingIgnore = remove;
-   SimSet *set = NavMesh::getServerSet();
-   for (U32 i = 0; i < set->size(); i++)
-   {
-      NavMesh *m = dynamic_cast<NavMesh*>(set->at(i));
-      if (m)
-      {
-         m->cancelBuild();
-         m->buildTiles(obj->getWorldBox());
-      }
-   }
-}
-
-
-DefineEngineFunction(NavMeshIgnore, void, (S32 objid, bool _ignore), (0, true),
-   "@brief Flag this object as not generating a navmesh result.")
-{
-   SceneObject *obj;
-   if(!Sim::findObject(objid, obj))
-      return;
-
-      obj->mPathfindingIgnore = _ignore;
-}
-
-DefineEngineFunction(NavMeshUpdateOne, void, (S32 meshid, S32 objid, bool remove), (0, 0, false),
-   "@brief Update all tiles in a given NavMesh that intersect the given object's world box.")
-{
-   NavMesh *mesh;
-   SceneObject *obj;
-   if(!Sim::findObject(meshid, mesh))
-   {
-      Con::errorf("NavMeshUpdateOne: cannot find NavMesh %d", meshid);
-      return;
-   }
-   if(!Sim::findObject(objid, obj))
-   {
-      Con::errorf("NavMeshUpdateOne: cannot find SceneObject %d", objid);
-      return;
-   }
-   if(remove)
-      obj->disableCollision();
-   mesh->buildTiles(obj->getWorldBox());
-   if(remove)
-      obj->enableCollision();
 }
 
 NavMesh::NavMesh()
@@ -426,13 +403,6 @@ S32 NavMesh::addLink(const Point3F &from, const Point3F &to, U32 flags)
    return mLinkIDs.size() - 1;
 }
 
-DefineEngineMethod(NavMesh, addLink, S32, (Point3F from, Point3F to, U32 flags), (0),
-   "Add a link to this NavMesh between two points.\n\n"
-   "")
-{
-   return object->addLink(from, to, flags);
-}
-
 S32 NavMesh::getLink(const Point3F &pos)
 {
    for(U32 i = 0; i < mLinkIDs.size(); i++)
@@ -447,81 +417,7 @@ S32 NavMesh::getLink(const Point3F &pos)
    return -1;
 }
 
-DefineEngineMethod(NavMesh, getLink, S32, (Point3F pos),,
-   "Get the off-mesh link closest to a given world point.")
-{
-   return object->getLink(pos);
-}
 
-S32 NavMesh::getLinkCount()
-{
-   return mLinkIDs.size();
-}
-
-DefineEngineMethod(NavMesh, getLinkCount, S32, (),,
-   "Return the number of links this mesh has.")
-{
-   return object->getLinkCount();
-}
-
-LinkData NavMesh::getLinkFlags(U32 idx)
-{
-   if(idx < mLinkIDs.size())
-   {
-      return LinkData(mLinkFlags[idx]);
-   }
-   return LinkData();
-}
-
-DefineEngineMethod(NavMesh, getLinkFlags, S32, (U32 id),,
-   "Get the flags set for a particular off-mesh link.")
-{
-   return object->getLinkFlags(id).getFlags();
-}
-
-void NavMesh::setLinkFlags(U32 idx, const LinkData &d)
-{
-   if(idx < mLinkIDs.size())
-   {
-      mLinkFlags[idx] = d.getFlags();
-      mLinksUnsynced[idx] = true;
-   }
-}
-
-DefineEngineMethod(NavMesh, setLinkFlags, void, (U32 id, U32 flags),,
-   "Set the flags of a particular off-mesh link.")
-{
-   LinkData d(flags);
-   object->setLinkFlags(id, d);
-}
-
-Point3F NavMesh::getLinkStart(U32 idx)
-{
-   return RCtoDTS(Point3F(
-      mLinkVerts[idx*6],
-      mLinkVerts[idx*6 + 1],
-      mLinkVerts[idx*6 + 2]));
-}
-
-DefineEngineMethod(NavMesh, getLinkStart, Point3F, (U32 id),,
-   "Get the starting point of an off-mesh link.")
-{
-   return object->getLinkStart(id);
-}
-
-Point3F NavMesh::getLinkEnd(U32 idx)
-{
-   return RCtoDTS(Point3F(
-      mLinkVerts[idx*6 + 3],
-      mLinkVerts[idx*6 + 4],
-      mLinkVerts[idx*6 + 5]));
-}
-
-DefineEngineMethod(NavMesh, getLinkEnd, Point3F, (U32 id),,
-   "Get the ending point of an off-mesh link.")
-{
-   return object->getLinkEnd(id);
-}
 
 void NavMesh::selectLink(U32 idx, bool select, bool hover)
 {
@@ -586,17 +482,6 @@ void NavMesh::deleteLink(U32 idx)
    }
 }
 
-DefineEngineMethod(NavMesh, deleteLink, void, (U32 id),,
-   "Delete a given off-mesh link.")
-{
-   object->deleteLink(id);
-}
-
-DefineEngineMethod(NavMesh, deleteLinks, void, (),,
-   "Deletes all off-mesh links on this NavMesh.")
-{
-   //object->eraseLinks();
-}
 
 bool NavMesh::build(bool background, bool saveIntermediates)
 {
@@ -662,23 +547,11 @@ bool NavMesh::build(bool background, bool saveIntermediates)
    return true;
 }
 
-DefineEngineMethod(NavMesh, build, bool, (bool background, bool save), (true, false),
-   "@brief Create a Recast nav mesh.")
-{
-   return object->build(background, save);
-}
-
 void NavMesh::cancelBuild()
 {
    mDirtyTiles.clear();
    ctx->stopTimer(RC_TIMER_TOTAL);
    mBuilding = false;
-}
-
-DefineEngineMethod(NavMesh, cancelBuild, void, (),,
-   "@brief Cancel the current NavMesh build.")
-{
-   object->cancelBuild();
 }
 
 void NavMesh::inspectPostApply()
@@ -1115,11 +988,6 @@ void NavMesh::buildTiles(const Box3F &box)
       ctx->startTimer(RC_TIMER_TOTAL);
 }
 
-DefineEngineMethod(NavMesh, buildTiles, void, (Box3F box),,
-   "@brief Rebuild the tiles overlapped by the input box.")
-{
-   return object->buildTiles(box);
-}
 
 void NavMesh::buildTile(const U32 &tile)
 {
@@ -1166,11 +1034,6 @@ void NavMesh::buildLinks()
       ctx->startTimer(RC_TIMER_TOTAL);
 }
 
-DefineEngineMethod(NavMesh, buildLinks, void, (),,
-   "@brief Build tiles of this mesh where there are unsynchronised links.")
-{
-   object->buildLinks();
-}
 
 void NavMesh::deleteCoverPoints()
 {
@@ -1179,11 +1042,6 @@ void NavMesh::deleteCoverPoints()
       set->deleteAllObjects();
 }
 
-DefineEngineMethod(NavMesh, deleteCoverPoints, void, (),,
-   "@brief Remove all cover points for this NavMesh.")
-{
-   object->deleteCoverPoints();
-}
 
 bool NavMesh::createCoverPoints()
 {
@@ -1275,12 +1133,6 @@ bool NavMesh::createCoverPoints()
       }
    }
    return true;
-}
-
-DefineEngineMethod(NavMesh, createCoverPoints, bool, (),,
-   "@brief Create cover points for this NavMesh.")
-{
-   return object->createCoverPoints();
 }
 
 bool NavMesh::testEdgeCover(const Point3F &pos, const VectorF &dir, CoverPointData &data)
@@ -1607,12 +1459,6 @@ bool NavMesh::load()
    return true;
 }
 
-DefineEngineMethod(NavMesh, load, bool, (),,
-   "@brief Load this NavMesh from its file.")
-{
-   return object->load();
-}
-
 bool NavMesh::save()
 {
    if(!dStrlen(mFileName) || !nm)
@@ -1671,14 +1517,230 @@ bool NavMesh::save()
    return true;
 }
 
-DefineEngineMethod(NavMesh, save, void, (),,
+void NavMesh::write(Stream &stream, U32 tabStop, U32 flags)
+{
+   save();
+   Parent::write(stream, tabStop, flags);
+}
+
+LinkData NavMesh::getLinkFlags(U32 idx)
+{
+   if (idx < mLinkIDs.size())
+   {
+      return LinkData(mLinkFlags[idx]);
+   }
+   return LinkData();
+}
+
+void NavMesh::setLinkFlags(U32 idx, const LinkData& d)
+{
+   if (idx < mLinkIDs.size())
+   {
+      mLinkFlags[idx] = d.getFlags();
+      mLinksUnsynced[idx] = true;
+   }
+}
+
+Point3F NavMesh::getLinkStart(U32 idx)
+{
+   return RCtoDTS(Point3F(
+      mLinkVerts[idx * 6],
+      mLinkVerts[idx * 6 + 1],
+      mLinkVerts[idx * 6 + 2]));
+}
+
+Point3F NavMesh::getLinkEnd(U32 idx)
+{
+   return RCtoDTS(Point3F(
+      mLinkVerts[idx * 6 + 3],
+      mLinkVerts[idx * 6 + 4],
+      mLinkVerts[idx * 6 + 5]));
+}
+
+
+DefineEngineMethod(NavMesh, buildTiles, void, (Box3F box), ,
+   "@brief Rebuild the tiles overlapped by the input box.")
+{
+   return object->buildTiles(box);
+}
+
+DefineEngineMethod(NavMesh, addLink, S32, (Point3F from, Point3F to, U32 flags), (0),
+   "Add a link to this NavMesh between two points.\n\n"
+   "")
+{
+   return object->addLink(from, to, flags);
+}
+
+DefineEngineMethod(NavMesh, buildLinks, void, (), ,
+   "@brief Build tiles of this mesh where there are unsynchronised links.")
+{
+   object->buildLinks();
+}
+
+DefineEngineMethod(NavMesh, deleteCoverPoints, void, (), ,
+   "@brief Remove all cover points for this NavMesh.")
+{
+   object->deleteCoverPoints();
+}
+
+DefineEngineMethod(NavMesh, deleteLink, void, (U32 id), ,
+   "Delete a given off-mesh link.")
+{
+   object->deleteLink(id);
+}
+
+DefineEngineMethod(NavMesh, deleteLinks, void, (), ,
+   "Deletes all off-mesh links on this NavMesh.")
+{
+   //object->eraseLinks();
+}
+
+DefineEngineMethod(NavMesh, build, bool, (bool background, bool save), (true, false),
+   "@brief Create a Recast nav mesh.")
+{
+   return object->build(background, save);
+}
+
+DefineEngineMethod(NavMesh, cancelBuild, void, (), ,
+   "@brief Cancel the current NavMesh build.")
+{
+   object->cancelBuild();
+}
+
+DefineEngineMethod(NavMesh, getLink, S32, (Point3F pos), ,
+   "Get the off-mesh link closest to a given world point.")
+{
+   return object->getLink(pos);
+}
+
+S32 NavMesh::getLinkCount()
+{
+   return mLinkIDs.size();
+}
+
+DefineEngineMethod(NavMesh, getLinkCount, S32, (), ,
+   "Return the number of links this mesh has.")
+{
+   return object->getLinkCount();
+}
+
+DefineEngineMethod(NavMesh, getLinkFlags, S32, (U32 id), ,
+   "Get the flags set for a particular off-mesh link.")
+{
+   return object->getLinkFlags(id).getFlags();
+}
+
+
+DefineEngineMethod(NavMesh, setLinkFlags, void, (U32 id, U32 flags), ,
+   "Set the flags of a particular off-mesh link.")
+{
+   LinkData d(flags);
+   object->setLinkFlags(id, d);
+}
+
+DefineEngineMethod(NavMesh, getLinkStart, Point3F, (U32 id), ,
+   "Get the starting point of an off-mesh link.")
+{
+   return object->getLinkStart(id);
+}
+
+
+DefineEngineMethod(NavMesh, getLinkEnd, Point3F, (U32 id), ,
+   "Get the ending point of an off-mesh link.")
+{
+   return object->getLinkEnd(id);
+}
+
+DefineEngineMethod(NavMesh, save, void, (), ,
    "@brief Save this NavMesh to its file.")
 {
    object->save();
 }
 
-void NavMesh::write(Stream &stream, U32 tabStop, U32 flags)
+DefineEngineMethod(NavMesh, load, bool, (), ,
+   "@brief Load this NavMesh from its file.")
 {
-   save();
-   Parent::write(stream, tabStop, flags);
+   return object->load();
+}
+
+DefineEngineMethod(NavMesh, createCoverPoints, bool, (), ,
+   "@brief Create cover points for this NavMesh.")
+{
+   return object->createCoverPoints();
+}
+
+DefineEngineFunction(getNavMeshEventManager, S32, (), ,
+   "@brief Get the EventManager object for all NavMesh updates.")
+{
+   return NavMesh::getEventManager()->getId();
+}
+
+DefineEngineFunction(NavMeshUpdateAll, void, (S32 objid, bool remove), (0, false),
+   "@brief Update all NavMesh tiles that intersect the given object's world box.")
+{
+   SceneObject* obj;
+   if (!Sim::findObject(objid, obj))
+      return;
+   obj->mPathfindingIgnore = remove;
+   SimSet* set = NavMesh::getServerSet();
+   for (U32 i = 0; i < set->size(); i++)
+   {
+      NavMesh* m = dynamic_cast<NavMesh*>(set->at(i));
+      if (m)
+      {
+         m->cancelBuild();
+         m->buildTiles(obj->getWorldBox());
+      }
+   }
+}
+
+DefineEngineFunction(NavMeshUpdateAroundObject, void, (S32 objid, bool remove), (0, false),
+   "@brief Update all NavMesh tiles that intersect the given object's world box.")
+{
+   SceneObject* obj;
+   if (!Sim::findObject(objid, obj))
+      return;
+   obj->mPathfindingIgnore = remove;
+   SimSet* set = NavMesh::getServerSet();
+   for (U32 i = 0; i < set->size(); i++)
+   {
+      NavMesh* m = dynamic_cast<NavMesh*>(set->at(i));
+      if (m)
+      {
+         m->cancelBuild();
+         m->buildTiles(obj->getWorldBox());
+      }
+   }
+}
+
+DefineEngineFunction(NavMeshIgnore, void, (S32 objid, bool _ignore), (0, true),
+   "@brief Flag this object as not generating a navmesh result.")
+{
+   SceneObject* obj;
+   if (!Sim::findObject(objid, obj))
+      return;
+
+   obj->mPathfindingIgnore = _ignore;
+}
+
+DefineEngineFunction(NavMeshUpdateOne, void, (S32 meshid, S32 objid, bool remove), (0, 0, false),
+   "@brief Update all tiles in a given NavMesh that intersect the given object's world box.")
+{
+   NavMesh* mesh;
+   SceneObject* obj;
+   if (!Sim::findObject(meshid, mesh))
+   {
+      Con::errorf("NavMeshUpdateOne: cannot find NavMesh %d", meshid);
+      return;
+   }
+   if (!Sim::findObject(objid, obj))
+   {
+      Con::errorf("NavMeshUpdateOne: cannot find SceneObject %d", objid);
+      return;
+   }
+   if (remove)
+      obj->disableCollision();
+   mesh->buildTiles(obj->getWorldBox());
+   if (remove)
+      obj->enableCollision();
 }
