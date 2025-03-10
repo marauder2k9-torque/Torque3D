@@ -156,22 +156,21 @@ NavMesh::NavMesh()
    mNetFlags.clear(Ghostable);
 
    mSaveIntermediates = false;
-   nm = NULL;
+   mNavMesh = NULL;
    ctx = NULL;
 
    mWaterMethod = Ignore;
 
    dMemset(&cfg, 0, sizeof(cfg));
    mCellSize = mCellHeight = 0.2f;
-   mWalkableHeight = 2.0f;
-   mWalkableClimb = 0.3f;
-   mWalkableRadius = 0.5f;
-   mWalkableSlope = 40.0f;
-   mBorderSize = 1;
+   mActorHeight = 2.0f;
+   mActorMaxClimb = 0.3f;
+   mActorRadius = 0.5f;
+   mActorMaxSlope = 40.0f;
    mDetailSampleDist = 6.0f;
    mDetailSampleMaxError = 1.0f;
    mMaxEdgeLen = 12;
-   mMaxSimplificationError = 1.3f;
+   mMaxEdgeError = 1.3f;
    mMinRegionArea = 8;
    mMergeRegionArea = 20;
    mTileSize = 10.0f;
@@ -195,8 +194,8 @@ NavMesh::NavMesh()
 
 NavMesh::~NavMesh()
 {
-   dtFreeNavMesh(nm);
-   nm = NULL;
+   dtFreeNavMesh(mNavMesh);
+   mNavMesh = NULL;
    delete ctx;
    ctx = NULL;
 }
@@ -253,13 +252,13 @@ void NavMesh::initPersistFields()
    addFieldV("tileSize", TypeF32, Offset(mTileSize, NavMesh), &CommonValidators::PositiveNonZeroFloat,
       "The horizontal size of tiles.");
 
-   addFieldV("actorHeight", TypeF32, Offset(mWalkableHeight, NavMesh), &CommonValidators::PositiveFloat,
+   addFieldV("actorHeight", TypeF32, Offset(mActorHeight, NavMesh), &CommonValidators::PositiveFloat,
       "Height of an actor.");
-   addFieldV("actorClimb", TypeF32, Offset(mWalkableClimb, NavMesh), &CommonValidators::PositiveFloat,
+   addFieldV("actorClimb", TypeF32, Offset(mActorMaxClimb, NavMesh), &CommonValidators::PositiveFloat,
       "Maximum climbing height of an actor.");
-   addFieldV("actorRadius", TypeF32, Offset(mWalkableRadius, NavMesh), &CommonValidators::PositiveFloat,
+   addFieldV("actorRadius", TypeF32, Offset(mActorRadius, NavMesh), &CommonValidators::PositiveFloat,
       "Radius of an actor.");
-   addFieldV("walkableSlope", TypeF32, Offset(mWalkableSlope, NavMesh), &ValidSlopeAngle,
+   addFieldV("walkableSlope", TypeF32, Offset(mActorMaxSlope, NavMesh), &ValidSlopeAngle,
       "Maximum walkable slope in degrees.");
 
    addField("smallCharacters", TypeBool, Offset(mSmallCharacters, NavMesh),
@@ -298,16 +297,14 @@ void NavMesh::initPersistFields()
 
    addGroup("NavMesh Advanced Options");
 
-   addFieldV("borderSize", TypeS32, Offset(mBorderSize, NavMesh), &PositiveInt,
-      "Size of the non-walkable border around the navigation mesh (in voxels).");
    addProtectedField("detailSampleDist", TypeF32, Offset(mDetailSampleDist, NavMesh),
       &setProtectedDetailSampleDist, &defaultProtectedGetFn,
       "Sets the sampling distance to use when generating the detail mesh.");
    addFieldV("detailSampleError", TypeF32, Offset(mDetailSampleMaxError, NavMesh), &CommonValidators::PositiveFloat,
       "The maximum distance the detail mesh surface should deviate from heightfield data.");
-   addFieldV("maxEdgeLen", TypeS32, Offset(mDetailSampleDist, NavMesh), &PositiveInt,
+   addFieldV("maxEdgeLen", TypeF32, Offset(mMaxEdgeLen, NavMesh), &PositiveInt,
       "The maximum allowed length for contour edges along the border of the mesh.");
-   addFieldV("simplificationError", TypeF32, Offset(mMaxSimplificationError, NavMesh), &CommonValidators::PositiveFloat,
+   addFieldV("simplificationError", TypeF32, Offset(mMaxEdgeError, NavMesh), &CommonValidators::PositiveFloat,
       "The maximum distance a simplfied contour's border edges should deviate from the original raw contour.");
    addFieldV("minRegionArea", TypeS32, Offset(mMinRegionArea, NavMesh), &PositiveInt,
       "The minimum number of cells allowed to form isolated island areas.");
@@ -383,7 +380,7 @@ S32 NavMesh::addLink(const Point3F &from, const Point3F &to, U32 flags)
    mLinkVerts.push_back(rcTo.y);
    mLinkVerts.push_back(rcTo.z);
    mLinksUnsynced.push_back(true);
-   mLinkRads.push_back(mWalkableRadius);
+   mLinkRads.push_back(mActorRadius);
    mLinkDirs.push_back(0);
    mLinkAreas.push_back(OffMeshArea);
    if (flags == 0) {
@@ -497,10 +494,10 @@ bool NavMesh::build(bool background, bool saveIntermediates)
 
    ctx->startTimer(RC_TIMER_TOTAL);
 
-   dtFreeNavMesh(nm);
+   dtFreeNavMesh(mNavMesh);
    // Allocate a new navmesh.
-   nm = dtAllocNavMesh();
-   if(!nm)
+   mNavMesh = dtAllocNavMesh();
+   if(!mNavMesh)
    {
       Con::errorf("Could not allocate dtNavMesh for NavMesh %s", getIdString());
       return false;
@@ -517,7 +514,7 @@ bool NavMesh::build(bool background, bool saveIntermediates)
    params.maxPolys = mMaxPolysPerTile;
 
    // Initialise our navmesh.
-   if(dtStatusFailed(nm->init(&params)))
+   if(dtStatusFailed(mNavMesh->init(&params)))
    {
       Con::errorf("Could not init dtNavMesh for NavMesh %s", getIdString());
       return false;
@@ -571,16 +568,16 @@ void NavMesh::updateConfig()
    rcVcopy(cfg.bmax, box.maxExtents);
    rcCalcGridSize(cfg.bmin, cfg.bmax, cfg.cs, &cfg.width, &cfg.height);
 
-   cfg.walkableHeight = mCeil(mWalkableHeight / mCellHeight);
-   cfg.walkableClimb = mCeil(mWalkableClimb / mCellHeight);
-   cfg.walkableRadius = mCeil(mWalkableRadius / mCellSize);
-   cfg.walkableSlopeAngle = mWalkableSlope;
+   cfg.walkableHeight = mCeil(mActorHeight / mCellHeight);
+   cfg.walkableClimb = mCeil(mActorMaxClimb / mCellHeight);
+   cfg.walkableRadius = mCeil(mActorRadius / mCellSize);
+   cfg.walkableSlopeAngle = mActorMaxSlope;
    cfg.borderSize = cfg.walkableRadius + 3;
 
    cfg.detailSampleDist = mDetailSampleDist;
    cfg.detailSampleMaxError = mDetailSampleMaxError;
    cfg.maxEdgeLen = mMaxEdgeLen;
-   cfg.maxSimplificationError = mMaxSimplificationError;
+   cfg.maxSimplificationError = mMaxEdgeError;
    cfg.maxVertsPerPoly = mMaxVertsPerPoly;
    cfg.minRegionArea = mMinRegionArea;
    cfg.mergeRegionArea = mMergeRegionArea;
@@ -675,7 +672,7 @@ void NavMesh::buildNextTile()
       TileData &tdata = mSaveIntermediates ? mTileData[i] : tempdata;
       
       // Remove any previous data.
-      nm->removeTile(nm->getTileRefAt(tile.x, tile.y, 0), 0, 0);
+      mNavMesh->removeTile(mNavMesh->getTileRefAt(tile.x, tile.y, 0), 0, 0);
 
       // Generate navmesh for this tile.
       U32 dataSize = 0;
@@ -683,7 +680,7 @@ void NavMesh::buildNextTile()
       if(data)
       {
          // Add new data (navmesh owns and deletes the data).
-         dtStatus status = nm->addTile(data, dataSize, DT_TILE_FREE_DATA, 0, 0);
+         dtStatus status = mNavMesh->addTile(data, dataSize, DT_TILE_FREE_DATA, 0, 0);
          int success = 1;
          if(dtStatusFailed(status))
          {
@@ -902,6 +899,7 @@ unsigned char *NavMesh::buildTileData(const Tile &tile, TileData &data, U32 &dat
       Con::errorf("Too many vertices in rcPolyMesh for NavMesh %s", getIdString());
       return NULL;
    }
+
    for(U32 i = 0; i < data.pm->npolys; i++)
    {
       if(data.pm->areas[i] == RC_WALKABLE_AREA)
@@ -941,9 +939,9 @@ unsigned char *NavMesh::buildTileData(const Tile &tile, TileData &data, U32 &dat
    params.offMeshConUserID = mLinkIDs.address();
    params.offMeshConCount = mLinkIDs.size();
 
-   params.walkableHeight = mWalkableHeight;
-   params.walkableRadius = mWalkableRadius;
-   params.walkableClimb = mWalkableClimb;
+   params.walkableHeight = mActorHeight;
+   params.walkableRadius = mActorRadius;
+   params.walkableClimb = mActorMaxClimb;
    params.tileX = tile.x;
    params.tileY = tile.y;
    params.tileLayer = 0;
@@ -972,7 +970,7 @@ void NavMesh::buildTiles(const Box3F &box)
 {
    PROFILE_SCOPE(NavMesh_buildTiles);
    // Make sure we've already built or loaded.
-   if(!nm)
+   if(!mNavMesh)
       return;
    // Iterate over tiles.
    for(U32 i = 0; i < mTiles.size(); i++)
@@ -1002,7 +1000,7 @@ void NavMesh::buildTile(const U32 &tile)
 void NavMesh::buildLinks()
 {
    // Make sure we've already built or loaded.
-   if(!nm)
+   if(!mNavMesh)
       return;
    // Iterate over tiles.
    for(U32 i = 0; i < mTiles.size(); i++)
@@ -1045,7 +1043,7 @@ void NavMesh::deleteCoverPoints()
 
 bool NavMesh::createCoverPoints()
 {
-   if(!nm || !isServerObject())
+   if(!mNavMesh || !isServerObject())
       return false;
 
    SimSet *set = NULL;
@@ -1068,18 +1066,18 @@ bool NavMesh::createCoverPoints()
    }
 
    dtNavMeshQuery *query = dtAllocNavMeshQuery();
-   if(!query || dtStatusFailed(query->init(nm, 1)))
+   if(!query || dtStatusFailed(query->init(mNavMesh, 1)))
       return false;
 
    dtQueryFilter f;
 
    // Iterate over all polys in our navmesh.
    const int MAX_SEGS = 6;
-   for(U32 i = 0; i < nm->getMaxTiles(); ++i)
+   for(U32 i = 0; i < mNavMesh->getMaxTiles(); ++i)
    {
-      const dtMeshTile* tile = ((const dtNavMesh*)nm)->getTile(i);
+      const dtMeshTile* tile = ((const dtNavMesh*)mNavMesh)->getTile(i);
       if(!tile->header) continue;
-      const dtPolyRef base = nm->getPolyRefBase(tile);
+      const dtPolyRef base = mNavMesh->getPolyRefBase(tile);
       for(U32 j = 0; j < tile->header->polyCount; ++j)
       {
          const dtPolyRef ref = base | j;
@@ -1092,12 +1090,12 @@ bool NavMesh::createCoverPoints()
             const float* sb = &segs[segIDx *6+3];
             Point3F a = RCtoDTS(sa), b = RCtoDTS(sb);
             F32 len = (b - a).len();
-            if(len < mWalkableRadius * 2)
+            if(len < mActorRadius * 2)
                continue;
             Point3F edge = b - a;
             edge.normalize();
             // Number of points to try placing - for now, one at each end.
-            U32 pointCount = (len > mWalkableRadius * 4) ? 2 : 1;
+            U32 pointCount = (len > mActorRadius * 4) ? 2 : 1;
             for(U32 pointIDx = 0; pointIDx < pointCount; pointIDx++)
             {
                MatrixF mat;
@@ -1109,9 +1107,9 @@ bool NavMesh::createCoverPoints()
                else
                {
                   if(pointIDx % 2)
-                     pos = a + edge * (pointIDx /2+1) * mWalkableRadius;
+                     pos = a + edge * (pointIDx /2+1) * mActorRadius;
                   else
-                     pos = b - edge * (pointIDx /2+1) * mWalkableRadius;
+                     pos = b - edge * (pointIDx /2+1) * mActorRadius;
                }
                CoverPointData data;
                if(testEdgeCover(pos, edge, data))
@@ -1145,7 +1143,7 @@ bool NavMesh::testEdgeCover(const Point3F &pos, const VectorF &dir, CoverPointDa
    U32 hits = 0;
    for(U32 j = 0; j < CoverPoint::NumSizes; j++)
    {
-      Point3F test = pos + Point3F(0.0f, 0.0f, mWalkableHeight * j / (F32)CoverPoint::NumSizes);
+      Point3F test = pos + Point3F(0.0f, 0.0f, mActorHeight * j / (F32)CoverPoint::NumSizes);
       if(getContainer()->castRay(test, test + norm * mCoverDist, StaticObjectType, &ray))
       {
          // Test peeking.
@@ -1186,11 +1184,11 @@ void NavMesh::renderToDrawer()
    {
       NavMesh *n = static_cast<NavMesh*>(no);
 
-      if(n->nm)
+      if(n->mNavMesh)
       {
-         duDebugDrawNavMesh       (&mDbgDraw, *n->nm, 0);
-         duDebugDrawNavMeshPortals(&mDbgDraw, *n->nm);
-         duDebugDrawNavMeshBVTree (&mDbgDraw, *n->nm);
+         duDebugDrawNavMesh       (&mDbgDraw, *n->mNavMesh, 0);
+         duDebugDrawNavMeshPortals(&mDbgDraw, *n->mNavMesh);
+         duDebugDrawNavMeshBVTree (&mDbgDraw, *n->mNavMesh);
       }
    }
 }
@@ -1282,7 +1280,7 @@ void NavMesh::renderTileData(duDebugDrawTorque &dd, U32 tile)
 {
    if(tile >= mTileData.size())
       return;
-   if(nm)
+   if(mNavMesh)
    {
       if(mTileData[tile].chf) duDebugDrawCompactHeightfieldSolid(&dd, *mTileData[tile].chf);
 
@@ -1393,10 +1391,10 @@ bool NavMesh::load()
       return false;
    }
 
-   if(nm)
-      dtFreeNavMesh(nm);
-   nm = dtAllocNavMesh();
-   if(!nm)
+   if(mNavMesh)
+      dtFreeNavMesh(mNavMesh);
+   mNavMesh = dtAllocNavMesh();
+   if(!mNavMesh)
    {
       stream.close();
       Con::errorf("Out of memory when loading navmesh %s.",
@@ -1404,7 +1402,7 @@ bool NavMesh::load()
       return false;
    }
 
-   dtStatus status = nm->init(&header.params);
+   dtStatus status = mNavMesh->init(&header.params);
    if(dtStatusFailed(status))
    {
       stream.close();
@@ -1426,7 +1424,7 @@ bool NavMesh::load()
       memset(data, 0, tileHeader.dataSize);
       stream.read(tileHeader.dataSize, (char*)data);
 
-      nm->addTile(data, tileHeader.dataSize, DT_TILE_FREE_DATA, tileHeader.tileRef, 0);
+      mNavMesh->addTile(data, tileHeader.dataSize, DT_TILE_FREE_DATA, tileHeader.tileRef, 0);
    }
 
    S32 s;
@@ -1461,7 +1459,7 @@ bool NavMesh::load()
 
 bool NavMesh::save()
 {
-   if(!dStrlen(mFileName) || !nm)
+   if(!dStrlen(mFileName) || !mNavMesh)
       return false;
    
    FileStream stream;
@@ -1477,23 +1475,23 @@ bool NavMesh::save()
    header.magic = NAVMESHSET_MAGIC;
    header.version = NAVMESHSET_VERSION;
    header.numTiles = 0;
-   for(U32 i = 0; i < nm->getMaxTiles(); ++i)
+   for(U32 i = 0; i < mNavMesh->getMaxTiles(); ++i)
    {
-      const dtMeshTile* tile = ((const dtNavMesh*)nm)->getTile(i);
+      const dtMeshTile* tile = ((const dtNavMesh*)mNavMesh)->getTile(i);
       if (!tile || !tile->header || !tile->dataSize) continue;
       header.numTiles++;
    }
-   memcpy(&header.params, nm->getParams(), sizeof(dtNavMeshParams));
+   memcpy(&header.params, mNavMesh->getParams(), sizeof(dtNavMeshParams));
    stream.write(sizeof(NavMeshSetHeader), (const char*)&header);
 
    // Store tiles.
-   for(U32 i = 0; i < nm->getMaxTiles(); ++i)
+   for(U32 i = 0; i < mNavMesh->getMaxTiles(); ++i)
    {
-      const dtMeshTile* tile = ((const dtNavMesh*)nm)->getTile(i);
+      const dtMeshTile* tile = ((const dtNavMesh*)mNavMesh)->getTile(i);
       if(!tile || !tile->header || !tile->dataSize) continue;
 
       NavMeshTileHeader tileHeader;
-      tileHeader.tileRef = nm->getTileRef(tile);
+      tileHeader.tileRef = mNavMesh->getTileRef(tile);
       tileHeader.dataSize = tile->dataSize;
 
       stream.write(sizeof(tileHeader), (const char*)&tileHeader);

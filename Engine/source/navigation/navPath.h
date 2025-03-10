@@ -23,9 +23,18 @@
 #ifndef _NAVPATH_H_
 #define _NAVPATH_H_
 
+#ifndef _SCENEOBJECT_H_
 #include "scene/sceneObject.h"
+#endif
+
+#ifndef _SIMPATH_H_
 #include "scene/simPath.h"
-#include "navMesh.h"
+#endif
+
+#ifndef _NAVMESH_H_
+#include "navigation/navMesh.h"
+#endif
+
 #include <DetourNavMeshQuery.h>
 
 class NavPath: public SceneObject {

@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// Copyright (c) 2014 Daniel Buckmaster
+// Copyright (c) 2012 GarageGames, LLC
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -20,54 +20,43 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "navContext.h"
-#include "console/sim.h"
+#include "platform/platform.h"
 
-void NavContext::doResetLog()
-{
-}
+#include "navigation/gui/tools/navEditorTool.h"
 
-void NavContext::log(const rcLogCategory category, const String &msg)
-{
-   doLog(category, msg.c_str(), msg.length());
-}
+#include "util/undo.h"
+#include "math/mMath.h"
+#include "math/mathUtils.h"
 
-void NavContext::doLog(const rcLogCategory category, const char* msg, const int len)
-{
-   if (category == RC_LOG_ERROR)
-      Con::errorf(msg);
-   else if (category == RC_LOG_WARNING)
-      Con::warnf(msg);
-   else
-      Con::printf(msg);
-}
 
-void NavContext::doResetTimers()
+IMPLEMENT_CONOBJECT(NavEditorTool);
+
+ConsoleDocClass(NavEditorTool,
+   "@brief Base class for Navigation Editor specific tools\n\n"
+   "Editor use only.\n\n"
+   "@internal"
+);
+
+void NavEditorTool::_submitUndo(UndoAction* action)
 {
-   for(U32 i = 0; i < RC_MAX_TIMERS; i++)
+   AssertFatal(action, "NavEditorTool::_submitUndo() - No undo action!");
+
+   // Grab the mission editor undo manager.
+   UndoManager* undoMan = NULL;
+   if (!Sim::findObject("EUndoManager", undoMan))
    {
-      mAccTime[i] = -1;
+      Con::errorf("NavEditorTool::_submitUndo() - EUndoManager not found!");
+      return;
    }
+
+   undoMan->addAction(action);
 }
 
-void NavContext::doStartTimer(const rcTimerLabel label)
+NavEditorTool::NavEditorTool()
+   : mNavMesh(NULL)
 {
-   // Store starting time.
-   mStartTime[label] = Platform::getRealMilliseconds();
 }
 
-void NavContext::doStopTimer(const rcTimerLabel label)
+NavEditorTool::~NavEditorTool()
 {
-   // Compute final time based on starting time.
-   const S32 endTime = Platform::getRealMilliseconds();
-   const S32 delta = endTime - mStartTime[label];
-   if (mAccTime[label] == -1)
-      mAccTime[label] = delta;
-   else
-      mAccTime[label] += delta;
-}
-
-int NavContext::doGetAccumulatedTime(const rcTimerLabel label) const
-{
-   return mAccTime[label];
 }

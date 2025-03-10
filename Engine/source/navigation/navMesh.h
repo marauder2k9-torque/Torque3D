@@ -49,6 +49,18 @@ class NavMesh : public SceneObject {
    typedef SceneObject Parent;
    friend class NavPath;
 
+protected:
+   class dtNavMesh* mNavMesh;
+   class dtNavMeshQuery* mNavQuery;
+   class dtCrowd* mCrowd;
+   /// Cell width and height.
+   F32 mCellSize, mCellHeight;
+   /// Actor variables.
+   F32 mActorHeight, mActorMaxClimb, mActorRadius, mActorMaxSlope;
+   /// Polygonization variables
+   F32 mMaxEdgeLen, mMaxEdgeError;
+   /// Detail mesh Controls
+   F32 mDetailSampleDist, mDetailSampleMaxError;
 public:
    /// @name NavMesh build
    /// @{
@@ -83,21 +95,6 @@ public:
    /// Name of the SimSet to store cover points in. (Usually a SimGroup.)
    StringTableEntry mCoverSet;
 
-   /// Cell width and height.
-   F32 mCellSize, mCellHeight;
-   /// @name Actor data
-   /// @{
-   F32 mWalkableHeight,
-      mWalkableClimb,
-      mWalkableRadius,
-      mWalkableSlope;
-   /// @}
-   /// @name Generation data
-   /// @{
-   U32 mBorderSize;
-   F32 mDetailSampleDist, mDetailSampleMaxError;
-   U32 mMaxEdgeLen;
-   F32 mMaxSimplificationError;
    static const U32 mMaxVertsPerPoly;
    U32 mMinRegionArea;
    U32 mMergeRegionArea;
@@ -165,16 +162,6 @@ public:
    /// Should vehicles use this mesh?
    bool mVehicles;
 
-   /// @name Annotations
-   /// @{
-   /* not implemented
-   /// Should we automatically generate jump-down links?
-   bool mJumpDownLinks;
-   /// Height of a 'small' jump link.
-   F32 mJumpLinkSmall;
-   /// Height of a 'large' jump link.
-   F32 mJumpLinkLarge;
-   */
    /// Distance to search for cover.
    F32 mCoverDist;
 
@@ -188,12 +175,10 @@ public:
 
    /// @name SimObject
    /// @{
-
    void onEditorEnable() override;
    void onEditorDisable() override;
-
+   void inspectPostApply() override;
    void write(Stream &stream, U32 tabStop, U32 flags) override;
-
    /// @}
 
    /// @name SceneObject
@@ -248,9 +233,7 @@ public:
    /// Return the EventManager for all NavMeshes.
    static EventManager *getEventManager();
 
-   void inspectPostApply() override;
-
-   dtNavMesh const* getNavMesh() { return nm; }
+   dtNavMesh const* getNavMesh() { return mNavMesh; }
 
 protected:
 
@@ -375,7 +358,6 @@ private:
    /// Updates our config from console members.
    void updateConfig();
 
-   dtNavMesh *nm;
    rcContext *ctx;
 
    /// @}

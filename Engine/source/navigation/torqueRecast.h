@@ -23,9 +23,21 @@
 #ifndef _TORQUE_RECAST_H_
 #define _TORQUE_RECAST_H_
 
+#ifndef _ENGINEAPI_H_
+#include "console/engineAPI.h"
+#endif
+
+#ifndef _SIMSET_H_
 #include "console/simSet.h"
+#endif
+
+#ifndef _MPOINT3_H_
 #include "math/mPoint3.h"
+#endif
+
+#ifndef _MBOX_H_
 #include "math/mBox.h"
+#endif
 
 inline Point3F DTStoRC(F32 x, F32 y, F32 z) { return Point3F(x, z, -y); }
 inline Point3F DTStoRC(const Point3F& point){ return Point3F(point.x, point.z, -point.y); }
@@ -51,22 +63,46 @@ inline void rcCol(unsigned int col, U8 &r, U8 &g, U8 &b, U8 &a)
    a = col % 256;
 }
 
+enum NavigatorToolType {
+   EmptyTool = 0,
+   TileEditTool,
+   TileHighlightTool,
+   TempObstacleTool,
+   NavmeshTesterTool,
+   NavmeshPruneTool,
+   OffmeshConnectionTool,
+   ConvexVolumeTool,
+   CrowdTool,
+   NumTools
+};
+
 enum PolyAreas {
    GroundArea,
    WaterArea,
+   RoadArea,
+   DoorArea,
+   GrassArea,
    OffMeshArea,
    NumAreas
 };
 
+enum NavigationPartitionType {
+   PartitionWaterShed,
+   PartitionMonotone,
+   PartitionLayers
+};
+
 enum PolyFlags {
-   WalkFlag = 1 << 0,
-   SwimFlag = 1 << 1,
-   JumpFlag = 1 << 2,
-   LedgeFlag = 1 << 3,
-   DropFlag = 1 << 4,
-   ClimbFlag = 1 << 5,
-   TeleportFlag = 1 << 6,
-   AllFlags = 0xffff
+   WalkFlag      = BIT(0),
+   SwimFlag      = BIT(1),
+   JumpFlag      = BIT(2),
+   LedgeFlag     = BIT(3),
+   DropFlag      = BIT(4),
+   ClimbFlag     = BIT(5),
+   TeleportFlag  = BIT(6),
+   DoorFlag      = BIT(7),
+   DisabledFlag  = BIT(8),
+   AllFlags      = 0xffff
 };
 
 /// Stores information about a link.

@@ -23,8 +23,13 @@
 #ifndef _RECAST_POLYLIST_H_
 #define _RECAST_POLYLIST_H_
 
+#ifndef _ABSTRACTPOLYLIST_H_
 #include "collision/abstractPolyList.h"
+#endif
+
+#ifndef _TVECTOR_H_
 #include "core/util/tVector.h"
+#endif
 
 /// Represents polygons in the same manner as the .obj file format. Handy for
 /// padding data to Recast, since it expects this data format. At the moment,
