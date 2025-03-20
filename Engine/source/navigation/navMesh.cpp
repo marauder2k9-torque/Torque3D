@@ -157,6 +157,8 @@ NavMesh::NavMesh()
 
    mSaveIntermediates = false;
    mNavMesh = NULL;
+   mNavQuery = NULL;
+   mCrowd = NULL;
    ctx = NULL;
 
    mWaterMethod = Ignore;

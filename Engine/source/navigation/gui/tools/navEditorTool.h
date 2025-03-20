@@ -30,15 +30,15 @@ class NavEditorTool : public SimObject
    typedef SimObject Parent;
 protected:
    void _submitUndo(UndoAction* action);
-   SimObjectPtr<NavEditorTool> mNavMesh;
+   SimObjectPtr<NavMesh> mNavMeshParent;
 public:
    NavEditorTool();
    virtual ~NavEditorTool();
 
    DECLARE_CONOBJECT(NavEditorTool);
 
-   virtual int type() = 0;
-   virtual void init(class NavMesh* navMesh) = 0;
+   virtual S32 type() { return NavigationTool::EmptyTool; };
+   virtual void setActiveNavMesh(class NavMesh* navMesh) { mNavMeshParent = navMesh; }
 
    virtual void onActivated(const Gui3DMouseEvent& lastEvent) {}
    virtual void onDeactivated() {}

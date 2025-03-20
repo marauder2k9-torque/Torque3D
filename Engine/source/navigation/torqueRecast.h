@@ -63,7 +63,7 @@ inline void rcCol(unsigned int col, U8 &r, U8 &g, U8 &b, U8 &a)
    a = col % 256;
 }
 
-enum NavigatorToolType {
+enum NavigationTool {
    EmptyTool = 0,
    TileEditTool,
    TileHighlightTool,
@@ -86,7 +86,7 @@ enum PolyAreas {
    NumAreas
 };
 
-enum NavigationPartitionType {
+enum NavigationPartition {
    PartitionWaterShed,
    PartitionMonotone,
    PartitionLayers
@@ -106,6 +106,7 @@ enum PolyFlags {
 };
 
 /// Stores information about a link.
+/// Deprecated!
 struct LinkData {
    bool walk;
    bool jump;
@@ -136,5 +137,14 @@ struct LinkData {
          (teleport ? TeleportFlag : 0);
    }
 };
+
+typedef PolyAreas PolyAreaType;
+DefineEnumType(PolyAreaType)
+
+typedef NavigationPartition NavigationPartitionType;
+DefineEnumType(NavigationPartitionType)
+
+typedef PolyFlags PolyFlagType;
+DefineBitfieldType(PolyFlagType)
 
 #endif

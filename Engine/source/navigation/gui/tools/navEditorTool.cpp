@@ -53,7 +53,7 @@ void NavEditorTool::_submitUndo(UndoAction* action)
 }
 
 NavEditorTool::NavEditorTool()
-   : mNavMesh(NULL)
+   : mNavMeshParent(NULL)
 {
 }
 

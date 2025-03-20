@@ -232,12 +232,8 @@ public:
 
    /// Return the EventManager for all NavMeshes.
    static EventManager *getEventManager();
-
-   dtNavMesh const* getNavMesh() { return mNavMesh; }
-
-protected:
-
-   
+   dtNavMesh* getNavMesh() { return mNavMesh; }
+   dtNavMeshQuery* getNavMeshQuery() { return mNavQuery; }
 
 private:
    /// Generates a navigation mesh for the collection of objects in this

@@ -39,16 +39,24 @@
 #ifndef _AIPLAYER_H_
 #include "T3D/aiPlayer.h"
 #endif
+#ifndef _NAVEDITORTOOL_H_
+#include "navigation/gui/tools/navEditorTool.h"
+#endif
 
 struct ObjectRenderInst;
 class SceneManager;
 class SceneRenderState;
 class BaseMatInstance;
+class NavEditorTool;
 
 class GuiNavEditorCtrl : public EditTSCtrl
 {
    typedef EditTSCtrl Parent;
    friend class GuiNavEditorUndoAction;
+
+protected:
+   SimObjectPtr<NavMesh> mMesh;
+   SimObjectPtr<NavEditorTool> mTool;
 
 public:
    static const String mSelectMode;
@@ -72,9 +80,9 @@ public:
 
    /// @name GuiControl
    /// @{
-
+   
+   bool onWake() override;
    void onSleep() override;
-   void onRender(Point2I offset, const RectI &updateRect) override;
 
    /// @}
 
@@ -91,6 +99,7 @@ public:
    void on3DMouseLeave(const Gui3DMouseEvent & event) override;
    void updateGuiInfo() override;      
    void renderScene(const RectI & updateRect) override;
+   void renderGui(Point2I offset, const RectI& updateRect) override;
 
    /// @}
 
@@ -134,7 +143,6 @@ protected:
    String mMode;
 
    /// Currently-selected NavMesh.
-   SimObjectPtr<NavMesh> mMesh;
 
    /// @name Link mode
    /// @{

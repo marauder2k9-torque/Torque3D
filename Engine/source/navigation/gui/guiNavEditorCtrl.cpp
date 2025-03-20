@@ -110,11 +110,37 @@ void GuiNavEditorCtrl::initPersistFields()
    Parent::initPersistFields();
 }
 
+bool GuiNavEditorCtrl::onWake()
+{
+   if (!Parent::onWake())
+      return false;
+
+   // Push our default cursor on here once.
+   GuiCanvas* root = getRoot();
+   if (root)
+   {
+      S32 currCursor = PlatformCursorController::curArrow;
+
+      PlatformWindow* window = root->getPlatformWindow();
+      PlatformCursorController* controller = window->getCursorController();
+      controller->pushCursor(currCursor);
+   }
+
+   return true;
+}
+
 void GuiNavEditorCtrl::onSleep()
 {
-   Parent::onSleep();
+   // Pop our default cursor off.
+   GuiCanvas* root = getRoot();
+   if (root)
+   {
+      PlatformWindow* window = root->getPlatformWindow();
+      PlatformCursorController* controller = window->getCursorController();
+      controller->popCursor();
+   }
 
-   //mMode = mSelectMode;
+   Parent::onSleep();
 }
 
 void GuiNavEditorCtrl::selectMesh(NavMesh *mesh)
@@ -291,14 +317,22 @@ bool GuiNavEditorCtrl::get3DCentre(Point3F &pos)
    return false;
 }
 
-void GuiNavEditorCtrl::on3DMouseDown(const Gui3DMouseEvent & event)
+void GuiNavEditorCtrl::on3DMouseDown(const Gui3DMouseEvent& event)
 {
    mGizmo->on3DMouseDown(event);
 
    if(!isFirstResponder())
       setFirstResponder();
 
+   if (!mMesh)
+      return;
+
+   if (mTool)
+      mTool->on3DMouseDown(event);
+
    mouseLock();
+
+   return;
 
    // Construct a LineSegment from the camera position to 1000 meters away in
    // the direction clicked.
@@ -366,36 +400,6 @@ void GuiNavEditorCtrl::on3DMouseDown(const Gui3DMouseEvent & event)
          mMesh->renderTileData(dd, mTile);
       }
    }
-
-   if(mMode == mTestMode)
-   {
-      // Spawn new character
-      if(ctrl)
-      {
-         if(gServerContainer.castRay(startPnt, endPnt, StaticObjectType, &ri))
-            spawnPlayer(ri.point);
-      }
-      // Deselect character
-      else if(shift)
-      {
-         mPlayer = NULL;
-         Con::executef(this, "onPlayerDeselected");
-      }
-      // Select/move character
-      else
-      {
-         if(gServerContainer.castRay(startPnt, endPnt, PlayerObjectType, &ri))
-         {
-            if(dynamic_cast<AIPlayer*>(ri.object))
-            {
-               mPlayer = dynamic_cast<AIPlayer*>(ri.object);
-               Con::executef(this, "onPlayerSelected", Con::getIntArg(mPlayer->mLinkTypes.getFlags()));
-            }
-         }
-         else if(!mPlayer.isNull() && gServerContainer.castRay(startPnt, endPnt, StaticObjectType, &ri))
-            mPlayer->setPathDestination(ri.point);
-      }
-   }
 }
 
 void GuiNavEditorCtrl::on3DMouseUp(const Gui3DMouseEvent & event)
@@ -403,13 +407,25 @@ void GuiNavEditorCtrl::on3DMouseUp(const Gui3DMouseEvent & event)
    // Keep the Gizmo up to date.
    mGizmo->on3DMouseUp(event);
 
+   if (!isMouseLocked())
+      return;
+
+   if (mTool)
+      mTool->on3DMouseUp(event);
+
    mouseUnlock();
 }
 
 void GuiNavEditorCtrl::on3DMouseMove(const Gui3DMouseEvent & event)
 {
-   //if(mSelRiver != NULL && mSelNode != -1)
-      //mGizmo->on3DMouseMove(event);
+
+   if (!mMesh)
+      return;
+
+   if (mTool)
+      mTool->on3DMouseMove(event);
+
+   return;
 
    Point3F startPnt = event.pos;
    Point3F endPnt = event.pos + event.vec * 1000.0f;
@@ -465,37 +481,24 @@ void GuiNavEditorCtrl::on3DMouseMove(const Gui3DMouseEvent & event)
 
 void GuiNavEditorCtrl::on3DMouseDragged(const Gui3DMouseEvent & event)
 {
-   mGizmo->on3DMouseDragged(event);
-   if(mGizmo->isDirty())
-   {
-      Point3F scale = mGizmo->getScale();
-      const MatrixF &mat = mGizmo->getTransform();
-      VectorF normal;
-      mat.getColumn(2, &normal);
-
-      //mSelRiver->setNode(pos, scale.x, scale.z, normal, mSelNode);
-      mIsDirty = true;
-   }
+   if (mTool)
+      mTool->on3DMouseDragged(event);
 }
 
 void GuiNavEditorCtrl::on3DMouseEnter(const Gui3DMouseEvent & event)
 {
+   if (mTool)
+      mTool->on3DMouseEnter(event);
 }
 
 void GuiNavEditorCtrl::on3DMouseLeave(const Gui3DMouseEvent & event)
 {
+   if (mTool)
+      mTool->on3DMouseLeave(event);
 }
 
 void GuiNavEditorCtrl::updateGuiInfo()
 {
-}
-
-void GuiNavEditorCtrl::onRender(Point2I offset, const RectI &updateRect)
-{
-   PROFILE_SCOPE(GuiNavEditorCtrl_OnRender);
-
-   Parent::onRender(offset, updateRect);
-   return;
 }
 
 static void renderBoxOutline(const Box3F &box, const ColorI &col)
@@ -530,7 +533,20 @@ void GuiNavEditorCtrl::renderScene(const RectI & updateRect)
    // Get the camera position
    Point3F camPos;
    mat.getColumn(3,&camPos);
+<<<<<<< Updated upstream:Engine/source/navigation/guiNavEditorCtrl.cpp
+=======
+   /* We need to update an active tool so it can update positions (eg tester crowd etc.)
+   S32 time = Platform::getVirtualMilliseconds();
+   S32 dt = time - mLastRenderTime;
+   mLastRenderTime = time;
+   if(mTool)
+      mTool->updateTool((F32)dt / 1000.f);
+   */
 
+   if(mMesh && mMesh->getNavMesh())
+      duDebugDrawNavMesh(&dd, *mMesh->getNavMesh(), 0);
+
+>>>>>>> Stashed changes:Engine/source/navigation/gui/guiNavEditorCtrl.cpp
    if(mMesh && mMesh->getNavMesh())
       duDebugDrawNavMesh(&dd, *mMesh->getNavMesh(), 0);
 
@@ -573,6 +589,10 @@ void GuiNavEditorCtrl::renderScene(const RectI & updateRect)
 
    // Now draw all the 2d stuff!
    GFX->setClipRect(updateRect);
+}
+
+void GuiNavEditorCtrl::renderGui(Point2I offset, const RectI& updateRect)
+{
 }
 
 bool GuiNavEditorCtrl::getStaticPos(const Gui3DMouseEvent & event, Point3F &tpos)
