@@ -533,8 +533,6 @@ void GuiNavEditorCtrl::renderScene(const RectI & updateRect)
    // Get the camera position
    Point3F camPos;
    mat.getColumn(3,&camPos);
-<<<<<<< Updated upstream:Engine/source/navigation/guiNavEditorCtrl.cpp
-=======
    /* We need to update an active tool so it can update positions (eg tester crowd etc.)
    S32 time = Platform::getVirtualMilliseconds();
    S32 dt = time - mLastRenderTime;
@@ -543,10 +541,6 @@ void GuiNavEditorCtrl::renderScene(const RectI & updateRect)
       mTool->updateTool((F32)dt / 1000.f);
    */
 
-   if(mMesh && mMesh->getNavMesh())
-      duDebugDrawNavMesh(&dd, *mMesh->getNavMesh(), 0);
-
->>>>>>> Stashed changes:Engine/source/navigation/gui/guiNavEditorCtrl.cpp
    if(mMesh && mMesh->getNavMesh())
       duDebugDrawNavMesh(&dd, *mMesh->getNavMesh(), 0);
 
