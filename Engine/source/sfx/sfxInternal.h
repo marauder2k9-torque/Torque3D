@@ -453,4 +453,51 @@ inline bool isSFXThread()
 
 } // namespace SFXInternal
 
+class SFXManager {
+private:
+   static SFXManager* sfxMgrInstance;  // Singleton instance
+   Thread* mSFXThread;
+   volatile bool mRunning;
+   ThreadSafeDeque<SFXInternal::SFXStreamPacket*> mPacketQueue;
+   Mutex mMutex;
+   Semaphore mCondition;
+
+public:
+   SFXManager()
+      : mRunning(true)
+   {
+      mSFXThread = new Thread(&SFXManager::threadEntryPoint, this);
+      mSFXThread->start();
+   }
+   static SFXManager* get() {
+      if (!sfxMgrInstance)
+         sfxMgrInstance = new SFXManager();
+      return sfxMgrInstance;
+   }
+
+private:
+   // **Static entry point for the thread**
+   static void threadEntryPoint(void* manager) {
+      static_cast<SFXManager*>(manager)->updateLoop();
+   }
+
+   void updateLoop() {
+      while (mRunning) {
+         mCondition.acquire(); // Wait until there's work 
+         mMutex.lock();
+
+         mMutex.unlock();
+         Platform::sleep(10); // sleep for 10ms
+      }
+   }
+
+   void processPacket(SFXInternal::SFXStreamPacket* packet) {
+      // Process packet
+      delete packet;
+   }
+};
+
+// Global macro
+#define SFXMGR SFXManager::get() 
+
 #endif // !_SFXINTERNAL_H_

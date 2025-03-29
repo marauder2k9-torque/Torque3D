@@ -31,7 +31,7 @@
 
 
 //#define DEBUG_SPEW
-
+SFXManager* SFXManager::sfxMgrInstance = nullptr;
 
 namespace SFXInternal {
 

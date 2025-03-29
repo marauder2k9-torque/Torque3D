@@ -24,20 +24,31 @@
 #define _SFXDEVICE_H_
 
 #ifndef _PLATFORM_H_
-   #include "platform/platform.h"
+#include "platform/platform.h"
 #endif
 #ifndef _TVECTOR_H_
-   #include "core/util/tVector.h"
+#include "core/util/tVector.h"
 #endif
 #ifndef _SFXCOMMON_H_
-   #include "sfx/sfxCommon.h"
+#include "sfx/sfxCommon.h"
 #endif
 #ifndef _THREADSAFEREF_H_
-   #include "platform/threads/threadSafeRefCount.h"
+#include "platform/threads/threadSafeRefCount.h"
+#endif
+#ifndef _TDICTIONARY_H_
+#include "core/util/tDictionary.h"
+#endif
+#ifndef _TSIGNAL_H_
+#include "core/util/tSignal.h"
+#endif
+#ifndef _PLATFORM_PLATFORMTIMER_H_
+#include "platform/platformTimer.h"
 #endif
 
+#ifndef _SFXPROVIDER_H_
+#include "sfx/sfxProvider.h"
+#endif
 
-class SFXProvider;
 class SFXListener;
 class SFXBuffer;
 class SFXVoice;
@@ -46,7 +57,8 @@ class SFXDevice;
 class SFXStream;
 class SFXDescription;
 
-
+// Global macro
+#define SFXNEW SFXDevice::get() 
 
 /// Abstract base class for back-end sound API implementations.
 class SFXDevice
@@ -64,7 +76,16 @@ class SFXDevice
          CAPS_DSPEffects      = BIT( 3 ),    ///< Device implements DSP effects (SFXDSPManager).
          CAPS_MultiListener   = BIT( 4 ),    ///< Device supports multiple listeners.
       };
-      
+
+      static SFXDevice* get() { return smSFXDevice; }
+      static void initConsole();
+      static bool destroy();
+private:
+   /// @name Device management variables
+   /// @{
+   static SFXDevice* smSFXDevice; ///< Global SFXDevice 
+   /// @}
+
    protected:
 
       typedef Vector< SFXBuffer* > BufferVector;
@@ -73,7 +94,7 @@ class SFXDevice
       typedef BufferVector::iterator BufferIterator;
       typedef VoiceVector::iterator VoiceIterator;
 
-      SFXDevice( const String& name, SFXProvider* provider, bool useHardware, S32 maxBuffers );
+      SFXDevice( const String& name, SFXProvider* provider, bool useHardware, S32 maxSources );
 
       /// The name of this device.
       String mName;

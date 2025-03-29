@@ -19,109 +19,192 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
+
 #include "platform/platform.h"
 
 #include "sfx/sfxProvider.h"
 #include "sfx/openal/sfxALDevice.h"
-#include "sfx/openal/aldlist.h"
+#include "sfx/openal/sfxALProvider.h"
 #include "sfx/openal/LoadOAL.h"
 
 #include "core/strings/stringFunctions.h"
 #include "console/console.h"
 #include "core/module.h"
+#include "sfx/SFXInit.h"
 
 
-class SFXALProvider : public SFXProvider
+class SFXALRegisterProvider
 {
 public:
-
-   SFXALProvider()
-      : SFXProvider( "OpenAL" ) { dMemset(&mOpenAL,0,sizeof(mOpenAL)); mALDL = NULL; }
-   virtual ~SFXALProvider();
-
-protected:
-   OPENALFNTABLE mOpenAL;
-   ALDeviceList *mALDL;
-
-   struct ALDeviceInfo : SFXDeviceInfo
+   SFXALRegisterProvider()
    {
-      
-   };
-
-   void init() override;
-
-public:
-   SFXDevice *createDevice( const String& deviceName, bool useHardware, S32 maxBuffers ) override;
-
+      SFXInit::getRegisterProviderSignal().notify(&SFXALProvider::enumerateDriversAndDevices);
+   }
 };
 
-MODULE_BEGIN( OpenAL )
-
-   MODULE_INIT_BEFORE( SFX )
-   MODULE_SHUTDOWN_AFTER( SFX )
-   
-   SFXALProvider* mProvider = NULL;
-   
-   MODULE_INIT
-   {
-      mProvider = new SFXALProvider;
-   }
-   
-   MODULE_SHUTDOWN
-   {
-      delete mProvider;
-   }
-
-MODULE_END;
-
-void SFXALProvider::init()
-{
-   if( LoadOAL10Library( NULL, &mOpenAL ) != AL_TRUE )
-   {
-      Con::printf( "SFXALProvider - OpenAL not available." );
-      return;
-   }
-   mALDL = new ALDeviceList( mOpenAL );
-
-   // Did we get any devices?
-   if ( mALDL->GetNumDevices() < 1 )
-   {
-      Con::printf( "SFXALProvider - No valid devices found!" );
-      return;
-   }
-
-   // Cool, loop through them, and caps em
-   //const char *deviceFormat = "OpenAL v%d.%d %s";
-
-   for( S32 i = 0; i < mALDL->GetNumDevices(); i++ )
-   {
-      ALDeviceInfo* info = new ALDeviceInfo;
-      
-      //info->internalName = String( mALDL->GetInternalDeviceName( i ) );
-      info->name = String( mALDL->GetDeviceName( i ) );
-
-      mDeviceInfo.push_back( info );
-   }
-
-   regProvider( this );
-}
+static SFXALRegisterProvider pSFXALRegisterProvider;
 
 SFXALProvider::~SFXALProvider()
 {
-   UnloadOAL10Library();
-
-   if (mALDL)
-	delete mALDL;
 }
 
-SFXDevice* SFXALProvider::createDevice(const String& deviceName, bool useHardware, S32 maxBuffers)
+void SFXALProvider::enumerateDriversAndDevices(Vector<SFXProvider*> &providerList)
 {
-   ALDeviceInfo* info = dynamic_cast<ALDeviceInfo*>
-      (_findDeviceInfo(deviceName));
+   LoadDriverList();
 
-   // Do we find one to create?
-   if (info)
-      return new SFXALDevice(this, mOpenAL, info->name, useHardware, maxBuffers);
+   if (ALDriverList.size() < 1)
+   {
+      Con::printf("SFXALProvider - No valid openal drivers.");
+      return;
+   }
+
+   SFXALProvider* alProvider = new SFXALProvider();
+   alProvider->mType = SFXProviderType::OpenAL;
+   alProvider->mName = "OpenAL";
+
+   U32 driverIdx = 0;
+   U32 deviceIdx = 0;
+   for (openAlInterface* alDriver : ALDriverList)
+   {
+      if (alDriver->alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT") == AL_TRUE)
+      {
+         char* devices, *defaultDeviceName;
+         if (alDriver->alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT") == AL_TRUE) {
+            devices = (char*)alDriver->alcGetString(NULL, ALC_ALL_DEVICES_SPECIFIER);
+            defaultDeviceName = (char*)alDriver->alcGetString(NULL, ALC_DEFAULT_ALL_DEVICES_SPECIFIER);
+         }
+         else {
+            devices = (char*)alDriver->alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+            defaultDeviceName = (char*)alDriver->alcGetString(NULL, ALC_DEFAULT_DEVICE_SPECIFIER);
+         }
+
+         // add default device first so it is top of the list.
+         if (defaultDeviceName != NULL)
+         {
+            // make sure we can create it
+            ALCdevice* device = alDriver->alcOpenDevice(defaultDeviceName);
+            if (device)
+            {
+               ALCcontext* ctx = alDriver->alcCreateContext(device, nullptr);
+               if (ctx)
+               {
+                  ALDeviceInfo* devInfo = new ALDeviceInfo;
+                  devInfo->driverIdx = driverIdx;
+                  devInfo->deviceIdx = deviceIdx;
+                  devInfo->name = String(defaultDeviceName);
+                  devInfo->type = SFXDeviceType::Output;
+                  // only true for default driver
+                  devInfo->defaultDevice = driverIdx == 0 ? true : false;
+
+                  alProvider->mDeviceInfo.push_back(devInfo);
+                  deviceIdx++;
+                  alDriver->alcMakeContextCurrent(nullptr);
+                  alDriver->alcDestroyContext(ctx);
+               }
+
+               alDriver->alcCloseDevice(device);
+            }
+         }
+
+         const char* ptr = devices;
+         while (*ptr != 0)
+         {
+            bool found = false;
+            for (SFXDeviceInfo* dev : alProvider->mDeviceInfo)
+            {
+               if (String::compare(dev->name.c_str(), ptr) == 0)
+               {
+                  ptr += dev->name.length() + 1;
+                  found = true;
+                  break;
+               }
+            }
+
+            if (found)
+               continue;
+
+            ALCdevice* device = alDriver->alcOpenDevice(ptr);
+            if (device)
+            {
+               ALCcontext* ctx = alDriver->alcCreateContext(device, nullptr);
+               if (ctx)
+               {
+                  alDriver->alcMakeContextCurrent(ctx);
+
+                  ALDeviceInfo* devInfo = new ALDeviceInfo;
+                  devInfo->driverIdx = driverIdx;
+                  devInfo->deviceIdx = deviceIdx;
+                  devInfo->name = String(ptr);
+                  devInfo->type = SFXDeviceType::Output;
+
+                  alProvider->mDeviceInfo.push_back(devInfo);
+                  deviceIdx++;
+                  ptr += devInfo->name.length() + 1;
+
+                  alDriver->alcMakeContextCurrent(nullptr);
+                  alDriver->alcDestroyContext(ctx);
+               }
+
+               alDriver->alcCloseDevice(device);
+            }
+         }
+
+         if (alDriver->alcIsExtensionPresent(NULL, "ALC_EXT_CAPTURE") == AL_FALSE)
+            continue;
+
+         devices = (char*)alDriver->alcGetString(NULL, ALC_CAPTURE_DEVICE_SPECIFIER);
+
+         ptr = devices;
+         while (*ptr != 0)
+         {
+            bool found = false;
+            for (SFXDeviceInfo* dev : alProvider->mDeviceInfo)
+            {
+               if (String::compare(dev->name.c_str(), ptr) == 0)
+               {
+                  ptr += dev->name.length() + 1;
+                  found = true;
+                  break;
+               }
+            }
+
+            if (found)
+               continue;
+
+            ALCdevice* device = alDriver->alcCaptureOpenDevice(ptr, 22040, AL_FORMAT_MONO8, 22040 * 2);
+            if (device)
+            {
+               ALDeviceInfo* devInfo = new ALDeviceInfo;
+               devInfo->driverIdx = driverIdx;
+               devInfo->deviceIdx = deviceIdx;
+               devInfo->name = String(ptr);
+               devInfo->type = SFXDeviceType::Input;
+
+               alProvider->mDeviceInfo.push_back(devInfo);
+               deviceIdx++;
+               ptr += devInfo->name.length() + 1;
+
+               alDriver->alcCaptureCloseDevice(device);
+            }
+         }
+      }
+
+      driverIdx++;
+   }
+
+   Con::printf("Devices Found for %s:", alProvider->mName.c_str());
+   for (SFXDeviceInfo* info : alProvider->mDeviceInfo)
+   {
+      Con::printf("[%s] %s %s", info->type == SFXDeviceType::Output ? "Output Device" : "Input Device",
+         info->name.c_str(),
+         info->defaultDevice ? "(Default Device)" : "");
+   }
+
+   providerList.push_back(alProvider);
+}
+
+SFXDevice* SFXALProvider::createOutputDevice(const String& deviceName, bool useHardware, S32 maxSources)
+{
 
    return NULL;
 }

@@ -23,8 +23,6 @@
 #ifndef _SFXALDEVICE_H_
 #define _SFXALDEVICE_H_
 
-class SFXProvider;
-
 #ifndef _SFXDEVICE_H_
 #  include "sfx/sfxDevice.h"
 #endif
@@ -41,7 +39,7 @@ class SFXProvider;
 #  include "sfx/openal/sfxALVoice.h"
 #endif
 
-#ifndef _OPENALFNTABLE
+#ifndef _LOADOAL_H_
 #  include "sfx/openal/LoadOAL.h"
 #endif
 
@@ -62,16 +60,16 @@ class SFXALDevice : public SFXDevice
       S32 getMaxSourcesOld();
 
       SFXALDevice(   SFXProvider *provider,
-                     const OPENALFNTABLE &openal, 
+                     openAlInterface* openal, 
                      String name, 
                      bool useHardware, 
-                     S32 maxBuffers );
+                     S32 maxSources );
 
       virtual ~SFXALDevice();
 
    protected:
 
-      OPENALFNTABLE mOpenAL;
+      openAlInterface* mOpenAL;
 
       ALCcontext *mContext;
 

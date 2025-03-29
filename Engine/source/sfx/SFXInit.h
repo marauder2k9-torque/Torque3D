@@ -19,53 +19,49 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
+#pragma once
 
-#ifndef ALDEVICELIST_H
-#define ALDEVICELIST_H
+#ifndef _SFXINIT_H_
+#define _SFXINIT_H_
 
-#pragma warning(disable: 4786)  //disable warning "identifier was truncated to '255' characters in the browser information"
-#include "core/util/tVector.h"
-#include "core/stringTable.h"
-#include "sfx/openal/sfxALCaps.h"
-#include "LoadOAL.h"
+#ifndef _SFXDEVICE_H_
+#include "sfx/sfxDevice.h"
+#endif
 
-typedef struct
+#ifndef _SFXAPI_H_
+#include "sfx/sfxApi.h"
+#endif // !_SFXAPI_H_
+
+
+#ifndef _ENGINEOBJECT_H_
+#include "console/engineObject.h"
+#endif
+
+class SFXInit
 {
-	char           strDeviceName[256];
-	char           strInternalDeviceName[256];
-	S32				iMajorVersion;
-	S32				iMinorVersion;
-   U32	         uiSourceCount;
-	S32            iCapsFlags;
-	bool			   bSelected;
-} ALDEVICEINFO, *LPALDEVICEINFO;
-
-class ALDeviceList
-{
-private:
-	OPENALFNTABLE	ALFunction;
-	Vector<ALDEVICEINFO> vDeviceInfo;
-	S32 defaultDeviceIndex;
-	S32 filterIndex;
+   DECLARE_STATIC_CLASS(SFXInit)
 
 public:
-	ALDeviceList ( const OPENALFNTABLE &oalft );
-	~ALDeviceList ();
-	S32 GetNumDevices();
-	const char *GetDeviceName(S32 index);
-	void GetDeviceVersion(S32 index, S32 *major, S32 *minor);
-   U32 GetMaxNumSources(S32 index);
-	bool IsExtensionSupported(S32 index, SFXALCaps caps);
-	S32 GetDefaultDevice();
-	void FilterDevicesMinVer(S32 major, S32 minor);
-	void FilterDevicesMaxVer(S32 major, S32 minor);
-	void FilterDevicesExtension(SFXALCaps caps);
-	void ResetFilters();
-	S32 GetFirstFilteredDevice();
-	S32 GetNextFilteredDevice();
+   typedef Signal<void(Vector<SFXProvider*>&)> RegisterProviderSignal;
+   static RegisterProviderSignal& getRegisterProviderSignal();
+   /// <summary>
+   /// Initializes the SFX system this will loop through providers and create devices linked to it.
+   /// </summary>
+   static void init();
+
+   /// <summary>
+   /// Cleanup all our providers.
+   /// </summary>
+   static void cleanup();
+
+   static void enumerateProviders();
 
 private:
-	U32 GetMaxNumSources();
+   /// List of known providers.
+   static Vector<SFXProvider*> smProviders;
+   static RegisterProviderSignal* smRegisterProviderSignal;
+
+
 };
 
-#endif // ALDEVICELIST_H
+#endif // !_SFXINIT_H_
