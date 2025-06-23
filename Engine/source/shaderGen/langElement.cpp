@@ -92,6 +92,7 @@ Var::Var()
    connectName[0] = '\0';
    constSortPos = cspUninit;
    constNum = 0;
+   constBufferNum = -1;
    texCoordNum = 0;
    uniform = false;
    vertData = false;
@@ -113,6 +114,7 @@ Var::Var( const char *inName, const char *inType )
    texCoordNum = 0;
    constSortPos = cspUninit;
    constNum = 0;
+   constBufferNum = -1;
    arraySize = 1;
    texture = false;
    rank = 0;
@@ -127,6 +129,21 @@ void Var::setUniform(const String& constType, const String& constName, ConstantS
    setType(constType.c_str());
    setName(constName.c_str());   
    constSortPos = cspPass;      
+}
+
+Var* Var::findOrCreate(const char* name, const char* type, bool uniform, S32 constBufferNum)
+{
+   // Look for existing Var
+   Var* existing = dynamic_cast<Var*>(LangElement::find(name));
+   if (existing)
+      return existing;
+
+   // Create new if not found
+   Var* var = new Var(name, type);
+   var->uniform = uniform;
+   var->constBufferNum = -1;
+
+   return var;
 }
 
 //--------------------------------------------------------------------------

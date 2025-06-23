@@ -70,10 +70,7 @@ void EyeSpaceDepthOutHLSL::processPix( Vector<ShaderComponent*> &componentList,
    wsEyeVec->uniform = false;
 
    // get shader constants
-   Var *vEye = new Var;
-   vEye->setType("float3");
-   vEye->setName("vEye");
-   vEye->uniform = true;
+   Var *vEye = Var::findOrCreate("vEye", "float3", true, ConstBuffer::CBUFFER_SCENE);
    vEye->constSortPos = cspPass;
 
    // Expose the depth to the depth format feature

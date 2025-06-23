@@ -170,10 +170,7 @@ void MatInfoFlagsHLSL::processPix( Vector<ShaderComponent*> &componentList, cons
       if (!ormConfig) ormConfig = new Var("ORMConfig", "float4");
    }
 
-   Var *matInfoFlags = new Var;
-   matInfoFlags->setType( "float" );
-   matInfoFlags->setName( "matInfoFlags" );
-   matInfoFlags->uniform = true;
+   Var* matInfoFlags = Var::findOrCreate("matInfoFlags", "float", true, ConstBuffer::CBUFFER_MATERIAL);
    matInfoFlags->constSortPos = cspPotentialPrimitive;
 
    output = new GenOp( "   @.r = @;\r\n", ormConfig, matInfoFlags );
@@ -206,12 +203,10 @@ void ORMConfigVarsHLSL::processPix( Vector<ShaderComponent*> &componentList, con
       if (!ormConfig) ormConfig = new Var("ORMConfig", "float4");
       meta->addStatement(new GenOp("   @;\r\n", new DecOp(ormConfig)));
    }
-   Var *metalness = new Var("metalness", "float");
-   metalness->uniform = true;
+   Var* metalness = Var::findOrCreate("metalness", "float", true, ConstBuffer::CBUFFER_MATERIAL);
    metalness->constSortPos = cspPotentialPrimitive;
 
-   Var *roughness = new Var("roughness", "float");
-   roughness->uniform = true;
+   Var* roughness = Var::findOrCreate("roughness", "float", true, ConstBuffer::CBUFFER_MATERIAL);
    roughness->constSortPos = cspPotentialPrimitive;
 
    //matinfo.g slot reserved for AO later
@@ -249,8 +244,7 @@ void GlowMapHLSL::processPix(Vector<ShaderComponent*> &componentList, const Mate
    glowMapTex->constNum = glowMap->constNum;
    LangElement* texOp = new GenOp("@.Sample(@, @)", glowMapTex, glowMap, texCoord);
 
-   Var* glowMul = new Var("glowMul", "float");
-   glowMul->uniform = true;
+   Var* glowMul = Var::findOrCreate("glowMul", "float", true, ConstBuffer::CBUFFER_MATERIAL);
    glowMul->constSortPos = cspPotentialPrimitive;
 
    Var *targ = (Var*)LangElement::find(getOutputTargetVarName(ShaderFeature::DefaultTarget));

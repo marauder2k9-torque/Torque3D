@@ -77,6 +77,16 @@ enum ConstantSortPosition
    csp_Count
 };
 
+enum ConstBuffer
+{
+   CBUFFER_NONE = -1,
+   CBUFFER_SCENE = 0,
+   CBUFFER_CAMERA = 1,
+   CBUFFER_MATERIAL = 2,
+   CBUFFER_OBJECT = 3
+};
+
+
 //----------------------------------------------------------------------------
 /*!
    Var - Variable - used to specify a variable to be used in a shader.
@@ -113,7 +123,8 @@ struct Var : public LangElement
    U8    type[32];
    U8    structName[32];
    char  connectName[32];
-   ConstantSortPosition constSortPos; // used to calculate constant number 
+   ConstantSortPosition constSortPos; // used to calculate constant number
+   S32   constBufferNum;
    U32   constNum;
    U32   texCoordNum;
    bool  uniform;       // argument passed in through constant registers
@@ -130,16 +141,19 @@ struct Var : public LangElement
 
    // Default
    Var();   
-   Var( const char *name, const char *type );   
+   Var( const char *name, const char *type );
    
    void setStructName(const char *newName );
    void setConnectName(const char *newName );
-   void setType(const char *newType );
+   void setType(const char *newType ); 
   
    void print( Stream &stream ) override;
 
    // Construct a uniform / shader const var
    void setUniform(const String& constType, const String& constName, ConstantSortPosition sortPos);
+
+   // New static method to prevent duplication
+   static Var* findOrCreate(const char* name, const char* type, bool uniform = false, S32 constBufferNum = -1);
 };
 
 //----------------------------------------------------------------------------

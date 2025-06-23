@@ -22,7 +22,6 @@
 
 #include "platform/platform.h"
 #include "shaderGen/HLSL/shaderCompHLSL.h"
-
 #include "shaderGen/shaderComp.h"
 #include "shaderGen/langElement.h"
 #include "gfx/gfxDevice.h"
@@ -289,7 +288,7 @@ void ParamsDefHLSL::assignConstantNumbers()
       for( U32 i=0; i<LangElement::elementList.size(); i++)
       {
          Var *var = dynamic_cast<Var*>(LangElement::elementList[i]);
-         if( var )
+         if( var && var->constBufferNum == -1)
          {            
             bool shaderConst = var->uniform && !var->sampler && !var->texture;
             AssertFatal((!shaderConst) || var->constSortPos != cspUninit, "Const sort position has not been set, variable will not receive a constant number!!");
@@ -338,7 +337,7 @@ void VertexParamsDefHLSL::print( Stream &stream, bool isVerterShader )
       Var *var = dynamic_cast<Var*>(LangElement::elementList[i]);
       if( var )
       {
-         if( var->uniform )
+         if( var->uniform && var->constBufferNum == -1 )
          {
             const char* nextVar = ",\r\n                  ";
             stream.write( dStrlen(nextVar), nextVar );            
@@ -374,7 +373,7 @@ void PixelParamsDefHLSL::print( Stream &stream, bool isVerterShader )
       Var *var = dynamic_cast<Var*>(LangElement::elementList[i]);
       if( var )
       {
-         if( var->uniform )
+         if( var->uniform && var->constBufferNum == -1)
          {
             WRITESTR( ",\r\n              " );
 
@@ -406,4 +405,210 @@ void PixelParamsDefHLSL::print( Stream &stream, bool isVerterShader )
 
    const char *closer = "\r\n)\r\n{\r\n   Fragout OUT;\r\n\r\n";
    stream.write( dStrlen(closer), closer );
+}
+
+void ConstBufferParamsHLSL::addSceneConstBufferVars()
+{
+   // 16 alignment so for simplicity these are spaced out based on that
+   createCBufferVar("oneOverFarplane", "float4", 0);
+
+   createCBufferVar("fogColor", "float4", 0);
+
+   createCBufferVar("fogData", "float3", 0);
+   createCBufferVar("dampness", "float", 0);
+
+   //createCBufferVar("accumTime", "float", 0);
+
+   createCBufferVar("vEye", "float3", 0);
+   createCBufferVar("scene_pack_var0", "float", 0);
+   
+   //createCBufferVar("eyePos", "float3", 0);
+   //createCBufferVar("visibility", "float", 0);
+  
+}
+
+void ConstBufferParamsHLSL::addCameraConstBufferVars()
+{
+   createCBufferVar("viewProj", "float4x4", 1);
+
+   createCBufferVar("worldToCamera", "float4x4", 1);
+
+   createCBufferVar("cameraToWorld", "float4x4", 1);
+
+}
+
+void ConstBufferParamsHLSL::addMaterialConstBufferVars()
+{
+   // 16 alignment so for simplicity these are spaced out based on that
+   createCBufferVar("diffuseMaterialColor", "float4", 2);
+
+   createCBufferVar("diffuseAtlasParams", "float4", 2);
+
+   createCBufferVar("diffuseAtlasTileParams", "float4", 2);
+
+   createCBufferVar("bumpAtlasParams", "float4", 2);
+
+   createCBufferVar("bumpAtlasTileParams", "float4", 2);
+
+   createCBufferVar("subSurfaceParams", "float4", 2);
+
+   createCBufferVar("targetSize", "float2", 2);
+   createCBufferVar("oneOverTargetSize", "float2", 2);
+
+   createCBufferVar("roughness", "float", 2);
+   createCBufferVar("metalness", "float", 2);
+   createCBufferVar("glowMul", "float", 2);
+   createCBufferVar("alphaTestValue", "float", 2);
+
+   createCBufferVar("matInfoFlags", "float", 2);
+   createCBufferVar("detailBumpStrength", "float", 2);
+   createCBufferVar("minnaertConstant", "float", 2);
+   createCBufferVar("accuScale", "float", 2);
+
+   createCBufferVar("accuDirection", "float", 2);
+   createCBufferVar("accuStrength", "float", 2);
+   createCBufferVar("accuCoverage", "float", 2);
+   createCBufferVar("accuSpecular", "float", 2);
+
+   createCBufferVar("imposterLimits", "float", 2);
+   // this is to ensure the 16bit alignment, we can find something for this im sure.
+   createCBufferVar("mat_pack_Var", "float3", 2);
+
+}
+
+void ConstBufferParamsHLSL::addObjectConstBufferVars()
+{
+   createCBufferVar("modelview", "float4x4", 3);
+
+   createCBufferVar("worldToObj", "float4x4", 3);
+
+   createCBufferVar("viewToObj", "float4x4", 3);
+
+   createCBufferVar("objTrans", "float4x4", 3);
+
+   createCBufferVar("worldViewOnly", "float4x4", 3);
+}
+
+void ConstBufferParamsHLSL::printSceneConstBuffer(Stream& stream)
+{
+   const char* opener = "cbuffer SceneData : register(b0)\r\n{\r\n";
+   stream.write(dStrlen(opener), opener);
+
+   for (U32 i = 0; i < LangElement::elementList.size(); i++)
+   {
+      Var* var = dynamic_cast<Var*>(LangElement::elementList[i]);
+      if (var)
+      {
+         if (var->uniform && var->constBufferNum == 0)
+         {
+            char bufferLine[256];
+            if (var->arraySize <= 1)
+               dSprintf(bufferLine, sizeof(bufferLine), "   %-8s %s;\r\n", var->type, var->name);
+            else
+               dSprintf(bufferLine, sizeof(bufferLine), "   %-8s %s[%d];\r\n", var->type, var->name, var->arraySize);
+
+            stream.write(dStrlen(bufferLine), bufferLine);
+         }
+      }
+   }
+
+   const char* closer = "};\r\n\r\n";
+   stream.write(dStrlen(closer), closer);
+}
+
+void ConstBufferParamsHLSL::printCameraConstBuffer(Stream& stream)
+{
+   const char* opener = "cbuffer CameraMatrixData : register(b1)\r\n{\r\n";
+   stream.write(dStrlen(opener), opener);
+
+   for (U32 i = 0; i < LangElement::elementList.size(); i++)
+   {
+      Var* var = dynamic_cast<Var*>(LangElement::elementList[i]);
+      if (var)
+      {
+         if (var->uniform && var->constBufferNum == 1)
+         {
+            char bufferLine[256];
+            if (var->arraySize <= 1)
+               dSprintf(bufferLine, sizeof(bufferLine), "   %-8s %s;\r\n", var->type, var->name);
+            else
+               dSprintf(bufferLine, sizeof(bufferLine), "   %-8s %s[%d];\r\n", var->type, var->name, var->arraySize);
+
+            stream.write(dStrlen(bufferLine), bufferLine);
+         }
+      }
+   }
+
+   const char* closer = "};\r\n\r\n";
+   stream.write(dStrlen(closer), closer);
+}
+
+void ConstBufferParamsHLSL::printMaterialConstBuffer(Stream& stream)
+{
+   const char* opener = "cbuffer MaterialData : register(b2)\r\n{\r\n";
+   stream.write(dStrlen(opener), opener);
+
+   for (U32 i = 0; i < LangElement::elementList.size(); i++)
+   {
+      Var* var = dynamic_cast<Var*>(LangElement::elementList[i]);
+      if (var)
+      {
+         if (var->uniform && var->constBufferNum == 2)
+         {
+            char bufferLine[256];
+            if (var->arraySize <= 1)
+               dSprintf(bufferLine, sizeof(bufferLine), "   %-8s %s;\r\n", var->type, var->name);
+            else
+               dSprintf(bufferLine, sizeof(bufferLine), "   %-8s %s[%d];\r\n", var->type, var->name, var->arraySize);
+
+            stream.write(dStrlen(bufferLine), bufferLine);
+         }
+      }
+   }
+
+   const char* closer = "};\r\n\r\n";
+   stream.write(dStrlen(closer), closer);
+}
+
+void ConstBufferParamsHLSL::printObjectConstBuffer(Stream& stream)
+{
+   const char* opener = "cbuffer ObjectData : register(b3)\r\n{\r\n";
+   stream.write(dStrlen(opener), opener);
+
+   for (U32 i = 0; i < LangElement::elementList.size(); i++)
+   {
+      Var* var = dynamic_cast<Var*>(LangElement::elementList[i]);
+      if (var)
+      {
+         if (var->uniform && var->constBufferNum == 3)
+         {
+            char bufferLine[256];
+            if (var->arraySize <= 1)
+               dSprintf(bufferLine, sizeof(bufferLine), "   %-8s %s;\r\n", var->type, var->name);
+            else
+               dSprintf(bufferLine, sizeof(bufferLine), "   %-8s %s[%d];\r\n", var->type, var->name, var->arraySize);
+
+            stream.write(dStrlen(bufferLine), bufferLine);
+         }
+      }
+   }
+
+   const char* closer = "};\r\n\r\n";
+   stream.write(dStrlen(closer), closer);
+}
+
+ConstBufferParamsHLSL::ConstBufferParamsHLSL()
+{
+   addSceneConstBufferVars();
+   addCameraConstBufferVars();
+   addMaterialConstBufferVars();
+   addObjectConstBufferVars();
+}
+
+void ConstBufferParamsHLSL::print(Stream& stream, bool isVerterShader)
+{
+   printSceneConstBuffer(stream);
+   printCameraConstBuffer(stream);
+   printMaterialConstBuffer(stream);
+   printObjectConstBuffer(stream);
 }

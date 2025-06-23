@@ -537,7 +537,7 @@ Var* ShaderFeatureHLSL::getObjTrans(   Vector<ShaderComponent*> &componentList,
                                        bool useInstancing,
                                        MultiLine *meta )
 {
-   Var *objTrans = (Var*)LangElement::find( "objTrans" );
+   Var *objTrans = (Var*)LangElement::find( "in_objTrans" );
    if ( objTrans )
       return objTrans;
 
@@ -555,7 +555,7 @@ Var* ShaderFeatureHLSL::getObjTrans(   Vector<ShaderComponent*> &componentList,
 
       objTrans = new Var;
       objTrans->setType( "float4x4" );
-      objTrans->setName( "objTrans" );
+      objTrans->setName( "in_objTrans" );
       meta->addStatement( new GenOp( "   @ = { // Instancing!\r\n", new DecOp( objTrans ), instObjTrans ) );
       meta->addStatement( new GenOp( "      @[0],\r\n", instObjTrans ) );
       meta->addStatement( new GenOp( "      @[1],\r\n", instObjTrans ) );
@@ -564,10 +564,7 @@ Var* ShaderFeatureHLSL::getObjTrans(   Vector<ShaderComponent*> &componentList,
    }
    else
    {
-      objTrans = new Var;
-      objTrans->setType( "float4x4" );
-      objTrans->setName( "objTrans" );
-      objTrans->uniform = true;
+      objTrans = Var::findOrCreate("objTrans", "float4x4", true, ConstBuffer::CBUFFER_OBJECT);
       objTrans->constSortPos = cspPrimitive;
    }
 
@@ -578,7 +575,7 @@ Var* ShaderFeatureHLSL::getModelView(  Vector<ShaderComponent*> &componentList,
                                        bool useInstancing,
                                        MultiLine *meta )
 {
-   Var *modelview = (Var*)LangElement::find( "modelview" );
+   Var *modelview = (Var*)LangElement::find( "in_modelview" );
    if ( modelview )
       return modelview;
 
@@ -598,16 +595,13 @@ Var* ShaderFeatureHLSL::getModelView(  Vector<ShaderComponent*> &componentList,
 
       modelview = new Var;
       modelview->setType( "float4x4" );
-      modelview->setName( "modelview" );
+      modelview->setName( "in_modelview" );
       meta->addStatement( new GenOp( "   @ = mul( @, @ ); // Instancing!\r\n", new DecOp( modelview ), viewProj, objTrans ) );
    }
    else
    {
-      modelview = new Var;
-      modelview->setType( "float4x4" );
-      modelview->setName( "modelview" );
-      modelview->uniform = true;
-      modelview->constSortPos = cspPrimitive;   
+      modelview = Var::findOrCreate("modelview", "float4x4", true, ConstBuffer::CBUFFER_OBJECT);
+      modelview->constSortPos = cspPrimitive;
    }
 
    return modelview;
@@ -617,7 +611,7 @@ Var* ShaderFeatureHLSL::getWorldView(  Vector<ShaderComponent*> &componentList,
                                        bool useInstancing,
                                        MultiLine *meta )
 {
-   Var *worldView = (Var*)LangElement::find( "worldViewOnly" );
+   Var *worldView = (Var*)LangElement::find( "in_worldViewOnly" );
    if ( worldView )
       return worldView;
 
@@ -637,17 +631,14 @@ Var* ShaderFeatureHLSL::getWorldView(  Vector<ShaderComponent*> &componentList,
 
       worldView = new Var;
       worldView->setType( "float4x4" );
-      worldView->setName( "worldViewOnly" );
+      worldView->setName( "in_worldViewOnly" );
 
       meta->addStatement( new GenOp( "   @ = mul( @, @ ); // Instancing!\r\n", new DecOp( worldView ), worldToCamera, objTrans ) );
    }
    else
    {
-      worldView = new Var;
-      worldView->setType( "float4x4" );
-      worldView->setName( "worldViewOnly" );
-      worldView->uniform = true;
-      worldView->constSortPos = cspPrimitive;  
+      worldView = Var::findOrCreate("worldViewOnly", "float4x4", true, ConstBuffer::CBUFFER_OBJECT);
+      worldView->constSortPos = cspPrimitive;
    }
 
    return worldView;
@@ -658,7 +649,7 @@ Var* ShaderFeatureHLSL::getInvWorldView(  Vector<ShaderComponent*> &componentLis
                                           bool useInstancing,
                                           MultiLine *meta )
 {
-   Var *viewToObj = (Var*)LangElement::find( "viewToObj" );
+   Var *viewToObj = (Var*)LangElement::find( "in_viewToObj" );
    if ( viewToObj )
       return viewToObj;
 
@@ -668,7 +659,7 @@ Var* ShaderFeatureHLSL::getInvWorldView(  Vector<ShaderComponent*> &componentLis
 
       viewToObj = new Var;
       viewToObj->setType( "float3x3" );
-      viewToObj->setName( "viewToObj" );
+      viewToObj->setName( "in_viewToObj" );
 
       // We just use transpose to convert the 3x3 portion 
       // of the world view transform into its inverse.
@@ -677,10 +668,7 @@ Var* ShaderFeatureHLSL::getInvWorldView(  Vector<ShaderComponent*> &componentLis
    }
    else
    {
-      viewToObj = new Var;
-      viewToObj->setType( "float4x4" );
-      viewToObj->setName( "viewToObj" );
-      viewToObj->uniform = true;
+      viewToObj = Var::findOrCreate("viewToObj", "float4x4", true, ConstBuffer::CBUFFER_OBJECT);
       viewToObj->constSortPos = cspPrimitive;
    }
 
@@ -1183,10 +1171,7 @@ U32 DiffuseFeatureHLSL::getOutputTargets(const MaterialFeatureData &fd) const
 void DiffuseFeatureHLSL::processPix(   Vector<ShaderComponent*> &componentList, 
                                        const MaterialFeatureData &fd )
 {
-   Var *diffuseMaterialColor  = new Var;
-   diffuseMaterialColor->setType( "float4" );
-   diffuseMaterialColor->setName( "diffuseMaterialColor" );
-   diffuseMaterialColor->uniform = true;
+   Var* diffuseMaterialColor = Var::findOrCreate("diffuseMaterialColor", "float4", true, ConstBuffer::CBUFFER_MATERIAL);
    diffuseMaterialColor->constSortPos = cspPotentialPrimitive;
 
    MultiLine* meta = new MultiLine;
@@ -1967,10 +1952,7 @@ void ReflectCubeFeatHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    cubeMapTex->texture = true;
    cubeMapTex->constNum = cubeMap->constNum;
 
-   Var *cubeMips = new Var;
-   cubeMips->setType("float");
-   cubeMips->setName("cubeMips");
-   cubeMips->uniform = true;
+   Var *cubeMips = Var::findOrCreate("cubeMips", "float", true, ConstBuffer::CBUFFER_SCENE);
    cubeMips->constSortPos = cspPotentialPrimitive;
 
    // TODO: Restore the lighting attenuation here!
@@ -2352,9 +2334,8 @@ void FogFeatHLSL::processVert(   Vector<ShaderComponent*> &componentList,
          eyePos->constSortPos = cspPass;
       }
 
-      Var *fogData = new Var( "fogData", "float3" );
-      fogData->uniform = true;
-      fogData->constSortPos = cspPass;   
+      Var* fogData = Var::findOrCreate("fogData", "float3", true, ConstBuffer::CBUFFER_SCENE);
+      fogData->constSortPos = cspPass;
 
       Var *wsPosition = new Var( "fogPos", "float3" );
       getWsPosition( componentList, 
@@ -2389,10 +2370,7 @@ void FogFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
 {
    MultiLine *meta = new MultiLine;
 
-   Var *fogColor = new Var;
-   fogColor->setType( "float4" );
-   fogColor->setName( "fogColor" );
-   fogColor->uniform = true;
+   Var* fogColor = Var::findOrCreate("fogColor", "float4", true, ConstBuffer::CBUFFER_SCENE);
    fogColor->constSortPos = cspPass;
 
    // Get the out color.
@@ -2432,9 +2410,8 @@ void FogFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
          eyePos->constSortPos = cspPass;
       }
 
-      Var *fogData = new Var( "fogData", "float3" );
-      fogData->uniform = true;
-      fogData->constSortPos = cspPass;   
+      Var* fogData = Var::findOrCreate("fogData", "float3", true, ConstBuffer::CBUFFER_SCENE);
+      fogData->constSortPos = cspPass;
 
       /// Get the fog amount.
       fogAmount = new Var( "fogAmount", "float" );
@@ -2484,7 +2461,7 @@ void VisibilityFeatHLSL::processVert( Vector<ShaderComponent*> &componentList,
       ShaderConnector *conn = dynamic_cast<ShaderConnector *>( componentList[C_CONNECTOR] );
       Var *outVisibility = conn->getElement( RT_TEXCOORD );
       outVisibility->setStructName( "OUT" );
-      outVisibility->setName( "visibility" );
+      outVisibility->setName( "inst_visibility" );
       outVisibility->setType( "float" );
 
       ShaderConnector *vertStruct = dynamic_cast<ShaderConnector *>( componentList[C_VERT_STRUCT] );
@@ -2509,11 +2486,10 @@ void VisibilityFeatHLSL::processPix(   Vector<ShaderComponent*> &componentList,
    // Get the visibility constant.
    Var *visibility = NULL;
    if ( fd.features[ MFT_UseInstancing ] )
-      visibility = getInTexCoord( "visibility", "float", componentList );
+      visibility = getInTexCoord( "inst_visibility", "float", componentList );
    else
    {
       visibility = (Var*)LangElement::find( "visibility" );
-
       if ( !visibility )
       {
          visibility = new Var();
@@ -2582,10 +2558,7 @@ void AlphaTestHLSL::processPix(  Vector<ShaderComponent*> &componentList,
    }
 
    // Now grab the alpha test value.
-   Var *alphaTestVal  = new Var;
-   alphaTestVal->setType( "float" );
-   alphaTestVal->setName( "alphaTestValue" );
-   alphaTestVal->uniform = true;
+   Var *alphaTestVal  = Var::findOrCreate("alphaTestValue", "float", true, ConstBuffer::CBUFFER_MATERIAL);
    alphaTestVal->constSortPos = cspPotentialPrimitive;
 
    // Do the clip.
@@ -3052,8 +3025,7 @@ void ReflectionProbeFeatHLSL::processPix(Vector<ShaderComponent*> &componentList
    numProbes->uniform = true;
    numProbes->constSortPos = cspPotentialPrimitive;
 
-   Var *cubeMips = new Var("cubeMips", "float");
-   cubeMips->uniform = true;
+   Var *cubeMips = Var::findOrCreate("cubeMips", "float", true, ConstBuffer::CBUFFER_SCENE);
    cubeMips->constSortPos = cspPotentialPrimitive;
 
    Var * skylightCubemapIdx = new Var("inSkylightCubemapIdx", "float");

@@ -27,6 +27,9 @@
 #include "shaderGen/shaderComp.h"
 #endif
 
+#ifndef _LANG_ELEMENT_H_
+#include "shaderGen/langElement.h"
+#endif
 
 class ShaderConnectorHLSL : public ShaderConnector
 {
@@ -69,6 +72,34 @@ class PixelParamsDefHLSL : public ParamsDefHLSL
 {
 public:
    void print( Stream &stream, bool isVerterShader ) override;
+};
+
+class ConstBufferParamsHLSL : public ParamsDefHLSL
+{
+protected:
+
+   void createCBufferVar(const char* name, const char* type, S32 bufferIndex)
+   {
+      Var* var = new Var;
+      var->setName(name);
+      var->setType(type);
+      var->uniform = true;
+      var->constBufferNum = bufferIndex;
+   }
+
+   void addSceneConstBufferVars();
+   void addCameraConstBufferVars();
+   void addMaterialConstBufferVars();
+   void addObjectConstBufferVars();
+
+   void printSceneConstBuffer(Stream& stream);
+   void printCameraConstBuffer(Stream& stream);
+   void printMaterialConstBuffer(Stream& stream);
+   void printObjectConstBuffer(Stream& stream);
+public:
+   ConstBufferParamsHLSL();
+
+   void print(Stream& stream, bool isVerterShader) override;
 };
 
 #endif // _SHADERCOMP_HLSL_H_

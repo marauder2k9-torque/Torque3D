@@ -34,8 +34,74 @@
 class FontRenderBatcher;
 class Frustum;
 
+#define BATCHRENDER_MAXQUADS        (65535/6)
 
+class BitmapBatchRender
+{
+public:
+   BitmapBatchRender();
+   virtual ~BitmapBatchRender();
 
+   void SubmitQuad(
+      GFXTexHandle& texture,
+      const Point2I& in_rAt,
+      const RectI& srcRect,
+      const GFXBitmapFlip in_flip = GFXBitmapFlip_None);
+
+   void SubmitQuad(
+      GFXTexHandle& texture,
+      const Point2F& in_rAt,
+      const RectF& srcRect,
+      const GFXBitmapFlip in_flip);
+
+   void SubmitQuad(
+      GFXTexHandle& texture,
+      const RectI& dstRect,
+      const RectI& srcRect,
+      const GFXBitmapFlip in_flip = GFXBitmapFlip_None);
+
+   void SubmitQuad(GFXTexHandle& texture,
+      const RectF& dstRect,
+      const RectF& srcRect,
+      const GFXBitmapFlip in_flip);
+
+   void SubmitQuad(
+      const Point2F& vertexPos0,
+      const Point2F& vertexPos1,
+      const Point2F& vertexPos2,
+      const Point2F& vertexPos3,
+      F32 texCoordLeft,
+      F32 texCoordRight,
+      F32 texCoordTop,
+      F32 texCoordBottom,
+      GFXTexHandle& texture,
+      const GFXVertexColor& color = ColorI::WHITE,
+      const GFXBitmapFlip in_flip = GFXBitmapFlip_None);
+
+   void flush(void);
+private:
+   void flushInternal(void);
+
+private:
+   typedef Vector<U32> idxVecType;
+   typedef HashMap<GFXTexHandle, idxVecType*> bitmapBatchMap;
+
+   VectorPtr<idxVecType*> mIndexPool;
+   bitmapBatchMap mBitmapBatchMap;
+
+   Vector<Point2F>             mVertexBuffer;
+   Vector<Point2F>             mTexCoordBuffer;
+   Vector<U16>                 mIndexBuffer;
+   Vector<GFXVertexColor>      mColorBuffer;
+
+   U32                 mQuadCount;
+   U32                 mVertexCount;
+   U32                 mTexCoordCount;
+   U32                 mIndexCount;
+   U32                 mColorCount;
+
+   GFXStateBlockRef mBitmapStretchSB;
+};
 
 /// Helper class containing utility functions for useful drawing routines
 /// (line, box, rect, billboard, text).

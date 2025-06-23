@@ -293,17 +293,17 @@ class TSShape
    /// @name Shape Vector Data
    /// @{
 
-   Vector<Node> nodes;
-   Vector<Object> objects;
-   Vector<ObjectState> objectStates;
-   Vector<S32> subShapeFirstNode;
-   Vector<S32> subShapeFirstObject;
-   Vector<S32> detailFirstSkin;
-   Vector<S32> subShapeNumNodes;
-   Vector<S32> subShapeNumObjects;
-   Vector<Detail> details;
-   Vector<Quat16> defaultRotations;
-   Vector<Point3F> defaultTranslations;
+  FreeableVector<Node> nodes;
+  FreeableVector<Object> objects;
+  FreeableVector<ObjectState> objectStates;
+  FreeableVector<S32> subShapeFirstNode;
+  FreeableVector<S32> subShapeFirstObject;
+  FreeableVector<S32> detailFirstSkin;
+  FreeableVector<S32> subShapeNumNodes;
+  FreeableVector<S32> subShapeNumObjects;
+  FreeableVector<Detail> details;
+  FreeableVector<Quat16> defaultRotations;
+  FreeableVector<Point3F> defaultTranslations;
 
    /// @}
 

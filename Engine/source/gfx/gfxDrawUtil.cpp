@@ -1867,3 +1867,242 @@ void GFXDrawUtil::drawTransform( const GFXStateBlockDesc &desc, const MatrixF &m
    mDevice->setupGenericShaders();
    mDevice->drawPrimitive( GFXLineList, 0, 3 );
 }
+
+//-----------------------------------------------------------------------------
+// Bitmap Render Batcher
+//-----------------------------------------------------------------------------
+
+BitmapBatchRender::BitmapBatchRender()
+{
+   mQuadCount = 0;
+   mVertexCount = 0;
+   mTexCoordCount = 0;
+   mIndexCount = 0;
+   mColorCount = 0;
+
+   // DrawBitmapStretchSR
+   GFXStateBlockDesc bitmapStretchSR;
+   bitmapStretchSR.setCullMode(GFXCullNone);
+   bitmapStretchSR.setZReadWrite(false);
+   bitmapStretchSR.setBlend(true, GFXBlendSrcAlpha, GFXBlendInvSrcAlpha);
+   bitmapStretchSR.samplersDefined = true;
+   bitmapStretchSR.setColorWrites(true, true, true, false); // NOTE: comment this out if alpha write is needed
+
+   bitmapStretchSR.samplers[0] = GFXSamplerStateDesc::getClampLinear();
+
+   // Point:
+   bitmapStretchSR.samplers[0].minFilter = GFXTextureFilterPoint;
+   bitmapStretchSR.samplers[0].mipFilter = GFXTextureFilterPoint;
+   bitmapStretchSR.samplers[0].magFilter = GFXTextureFilterPoint;
+
+   // Point: Create clamp SB, last created clamped so no work required here
+   mBitmapStretchSB = GFX->createStateBlock(bitmapStretchSR);
+}
+
+BitmapBatchRender::~BitmapBatchRender()
+{
+   for (bitmapBatchMap::iterator itr = mBitmapBatchMap.begin(); itr != mBitmapBatchMap.end(); ++itr)
+   {
+      delete itr->value;
+   }
+   mBitmapBatchMap.clear();
+
+   for (VectorPtr< idxVecType* >::iterator itr = mIndexPool.begin(); itr != mIndexPool.end(); ++itr)
+   {
+      delete (*itr);
+   }
+   mIndexPool.clear();
+}
+
+void BitmapBatchRender::SubmitQuad(GFXTexHandle& texture, const Point2I& in_rAt, const RectI& srcRect, const GFXBitmapFlip in_flip)
+{
+   SubmitQuad(texture, Point2F((F32)in_rAt.x, (F32)in_rAt.y), RectF((F32)srcRect.point.x, (F32)srcRect.point.y, (F32)srcRect.extent.x, (F32)srcRect.extent.y), in_flip);
+}
+
+void BitmapBatchRender::SubmitQuad(GFXTexHandle& texture, const Point2F& in_rAt, const RectF& srcRect, const GFXBitmapFlip in_flip)
+{
+	RectF stretch(in_rAt.x, in_rAt.y, srcRect.len_x(), srcRect.len_y());
+	SubmitQuad(texture, stretch, RectF((F32)srcRect.point.x, (F32)srcRect.point.y, (F32)srcRect.extent.x, (F32)srcRect.extent.y), in_flip);
+}
+
+void BitmapBatchRender::SubmitQuad(GFXTexHandle& texture, const RectI& dstRect, const RectI& srcRect, const GFXBitmapFlip in_flip)
+{
+	RectF dstRectF = RectF((F32)dstRect.point.x, (F32)dstRect.point.y, (F32)dstRect.extent.x, (F32)dstRect.extent.y);
+	RectF srcRectF = RectF((F32)srcRect.point.x, (F32)srcRect.point.y, (F32)srcRect.extent.x, (F32)srcRect.extent.y);
+	SubmitQuad(texture, dstRectF, srcRectF, in_flip);
+}
+
+void BitmapBatchRender::SubmitQuad(GFXTexHandle& texture, const RectF& dstRect, const RectF& srcRect, const GFXBitmapFlip in_flip)
+{
+	F32 texLeft = (srcRect.point.x) / (texture->mTextureSize.x);
+	F32 texRight = (srcRect.point.x + srcRect.extent.x) / (texture->mTextureSize.x);
+	F32 texTop = (srcRect.point.y) / (texture->mTextureSize.y);
+	F32 texBottom = (srcRect.point.y + srcRect.extent.y) / (texture->mTextureSize.y);
+
+	// NorthWest and NorthEast facing offset vectors
+	F32 ulOffset = GFX->getFillConventionOffset();
+
+	F32 screenLeft = dstRect.point.x;
+	F32 screenRight = (dstRect.point.x + dstRect.extent.x);
+	F32 screenTop = dstRect.point.y;
+	F32 screenBottom = (dstRect.point.y + dstRect.extent.y);
+
+	SubmitQuad(
+		Point2F(screenLeft - ulOffset, screenTop - ulOffset),
+		Point2F(screenRight - ulOffset, screenTop - ulOffset),
+		Point2F(screenLeft - ulOffset, screenBottom - ulOffset),
+		Point2F(screenRight - ulOffset, screenBottom - ulOffset),
+		texLeft,
+		texRight,
+		texTop,
+		texBottom,
+		texture,
+		GFXVertexColor(ColorI::WHITE),
+		in_flip
+	);
+}
+
+void BitmapBatchRender::SubmitQuad(
+   const Point2F& vertexPos0,
+   const Point2F& vertexPos1,
+   const Point2F& vertexPos2,
+   const Point2F& vertexPos3,
+   F32 texCoordLeft,
+   F32 texCoordRight,
+   F32 texCoordTop,
+   F32 texCoordBottom,
+   GFXTexHandle& texture,
+   const GFXVertexColor& color,
+   const GFXBitmapFlip in_flip)
+{
+   idxVecType* p_IdxVec = NULL;
+
+   bitmapBatchMap::iterator itr = mBitmapBatchMap.find(texture);
+   if (itr == mBitmapBatchMap.end())
+   {
+      const U32 idxPoolCount = mIndexPool.size();
+      if (idxPoolCount > 0)
+      {
+         p_IdxVec = mIndexPool[idxPoolCount - 1];
+         mIndexPool.pop_back();
+      }
+      else
+      {
+         p_IdxVec = new idxVecType(6 * 6);
+      }
+
+      mBitmapBatchMap.insert(texture, p_IdxVec);
+   }
+   else
+   {
+      p_IdxVec = itr->value;
+   }
+
+   p_IdxVec->push_back(mVertexCount);
+
+   mVertexBuffer.push_back(vertexPos0);
+   mVertexBuffer.push_back(vertexPos1);
+   mVertexBuffer.push_back(vertexPos2);
+   mVertexBuffer.push_back(vertexPos3);
+
+   mVertexCount += 4;
+
+   if (in_flip & GFXBitmapFlip_X)
+   {
+      F32 temp = texCoordLeft;
+      texCoordLeft = texCoordRight;
+      texCoordRight = temp;
+   }
+   if (in_flip & GFXBitmapFlip_Y)
+   {
+      F32 temp = texCoordTop;
+      texCoordTop = texCoordBottom;
+      texCoordBottom = temp;
+   }
+
+   mTexCoordBuffer.push_back(Point2F(texCoordLeft, texCoordTop));
+   mTexCoordBuffer.push_back(Point2F(texCoordRight, texCoordTop));
+   mTexCoordBuffer.push_back(Point2F(texCoordLeft, texCoordBottom));
+   mTexCoordBuffer.push_back(Point2F(texCoordRight, texCoordBottom));
+   mTexCoordCount += 4;
+
+   mColorBuffer.push_back(color);
+   mColorBuffer.push_back(color);
+   mColorBuffer.push_back(color);
+   mColorBuffer.push_back(color);
+   mColorCount += 4;
+
+   mQuadCount++;
+
+   // Have we reached the buffer limit?
+   if (mQuadCount == BATCHRENDER_MAXQUADS)
+   {
+      // Yes, so flush.
+      flush();
+   }
+}
+
+void BitmapBatchRender::flush(void)
+{
+   // Finish if no quads to flush.
+   if (mQuadCount == 0)
+      return;
+
+   flushInternal();
+}
+
+void BitmapBatchRender::flushInternal(void)
+{
+
+   // Finish if no quads to flush.
+   if (mQuadCount == 0)
+      return;
+
+   for (bitmapBatchMap::iterator itr = mBitmapBatchMap.begin(); itr != mBitmapBatchMap.end(); ++itr)
+   {
+      GFXTexHandle texture = itr->key;
+      idxVecType* indices = itr->value;
+
+      const U32 quadCount = indices->size(); // Each entry corresponds to one quad start index
+
+      // Create and lock vertex buffer
+      GFXVertexBufferHandle<GFXVertexPCT> verts(GFX, quadCount * 4, GFXBufferTypeVolatile);
+      verts.lock();
+
+      for (U32 i = 0; i < quadCount; ++i)
+      {
+         U32 baseIndex = (*indices)[i]; // This is where the quad starts in our buffer
+
+         for (U32 j = 0; j < 4; ++j)
+         {
+            const Point2F& pos = mVertexBuffer[baseIndex + j];
+            const Point2F& tex = mTexCoordBuffer[baseIndex + j];
+            const GFXVertexColor& col = mColorBuffer[baseIndex + j];
+
+            verts[i * 4 + j].point.set(pos.x, pos.y, 0.0f);
+            verts[i * 4 + j].texCoord = tex;
+            verts[i * 4 + j].color = col;
+         }
+      }
+
+      verts.unlock();
+
+      GFX->setStateBlock(mBitmapStretchSB);
+      GFX->setTexture(0, texture);
+      GFX->setVertexBuffer(verts);
+      GFX->setupGenericShaders(GFXDevice::GSModColorTexture);
+      // Issue draw call
+      GFX->drawPrimitive(GFXTriangleStrip, 0, quadCount * 2);
+
+      indices->clear();
+      mIndexPool.push_back(indices);
+   }
+
+   mBitmapBatchMap.clear();
+   mQuadCount = 0;
+   mVertexCount = 0;
+   mTexCoordCount = 0;
+   mColorCount = 0;
+   mIndexCount = 0;
+
+}

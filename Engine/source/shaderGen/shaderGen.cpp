@@ -187,6 +187,7 @@ void ShaderGen::generateShader( const MaterialFeatureData &featureData,
 
    mOutput = new MultiLine;
    mInstancingFormat.clear();
+
    _processVertFeatures(macros);
    _printVertShader( *s );
    delete s;
@@ -203,6 +204,8 @@ void ShaderGen::generateShader( const MaterialFeatureData &featureData,
       delete s;
       return;
    }
+
+   mComponents[C_CONST_BUFFER] = mComponentFactory->createConstBufferVars();
 
    mOutput = new MultiLine;
    _processPixFeatures(macros);
@@ -244,6 +247,9 @@ void ShaderGen::_createComponents()
 
    ShaderComponent* pixParamDef = mComponentFactory->createPixelParamsDef();
    mComponents.push_back(pixParamDef);
+
+   ShaderComponent* constBufferParam = mComponentFactory->createConstBufferVars();
+   mComponents.push_back(constBufferParam);
 }
 
 //----------------------------------------------------------------------------
@@ -417,6 +423,7 @@ void ShaderGen::_printVertShader( Stream &stream )
    // print out structures
    mComponents[C_VERT_STRUCT]->print( stream, true );
    mComponents[C_CONNECTOR]->print( stream, true );
+   mComponents[C_CONST_BUFFER]->print(stream, true);
 
    mPrinter->printMainComment(stream);
 
@@ -437,6 +444,8 @@ void ShaderGen::_printPixShader( Stream &stream )
    _printFeatureList(stream);
 
    mComponents[C_CONNECTOR]->print( stream, false );
+
+   mComponents[C_CONST_BUFFER]->print(stream, false);
 
    mPrinter->printPixelShaderOutputStruct(stream, mFeatureData);
    mPrinter->printMainComment(stream);

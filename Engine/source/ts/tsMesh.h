@@ -108,22 +108,22 @@ struct TSBasicVertexFormat
 };
 /// }
 
+/// Helper class for a freeable vector
+template<class T>
+class FreeableVector : public Vector<T>
+{
+public:
+   bool free_memory() { return Vector<T>::resize(0); }
+
+   FreeableVector<T>& operator=(const Vector<T>& p) { Vector<T>::operator=(p); return *this; }
+   FreeableVector<T>& operator=(const FreeableVector<T>& p) { Vector<T>::operator=(p); return *this; }
+};
+
 ///
 class TSMesh
 {
    friend class TSShape;
 public:
-
-   /// Helper class for a freeable vector
-   template<class T>
-   class FreeableVector : public Vector<T>
-   {
-   public:
-      bool free_memory() { return Vector<T>::resize(0); }
-
-      FreeableVector<T>& operator=(const Vector<T>& p) { Vector<T>::operator=(p); return *this; }
-      FreeableVector<T>& operator=(const FreeableVector<T>& p) { Vector<T>::operator=(p); return *this; }
-   };
 
    /// @name Aligned Vertex Data 
    /// {
@@ -331,9 +331,9 @@ protected:
    FreeableVector<ColorI> mColors;
    /// @}
 
-   Vector<TSDrawPrimitive> mPrimitives;
-   Vector<U8> mEncodedNorms;
-   Vector<U32> mIndices;
+   FreeableVector<TSDrawPrimitive> mPrimitives;
+   FreeableVector<U8> mEncodedNorms;
+   FreeableVector<U32> mIndices;
 
    /// billboard data
    Point3F mBillboardAxis;
