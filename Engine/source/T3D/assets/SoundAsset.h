@@ -97,6 +97,7 @@ protected:
    StringTableEntry        mSubtitleString;
    bool                    mPreload;
    bool                    mIsPlaylist;
+   U32                     mActiveSlots;
    //SFXPlayList::SlotData   mSlots;
 
    /*These will be needed in the refactor!
@@ -156,6 +157,7 @@ public:
    DECLARE_CONOBJECT(SoundAsset);
 
    static bool _setSoundFile(void* object, const char* index, const char* data);
+   static bool _showSlotsCheck(void* object, const char* index);
    U32 load() override;
    inline StringTableEntry getSoundPath(const U32 slotId = 0) const { return mSoundPath[slotId]; };
    SFXProfile* getSfxProfile(const U32 slotId = 0) { return &mSFXProfile[slotId]; }

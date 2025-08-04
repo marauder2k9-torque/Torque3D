@@ -130,6 +130,7 @@ SoundAsset::SoundAsset()
    dMemset(mPlaylist.mSlots.mState, 0, sizeof(mPlaylist.mSlots.mState));
    dMemset(mPlaylist.mSlots.mTrack, 0, sizeof(mPlaylist.mSlots.mTrack));
    dMemset(mPlaylist.mSlots.mStateMode, 0, sizeof(mPlaylist.mSlots.mStateMode));
+   mActiveSlots = 1;
 
    for (U32 i = 0; i < SFXPlayList::NUM_SLOTS; i++)
    {
@@ -190,25 +191,40 @@ void SoundAsset::initPersistFields()
    docsURL;
    // Call parent.
    Parent::initPersistFields();
-   addGroup("SoundSlots");
-   addArray("slots", SFXPlayList::SFXPlaylistSettings::NUM_SLOTS);
-      addProtectedField("soundFile", TypeAssetLooseFilePath, Offset(mSoundFile, SoundAsset),
-         &_setSoundFile, &defaultProtectedGetFn, SFXPlayList::SFXPlaylistSettings::NUM_SLOTS, "Path to the sound file.");
+   addField(FieldDescriptor().groupStart("SoundSlots", false));
+   addField(FieldDescriptor().set("ActiveSlots", TypeS32, Offset(mActiveSlots, SoundAsset)));
 
-      addField("replay", TYPEID< SFXPlayList::EReplayMode >(), Offset(mPlaylist.mSlots.mReplayMode, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS,
-         "Behavior when an already playing sound is encountered on this slot from a previous cycle.\n"
+      addField(FieldDescriptor()
+         .arrayStart("slots", SFXPlayList::SFXPlaylistSettings::NUM_SLOTS)
+         .setVisibility(&_showSlotsCheck)
+      );
+
+      addField(FieldDescriptor()
+      .set("soundFile", TypeAssetLooseFilePath, Offset(mSoundFile, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS)
+      .setDataFunction(&_setSoundFile)
+      .setDocs("Path to the sound file."));
+
+      addField(FieldDescriptor()
+         .set("replay", TYPEID< SFXPlayList::EReplayMode >(), Offset(mPlaylist.mSlots.mReplayMode, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS)
+         .setDocs("Behavior when an already playing sound is encountered on this slot from a previous cycle.\n"
          "Each slot can have an arbitrary number of sounds playing on it from previous cycles.  This field determines "
-         "how SFXController will handle these sources.");
-      addField("transitionIn", TYPEID< SFXPlayList::ETransitionMode >(), Offset(mPlaylist.mSlots.mTransitionIn, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS,
-         "Behavior when moving into this slot.\n"
+         "how SFXController will handle these sources."));
+
+      addField(FieldDescriptor()
+         .set("transitionIn", TYPEID< SFXPlayList::ETransitionMode >(), Offset(mPlaylist.mSlots.mTransitionIn, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS)
+         .setDocs("Behavior when moving into this slot.\n"
          "After the delayIn time has expired (if any), this slot determines what the controller "
-         "will do before actually playing the slot.");
-      addField("transitionOut", TYPEID< SFXPlayList::ETransitionMode >(), Offset(mPlaylist.mSlots.mTransitionOut, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS,
-         "Behavior when moving out of this slot.\n"
+         "will do before actually playing the slot."));
+
+      addField(FieldDescriptor().set("transitionOut", TYPEID< SFXPlayList::ETransitionMode >(), Offset(mPlaylist.mSlots.mTransitionOut, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS)
+         .setDocs("Behavior when moving out of this slot.\n"
          "After the #detailTimeOut has expired (if any), this slot determines what the controller "
-         "will do before moving on to the next slot.");
-      addFieldV("delayTimeIn", TypeRangedF32, Offset(mPlaylist.mSlots.mDelayTimeIn.mValue, SoundAsset), &CommonValidators::PositiveFloat, SFXPlayList::SFXPlaylistSettings::NUM_SLOTS,
-         "Seconds to wait after moving into slot before #transitionIn.");
+         "will do before moving on to the next slot."));
+
+      addField(FieldDescriptor().set("delayTimeIn", TypeRangedF32, Offset(mPlaylist.mSlots.mDelayTimeIn.mValue, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS)
+         .setValidator(&CommonValidators::PositiveFloat)
+         .setDocs("Seconds to wait after moving into slot before #transitionIn."));
+
       addField("delayTimeInVariance", TypePoint2F, Offset(mPlaylist.mSlots.mDelayTimeIn.mVariance, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS,
          "Bounds on randomization of #delayTimeIn.\n\n"
          "@ref SFXPlayList_randomization\n");
@@ -263,8 +279,9 @@ void SoundAsset::initPersistFields()
       addField("stateMode", TYPEID< SFXPlayList::EStateMode >(), Offset(mPlaylist.mSlots.mStateMode, SoundAsset), SFXPlayList::SFXPlaylistSettings::NUM_SLOTS,
          "Behavior when assigned state is deactivated while slot is playing.\n\n"
          "@ref SFXPlayList_states");
-   endArray("slots");
-   endGroup("SoundSlots");
+
+      addField(FieldDescriptor().arrayEnd("slots"));
+   addField(FieldDescriptor().groupEnd("SoundSlots"));
 
    addGroup("General Profile");
    addFieldV("pitchAdjust", TypeRangedF32, Offset(mProfileDesc.mPitch, SoundAsset), &CommonValidators::PositiveFloat, "Adjustment of the pitch value 1 is default.");
@@ -459,6 +476,16 @@ bool SoundAsset::_setSoundFile(void* object, const char* index, const char* data
    // Refresh the asset.
    pData->refreshAsset();
    return true;
+}
+
+bool SoundAsset::_showSlotsCheck(void* object, const char* index)
+{
+   SoundAsset* pData = static_cast<SoundAsset*>(object);
+   U32 id = dAtoi(index);
+   if (id < pData->mActiveSlots)
+      return true;
+
+   return false;
 }
 
 StringTableEntry SoundAsset::getAssetIdByFileName(StringTableEntry fileName)

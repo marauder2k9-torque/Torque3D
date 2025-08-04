@@ -379,6 +379,7 @@ void ConsoleObject::addGroup(const char* in_pGroupname, const char* in_pGroupDoc
    f.setDataFn    = &defaultProtectedSetFn;
    f.getDataFn    = &defaultProtectedGetFn;
    f.writeDataFn = &defaultProtectedWriteFn;
+   f.visibilityFn = NULL;
    f.networkMask  = 0;
 
    // Add to field list.
@@ -403,6 +404,7 @@ void ConsoleObject::endGroup(const char*  in_pGroupname)
    f.setDataFn    = &defaultProtectedSetFn;
    f.getDataFn    = &defaultProtectedGetFn;
    f.writeDataFn = &defaultProtectedWriteFn;
+   f.visibilityFn = NULL;
    f.elementCount = 0;
    f.networkMask  = 0;
 
@@ -427,6 +429,7 @@ void ConsoleObject::addArray( const char *arrayName, S32 count )
    f.setDataFn    = &defaultProtectedSetFn;
    f.getDataFn    = &defaultProtectedGetFn;
    f.writeDataFn = &defaultProtectedWriteFn;
+   f.visibilityFn = NULL;
    f.networkMask = 0;
 
    // Add to field list.
@@ -448,10 +451,51 @@ void ConsoleObject::endArray( const char *arrayName )
    f.setDataFn    = &defaultProtectedSetFn;
    f.getDataFn    = &defaultProtectedGetFn;
    f.writeDataFn = &defaultProtectedWriteFn;
+   f.visibilityFn = NULL;
    f.elementCount = 0;
    f.networkMask = 0;
 
    // Add to field list.
+   sg_tempFieldList.push_back(f);
+}
+
+void ConsoleObject::addField(const FieldDescriptor& desc)
+{
+   AbstractClassRep::Field f;
+   if (desc.isGroup)
+   {
+      char* nameBuff = suppressSpaces(desc.name);
+      dStrcat(nameBuff, desc.nameSuffix, 1024);
+      f.pFieldname = StringTable->insert(nameBuff);
+   }
+   else
+   {
+      f.pFieldname = StringTable->insert(desc.name);
+   }
+
+   if (desc.docs)
+      f.pFieldDocs = StringTable->insert(desc.docs);
+
+   if (desc.isGroup)
+      f.pGroupname = StringTable->insert(desc.name);
+
+   f.type = desc.type;
+   f.offset = desc.offset;
+   f.elementCount = desc.elementCount;
+   f.validator = desc.validator;
+   f.flag = desc.flags;
+
+   f.setDataFn = desc.setDataFn;
+   f.getDataFn = desc.getDataFn;
+   f.writeDataFn = desc.writeDataFn;
+   f.visibilityFn = desc.visibilityFn;
+   f.networkMask = desc.networkMask;
+
+   // Group
+   f.groupExpand = desc.expanded;
+
+   f.table = desc.enumTable;
+
    sg_tempFieldList.push_back(f);
 }
 
@@ -528,6 +572,7 @@ void ConsoleObject::addField(const char*  in_pFieldname,
    f.setDataFn = &defaultProtectedSetFn;
    f.getDataFn = &defaultProtectedGetFn;
    f.writeDataFn = in_writeDataFn;
+   f.visibilityFn = NULL;
    f.networkMask = 0;
 
    f.table = conType->getEnumTable();
@@ -623,6 +668,7 @@ void ConsoleObject::addProtectedField(const char*  in_pFieldname,
    f.setDataFn = in_setDataFn;
    f.getDataFn = in_getDataFn;
    f.writeDataFn = in_writeDataFn;
+   f.visibilityFn = NULL;
    f.networkMask = 0;
    f.table = conType->getEnumTable();
 
@@ -657,6 +703,7 @@ void ConsoleObject::addProtectedFieldV(const char* in_pFieldname,
    f.setDataFn = in_setDataFn;
    f.getDataFn = in_getDataFn;
    f.writeDataFn = in_writeDataFn;
+   f.visibilityFn = NULL;
    f.networkMask = 0;
    sg_tempFieldList.push_back(f);
 }
@@ -725,6 +772,7 @@ void ConsoleObject::addFieldV(const char* in_pFieldname,
    f.setDataFn = &defaultProtectedSetFn;
    f.getDataFn = &defaultProtectedGetFn;
    f.writeDataFn = &defaultProtectedWriteFn;
+   f.visibilityFn = NULL;
    f.elementCount = in_elementCount;
    f.validator = v;
    f.networkMask = 0;
@@ -757,6 +805,7 @@ void ConsoleObject::addDeprecatedField(const char *fieldName)
    f.setDataFn    = &defaultProtectedSetFn;
    f.getDataFn    = &defaultProtectedGetFn;
    f.writeDataFn = &defaultProtectedWriteFn;
+   f.visibilityFn = NULL;
    f.networkMask = 0;
 
    sg_tempFieldList.push_back(f);

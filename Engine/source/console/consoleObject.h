@@ -456,6 +456,8 @@ public:
    /// This is a function pointer typedef to support optional writing for fields.
    typedef bool(*WriteDataNotify)(void* obj, StringTableEntry pFieldName);
 
+   typedef bool(*VisibilityDelegate)(void* obj, const char* array);
+
    /// These are special field type values used to mark
    /// groups and arrays in the field list.
    /// @see Field::type
@@ -516,27 +518,29 @@ public:
             setDataFn( NULL ),
             getDataFn( NULL ),
             writeDataFn(NULL),
+            visibilityFn(NULL),
             networkMask(0)
       {
          doNotSubstitute = keepClearSubsOnly = false;
       }
 
-      StringTableEntry pFieldname;    ///< Name of the field.
-      const char*    pGroupname;      ///< Optionally filled field containing the group name.
-                                 ///
-                                 ///  This is filled when type is StartField or EndField
+      StringTableEntry pFieldname;     ///< Name of the field.
+      const char*    pGroupname;       ///< Optionally filled field containing the group name.
+                                       ///
+                                       ///  This is filled when type is StartField or EndField
 
-      const char*    pFieldDocs;    ///< Documentation about this field; see consoleDoc.cc.
-      bool           groupExpand;   ///< Flag to track expanded/not state of this group in the editor.
-      U32            type;          ///< A data type ID or one of the special custom fields. @see ACRFieldTypes
-      U32            offset;        ///< Memory offset from beginning of class for this field.
-      S32            elementCount;  ///< Number of elements, if this is an array.
-      const EnumTable *    table;   ///< If this is an enum, this points to the table defining it.
-      BitSet32       flag;          ///< Stores various flags
-      TypeValidator *validator;     ///< Validator, if any.
-      SetDataNotify  setDataFn;     ///< Set data notify Fn
-      GetDataNotify  getDataFn;     ///< Get data notify Fn
-	    WriteDataNotify writeDataFn;  ///< Function to determine whether data should be written or not.
+      const char*    pFieldDocs;       ///< Documentation about this field; see consoleDoc.cc.
+      bool           groupExpand;      ///< Flag to track expanded/not state of this group in the editor.
+      U32            type;             ///< A data type ID or one of the special custom fields. @see ACRFieldTypes
+      U32            offset;           ///< Memory offset from beginning of class for this field.
+      S32            elementCount;     ///< Number of elements, if this is an array.
+      const EnumTable *table;          ///< If this is an enum, this points to the table defining it.
+      BitSet32       flag;             ///< Stores various flags
+      TypeValidator *validator;        ///< Validator, if any.
+      SetDataNotify  setDataFn;        ///< Set data notify Fn
+      GetDataNotify  getDataFn;        ///< Get data notify Fn
+      WriteDataNotify writeDataFn;     ///< Function to determine whether data should be written or not.
+      VisibilityDelegate visibilityFn; ///< Function to determine whether this should be shown in the inspector
       bool           doNotSubstitute;
       bool           keepClearSubsOnly;
 
@@ -763,12 +767,157 @@ template< typename T > EnginePropertyTable& ConcreteAbstractClassRep< T >::smPro
 
 //------------------------------------------------------------------------------
 // Forward declaration of this function so  it can be used in the class
+bool defaultProtectedSetFn(void* object, const char* index, const char* data);
 const char *defaultProtectedGetFn( void *obj, const char *data );
 bool defaultProtectedWriteFn(void* obj, StringTableEntry pFieldName);
 
 //=============================================================================
 //    ConsoleObject.
 //=============================================================================
+
+/// <summary>
+/// Helper class for setting up a field for a console object.
+/// </summary>
+struct FieldDescriptor {
+   const char* name = NULL;
+   const char* nameSuffix = NULL;
+   U32 type = 0;
+   dsize_t offset = 0;
+   U32 elementCount = 1;
+   const char* docs = NULL;
+   U32 flags = 0;
+   TypeValidator* validator = NULL;
+   U32 networkMask = 0;
+
+   // Group/Array
+   bool isGroup = false;
+   bool expanded = false;
+
+   // Callbacks (optional)
+   AbstractClassRep::SetDataNotify setDataFn = &defaultProtectedSetFn;
+   AbstractClassRep::GetDataNotify getDataFn = &defaultProtectedGetFn;
+   AbstractClassRep::WriteDataNotify writeDataFn = &defaultProtectedWriteFn;
+
+   // New extensible features
+   AbstractClassRep::VisibilityDelegate visibilityFn = NULL;
+   bool allowExpression = false;
+   const char* defaultValue = NULL;
+
+   // Additional metadata fields you might want
+   const EnumTable* enumTable = NULL;
+
+
+   /// <summary>
+   /// Replaces addField
+   /// </summary>
+   /// <param name="fieldName">The name of the field.</param>
+   /// <param name="fieldType">The field type.</param>
+   /// <param name="fieldOffset">The offset of the data in this class eg (Offset(mVar, ClassName)</param>
+   /// <param name="count">The count of this field if it is inside an array</param>
+   FieldDescriptor& set(const char* fieldName, U32 fieldType, dsize_t fieldOffset, U32 count = 1) {
+      name = fieldName;
+      type = fieldType;
+      offset = fieldOffset;
+      elementCount = count;
+
+      ConsoleBaseType* conType = ConsoleBaseType::getType(type);
+      AssertFatal(conType, avar("ConsoleObject::addProtectedField[%s] - invalid console type", name));
+
+      enumTable = conType->getEnumTable();
+
+      return *this;
+   }
+
+   /// <summary>
+   /// This field is used to mark the start of a group.
+   /// NOTE: This must be paired with a groupEnd.
+   /// </summary>
+   /// <param name="fieldName">The name of this group.</param>
+   /// <param name="isExpanded">Whether this group is automatically expanded.(default: false)</param>
+   FieldDescriptor& groupStart(const char* fieldName, bool isExpanded = false) {
+      name = fieldName;
+      type = AbstractClassRep::StartGroupFieldType;
+      expanded = isExpanded;
+      isGroup = true;
+      nameSuffix = "_begingroup";
+
+      return *this;
+   }
+
+   /// <summary>
+   /// This field is used to mark the end of a group.
+   /// NOTE: Must be paired with a groupStart.
+   /// </summary>
+   /// <param name="fieldName">The name of the group.</param>
+   FieldDescriptor& groupEnd(const char* fieldName) {
+      name = fieldName;
+      type = AbstractClassRep::EndGroupFieldType;
+      isGroup = true;
+      nameSuffix = "_endgroup";
+      return *this;
+   }
+
+   /// <summary>
+   /// This field is used to mark the start of an array of elements.
+   /// NOTE: Must be paired with an arrayEnd.
+   /// </summary>
+   /// <param name="fieldName">The name of the array.</param>
+   /// <param name="count">The count for each element within this array.</param>
+   FieldDescriptor& arrayStart(const char* fieldName, U32 count) {
+      name = fieldName;
+      type = AbstractClassRep::StartArrayFieldType;
+      elementCount = count;
+      isGroup = true;
+      nameSuffix = "_beginarray";
+      return *this;
+   }
+
+   /// <summary>
+   /// This field is used to mark the end of an array of elements.
+   /// NOTE: Must be paired with an arrayStart.
+   /// </summary>
+   /// <param name="fieldName">The name of the array.</param>
+   FieldDescriptor& arrayEnd(const char* fieldName) {
+      name = fieldName;
+      type = AbstractClassRep::EndArrayFieldType;
+      isGroup = true;
+      nameSuffix = "_endarray";
+      return *this;
+   }
+
+   FieldDescriptor& setDataFunction(AbstractClassRep::SetDataNotify setFn) { setDataFn = setFn; return *this; }
+   FieldDescriptor& getDataFunction(AbstractClassRep::GetDataNotify getFn) { getDataFn = getFn; return *this; }
+   FieldDescriptor& writeDataFunction(AbstractClassRep::WriteDataNotify writeFn) { writeDataFn = writeFn; return *this; }
+
+   /// <summary>
+   /// Set the documentation block for this field. Appears in the tooltip.
+   /// </summary>
+   /// <param name="d">The documentation block.</param>
+   FieldDescriptor& setDocs(const char* d) { docs = d; return *this; }
+
+   /// <summary>
+   /// Add a validator to this field.
+   /// </summary>
+   /// <param name="v">The validator.</param>
+   FieldDescriptor& setValidator(TypeValidator* v) { validator = v; return *this; }
+
+   /// <summary>
+   /// Control the visibility of this field with a function.
+   /// </summary>
+   /// <param name="visFn">The visibility function (must be a static).</param>
+   FieldDescriptor& setVisibility(AbstractClassRep::VisibilityDelegate visFn) { visibilityFn = visFn; return *this; }
+
+
+   FieldDescriptor& enableExpression(bool v = true) { allowExpression = v; return *this; }
+   FieldDescriptor& setFlags(U32 f) { flags = f; return *this; }
+   FieldDescriptor& setDefaultValue(const char* val) { defaultValue = val; return *this; }
+
+   /// <summary>
+   /// Set the network mask that this field triggers.
+   /// </summary>
+   /// <param name="m">The network mask bit.</param>
+   FieldDescriptor& setNetworkMask(U32 m) { networkMask = m; return *this; }
+};
 
 
 /// Interface class to the console.
@@ -890,6 +1039,12 @@ public:
    /// Marks the end of an array of fields.
    /// @see console_autodoc
    static void endArray( const char *arrayName );
+
+   /// <summary>
+   /// Add field using a field descriptor.
+   /// </summary>
+   /// <param name="desc">The field descriptor.</param>
+   static void addField(const FieldDescriptor& desc);
 
    /// Register a complex field.
    ///

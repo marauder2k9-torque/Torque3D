@@ -284,9 +284,16 @@ bool GuiInspectorGroup::inspectGroup()
       }
 
       // Skip field if it has the HideInInspectors flag set.
-
       if (field->flag.test(AbstractClassRep::FIELD_HideInInspectors))
          continue;
+
+      // Skip field if it has a visiblity function and it returns false.
+      if (field->visibilityFn)
+      {
+         SimObject* inspectObj = mParent->getInspectObject();
+         if (inspectObj && !field->visibilityFn(inspectObj, "0"))
+            continue;
+      }
 
       String searchText = mParent->getSearchText();
       if (searchText != String::EmptyString) {
@@ -332,6 +339,16 @@ bool GuiInspectorGroup::inspectGroup()
                // Give it the element count name.
                for (U32 i = 0; i < field->elementCount; i++)
                {
+                  // Skip field if it has a visiblity function and it returns false.
+                  if (field->visibilityFn)
+                  {
+                     FrameTemp<char> intToStr(64);
+                     dSprintf(intToStr, 64, "%d", i);
+                     SimObject* inspectObj = mParent->getInspectObject();
+                     if (inspectObj && !field->visibilityFn(inspectObj, intToStr))
+                        continue;
+                  }
+
                   GuiRolloutCtrl* elementRollout = new GuiRolloutCtrl();
                   GuiControlProfile* elementRolloutProfile = dynamic_cast<GuiControlProfile*>(Sim::findObject("GuiInspectorRolloutProfile0"));
 
