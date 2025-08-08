@@ -142,7 +142,7 @@ if(TORQUE_D3D11)
 endif(TORQUE_D3D11)
 
 # Handle shadergen
-torqueAddSourceDirectories("shaderGen")
+torqueAddSourceDirectories("shaderGen" "shaderGen/ShaderMap" "shaderGen/ShaderMap/Nodes")
 
 if (WIN32 AND TORQUE_D3D11)
   torqueAddSourceDirectories("shaderGen/HLSL")
