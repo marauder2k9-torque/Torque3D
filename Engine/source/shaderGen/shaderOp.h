@@ -171,4 +171,44 @@ public:
 };
 
 
+//----------------------------------------------------------------------------
+/*!
+   TextureOp - Texture sampling operation.
+
+   @code
+   Assuming a sampler var is provided as var1, and var2 uv coordinates
+
+   LangElement *statement = new TextureOp(var1, var2);
+
+   @endcode
+
+   The output in the shader file would be:
+
+   @code
+
+   //HLSL
+   var1_tex.Sample(var1, var2);
+
+   //GLSL
+   texture(var1_sampler, var2);
+
+   @endcode
+*/
+//----------------------------------------------------------------------------
+class TextureOp : public ShaderOp
+{
+   typedef ShaderOp Parent;
+public:
+
+   /// <summary>
+   /// Constructor for texture operation
+   /// </summary>
+   /// <param name="in1">The sampler to be sampled.</param>
+   /// <param name="in2">The texture coordinates to sample.</param>
+   TextureOp(Var* in1, Var* in2);
+
+
+   void print(Stream& stream) override;
+};
+
 #endif // _SHADEROP_H_

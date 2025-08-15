@@ -195,3 +195,23 @@ void CastOp::print(Stream& stream)
    mInput[0]->print(stream);
    WRITESTR(" )");
 }
+
+//**************************************************************************
+// Texture operation
+//**************************************************************************
+TextureOp::TextureOp(Var* in1, Var* in2) : Parent(in1, in2)
+{
+   // Parent already sets mInput[0] and mInput[1]
+   // needs comparison check, shadow check, probably
+   // best sorted out what type of sampler this is with an enum.
+}
+
+//--------------------------------------------------------------------------
+// Print
+//--------------------------------------------------------------------------
+void TextureOp::print(Stream& stream)
+{
+   /* TODO: We need to have a way to sample from a sampler for each api in this function.
+   We also need to take into account the sampler type for the likes of a comparison and gather sampling
+   how to control this will be decided later.*/
+}

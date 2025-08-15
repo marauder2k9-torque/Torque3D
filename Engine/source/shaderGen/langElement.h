@@ -117,7 +117,8 @@ struct Var : public LangElement
    U8    type[32];
    U8    structName[32];
    char  connectName[32];
-   ConstantSortPosition constSortPos; // used to calculate constant number 
+   ConstantSortPosition constSortPos; // used to calculate constant number
+   GFXShaderConstType constType;
    U32   constNum;
    U32   texCoordNum;
    bool  uniform;       // argument passed in through constant registers
@@ -140,7 +141,7 @@ struct Var : public LangElement
    void setStructName(const char *newName );
    void setConnectName(const char *newName );
    void setType(const char *newType );
-   void setType(GFXShaderConstType constType);
+   void setType(GFXShaderConstType inConstType);
   
    void print( Stream &stream ) override;
 

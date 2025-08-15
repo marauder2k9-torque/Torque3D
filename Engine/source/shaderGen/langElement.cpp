@@ -86,6 +86,7 @@ const char* LangElement::constTypeToString(GFXShaderConstType constType)
       case GFXSCT_Bool2:       return "bool2"; break;
       case GFXSCT_Bool3:       return "bool3"; break;
       case GFXSCT_Bool4:       return "bool4"; break;
+      case GFXSCT_Sampler:     return "Texture2D"; break;
       default:                 return "unknown"; break;
       }
    }
@@ -175,6 +176,7 @@ Var::Var( const char *inName, const char *inType )
    sampler = false;
    texCoordNum = 0;
    constSortPos = cspUninit;
+   constType = GFXSCT_Uknown;
    constNum = 0;
    arraySize = 1;
    texture = false;
@@ -194,6 +196,7 @@ Var::Var(const char* name, GFXShaderConstType type)
    sampler = false;
    texCoordNum = 0;
    constSortPos = cspUninit;
+   constType = type;
    constNum = 0;
    arraySize = 1;
    texture = false;
@@ -238,8 +241,9 @@ void Var::setType(const char *newType )
    type[ sizeof( type ) - 1 ] = '\0';
 }
 
-void Var::setType(GFXShaderConstType constType)
+void Var::setType(GFXShaderConstType inConstType)
 {
+   constType = inConstType;
    const char* typeStr = "unknown"; // Default unknown type
    typeStr = constTypeToString(constType);
    // Copy the string into type[]
