@@ -1,3 +1,0 @@
-Extract the contents of the steam sdk here so folder becomes
-
-lib>SteamSDK>public
