@@ -254,7 +254,7 @@ public:                                                                         
          return;                                                                                                                                                              \
       if(get##name##File() == _in)                                                                                                                                            \
          return;                                                                                                                                                              \
-      if(_in == NULL || _in == StringTable->EmptyString() || _in == "")                                                                                                       \
+      if(_in == NULL || !String::compare(_in,StringTable->EmptyString()))                                                                                                       \
       {                                                                                                                                                                       \
          m##name##Asset = NULL;                                                                                                                                               \
          m##name##File = "";                                                                                                                                                  \
@@ -310,7 +310,7 @@ public:                                                                         
          return;                                                                                                                                                              \
       if(get##name##File() == _in)                                                                                                                                            \
          return;                                                                                                                                                              \
-      if(_in == NULL || _in == StringTable->EmptyString() || _in == "")                                                                                                       \
+      if(_in == NULL || !String::compare(_in,StringTable->EmptyString()))                                                                                                       \
       {                                                                                                                                                                       \
          m##name##Asset = NULL;                                                                                                                                               \
          m##name##File = "";                                                                                                                                                  \
@@ -360,7 +360,7 @@ public:                                                                         
 
 #define INITPERSISTFIELD_SHAPEASSET_REFACTOR(name, consoleClass, docs)                                                                                                        \
    addProtectedField(assetText(name, Asset), TypeShapeAssetPtr, Offset(m##name##Asset, consoleClass), _set##name##Data, &defaultProtectedGetFn, assetDoc(name, asset docs.)); \
-   addProtectedField(assetText(name, File), TypeFilename, Offset(m##name##File, consoleClass), _set##name##Data, &defaultProtectedGetFn, assetDoc(name, file docs.));
+   addProtectedField(assetText(name, File), TypeFilename, Offset(m##name##File, consoleClass), _set##name##Data, &defaultProtectedGetFn, assetDoc(name, file docs.), AbstractClassRep::FIELD_HideInInspectors);
 
 
 #define DECLARE_SHAPEASSET_ARRAY_REFACTOR(className, name, max)                                                                                                               \
@@ -373,7 +373,7 @@ public:                                                                         
          return;                                                                                                                                                              \
       if(get##name##File(index) == _in)                                                                                                                                       \
          return;                                                                                                                                                              \
-      if(_in == NULL || _in == StringTable->EmptyString() || _in == "")                                                                                                       \
+      if(_in == NULL || !String::compare(_in,StringTable->EmptyString()))                                                                                                       \
       {                                                                                                                                                                       \
          m##name##Asset[index] = NULL;                                                                                                                                        \
          m##name##File[index] = "";                                                                                                                                           \
@@ -429,7 +429,7 @@ public:                                                                         
          return;                                                                                                                                                              \
       if(get##name##File(index) == _in)                                                                                                                                       \
          return;                                                                                                                                                              \
-      if (_in == NULL || _in == StringTable->EmptyString())                                                                                                                   \
+      if (_in == NULL || !String::compare(_in,StringTable->EmptyString()))                                                                                                                   \
       {                                                                                                                                                                       \
          m##name##Asset[index] = NULL;                                                                                                                                        \
          m##name##File[index] = "";                                                                                                                                           \
