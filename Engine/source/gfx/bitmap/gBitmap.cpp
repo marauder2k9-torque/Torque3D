@@ -1408,7 +1408,7 @@ template<> void *Resource<GBitmap>::create(const Torque::Path &path)
          if (compiledFile->getModifiedTime() >= assetFile->getModifiedTime())
          {
 #ifdef TORQUE_DEBUG_RES_MANAGER
-            Con::printf("Loading cached image file: %s", dbm.getFullPath().c_str());
+            Con::printf("Resource<GBitmap>::create - Loading cached image file: %s", dbm.getFullPath().c_str());
 #endif
             stream.open(dbm.getFullPath(), Torque::FS::File::Read);
             bmp->read(stream);
