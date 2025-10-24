@@ -321,6 +321,12 @@ function parseArgs()
          case "-compileTools":
             $compileTools = true;
             $argUsed[%i]++;
+            
+         //-------------------
+         case "-compileAssets":
+            echo("-compileAssets");
+            $compileAssets = true;
+            $argUsed[%i]++;
 
          //-------------------
          case "-genScript":

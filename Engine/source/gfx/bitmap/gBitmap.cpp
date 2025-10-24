@@ -1392,7 +1392,20 @@ template<> void *Resource<GBitmap>::create(const Torque::Path &path)
    Con::printf( "Resource<GBitmap>::create - [%s]", path.getFullPath().c_str() );
 #endif
 
+   GBitmap* bmp = new GBitmap;
    FileStream  stream;
+
+   Torque::Path dbm = path;
+   dbm.setExtension("dbm");
+   if (Torque::FS::IsFile(dbm))
+   {
+#ifdef TORQUE_DEBUG_RES_MANAGER
+      Con::printf("Loading cached image file: %s", dbm.getFullPath().c_str());
+#endif
+      stream.open(dbm.getFullPath(), Torque::FS::File::Read);
+      bmp->read(stream);
+      return bmp;
+   }
 
    stream.open( path.getFullPath(), Torque::FS::File::Read );
 
@@ -1402,7 +1415,6 @@ template<> void *Resource<GBitmap>::create(const Torque::Path &path)
       return NULL;
    }
 
-   GBitmap *bmp = new GBitmap;
    const String extension = path.getExtension();
    if( !bmp->readBitmap( extension, path ) )
    {

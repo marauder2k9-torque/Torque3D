@@ -145,7 +145,6 @@ public:
       return mErrCodeStrings[errCode - Parent::Extended];
    };
 private:
-   GBitmap*          mEmbeddedBitmap;
    StringTableEntry  mImageFile;
    bool              mUseMips;
    bool              mIsHDRImage;

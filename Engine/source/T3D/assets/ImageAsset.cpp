@@ -159,7 +159,6 @@ ImageAsset::ImageAsset() :
    mCellCountX(1),
    mCellCountY(1)
 {
-   mEmbeddedBitmap = NULL;
    mLoadedState = AssetErrCode::NotLoaded;
    VECTOR_SET_ASSOCIATION(mFrames);
 }
@@ -185,9 +184,6 @@ ImageAsset::~ImageAsset()
    mFrameTextureMap.clear();
 
    mFrames.clear();
-
-   if (mEmbeddedBitmap)
-      delete mEmbeddedBitmap;
 }
 
 
@@ -457,12 +453,6 @@ U32 ImageAsset::load()
    if (mLoadedState == Ok)
       return mLoadedState;
 
-   if (mEmbeddedBitmap)
-   {
-      mLoadedState = Ok;
-      return mLoadedState;
-   }
-
    if (!Torque::FS::IsFile(mImageFile))
    {
       if (isNamedTarget())
@@ -519,26 +509,13 @@ GFXTexHandle ImageAsset::getTexture(GFXTextureProfile* requestedProfile)
 
    if (mLoadedState == Ok)
    {
-      if (mEmbeddedBitmap)
+      //If we don't have an existing map case to the requested format, we'll just create it and insert it in
+      GFXTexHandle newTex;
+      newTex.set(mImageFile, requestedProfile, avar("%s %s() - mTextureObject (line %d)", mImageFile, __FUNCTION__, __LINE__));
+      if (newTex)
       {
-         GFXTexHandle newTex;
-         newTex.set(mEmbeddedBitmap, requestedProfile, false, avar("%s %s() - mTextureObject (line %d)", mImageFile, __FUNCTION__, __LINE__));
-         if (newTex)
-         {
-            mResourceMap.insert(requestedProfile, newTex);
-            return newTex;
-         }
-      }
-      else
-      {
-         //If we don't have an existing map case to the requested format, we'll just create it and insert it in
-         GFXTexHandle newTex;
-         newTex.set(mImageFile, requestedProfile, avar("%s %s() - mTextureObject (line %d)", mImageFile, __FUNCTION__, __LINE__));
-         if (newTex)
-         {
-            mResourceMap.insert(requestedProfile, newTex);
-            return newTex;
-         }
+         mResourceMap.insert(requestedProfile, newTex);
+         return newTex;
       }
    }
 
@@ -683,8 +660,6 @@ void ImageAsset::onTamlCustomWrite(TamlCustomNodes& customNodes)
       stream.close();
 
       delete image;
-
-      pImageInfoNode->addField(StringTable->insert("BitmapCache"), path.getFullPath().c_str());
    }
 
 }
@@ -723,20 +698,6 @@ void ImageAsset::onTamlCustomRead(const TamlCustomNodes& customNodes)
          {
             pField->getFieldValue(mImageDepth);
          }
-         else if (fieldName == StringTable->insert("BitmapCache"))
-         {
-            Torque::Path path = pField->getFieldValue();
-
-            if (Torque::FS::IsFile(path))
-            {
-               FileStream stream;
-               if (stream.open(path, Torque::FS::File::Read))
-               {
-                  mEmbeddedBitmap = new GBitmap;
-                  mEmbeddedBitmap->read(stream);
-               }
-            }
-         }
          else
          {
             // Unknown name so warn.
@@ -749,60 +710,53 @@ void ImageAsset::onTamlCustomRead(const TamlCustomNodes& customNodes)
 
 void ImageAsset::populateImage(void)
 {
-   if (mEmbeddedBitmap == NULL)
+   if (Torque::FS::IsFile(mImageFile))
    {
-      if (Torque::FS::IsFile(mImageFile))
+      if (dStrEndsWith(mImageFile, ".dds"))
       {
-         if (dStrEndsWith(mImageFile, ".dds"))
+         DDSFile* tempFile = new DDSFile();
+         FileStream* ddsFs;
+         if ((ddsFs = FileStream::createAndOpen(mImageFile, Torque::FS::File::Read)) == NULL)
          {
-            DDSFile* tempFile = new DDSFile();
-            FileStream* ddsFs;
-            if ((ddsFs = FileStream::createAndOpen(mImageFile, Torque::FS::File::Read)) == NULL)
-            {
-               Con::errorf("ImageAsset::populateImage Failed to open ddsfile: %s", mImageFile);
-            }
+            Con::errorf("ImageAsset::populateImage Failed to open ddsfile: %s", mImageFile);
+         }
 
-            if (!tempFile->readHeader(*ddsFs))
-            {
-               Con::errorf("ImageAsset::populateImage Failed to read header of ddsfile: %s", mImageFile);
-            }
-            else
-            {
-               mImageWidth = tempFile->mWidth;
-               mImageHeight = tempFile->mHeight;
-            }
-
-            ddsFs->close();
-            delete tempFile;
-            mIsDDS = true;
+         if (!tempFile->readHeader(*ddsFs))
+         {
+            Con::errorf("ImageAsset::populateImage Failed to read header of ddsfile: %s", mImageFile);
          }
          else
          {
-            if (dStrEndsWith(mImageFile, ".ies"))
-            {
-               return;
-            }
-
-            if (!stbi_info(mImageFile, &mImageWidth, &mImageHeight, &mImageChannels))
-            {
-               StringTableEntry stbErr = stbi_failure_reason();
-               if (stbErr == StringTable->EmptyString())
-                  stbErr = "ImageAsset::Unkown Error!";
-
-               Con::errorf("ImageAsset::populateImage STB Get file info failed: %s", stbErr);
-            }
+            mImageWidth = tempFile->mWidth;
+            mImageHeight = tempFile->mHeight;
          }
 
-         // we only support 2d textures..... for now ;)
-         mImageDepth = 1;
-
-         generateFrames();
+         ddsFs->close();
+         delete tempFile;
+         mIsDDS = true;
       }
+      else
+      {
+         if (dStrEndsWith(mImageFile, ".ies"))
+         {
+            return;
+         }
+
+         if (!stbi_info(mImageFile, &mImageWidth, &mImageHeight, &mImageChannels))
+         {
+            StringTableEntry stbErr = stbi_failure_reason();
+            if (stbErr == StringTable->EmptyString())
+               stbErr = "ImageAsset::Unkown Error!";
+
+            Con::errorf("ImageAsset::populateImage STB Get file info failed: %s", stbErr);
+         }
+      }
+
+      // we only support 2d textures..... for now ;)
+      mImageDepth = 1;
    }
-   else // we have an embedded bitmap, just generate frames.
-   {
-      generateFrames();
-   }
+
+   generateFrames();
 }
 
 const char* ImageAsset::getImageInfo()
