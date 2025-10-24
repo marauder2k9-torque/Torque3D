@@ -1399,12 +1399,22 @@ template<> void *Resource<GBitmap>::create(const Torque::Path &path)
    dbm.setExtension("dbm");
    if (Torque::FS::IsFile(dbm))
    {
+
+      Torque::FS::FileNodeRef assetFile = Torque::FS::GetFileNode(path);
+      Torque::FS::FileNodeRef compiledFile = Torque::FS::GetFileNode(dbm);
+
+      if (assetFile != NULL && compiledFile != NULL)
+      {
+         if (compiledFile->getModifiedTime() >= assetFile->getModifiedTime())
+         {
 #ifdef TORQUE_DEBUG_RES_MANAGER
-      Con::printf("Loading cached image file: %s", dbm.getFullPath().c_str());
+            Con::printf("Loading cached image file: %s", dbm.getFullPath().c_str());
 #endif
-      stream.open(dbm.getFullPath(), Torque::FS::File::Read);
-      bmp->read(stream);
-      return bmp;
+            stream.open(dbm.getFullPath(), Torque::FS::File::Read);
+            bmp->read(stream);
+            return bmp;
+         }
+      }
    }
 
    stream.open( path.getFullPath(), Torque::FS::File::Read );
