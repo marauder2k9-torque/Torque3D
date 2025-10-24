@@ -18,11 +18,11 @@ endif()
 project(${TORQUE_APP_NAME})
 
 # Once an app name is determined, we know what our project pathing structure should look like
-set(TORQUE_APP_ROOT_DIRECTORY "${CMAKE_SOURCE_DIR}/My Projects/${TORQUE_APP_NAME}")
+set(TORQUE_APP_ROOT_DIRECTORY "${CMAKE_SOURCE_DIR}/My_Projects/${TORQUE_APP_NAME}")
 set(TORQUE_APP_GAME_DIRECTORY "${TORQUE_APP_ROOT_DIRECTORY}/game")
 
 #library handling
-set(TORQUE_LIB_ROOT_DIRECTORY "${CMAKE_SOURCE_DIR}/Engine/lib")
+set(TORQUE_LIB_ROOT_DIRECTORY "${CMAKE_SOURCE_DIR}/Engine/lib" CACHE STRING "" FORCE)
 set(TORQUE_LIB_TARG_DIRECTORY "${CMAKE_BINARY_DIR}/Engine/lib")
 set(TORQUE_SOURCE_DIRECTROY "${CMAKE_SOURCE_DIR}/Engine/source")
 
@@ -67,8 +67,16 @@ endif()
 
 if (NOT TORQUE_INSTALLED_TEMPLATE)
     installTemplate(${TORQUE_TEMPLATE})
-    set(TORQUE_INSTALLED_TEMPLATE TRUE CACHE BOOL "Whether or not the game template is installed. This may be reset to false (or removed) to force a reinstall.")
+    set(TORQUE_INSTALLED_TEMPLATE TRUE CACHE BOOL "Whether or not the game template is installed. This may be reset to false (or removed) to force a reinstall." FORCE)
 endif(NOT TORQUE_INSTALLED_TEMPLATE)
+
+# Add a "sync back" target
+set(SRC_DIR "${CMAKE_SOURCE_DIR}/Templates/${TORQUE_TEMPLATE}")
+set(DEST_DIR "${TORQUE_APP_ROOT_DIRECTORY}")
+add_custom_target(sync_${TORQUE_TEMPLATE}_back
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${DEST_DIR}" "${SRC_DIR}"
+    COMMENT "Syncing modified ${TORQUE_TEMPLATE} files back to Templates..."
+)
 
 # Generate torqueConfig.h in our temp directory
 configure_file("${CMAKE_SOURCE_DIR}/Tools/CMake/torqueConfig.h.in" "${TORQUE_APP_ROOT_DIRECTORY}/source/torqueConfig.h")
