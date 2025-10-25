@@ -39,11 +39,18 @@ public:
 
 protected:
 
+   SFXSampleType mSampleType;
+   S32 mSampleBlockAlign;
+   S32 mByteBlockAlign;
+
    // setup our vio_data struct.
    typedef struct
    {
       sf_count_t offset, length;
       Stream* data;
+
+      S32 sampleBlockAlign;
+      S32 byteBlockAlign;
    } VIO_DATA;
 
    /// Total number of bytes read from the stream so far.

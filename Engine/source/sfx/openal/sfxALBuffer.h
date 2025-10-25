@@ -73,22 +73,41 @@ class SFXALBuffer : public SFXBuffer
       ///
       static ALenum _sfxFormatToALFormat( const SFXFormat& format )
       {
-         if( format.getChannels() == 2 )
+         const U32 channels = format.getChannels();
+         const SFXSampleType type = format.getSampleType();
+
+         switch (type)
          {
-            const U32 bps = format.getBitsPerSample();
-            if( bps == 16 )
-               return AL_FORMAT_STEREO8;
-            else if( bps == 32 )
-               return AL_FORMAT_STEREO16;
+         case Sample_Int8:
+            if (channels == 1)  return AL_FORMAT_MONO8;
+            if (channels == 2)  return AL_FORMAT_STEREO8;
+            break;
+
+         case Sample_Int16:
+            if (channels == 1)  return AL_FORMAT_MONO16;
+            if (channels == 2)  return AL_FORMAT_STEREO16;
+            break;
+
+         case Sample_Float:
+            if (channels == 1)  return AL_FORMAT_MONO_FLOAT32;
+            if (channels == 2)  return AL_FORMAT_STEREO_FLOAT32;
+            break;
+
+         case Sample_IMA4:
+            if (channels == 1)  return AL_FORMAT_MONO_IMA4;
+            if (channels == 2)  return AL_FORMAT_STEREO_IMA4;
+            break;
+
+         case Sample_MSADPCM:
+            // Requires OpenAL Soft MSADPCM extension
+            if (channels == 1)  return AL_FORMAT_MONO_MSADPCM_SOFT;
+            if (channels == 2)  return AL_FORMAT_STEREO_MSADPCM_SOFT;
+            break;
          }
-         else if( format.getChannels() == 1 )
-         {
-            const U32 bps = format.getBitsPerSample();
-            if( bps == 8 )
-               return AL_FORMAT_MONO8;
-            else if( bps == 16 )
-               return AL_FORMAT_MONO16;
-         }
+
+         // Unsupported channel count or layout
+         Con::errorf("_sfxFormatToALFormat - Unsupported format: channels=%d, type=%d",
+            channels, type);
          return 0;
       }
 

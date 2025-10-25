@@ -230,7 +230,13 @@ inline F32 SFXDistanceAttenuation( SFXDistanceModel model, F32 minDistance, F32 
 //-----------------------------------------------------------------------------
 //    SFXFormat.
 //-----------------------------------------------------------------------------
-
+enum SFXSampleType {
+   Sample_Int8,
+   Sample_Int16,
+   Sample_Float,
+   Sample_IMA4,
+   Sample_MSADPCM
+};
 
 /// This class defines the various types of sound data that may be
 /// used in the sound system.
@@ -251,6 +257,7 @@ class SFXFormat
       /// The frequency in samples per second.
       U32 mSamplesPerSecond;
 
+      SFXSampleType mSampleType;
    public:
 
       SFXFormat(  U8 channels = 0,                  
@@ -258,14 +265,16 @@ class SFXFormat
                   U32 samplesPerSecond = 0 )
          :  mChannels( channels ),
             mBitsPerSample( bitsPerSample ),
-            mSamplesPerSecond( samplesPerSecond )
+            mSamplesPerSecond( samplesPerSecond ),
+            mSampleType(SFXSampleType::Sample_Int16)
       {}
 
       /// Copy constructor.
       SFXFormat( const SFXFormat &format )
          :  mChannels( format.mChannels ),
             mBitsPerSample( format.mBitsPerSample ),
-            mSamplesPerSecond( format.mSamplesPerSecond )
+            mSamplesPerSecond( format.mSamplesPerSecond ),
+            mSampleType(format.mSampleType)
       {}
 
    public:
@@ -273,11 +282,13 @@ class SFXFormat
       /// Sets the format.
       void set(   U8 channels,                  
                   U8 bitsPerSample,
-                  U32 samplesPerSecond )
+                  U32 samplesPerSecond,
+                  SFXSampleType sampleType = Sample_Int16)
       {
          mChannels = channels;
          mBitsPerSample = bitsPerSample;
          mSamplesPerSecond = samplesPerSecond;
+         mSampleType = sampleType;
       }
 
       /// Comparision between formats.
@@ -285,7 +296,8 @@ class SFXFormat
       { 
          return   mChannels == format.mChannels && 
                   mBitsPerSample == format.mBitsPerSample &&
-                  mSamplesPerSecond == format.mSamplesPerSecond;
+                  mSamplesPerSecond == format.mSamplesPerSecond &&
+                  mSampleType == format.mSampleType;
       }
 
       /// Returns the number of sound channels.
@@ -311,6 +323,8 @@ class SFXFormat
 
       /// The number of bits per sound sample.
       U8 getBitsPerSample() const { return mBitsPerSample; }
+
+      SFXSampleType getSampleType() const { return mSampleType; }
 
       /// The number of bytes of data per sample.
       /// @note Be aware that this comprises all channels.
