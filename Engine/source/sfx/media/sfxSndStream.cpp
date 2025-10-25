@@ -76,12 +76,11 @@ bool SFXSndStream::_readHeader()
    case SF_FORMAT_ALAC_20:
    case SF_FORMAT_ALAC_24:
    case SF_FORMAT_ALAC_32:
-   case 0x0080:
-   case 0x0081:
-   case 0x0082:
-      bitsPerSample = 16; // decoded to 16-bit
+   case 0x0080/*SF_FORMAT_MPEG_LAYER_I*/:
+   case 0x0081/*SF_FORMAT_MPEG_LAYER_II*/:
+   case 0x0082/*SF_FORMAT_MPEG_LAYER_III*/:
+      bitsPerSample = 32;
       mSampleType = Sample_Float;
-      sf_command(sndFile, SFC_SET_SCALE_FLOAT_INT_READ, NULL, SF_TRUE);
       break;
 
    case SF_FORMAT_IMA_ADPCM:
