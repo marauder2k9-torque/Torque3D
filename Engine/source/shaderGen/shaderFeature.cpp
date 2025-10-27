@@ -22,7 +22,8 @@
 
 #include "platform/platform.h"
 #include "shaderGen/shaderFeature.h"
-
+#include "materials/matInstance.h"
+#include "materials/materialFeatureTypes.h"
 #include "shaderGen/langElement.h"
 #include "shaderGen/shaderOp.h"
 
@@ -36,6 +37,73 @@ void ShaderFeature::addDependency( const ShaderDependency *dependsOn )
    }
 
    mDependencies.push_back( dependsOn );
+}
+
+Var* ShaderFeature::getVertTexCoord(const String& name)
+{
+   Var* inTex = NULL;
+
+   for (U32 i = 0; i < LangElement::elementList.size(); i++)
+   {
+      if (!String::compare((char*)LangElement::elementList[i]->name, name.c_str()))
+      {
+         inTex = dynamic_cast<Var*>(LangElement::elementList[i]);
+         if (inTex)
+         {
+            // NOTE: This used to do this check...
+            //
+            // String::compare( (char*)inTex->structName, "IN" )
+            //
+            // ... to ensure that the var was from the input
+            // vertex structure, but this kept some features
+            // ( ie. imposter vert ) from decoding their own
+            // coords for other features to use.
+            //
+            // If we run into issues with collisions between
+            // IN vars and local vars we may need to revise.
+
+            break;
+         }
+      }
+   }
+
+   return inTex;
+}
+
+LangElement* ShaderFeature::expandNormalMap(LangElement* sampleNormalOp, LangElement* normalDecl, LangElement* normalVar, const MaterialFeatureData& fd)
+{
+   MultiLine* meta = new MultiLine;
+   const bool hasBc3 = fd.features.hasFeature(MFT_IsBC3nm, getProcessIndex());
+   const bool hasBc5 = fd.features.hasFeature(MFT_IsBC5nm, getProcessIndex());
+
+   if (hasBc3 || hasBc5)
+   {
+      if (fd.features[MFT_ImposterVert])
+      {
+         // The imposter system uses object space normals and
+         // encodes them with the z axis in the alpha component.
+         meta->addStatement(new GenOp("   @ = @( normalize( @.xyw * 2.0 - 1.0 ), 0.0 ); // Obj DXTnm\r\n", normalDecl, Var::constTypeToString(GFXSCT_Float4), sampleNormalOp));
+      }
+      else if (hasBc3)
+      {
+         // BC3 Swizzle trick
+         meta->addStatement(new GenOp("   @ = @( @.ag * 2.0 - 1.0, 0.0, 0.0 ); // DXTnm\r\n", normalDecl, Var::constTypeToString(GFXSCT_Float4), sampleNormalOp));
+         meta->addStatement(new GenOp("   @.z = sqrt( 1.0 - dot( @.xy, @.xy ) ); // DXTnm\r\n", normalVar, normalVar, normalVar));
+      }
+      else if (hasBc5)
+      {
+         // BC5
+         meta->addStatement(new GenOp("   @ = @( @.gr * 2.0 - 1.0, 0.0, 0.0 ); // bc5nm\r\n", normalDecl, Var::constTypeToString(GFXSCT_Float4), sampleNormalOp));
+         meta->addStatement(new GenOp("   @.z = sqrt( 1.0 - dot( @.xy, @.xy ) ); // bc5nm\r\n", normalVar, normalVar, normalVar));
+      }
+   }
+   else
+   {
+      meta->addStatement(new GenOp("   @ = @;\r\n", normalDecl, sampleNormalOp));
+      meta->addStatement(new GenOp("   @.xyz = @.xyz * 2.0 - 1.0;\r\n", normalVar, normalVar));
+   }
+
+   return meta;
 }
 
 ShaderFeature::Resources ShaderFeature::getResources( const MaterialFeatureData &fd )
@@ -92,6 +160,93 @@ Var* ShaderFeature::findOrCreateLocal( const char *name,
    }
 
    return outVar;
+}
+
+Var* ShaderFeature::getInViewToTangent(Vector<ShaderComponent*>& componentList)
+{
+   Var* viewToTangent = (Var*)LangElement::find("viewToTangent");
+   if (!viewToTangent)
+   {
+      ShaderConnector* connectComp = dynamic_cast<ShaderConnector*>(componentList[C_CONNECTOR]);
+      viewToTangent = connectComp->getElement(RT_TEXCOORD, 1, 3);
+      viewToTangent->setName("viewToTangent");
+      viewToTangent->setStructName("IN");
+      viewToTangent->setType(GFXSCT_Float3x3);
+   }
+
+   return viewToTangent;
+}
+
+Var* ShaderFeature::getInWsPosition(Vector<ShaderComponent*>& componentList)
+{
+   Var* wsPosition = (Var*)LangElement::find("wsPosition");
+   if (!wsPosition)
+   {
+      ShaderConnector* connectComp = dynamic_cast<ShaderConnector*>(componentList[C_CONNECTOR]);
+      wsPosition = connectComp->getElement(RT_TEXCOORD);
+      wsPosition->setName("wsPosition");
+      wsPosition->setStructName("IN");
+      wsPosition->setType(GFXSCT_Float3);
+   }
+
+   return wsPosition;
+}
+
+Var* ShaderFeature::getWsView(Var* wsPosition, MultiLine* meta)
+{
+   Var* wsView = (Var*)LangElement::find("wsView");
+   if (!wsView)
+   {
+      wsView = new Var("wsView", GFXSCT_Float3);
+
+      Var* eyePos = (Var*)LangElement::find("eyePosWorld");
+      if (!eyePos)
+      {
+         eyePos = new Var;
+         eyePos->setType(GFXSCT_Float3);
+         eyePos->setName("eyePosWorld");
+         eyePos->uniform = true;
+         eyePos->constSortPos = cspPass;
+      }
+
+      meta->addStatement(new GenOp("   @ = @ - @;\r\n",
+         new DecOp(wsView), eyePos, wsPosition));
+   }
+
+   return wsView;
+}
+
+Var* ShaderFeature::getInTexCoord(const char* name, GFXShaderConstType type, Vector<ShaderComponent*>& componentList)
+{
+   Var* texCoord = (Var*)LangElement::find(name);
+   if (!texCoord)
+   {
+      ShaderConnector* connectComp = dynamic_cast<ShaderConnector*>(componentList[C_CONNECTOR]);
+      texCoord = connectComp->getElement(RT_TEXCOORD);
+      texCoord->setName(name);
+      texCoord->setStructName("IN");
+      texCoord->setType(type);
+   }
+
+   AssertFatal(String::compare(Var::constTypeToString(type), (const char*)texCoord->type) == 0,
+      "ShaderFeature::getInTexCoord - Type mismatch!");
+
+   return texCoord;
+}
+
+Var* ShaderFeature::getInWorldToTangent(Vector<ShaderComponent*>& componentList)
+{
+   Var* worldToTangent = (Var*)LangElement::find("worldToTangent");
+   if (!worldToTangent)
+   {
+      ShaderConnector* connectComp = dynamic_cast<ShaderConnector*>(componentList[C_CONNECTOR]);
+      worldToTangent = connectComp->getElement(RT_TEXCOORD, 1, 3);
+      worldToTangent->setName("worldToTangent");
+      worldToTangent->setStructName("IN");
+      worldToTangent->setType(GFXSCT_Float3x3);
+   }
+
+   return worldToTangent;
 }
 
 void ShaderFeature::setInstancingFormat(GFXVertexFormat *format)

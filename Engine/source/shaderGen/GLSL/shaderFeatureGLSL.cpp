@@ -99,125 +99,53 @@ LangElement* ShaderFeatureGLSL::assignColor( LangElement *elem,
       return new GenOp( "@ = @", color, elem );
    }
 
-   LangElement *assign;
-
    switch ( blend )
    {
       case Material::Add:
-         assign = new GenOp( "@ += @", color, elem );
+         return new GenOp( "@ += @", color, elem );
          break;
 
       case Material::Sub:
-         assign = new GenOp( "@ -= @", color, elem );
+         return new GenOp( "@ -= @", color, elem );
          break;
 
       case Material::Mul:
-         assign = new GenOp( "@ *= @", color, elem );
+         return new GenOp( "@ *= @", color, elem );
          break;
 
       case Material::PreMul:
-         assign = new GenOp("@.rgb = @.rgb + (@.rgb*(1.0-@.a))", color, elem, color, elem);
+         return new GenOp("@.rgb = @.rgb + (@.rgb*(1.0-@.a))", color, elem, color, elem);
          break;
 
       case Material::AddAlpha:
-         assign = new GenOp( "@ += @ * @.a", color, elem, elem );
+         return new GenOp( "@ += @ * @.a", color, elem, elem );
          break;
 
       case Material::LerpAlpha:
          if ( !lerpElem )
             lerpElem = elem;
-         assign = new GenOp( "@.rgb = lerp( @.rgb, (@).rgb, (@).a )", color, color, elem, lerpElem );
+         return new GenOp( "@.rgb = lerp( @.rgb, (@).rgb, (@).a )", color, color, elem, lerpElem );
          break;
       
       case Material::ToneMap:
-         assign = new GenOp( "@ = 1.0 - exp(-1.0 * @ * @)", color, color, elem );
+         return new GenOp( "@ = 1.0 - exp(-1.0 * @ * @)", color, color, elem );
          break;
-         
+
+      case Material::None:
+         return new GenOp("@ = @", color, elem);
+         break;
+
       default:
          AssertFatal(false, "Unrecognized color blendOp");
          // Fallthru
-
-      case Material::None:
-         assign = new GenOp( "@ = @", color, elem );
-         break;      
-   }
-  
-   return assign;
-}
-
-
-LangElement *ShaderFeatureGLSL::expandNormalMap(   LangElement *sampleNormalOp, 
-                                                   LangElement *normalDecl, 
-                                                   LangElement *normalVar, 
-                                                   const MaterialFeatureData &fd )
-{
-   MultiLine *meta = new MultiLine;
-   const bool hasBc3 = fd.features.hasFeature(MFT_IsBC3nm, getProcessIndex());
-   const bool hasBc5 = fd.features.hasFeature(MFT_IsBC5nm, getProcessIndex());
-   if (hasBc3 || hasBc5)
-   {
-      if ( fd.features[MFT_ImposterVert] )
-      {
-         // The imposter system uses object space normals and
-         // encodes them with the z axis in the alpha component.
-         meta->addStatement( new GenOp( "   @ = float4( normalize( @.xyw * 2.0 - 1.0 ), 0.0 ); // Obj DXTnm\r\n", normalDecl, sampleNormalOp ) );
-      }
-      else if (hasBc3)
-      {
-         // BC3 Swizzle trick
-          meta->addStatement( new GenOp( "   @ = float4( @.ag * 2.0 - 1.0, 0.0, 0.0 ); // DXTnm\r\n", normalDecl, sampleNormalOp ) );
-          meta->addStatement( new GenOp( "   @.z = sqrt( 1.0 - dot( @.xy, @.xy ) );  // DXTnm\r\n", normalVar, normalVar, normalVar ) );    
-      }
-      else if (hasBc5)
-      {
-         // BC5
-         meta->addStatement(new GenOp("   @ = float4( @.gr * 2.0 - 1.0, 0.0, 0.0 ); // bc5nm\r\n", normalDecl, sampleNormalOp ) );
-         meta->addStatement(new GenOp("   @.z = sqrt( 1.0 - dot( @.xy, @.xy ) );  // bc5nm\r\n", normalVar, normalVar, normalVar ) );
-      }
-   }
-   else
-   {
-      meta->addStatement( new GenOp( "   @ = @;\r\n", normalDecl, sampleNormalOp ) );
-      meta->addStatement( new GenOp( "   @.xyz = @.xyz * 2.0 - 1.0;\r\n", normalVar, normalVar ) );
    }
 
-   return meta;
+   return NULL;
 }
 
 ShaderFeatureGLSL::ShaderFeatureGLSL()
 {
    output = NULL;
-}
-
-Var * ShaderFeatureGLSL::getVertTexCoord( const String &name )
-{
-   Var *inTex = NULL;
-
-   for( U32 i=0; i<LangElement::elementList.size(); i++ )
-   {
-      if( !String::compare( (char*)LangElement::elementList[i]->name, name.c_str() ) )
-      {
-         inTex = dynamic_cast<Var*>( LangElement::elementList[i] );
-			if ( inTex )
-			{
-            // NOTE: This used to do this check...
-            //
-            // String::compare( (char*)inTex->structName, "IN" )
-            //
-            // ... to ensure that the var was from the input
-            // vertex structure, but this kept some features
-            // ( ie. imposter vert ) from decoding their own
-            // coords for other features to use.
-            //
-            // If we run into issues with collisions between
-            // IN vars and local vars we may need to revise.
-            
-				break;
-			}
-      }
-   }
-
-   return inTex;
 }
 
 Var* ShaderFeatureGLSL::getOutObjToTangentSpace(   Vector<ShaderComponent*> &componentList,
@@ -395,26 +323,6 @@ Var* ShaderFeatureGLSL::getOutTexCoord(   const char *name,
    return texCoord;
 }
 
-Var* ShaderFeatureGLSL::getInTexCoord( const char *name,
-                                       const char *type,
-                                       Vector<ShaderComponent*> &componentList )
-{
-   Var* texCoord = (Var*)LangElement::find( name );
-   if ( !texCoord )
-   {
-      ShaderConnector *connectComp = dynamic_cast<ShaderConnector*>( componentList[C_CONNECTOR] );
-      texCoord = connectComp->getElement( RT_TEXCOORD );
-      texCoord->setName( name );
-      texCoord->setStructName( "IN" );
-      texCoord->setType( type );
-   }
-
-   AssertFatal( String::compare( type, (const char*)texCoord->type ) == 0,
-      "ShaderFeatureGLSL::getInTexCoord - Type mismatch!" );
-
-   return texCoord;
-}
-
 Var* ShaderFeatureGLSL::getInColor( const char *name,
                                     const char *type,
                                     Vector<ShaderComponent*> &componentList )
@@ -450,6 +358,7 @@ Var* ShaderFeatureGLSL::addOutVpos( MultiLine *meta,
       Var *outPosition = (Var*) LangElement::find( "gl_Position" );
       AssertFatal( outPosition, "ShaderFeatureGLSL::addOutVpos - gl_Position somehow undefined?." );
       meta->addStatement(new GenOp("   @ = @;\r\n", outVpos, outPosition));
+      meta->addStatement(new GenOp("   @.z = @.z * 0.5 + 0.5;\r\n", outVpos, outVpos));
    }
 
    return outVpos;
@@ -458,6 +367,35 @@ Var* ShaderFeatureGLSL::addOutVpos( MultiLine *meta,
 Var* ShaderFeatureGLSL::getInVpos(  MultiLine *meta,
                                     Vector<ShaderComponent*> &componentList )
 {
+   //Var* inVpos = (Var*)LangElement::find("inVpos");
+   //if (inVpos)
+   //   return inVpos;
+
+   //ShaderConnector* connectComp = dynamic_cast<ShaderConnector*>(componentList[C_CONNECTOR]);
+   //inVpos = connectComp->getElement(RT_TEXCOORD);
+   //inVpos->setName("inVpos");
+   //inVpos->setStructName("IN");
+   //inVpos->setType("vec4");
+
+   //Var* targetSize = (Var*)LangElement::find("targetSize");
+   //if (!targetSize)
+   //{
+   //   targetSize = new Var();
+   //   targetSize->setType("vec2");
+   //   targetSize->setName("targetSize");
+   //   targetSize->uniform = true;
+   //   targetSize->constSortPos = cspPotentialPrimitive;
+   //}
+
+   //// transform projection space to screen space, needs to be done per-pixel. D3D automatically does this with SV_POSITION semantic types (note GLSL doesn't have semantics, even though Torque still uses the RT_ enums for them for some shaderconnector business)
+   //// optional: OGL provides this data as gl_FragCoord automatically
+   //// Note: for 100% parity with gl_FragCoord (but NOT with vpos in D3D) set .w = 1/.w
+   //meta->addStatement(new GenOp("   @.xyz = @.xyz / @.w;\r\n", inVpos, inVpos, inVpos));
+   //meta->addStatement(new GenOp("   @.w = @.w;\r\n", inVpos, inVpos)); // for parity w/ gl_FragCoord set: meta->addStatement(new GenOp("    @.w = 1.0 / @.w;\r\n", inVpos, inVpos));
+   //meta->addStatement(new GenOp("   @.xy = @.xy * 0.5 + vec2(0.5,0.5);\r\n", inVpos, inVpos)); // get the screen coord to 0 to 1
+   //meta->addStatement(new GenOp("   @.y = 1.0 - @.y;\r\n", inVpos, inVpos)); // flip the y axis 
+   //meta->addStatement(new GenOp("   @.xy *= @;\r\n", inVpos, targetSize)); // scale to monitor
+
    Var* inVpos = (Var*)LangElement::find("inVpos");
    if (inVpos)
       return inVpos;
@@ -478,45 +416,10 @@ Var* ShaderFeatureGLSL::getInVpos(  MultiLine *meta,
       targetSize->constSortPos = cspPotentialPrimitive;
    }
 
-   // transform projection space to screen space, needs to be done per-pixel. D3D automatically does this with SV_POSITION semantic types (note GLSL doesn't have semantics, even though Torque still uses the RT_ enums for them for some shaderconnector business)
-   // optional: OGL provides this data as gl_FragCoord automatically
-   // Note: for 100% parity with gl_FragCoord (but NOT with vpos in D3D) set .w = 1/.w
-   meta->addStatement(new GenOp("   @.xyz = @.xyz / @.w;\r\n", inVpos, inVpos, inVpos));
-   meta->addStatement(new GenOp("   @.w = @.w;\r\n", inVpos, inVpos)); // for parity w/ gl_FragCoord set: meta->addStatement(new GenOp("    @.w = 1.0 / @.w;\r\n", inVpos, inVpos));
-   meta->addStatement(new GenOp("   @.xy = @.xy * 0.5 + vec2(0.5,0.5);\r\n", inVpos, inVpos)); // get the screen coord to 0 to 1
-   meta->addStatement(new GenOp("   @.y = 1.0 - @.y;\r\n", inVpos, inVpos)); // flip the y axis 
-   meta->addStatement(new GenOp("   @.xy *= @;\r\n", inVpos, targetSize)); // scale to monitor
+   meta->addStatement(new GenOp("   @ = gl_FragCoord;\r\n", inVpos, targetSize));
+   meta->addStatement(new GenOp("   @.y = @.y - gl_FragCoord.y;\r\n", inVpos, targetSize));
+
    return inVpos;
-}
-
-Var* ShaderFeatureGLSL::getInWorldToTangent( Vector<ShaderComponent*> &componentList )
-{
-   Var *worldToTangent = (Var*)LangElement::find( "worldToTangent" );
-   if ( !worldToTangent )
-   {
-      ShaderConnector *connectComp = dynamic_cast<ShaderConnector *>( componentList[C_CONNECTOR] );
-      worldToTangent = connectComp->getElement( RT_TEXCOORD, 1, 3 );
-      worldToTangent->setName( "worldToTangent" );
-      worldToTangent->setStructName( "IN" );
-      worldToTangent->setType( "float3x3" );
-   }
-
-   return worldToTangent;
-}
-
-Var* ShaderFeatureGLSL::getInViewToTangent( Vector<ShaderComponent*> &componentList )
-{
-   Var *viewToTangent = (Var*)LangElement::find( "viewToTangent" );
-   if ( !viewToTangent )
-   {
-      ShaderConnector *connectComp = dynamic_cast<ShaderConnector *>( componentList[C_CONNECTOR] );
-      viewToTangent = connectComp->getElement( RT_TEXCOORD, 1, 3 );
-      viewToTangent->setName( "viewToTangent" );
-      viewToTangent->setStructName( "IN" );
-      viewToTangent->setType( "float3x3" );
-   }
-
-   return viewToTangent;
 }
 
 Var* ShaderFeatureGLSL::getNormalMapTex()
@@ -592,21 +495,21 @@ Var* ShaderFeatureGLSL::getModelView(  Vector<ShaderComponent*> &componentList,
       if ( !viewProj )
       {
          viewProj = new Var;
-         viewProj->setType( "float4x4" );
+         viewProj->setType( GFXSCT_Float4x4 );
          viewProj->setName( "viewProj" );
          viewProj->uniform = true;
          viewProj->constSortPos = cspPass;        
       }
 
 	modelview = new Var;
-      modelview->setType( "float4x4" );
+      modelview->setType( GFXSCT_Float4x4 );
       modelview->setName( "modelview" );
       meta->addStatement( new GenOp( "   @ = tMul( @, @ ); // Instancing!\r\n", new DecOp( modelview ), viewProj, objTrans ) );
    }
    else
    {
       modelview = new Var;
-      modelview->setType( "float4x4" );
+      modelview->setType( GFXSCT_Float4x4 );
 	modelview->setName( "modelview" );
 	modelview->uniform = true;
 	modelview->constSortPos = cspPrimitive;
@@ -631,14 +534,14 @@ Var* ShaderFeatureGLSL::getWorldView(  Vector<ShaderComponent*> &componentList,
       if ( !worldToCamera )
       {
          worldToCamera = new Var;
-         worldToCamera->setType( "float4x4" );
+         worldToCamera->setType(GFXSCT_Float4x4);
          worldToCamera->setName( "worldToCamera" );
          worldToCamera->uniform = true;
          worldToCamera->constSortPos = cspPass;        
       }
 
       worldView = new Var;
-      worldView->setType( "float4x4" );
+      worldView->setType(GFXSCT_Float4x4);
       worldView->setName( "worldViewOnly" );
 
       meta->addStatement( new GenOp( "   @ = tMul( @, @ ); // Instancing!\r\n", new DecOp( worldView ), worldToCamera, objTrans ) );
@@ -646,7 +549,7 @@ Var* ShaderFeatureGLSL::getWorldView(  Vector<ShaderComponent*> &componentList,
    else
    {
 	worldView = new Var;
-      worldView->setType( "float4x4" );
+   worldView->setType(GFXSCT_Float4x4);
 	worldView->setName( "worldViewOnly" );
 	worldView->uniform = true;
 	worldView->constSortPos = cspPrimitive;  
@@ -669,7 +572,7 @@ Var* ShaderFeatureGLSL::getInvWorldView(  Vector<ShaderComponent*> &componentLis
       Var *worldView = getWorldView( componentList, useInstancing, meta );
 
       viewToObj = new Var;
-      viewToObj->setType( "float3x3" );
+      viewToObj->setType(GFXSCT_Float3x3);
       viewToObj->setName( "viewToObj" );
 
       // We just use transpose to convert the 3x3 portion 
@@ -680,7 +583,7 @@ Var* ShaderFeatureGLSL::getInvWorldView(  Vector<ShaderComponent*> &componentLis
    else
    {
 	viewToObj = new Var;
-      viewToObj->setType( "float4x4" );
+      viewToObj->setType(GFXSCT_Float4x4);
 	viewToObj->setName( "viewToObj" );
 	viewToObj->uniform = true;
 	viewToObj->constSortPos = cspPrimitive;
@@ -732,45 +635,6 @@ Var* ShaderFeatureGLSL::addOutWsPosition( Vector<ShaderComponent*> &componentLis
    }
 	
    return outWsPosition;
-}
-
-Var* ShaderFeatureGLSL::getInWsPosition( Vector<ShaderComponent*> &componentList )
-{
-   Var *wsPosition = (Var*)LangElement::find( "wsPosition" );
-   if ( !wsPosition )
-   {
-      ShaderConnector *connectComp = dynamic_cast<ShaderConnector *>( componentList[C_CONNECTOR] );
-      wsPosition = connectComp->getElement( RT_TEXCOORD );
-      wsPosition->setName( "wsPosition" );
-      wsPosition->setStructName( "IN" );
-      wsPosition->setType( "vec3" );
-   }
-	
-   return wsPosition;
-}
-
-Var* ShaderFeatureGLSL::getWsView( Var *wsPosition, MultiLine *meta )
-{
-   Var *wsView = (Var*)LangElement::find( "wsView" );
-   if ( !wsView )
-   {
-      wsView = new Var( "wsView", "vec3" );
-		
-      Var *eyePos = (Var*)LangElement::find( "eyePosWorld" );
-      if ( !eyePos )
-      {
-         eyePos = new Var;
-         eyePos->setType( "vec3" );
-         eyePos->setName( "eyePosWorld" );
-         eyePos->uniform = true;
-         eyePos->constSortPos = cspPass;
-      }
-		
-      meta->addStatement( new GenOp( "   @ = @ - @;\r\n", 
-												new DecOp( wsView ), eyePos, wsPosition ) );
-   }
-	
-   return wsView;
 }
 
 Var* ShaderFeatureGLSL::getInWorldNormal(Vector<ShaderComponent*>& componentList)
@@ -939,7 +803,7 @@ void DiffuseMapFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
                                        const MaterialFeatureData &fd )
 {
    // grab connector texcoord register
-   Var *inTex = getInTexCoord( "texCoord", "vec2", componentList );
+   Var *inTex = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
 
    //determine output target
    ShaderFeature::OutputTarget targ = ShaderFeature::DefaultTarget;
@@ -1659,7 +1523,7 @@ void DetailFeatGLSL::processPix( Vector<ShaderComponent*> &componentList,
                                  const MaterialFeatureData &fd )
 {
    // Get the detail texture coord.
-   Var *inTex = getInTexCoord( "detCoord", "vec2", componentList );
+   Var *inTex = getInTexCoord( "detCoord", GFXSCT_Float2, componentList );
 
    // create texture var
    Var *detailMap = new Var;
@@ -1858,7 +1722,7 @@ void ReflectCubeFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
           fd.materialFeatures[MFT_NormalMap] )
       {
          // grab connector texcoord register
-         Var *inTex = getInTexCoord( "texCoord", "vec2", componentList );
+         Var *inTex = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
       
          // create texture var
          Var *newMap = new Var;
@@ -2151,9 +2015,9 @@ void RTLightingFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
 
 	// Now the wsPosition and wsView.
    Var *wsPosition = getInWsPosition( componentList );
-   Var* worldToTangent = getInWorldToTangent(componentList);
-   Var* wsNormal = getInWorldNormal(componentList);
-   Var *wsView = getWsView( wsPosition, meta );
+   getInWorldToTangent(componentList);
+   getInWorldNormal(componentList);
+   getWsView( wsPosition, meta );
 
    // Look for a light mask generated from a previous
    // feature (this is done for BL terrain lightmaps).
@@ -2437,7 +2301,7 @@ void VisibilityFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
    // Get the visibility constant.
    Var *visibility = NULL;
    if ( fd.features[ MFT_UseInstancing ] )
-      visibility = getInTexCoord( "visibility", "float", componentList );
+      visibility = getInTexCoord( "visibility", GFXSCT_Float, componentList );
    else
    {
       visibility = (Var*)LangElement::find( "visibility" );
@@ -2967,9 +2831,9 @@ void ReflectionProbeFeatGLSL::processPix(Vector<ShaderComponent*>& componentList
       
    // Now the wsPosition and wsView.
    Var *wsPosition = getInWsPosition(componentList);
-   Var *worldToTangent = getInWorldToTangent(componentList);
-   Var *wsNormal = getInWorldNormal(componentList);
-   Var *wsView = getWsView(wsPosition, meta);
+   getInWorldToTangent(componentList);
+   getInWorldNormal(componentList);
+   getWsView(wsPosition, meta);
    
    //Reflection Probe WIP
    U32 MAX_FORWARD_PROBES = 4;

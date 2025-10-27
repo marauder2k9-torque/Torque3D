@@ -129,8 +129,8 @@ void AccuTexFeatGLSL::processPix(Vector<ShaderComponent*> &componentList,
       accuSpecular->constSortPos = cspPotentialPrimitive;
    }
 
-   Var *inTex = getInTexCoord( "texCoord", "vec2", componentList );
-   Var *accuVec = getInTexCoord( "accuVec", "vec3", componentList );
+   Var *inTex = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
+   Var *accuVec = getInTexCoord( "accuVec", GFXSCT_Float3, componentList );
    Var *bumpNorm = (Var *)LangElement::find( "bumpSample" );
    if( bumpNorm == NULL ) {
       bumpNorm = (Var *)LangElement::find( "bumpNormal" );

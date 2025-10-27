@@ -168,7 +168,7 @@ public:
    //-----------------------------------------------------------------------
    
    /// Get the incoming base texture coords - useful for bumpmap and detail maps
-   virtual Var* getVertTexCoord( const String &name ) = 0;
+   virtual Var* getVertTexCoord( const String &name );
 
    /// Set up a texture space matrix - to pass into pixel shader
    virtual LangElement * setupTexSpaceMat(  Vector<ShaderComponent*> &componentList, 
@@ -176,7 +176,7 @@ public:
 
    /// Expand and assign a normal map. This takes care of compressed normal maps as well.
    virtual LangElement * expandNormalMap( LangElement *sampleNormalOp, 
-      LangElement *normalDecl, LangElement *normalVar, const MaterialFeatureData &fd ) = 0;
+      LangElement *normalDecl, LangElement *normalVar, const MaterialFeatureData &fd );
 
    /// Helper function for applying the color to shader output.
    ///
@@ -301,6 +301,25 @@ public:
    static Var* findOrCreateLocal(   const char *name, 
                                     const char *type, 
                                     MultiLine *multi );
+
+   /// Returns the input "viewToTangent" space transform 
+   /// adding it to the input connector if it doesn't exist.
+   static Var* getInViewToTangent(Vector<ShaderComponent*>& componentList);
+
+   /// Returns the input world space position from the connector.
+   static Var* getInWsPosition(Vector<ShaderComponent*>& componentList);
+
+   /// Returns the world space view vector from the wsPosition.
+   static Var* getWsView(Var* wsPosition, MultiLine* meta);
+
+   /// Returns an input texture coord by name adding it
+   /// to the input connector if it doesn't exist.
+   static Var* getInTexCoord( const char* name,
+                              GFXShaderConstType type,
+                              Vector<ShaderComponent*>& componentList);
+
+   static Var* getInWorldToTangent(Vector<ShaderComponent*>& componentList);
+
    // Set the instancing format
    void setInstancingFormat(GFXVertexFormat *format);
 };

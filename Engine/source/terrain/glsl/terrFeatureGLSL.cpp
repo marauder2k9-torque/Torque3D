@@ -303,7 +303,7 @@ void TerrainBaseMapFeatGLSL::processPix(  Vector<ShaderComponent*> &componentLis
                                           const MaterialFeatureData &fd )
 {
    // grab connector texcoord register
-   Var *texCoord = getInTexCoord( "texCoord", "vec4", componentList );
+   Var *texCoord = getInTexCoord( "texCoord", GFXSCT_Float4, componentList );
 
    // create texture var
    Var *diffuseMap = new Var;
@@ -347,8 +347,6 @@ void TerrainBaseMapFeatGLSL::processPix(  Vector<ShaderComponent*> &componentLis
    meta->addStatement(new GenOp("   @ = float4(1.0f/255.0f, 1.0, 1.0, 0.0);\r\n", ormConfig));
 
    output = meta;
-
-   Var* viewToTangent = getInViewToTangent(componentList);
 }
 
 ShaderFeature::Resources TerrainBaseMapFeatGLSL::getResources( const MaterialFeatureData &fd )

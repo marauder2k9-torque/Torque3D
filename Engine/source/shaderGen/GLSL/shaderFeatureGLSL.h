@@ -43,12 +43,6 @@ public:
                         MultiLine *meta,
                         Vector<ShaderComponent*> &componentList );
 
-   /// Returns an input texture coord by name adding it
-   /// to the input connector if it doesn't exist.
-   static Var* getInTexCoord( const char *name,
-                              const char *type,
-                              Vector<ShaderComponent*> &componentList );
-
    static Var* getInColor( const char *name,
                            const char *type,
                            Vector<ShaderComponent*> &componentList );
@@ -72,20 +66,12 @@ public:
    Var* getOutWorldToTangent( Vector<ShaderComponent*> &componentList,
                               MultiLine *meta,
                               const MaterialFeatureData &fd );
-
-   /// Returns the input "worldToTanget" space transform 
-   /// adding it to the input connector if it doesn't exist.
-   static Var* getInWorldToTangent( Vector<ShaderComponent*> &componentList );
    
    /// Returns the existing output "outViewToTangent" transform or 
    /// creates one if this is the first feature to need it.
    Var* getOutViewToTangent( Vector<ShaderComponent*> &componentList,
       MultiLine *meta,
       const MaterialFeatureData &fd );
-
-   /// Returns the input "viewToTangent" space transform 
-   /// adding it to the input connector if it doesn't exist.
-   static Var* getInViewToTangent( Vector<ShaderComponent*> &componentList );
 	
 	/// Calculates the world space position in the vertex shader and 
    /// assigns it to the passed language element.  It does not pass 
@@ -100,12 +86,6 @@ public:
    Var* addOutWsPosition(  Vector<ShaderComponent*> &componentList,             
 								 bool useInstancing,
 								 MultiLine *meta );
-	
-   /// Returns the input world space position from the connector.
-   static Var* getInWsPosition( Vector<ShaderComponent*> &componentList );
-	
-   /// Returns the world space view vector from the wsPosition.
-   static Var* getWsView( Var *wsPosition, MultiLine *meta );
 	
    /// Returns the input normal map texture.
    static Var* getNormalMapTex();
@@ -138,12 +118,9 @@ public:
 
    Var* getSurface(Vector<ShaderComponent*>& componentList, MultiLine* meta, const MaterialFeatureData& fd);
    Var* getInWorldNormal(Vector<ShaderComponent*>& componentList);
-		
-   // ShaderFeature
-   Var* getVertTexCoord( const String &name ) override;
+
    LangElement* setupTexSpaceMat(  Vector<ShaderComponent*> &componentList, Var **texSpaceMat ) override;
    LangElement* assignColor( LangElement *elem, Material::BlendOp blend, LangElement *lerpElem = NULL, ShaderFeature::OutputTarget outputTarget = ShaderFeature::DefaultTarget ) override;
-   LangElement* expandNormalMap( LangElement *sampleNormalOp, LangElement *normalDecl, LangElement *normalVar, const MaterialFeatureData &fd ) override;
 };
 
 

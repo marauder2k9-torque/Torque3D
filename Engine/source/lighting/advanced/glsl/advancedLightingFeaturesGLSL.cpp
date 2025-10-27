@@ -247,7 +247,7 @@ void DeferredBumpFeatGLSL::processPix( Vector<ShaderComponent*> &componentList,
 
       // create texture var
       Var *bumpMap = getNormalMapTex();
-      Var *texCoord = getInTexCoord( "texCoord", "vec2", componentList );
+      Var *texCoord = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
       LangElement *texOp = new GenOp( "tex2D(@, @)", bumpMap, texCoord );
 
       // create bump normal
@@ -270,7 +270,7 @@ void DeferredBumpFeatGLSL::processPix( Vector<ShaderComponent*> &componentList,
          bumpMap->sampler = true;
          bumpMap->constNum = Var::getTexUnitNum();
 
-         texCoord = getInTexCoord( "detCoord", "vec2", componentList );
+         texCoord = getInTexCoord( "detCoord", GFXSCT_Float2, componentList );
          texOp = new GenOp( "tex2D(@, @)", bumpMap, texCoord );
 
          Var *detailBump = new Var;
@@ -313,7 +313,7 @@ void DeferredBumpFeatGLSL::processPix( Vector<ShaderComponent*> &componentList,
       {
          MultiLine *meta = new MultiLine;
 
-         Var *texCoord = getInTexCoord("texCoord", "vec2", componentList);
+         Var *texCoord = getInTexCoord("texCoord", GFXSCT_Float2, componentList);
 
          Var *bumpMap = getNormalMapTex();
 
@@ -336,7 +336,7 @@ void DeferredBumpFeatGLSL::processPix( Vector<ShaderComponent*> &componentList,
                bumpMap->constNum = Var::getTexUnitNum();
             }
 
-            texCoord = getInTexCoord("detCoord", "vec2", componentList);
+            texCoord = getInTexCoord("detCoord", GFXSCT_Float2, componentList);
             LangElement *texOp = new GenOp("tex2D(@, @)", bumpMap, texCoord);
 
             Var *detailBump = new Var;
@@ -369,7 +369,7 @@ void DeferredBumpFeatGLSL::processPix( Vector<ShaderComponent*> &componentList,
       Var *bumpSample = (Var *)LangElement::find( "bumpSample" );
       if( bumpSample == NULL )
       {
-         Var *texCoord = getInTexCoord( "texCoord", "vec2", componentList );
+         Var *texCoord = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
 
          Var *bumpMap = getNormalMapTex();
 

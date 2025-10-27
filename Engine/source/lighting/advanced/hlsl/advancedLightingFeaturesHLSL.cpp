@@ -255,7 +255,7 @@ void DeferredBumpFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
 
       // create texture var
       Var *bumpMap = getNormalMapTex();
-      Var *texCoord = getInTexCoord("texCoord", "float2", componentList);
+      Var *texCoord = getInTexCoord("texCoord", GFXSCT_Float2, componentList);
 
       Var *bumpMapTex = (Var*)LangElement::find("bumpMapTex");
       LangElement *texOp = new GenOp("@.Sample(@, @)", bumpMapTex, bumpMap, texCoord);
@@ -287,7 +287,7 @@ void DeferredBumpFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
          detailNormalTex->texture = true;
          detailNormalTex->constNum = bumpMap->constNum;
 
-         texCoord = getInTexCoord("detCoord", "float2", componentList);
+         texCoord = getInTexCoord("detCoord", GFXSCT_Float2, componentList);
 
          texOp = new GenOp("@.Sample(@, @)", detailNormalTex, bumpMap, texCoord);
 
@@ -330,7 +330,7 @@ void DeferredBumpFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
       {
          MultiLine *meta = new MultiLine;
 
-         Var *texCoord = getInTexCoord("texCoord", "float2", componentList);
+         Var *texCoord = getInTexCoord("texCoord", GFXSCT_Float2, componentList);
 
          Var *bumpMap = getNormalMapTex();
 
@@ -367,7 +367,7 @@ void DeferredBumpFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
                bumpMapTex->constNum = bumpMap->constNum;
             }
 
-            texCoord = getInTexCoord( "detCoord", "float2", componentList );
+            texCoord = getInTexCoord( "detCoord", GFXSCT_Float2, componentList );
             LangElement *texOp = new GenOp("@.Sample(@, @)", bumpMap, bumpMapTex, texCoord);
 
             Var *detailBump = new Var;
@@ -400,7 +400,7 @@ void DeferredBumpFeatHLSL::processPix( Vector<ShaderComponent*> &componentList,
       Var *bumpSample = (Var *)LangElement::find( "bumpSample" );
       if( bumpSample == NULL )
       {
-         Var *texCoord = getInTexCoord( "texCoord", "float2", componentList );
+         Var *texCoord = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
 
          Var *bumpMap = getNormalMapTex();
          Var *bumpMapTex = (Var *)LangElement::find("bumpMapTex");

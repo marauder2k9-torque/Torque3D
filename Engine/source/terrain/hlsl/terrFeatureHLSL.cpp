@@ -373,7 +373,7 @@ void TerrainBaseMapFeatHLSL::processPix(Vector<ShaderComponent*>& componentList,
    const MaterialFeatureData& fd)
 {
    // grab connector texcoord register
-   Var *texCoord = getInTexCoord( "texCoord", "float4", componentList );
+   Var *texCoord = getInTexCoord( "texCoord", GFXSCT_Float4, componentList );
 
    // create texture var
    Var* diffuseMap = new Var;

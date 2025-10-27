@@ -43,7 +43,7 @@ U32 DeferredOrmMapGLSL::getOutputTargets(const MaterialFeatureData& fd) const
 void DeferredOrmMapGLSL::processPix( Vector<ShaderComponent*> &componentList, const MaterialFeatureData &fd )
 {
    // Get the texture coord.
-   Var *texCoord = getInTexCoord( "texCoord", "vec2", componentList );
+   Var *texCoord = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
    
    MultiLine* meta = new MultiLine;
    Var* ormConfig;
@@ -236,7 +236,7 @@ U32 GlowMapGLSL::getOutputTargets(const MaterialFeatureData& fd) const
 //deferred emissive
 void GlowMapGLSL::processPix(Vector<ShaderComponent*>& componentList, const MaterialFeatureData& fd)
 {
-   Var* texCoord = getInTexCoord("texCoord", "vec2", componentList);
+   Var* texCoord = getInTexCoord("texCoord", GFXSCT_Float2, componentList);
 
    Var* glowMap = new Var;
    glowMap->setType("sampler2D");

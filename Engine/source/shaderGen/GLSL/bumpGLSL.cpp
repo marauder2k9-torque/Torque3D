@@ -65,7 +65,7 @@ void BumpFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
 	output = meta;
 
    // Get the texture coord.
-   Var *texCoord = getInTexCoord( "texCoord", "vec2", componentList );
+   Var *texCoord = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
 
    // Sample the bumpmap.
    Var *bumpMap = getNormalMapTex();
@@ -157,7 +157,7 @@ void BumpFeatGLSL::processPix(   Vector<ShaderComponent*> &componentList,
       bumpMap->sampler = true;
       bumpMap->constNum = Var::getTexUnitNum();
 		
-      texCoord = getInTexCoord( "detCoord", "vec2", componentList );
+      texCoord = getInTexCoord( "detCoord", GFXSCT_Float2, componentList );
       texOp = new GenOp( "tex2D(@, @)", bumpMap, texCoord );
 		
       Var *detailBump = new Var;
@@ -312,7 +312,7 @@ void ParallaxFeatGLSL::processPix(  Vector<ShaderComponent*> &componentList,
    MultiLine *meta = new MultiLine;
 	
    // Order matters... get this first!
-   Var *texCoord = getInTexCoord( "texCoord", "vec2", componentList );
+   Var *texCoord = getInTexCoord( "texCoord", GFXSCT_Float2, componentList );
 	
    ShaderConnector *connectComp = dynamic_cast<ShaderConnector *>( componentList[C_CONNECTOR] );
 	

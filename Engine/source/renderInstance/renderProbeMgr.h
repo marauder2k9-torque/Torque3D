@@ -184,7 +184,6 @@ public:
    static F32 smMaxProbeDrawDistance;
    static S32 smMaxProbesPerFrame;
    static S32 smProbeBakeResolution;
-   SceneRenderState *mState;
 private:
    /// <summary>
    /// List of registered probes. These are not necessarily rendered in a given frame
@@ -291,11 +290,6 @@ private:
    /// </summary>
    bool mUseHDRCaptures;
 
-   /// <summary>
-   /// holds the normal render state for light fade so we can capture them before and restore them after baking
-   /// </summary>
-   S32 mRenderMaximumNumOfLights;
-   bool mRenderUseLightFade;
 protected:
    /// The current active light manager.
    static RenderProbeMgr* smProbeManager;

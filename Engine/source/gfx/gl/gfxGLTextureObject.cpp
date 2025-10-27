@@ -179,10 +179,23 @@ bool GFXGLTextureObject::copyToBmp(GBitmap * bmp)
    U32 mipLevels = getMipLevels();
    for (U32 mip = 0; mip < mipLevels; mip++)
    {
-      U32 srcPixelCount = bmp->getSurfaceSize(mip)/ srcBytesPerPixel;
+      U32 width = getWidth() >> mip;
+      U32 height = getHeight() >> mip;
+      if (width == 0) width = 1;
+      if (height == 0) height = 1;
 
+      U32 srcPixelCount = width * height;
       U8* dest = bmp->getWritableBits(mip);
       U8* orig = (U8*)mem.alloc(srcPixelCount * srcBytesPerPixel);
+
+      // If the texture is multisampled, glGetTexImage cannot read it reliably.
+      GLint samples = 0;
+      glGetTexLevelParameteriv(mBinding, mip, GL_TEXTURE_SAMPLES, &samples);
+      if (samples > 0)
+      {
+         Con::warnf("GFXGLTextureObject::copyToBmp - texture is multisampled (%d samples) at mip %d; resolve before reading.", samples, mip);
+         return false;
+      }
 
       glGetTexImage(mBinding, mip, GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], orig);
       if (mFormat == GFXFormatR16G16B16A16F)
@@ -191,7 +204,7 @@ bool GFXGLTextureObject::copyToBmp(GBitmap * bmp)
       }
       else
       {
-         for (int i = 0; i < srcPixelCount; ++i)
+         for (U32 i = 0; i < srcPixelCount; ++i)
          {
             dest[0] = orig[0];
             dest[1] = orig[1];
@@ -203,9 +216,9 @@ bool GFXGLTextureObject::copyToBmp(GBitmap * bmp)
             dest += dstBytesPerPixel;
          }
       }
-   }
-   glBindTexture(mBinding, 0);
+   } // end for each mip
 
+   glBindTexture(mBinding, 0);
    return true;
 }
 
