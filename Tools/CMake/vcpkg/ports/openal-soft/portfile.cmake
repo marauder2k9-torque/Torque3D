@@ -79,6 +79,7 @@ vcpkg_cmake_configure(
         -DALSOFT_REQUIRE_OPENSL=${VCPKG_TARGET_IS_ANDROID}
         -DALSOFT_BACKEND_PORTAUDIO=OFF
         -DALSOFT_BACKEND_WAVE=ON
+        -DCMAKE_DEBUG_POSTFIX="d"
     MAYBE_UNUSED_VARIABLES
         # NOT WIN32
         ALSOFT_BACKEND_ALSA
@@ -92,6 +93,7 @@ vcpkg_cmake_configure(
         ALSOFT_REQUIRE_DSOUND
         ALSOFT_BACKEND_WASAPI
         ALSOFT_REQUIRE_WASAPI
+        CMAKE_DEBUG_POSTFIX
 )
 
 vcpkg_cmake_install()
