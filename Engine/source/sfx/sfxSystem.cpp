@@ -274,7 +274,10 @@ SFXProvider* SFXSystem::getBestProviderChoice()
          if (smProviders[i]->mType == OpenAL)
          {
             if (smProviders[i]->mDefault)
+            {
+               Con::setVariable("$pref::SFX::device", smProviders[i]->getName());
                return smProviders[i];
+            }
          }
       }
    }
@@ -311,7 +314,11 @@ SFXProvider* SFXSystem::getBestProviderChoice()
       if (smProviders[i]->mType == providerType)
       {
          if (smProviders[i]->mDefault)
+         {
+            // if we reached here then we couldnt find a match for pref device.
+            Con::setVariable("$pref::SFX::device", smProviders[i]->getName());
             return smProviders[i];
+         }
       }
    }
 
