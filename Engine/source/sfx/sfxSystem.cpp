@@ -585,15 +585,24 @@ bool SFXSystem::createDevice(SFXProvider* provider)
    mDevice->setProvider(*provider);
 
    // Print capabilities.
-   Con::printf( "SFXSystem::createDevice - created device '%s'", provider->getName());
+   Con::printf("| Device Sample rate: %d Hz", Con::getIntVariable("$pref::SFX::frequency"));
+
    if( mDevice->getCaps() & SFXDevice::CAPS_Reverb )
-      Con::printf( "   CAPS_Reverb" );
+      Con::printf( "| CAPS_Reverb" );
    if( mDevice->getCaps() & SFXDevice::CAPS_VoiceManagement )
-      Con::printf( "   CAPS_VoiceManagement" );
+      Con::printf( "| CAPS_VoiceManagement" );
    if( mDevice->getCaps() & SFXDevice::CAPS_Occlusion )
-      Con::printf( "   CAPS_Occlusion" );
+      Con::printf( "| CAPS_Occlusion" );
    if( mDevice->getCaps() & SFXDevice::CAPS_MultiListener )
-      Con::printf( "   CAPS_MultiListener" );
+      Con::printf( "| CAPS_MultiListener" );
+   if (mDevice->getCaps() & SFXDevice::CAPS_HRTF)
+      Con::printf("| CAPS_HRTF");
+   if (mDevice->getCaps() & SFXDevice::CAPS_Float32)
+      Con::printf("| CAPS_Float32");
+   if (mDevice->getCaps() & SFXDevice::CAPS_MonoStereo)
+      Con::printf("| CAPS_MonoStereo");
+
+
       
    // Set defaults.
    mDevice->setNumListeners( getNumListeners() );

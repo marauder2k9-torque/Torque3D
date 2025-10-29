@@ -64,7 +64,7 @@ void SFXALDevice::printALInfo(ALCdevice* device)
          devname = alcGetString(device, ALC_DEVICE_SPECIFIER);
       }
 
-      Con::printf("| Device info for: %s ", devname);
+      Con::printf("Created SFXDevice: %s ", devname);
    }
 
    alcGetIntegerv(device, ALC_MAJOR_VERSION, 1, &major);
@@ -73,7 +73,22 @@ void SFXALDevice::printALInfo(ALCdevice* device)
 
    if (device)
    {
-      Con::printf("%s", alcGetString(device, ALC_EXTENSIONS));
+      const ALchar* extStr = alcGetString(device, ALC_EXTENSIONS);
+      if (extStr)
+      {
+         Con::printf("| SFXALDevice - Supported ALC extensions:");
+
+         // Copy to a modifiable string.
+         char* extCopy = dStrdup(extStr);
+         char* token = dStrtok(extCopy, " ");
+         while (token)
+         {
+            Con::printf("| %s", token);
+            token = dStrtok(NULL, " ");
+         }
+
+         dFree(extCopy);
+      }
 
       U32 err = alcGetError(device);
       if (err != ALC_NO_ERROR)
@@ -164,7 +179,27 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
    }
 #endif
 
-   // alcIsExtensionPresent(mDevice, "ALC_EXT_EFX")
+   // --- Capabilities ---
+   if (alcIsExtensionPresent(mDevice, "ALC_EXT_EFX") == AL_TRUE)
+      mCaps |= CAPS_Reverb | CAPS_Occlusion;
+   if (alcIsExtensionPresent(mDevice, "ALC_SOFT_HRTF") == AL_TRUE)
+      mCaps |= CAPS_HRTF;
+   if (alIsExtensionPresent("AL_EXT_float32") == AL_TRUE)
+      mCaps |= CAPS_Float32;
+   if (alIsExtensionPresent("AL_EXT_MCFORMATS") == AL_TRUE)
+      mCaps |= CAPS_MonoStereo;
+
+   // --- Device frequency ---
+   ALCint freq = 0;
+   alcGetIntegerv(mDevice, ALC_FREQUENCY, 1, &freq);
+   if (freq > 0)
+      Con::setIntVariable("$pref::SFX::frequency", freq);
+   else
+      Con::setIntVariable("$pref::SFX::frequency", 44100); // default
+
+   // --- Bitrate approximation ---
+   U32 bitrate = (mCaps & CAPS_Float32) ? 32 : 16;
+   Con::setIntVariable("$pref::SFX::bitrate", bitrate);
 
    printALInfo(mDevice);
 

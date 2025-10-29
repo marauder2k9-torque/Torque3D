@@ -54,11 +54,14 @@ class SFXDevice
       /// Device capability flags.
       enum ECaps
       {
-         CAPS_Reverb          = BIT( 0 ),    ///< Device supports reverb environments.
-         CAPS_VoiceManagement = BIT( 1 ),    ///< Device manages voices on its own; deactivates virtualization code in SFX system.
-         CAPS_Occlusion       = BIT( 2 ),    ///< Device has its own sound occlusion handling (SFXOcclusionManager).
-         CAPS_DSPEffects      = BIT( 3 ),    ///< Device implements DSP effects (SFXDSPManager).
-         CAPS_MultiListener   = BIT( 4 ),    ///< Device supports multiple listeners.
+         CAPS_Reverb = BIT(0),               ///< Device supports reverb environments.
+         CAPS_VoiceManagement = BIT(1),      ///< Device manages voices on its own; deactivates virtualization code in SFX system.
+         CAPS_Occlusion = BIT(2),            ///< Device has its own sound occlusion handling (SFXOcclusionManager).
+         CAPS_DSPEffects = BIT(3),           ///< Device implements DSP effects (SFXDSPManager).
+         CAPS_MultiListener = BIT(4),        ///< Device supports multiple listeners.
+         CAPS_HRTF = BIT(5),                 ///< Device supports HRTF (3D audio positioning).
+         CAPS_Float32 = BIT(6),              ///< Device supports 32-bit float playback.
+         CAPS_MonoStereo = BIT(7),           ///< Device supports mono/stereo output modes.
       };
       
    protected:
