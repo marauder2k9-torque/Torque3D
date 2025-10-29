@@ -262,8 +262,8 @@ const char* SFXSystem::getProviderNameFromType(SFXProviderType type)
 
 SFXProvider* SFXSystem::getBestProviderChoice()
 {
-   const String provider = Con::getVariable("$pref::SFX::provider");
-   const String device = Con::getVariable("$pref::SFX::device");
+   const String provider = Con::getVariable("pref::SFX::provider");
+   const String device = Con::getVariable("pref::SFX::device");
 
    SFXProviderType providerType = OpenAL;
 
@@ -275,7 +275,8 @@ SFXProvider* SFXSystem::getBestProviderChoice()
          {
             if (smProviders[i]->mDefault)
             {
-               Con::setVariable("$pref::SFX::device", smProviders[i]->getName());
+               Con::setVariable("pref::SFX::provider", "OpenAL");
+               Con::setVariable("pref::SFX::device", smProviders[i]->getName());
                return smProviders[i];
             }
          }
@@ -316,7 +317,7 @@ SFXProvider* SFXSystem::getBestProviderChoice()
          if (smProviders[i]->mDefault)
          {
             // if we reached here then we couldnt find a match for pref device.
-            Con::setVariable("$pref::SFX::device", smProviders[i]->getName());
+            Con::setVariable("pref::SFX::device", smProviders[i]->getName());
             return smProviders[i];
          }
       }
@@ -592,7 +593,7 @@ bool SFXSystem::createDevice(SFXProvider* provider)
    mDevice->setProvider(*provider);
 
    // Print capabilities.
-   Con::printf("| Device Sample rate: %d Hz", Con::getIntVariable("$pref::SFX::frequency"));
+   Con::printf("| Device Sample rate: %d Hz", Con::getIntVariable("pref::SFX::frequency"));
 
    if( mDevice->getCaps() & SFXDevice::CAPS_Reverb )
       Con::printf( "| CAPS_Reverb" );

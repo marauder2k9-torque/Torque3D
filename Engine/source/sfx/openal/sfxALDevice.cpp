@@ -193,13 +193,13 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
    ALCint freq = 0;
    alcGetIntegerv(mDevice, ALC_FREQUENCY, 1, &freq);
    if (freq > 0)
-      Con::setIntVariable("$pref::SFX::frequency", freq);
+      Con::setIntVariable("pref::SFX::frequency", freq);
    else
-      Con::setIntVariable("$pref::SFX::frequency", 44100); // default
+      Con::setIntVariable("pref::SFX::frequency", 44100); // default
 
    // --- Bitrate approximation ---
    U32 bitrate = (mCaps & CAPS_Float32) ? 32 : 16;
-   Con::setIntVariable("$pref::SFX::bitrate", bitrate);
+   Con::setIntVariable("pref::SFX::bitrate", bitrate);
 
    printALInfo(mDevice);
 
