@@ -135,14 +135,8 @@ void CubeLightShadowMap::_render(   RenderPassManager* renderPass,
       GFXDEBUGEVENT_START( CubeLightShadowMap_Render_Face, ColorI::RED );
 
       // create camera matrix
-      VectorF cross = mCross(vUpVec, vLookatPt);
-      cross.normalizeSafe();
-
       MatrixF lightMatrix(true);
-      lightMatrix.setColumn(0, cross);
-      lightMatrix.setColumn(1, vLookatPt);
-      lightMatrix.setColumn(2, vUpVec);
-      lightMatrix.setPosition( mLight->getPosition() );
+      lightMatrix.LookAt(mLight->getPosition(), vLookatPt, vUpVec);
       lightMatrix.inverse();
 
       GFX->setWorldMatrix( lightMatrix );
