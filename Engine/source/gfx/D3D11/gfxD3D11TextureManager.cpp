@@ -298,9 +298,9 @@ bool GFXD3D11TextureManager::_loadTexture(GFXTextureObject *aTexture, GBitmap *p
 
    // Check with profiler to see if we can do automatic mipmap generation.
    const bool supportsAutoMips = GFX->getCardProfiler()->queryProfile("autoMipMapLevel", true);
-   /*TODO: add bitmap support to gbitmap
-   const bool isCube = texture->isCubeMap();
-   const U32 numFaces = isCube ? 6 : 1;*/
+   
+   const bool isCube = texture->isCubeMap() && pDL->getNumFaces() > 1;
+   const U32 numFaces = isCube ? 6 : 1;
    // Helper bool
    const bool isCompressedTexFmt = ImageUtil::isCompressedFormat(aTexture->mFormat);
 
@@ -317,7 +317,7 @@ bool GFXD3D11TextureManager::_loadTexture(GFXTextureObject *aTexture, GBitmap *p
 
    bool isDynamic = texture->mProfile->isDynamic();
    // Fill the texture...
-   for (U32 face = 0; face < pDL->getNumFaces(); ++face)
+   for (U32 face = 0; face < numFaces; ++face)
    {
       for (U32 i = 0; i < maxDownloadMip; i++)
       {
