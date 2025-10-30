@@ -79,10 +79,11 @@ GBitmap::GBitmap(const GBitmap& rCopy)
 GBitmap::GBitmap(const U32  in_width,
                  const U32  in_height,
                  const bool in_extrudeMipLevels,
-                 const GFXFormat in_format)
+                 const GFXFormat in_format,
+                 const U32 in_numFaces)
  : mBits(NULL),
    mByteSize(0),
-   mNumFaces(1)
+   mNumFaces(in_numFaces)
 {
    for (U32 i = 0; i < c_maxMipLevels; i++)
       mMipLevelOffsets[i] = 0xffffffff;
@@ -97,10 +98,11 @@ GBitmap::GBitmap(const U32  in_width,
 
 GBitmap::GBitmap(const U32  in_width,
                  const U32  in_height,
-                 const U8*  data )
+                 const U8*  data,
+                 const U32 in_numFaces)
  : mBits(NULL),
    mByteSize(0),
-   mNumFaces(1)
+   mNumFaces(in_numFaces)
 {
    allocateBitmap(in_width, in_height, false, GFXFormatR8G8B8A8);
 

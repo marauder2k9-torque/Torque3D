@@ -245,7 +245,7 @@ bool GFXD3D11TextureObject::copyToBmp(GBitmap* bmp)
    }
 
    // --- Copy texture (handle cubemap or 2D) ---
-   const U32 faceCount = isCubeMap() ? 6 : 1;
+   const U32 faceCount = isCubeMap() && bmp->getNumFaces() == 6 ? 6 : 1;
    for (U32 face = 0; face < faceCount; ++face)
    {
       for (U32 mip = 0; mip < mipLevels; ++mip)
@@ -264,7 +264,7 @@ bool GFXD3D11TextureObject::copyToBmp(GBitmap* bmp)
          }
 
          const U8* src = static_cast<const U8*>(mapped.pData);
-         U8* dst = bmp->getWritableBits(mip);
+         U8* dst = bmp->getWritableBits(mip, face);
 
          const U32 width = bmp->getWidth(mip);
          const U32 height = bmp->getHeight(mip);

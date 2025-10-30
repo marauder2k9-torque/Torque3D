@@ -672,6 +672,11 @@ DDSFile *DDSFile::createDDSFileFromGBitmap( const GBitmap *gbmp )
    ret->mDepth = 0;
    ret->mFormat = gbmp->getFormat();
    ret->mFlags.set(RGBData);
+   if (gbmp->getNumFaces() == 6)
+   {
+      ret->mFlags.set(RGBData | CubeMapFlag | CubeMap_PosX_Flag | CubeMap_NegX_Flag | CubeMap_PosY_Flag |
+         CubeMap_NegY_Flag | CubeMap_PosZ_Flag | CubeMap_NegZ_Flag);
+   }
    ret->mBytesPerPixel = gbmp->getBytesPerPixel();
    ret->mMipMapCount = gbmp->getNumMipLevels();
    ret->mHasTransparency = gbmp->getHasTransparency();
@@ -691,36 +696,39 @@ DDSFile *DDSFile::createDDSFileFromGBitmap( const GBitmap *gbmp )
    if( ret->mMipMapCount > 1 )
       ret->mFlags.set(MipMapsFlag);
 
-   // One surface per GBitmap
-   ret->mSurfaces.push_back( new SurfaceData() );
-
-   // Load the mips
-   for( S32 i = 0; i < ret->mMipMapCount; i++ )
+   for (U32 face = 0; face < gbmp->getNumFaces(); face++)
    {
-      const U32 mipSz = ret->getSurfaceSize(i);
-      ret->mSurfaces.last()->mMips.push_back( new U8[mipSz] );
+      // One surface per GBitmap
+      ret->mSurfaces.push_back(new SurfaceData());
 
-      U8 *mipMem = ret->mSurfaces.last()->mMips.last();
-      
-      // If this is a straight copy, just do it, otherwise (ugh)
-      if( ret->mFormat == gbmp->getFormat() )
-         dMemcpy( mipMem, gbmp->getBits(i), mipSz );
-      else
+      // Load the mips
+      for (S32 i = 0; i < ret->mMipMapCount; i++)
       {
-         // Assumption:
-         AssertFatal( gbmp->getBytesPerPixel() + 1 == ret->mBytesPerPixel, "Assumption failed, not 24->32 bit straight convert." );
+         const U32 mipSz = ret->getSurfaceSize(i);
+         ret->mSurfaces.last()->mMips.push_back(new U8[mipSz]);
 
-         for( S32 pxl = 0; pxl < gbmp->getWidth(i) * gbmp->getHeight(i); pxl++ )
+         U8* mipMem = ret->mSurfaces.last()->mMips.last();
+
+         // If this is a straight copy, just do it, otherwise (ugh)
+         if (ret->mFormat == gbmp->getFormat())
+            dMemcpy(mipMem, gbmp->getBits(i), mipSz);
+         else
          {
-            U8 *dst = &mipMem[pxl * ret->mBytesPerPixel];
-            const U8 *src = &gbmp->getBits(i)[pxl * gbmp->getBytesPerPixel()];
-            dMemcpy( dst, src, gbmp->getBytesPerPixel() * sizeof(U8) );
-            dst[ret->mBytesPerPixel - 1] = 255;
-         } 
-      }
+            // Assumption:
+            AssertFatal(gbmp->getBytesPerPixel() + 1 == ret->mBytesPerPixel, "Assumption failed, not 24->32 bit straight convert.");
 
-      // Uncomment to debug-dump each mip level
-      //ret->mSurfaces.last()->dumpImage( ret, i, avar( "%d_Gbmp_xmip%d", ret, i ) );
+            for (S32 pxl = 0; pxl < gbmp->getWidth(i) * gbmp->getHeight(i); pxl++)
+            {
+               U8* dst = &mipMem[pxl * ret->mBytesPerPixel];
+               const U8* src = &gbmp->getBits(i)[pxl * gbmp->getBytesPerPixel()];
+               dMemcpy(dst, src, gbmp->getBytesPerPixel() * sizeof(U8));
+               dst[ret->mBytesPerPixel - 1] = 255;
+            }
+         }
+
+         // Uncomment to debug-dump each mip level
+         //ret->mSurfaces.last()->dumpImage( ret, i, avar( "%d_Gbmp_xmip%d", ret, i ) );
+      }
    }
 
    return ret;

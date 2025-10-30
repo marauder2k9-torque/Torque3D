@@ -135,13 +135,15 @@ public:
    GBitmap(const U32  in_width,
            const U32  in_height,
            const bool in_extrudeMipLevels = false,
-           const GFXFormat in_format = GFXFormatR8G8B8 );
+           const GFXFormat in_format = GFXFormatR8G8B8,
+           const U32 in_numFaces = 1);
 
    // This builds a GBitmap with the R8G8B8A8 format using the passed in
    // data (assumes that there is width * height * 4 U8's in data)
    GBitmap(const U32  in_width,
            const U32  in_height,
-           const U8*  data );
+           const U8*  data,
+           const U32 in_numFaces = 1);
 
    virtual ~GBitmap();
 

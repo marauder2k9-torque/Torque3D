@@ -527,7 +527,7 @@ bool GFXD3D11TextureManager::_loadTexture(GFXTextureObject *aTexture, DDSFile *d
    GFXD3D11TextureObject *texture = static_cast<GFXD3D11TextureObject*>(aTexture);
    GFXD3D11Device* dev = static_cast<GFXD3D11Device *>(GFX);
    // Fill the texture...
-   const bool isCube = texture->isCubeMap();
+   const bool isCube = texture->isCubeMap() && dds->isCubemap();
    const U32 numFaces = isCube ? 6 : 1;
 
    // Loop over faces and mips
