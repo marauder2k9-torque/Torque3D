@@ -49,9 +49,11 @@ GBitmap::GBitmap()
    mHeight(0),
    mBytesPerPixel(0),
    mNumMipLevels(0),
-   mHasTransparency(false)
+   mHasTransparency(false),
+   mNumFaces(1)
 {
    std::fill_n(mMipLevelOffsets, c_maxMipLevels, 0xffffffff);
+   std::fill_n(mFaceOffsets, 6, 0xffffffff);
 }
 
 GBitmap::GBitmap(const GBitmap& rCopy)
@@ -67,8 +69,10 @@ GBitmap::GBitmap(const GBitmap& rCopy)
    mBytesPerPixel = rCopy.mBytesPerPixel;
    mNumMipLevels  = rCopy.mNumMipLevels;
    dMemcpy(mMipLevelOffsets, rCopy.mMipLevelOffsets, sizeof(mMipLevelOffsets));
+   dMemcpy(mFaceOffsets, rCopy.mFaceOffsets, sizeof(mFaceOffsets));
 
    mHasTransparency = rCopy.mHasTransparency;
+   mNumFaces = rCopy.mNumFaces;
 }
 
 
@@ -77,10 +81,14 @@ GBitmap::GBitmap(const U32  in_width,
                  const bool in_extrudeMipLevels,
                  const GFXFormat in_format)
  : mBits(NULL),
-   mByteSize(0)
+   mByteSize(0),
+   mNumFaces(1)
 {
    for (U32 i = 0; i < c_maxMipLevels; i++)
       mMipLevelOffsets[i] = 0xffffffff;
+
+   for(U32 i = 0; i < 6; i++)
+      mFaceOffsets[i] = 0xffffffff;
 
    allocateBitmap(in_width, in_height, in_extrudeMipLevels, in_format);
 
@@ -91,7 +99,8 @@ GBitmap::GBitmap(const U32  in_width,
                  const U32  in_height,
                  const U8*  data )
  : mBits(NULL),
-   mByteSize(0)
+   mByteSize(0),
+   mNumFaces(1)
 {
    allocateBitmap(in_width, in_height, false, GFXFormatR8G8B8A8);
 
@@ -327,7 +336,7 @@ void GBitmap::copyRect(const GBitmap *src, const RectI &srcRect, const Point2I &
 }
 
 //--------------------------------------------------------------------------
-void GBitmap::allocateBitmap(const U32 in_width, const U32 in_height, const bool in_extrudeMipLevels, const GFXFormat in_format )
+void GBitmap::allocateBitmap(const U32 in_width, const U32 in_height, const bool in_extrudeMipLevels, const GFXFormat in_format, const U32 in_numFaces)
 {
    //-------------------------------------- Some debug checks...
    U32 svByteSize = mByteSize;
@@ -343,12 +352,13 @@ void GBitmap::allocateBitmap(const U32 in_width, const U32 in_height, const bool
    mInternalFormat = in_format;
    mWidth          = in_width;
    mHeight         = in_height;
+   mNumFaces       = in_numFaces;
 
    mBytesPerPixel = getFormatBytesPerPixel(mInternalFormat);
 
    // Set up the mip levels, if necessary...
    mNumMipLevels       = 1;
-   U32 allocPixels = in_width * in_height * mBytesPerPixel;
+   U32 allocPixels = (in_width * in_height * mBytesPerPixel) * mNumFaces;
    mMipLevelOffsets[0] = 0;
 
 
@@ -375,6 +385,13 @@ void GBitmap::allocateBitmap(const U32 in_width, const U32 in_height, const bool
    }
    AssertFatal(mNumMipLevels <= c_maxMipLevels, "GBitmap::allocateBitmap: too many miplevels");
 
+   U32 faceStride = 0;
+   for (U32 mip = 0; mip < mNumMipLevels; mip++)
+      faceStride += getWidth(mip) * getHeight(mip) * mBytesPerPixel;
+
+   for (U32 face = 0; face < mNumFaces; face++)
+      mFaceOffsets[face] = face * faceStride;
+
    // Set up the memory...
    mByteSize = allocPixels;
    mBits    = new U8[mByteSize];
@@ -389,7 +406,7 @@ void GBitmap::allocateBitmap(const U32 in_width, const U32 in_height, const bool
 }
 
 //--------------------------------------------------------------------------
-void GBitmap::allocateBitmapWithMips(const U32 in_width, const U32 in_height, const U32 in_numMips, const GFXFormat in_format)
+void GBitmap::allocateBitmapWithMips(const U32 in_width, const U32 in_height, const U32 in_numMips, const GFXFormat in_format, const U32 in_numFaces)
 {
    //-------------------------------------- Some debug checks...
    U32 svByteSize = mByteSize;
@@ -400,12 +417,13 @@ void GBitmap::allocateBitmapWithMips(const U32 in_width, const U32 in_height, co
    mInternalFormat = in_format;
    mWidth = in_width;
    mHeight = in_height;
+   mNumFaces = in_numFaces;
 
    mBytesPerPixel = getFormatBytesPerPixel(mInternalFormat);
 
    // Set up the mip levels, if necessary...
    mNumMipLevels = 1;
-   U32 allocPixels = in_width * in_height * mBytesPerPixel;
+   U32 allocPixels = (in_width * in_height * mBytesPerPixel) * mNumFaces;
    mMipLevelOffsets[0] = 0;
 
 
@@ -428,6 +446,13 @@ void GBitmap::allocateBitmapWithMips(const U32 in_width, const U32 in_height, co
       } while ((currWidth != 1 || currHeight != 1) && (mNumMipLevels != in_numMips));
    }
    AssertFatal(mNumMipLevels <= c_maxMipLevels, "GBitmap::allocateBitmap: too many miplevels");
+
+   U32 faceStride = 0;
+   for (U32 mip = 0; mip < mNumMipLevels; mip++)
+      faceStride += getWidth(mip) * getHeight(mip) * mBytesPerPixel;
+
+   for (U32 face = 0; face < mNumFaces; face++)
+      mFaceOffsets[face] = face * faceStride;
 
    // Set up the memory...
    mByteSize = allocPixels;

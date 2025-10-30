@@ -783,43 +783,50 @@ DDSFile *DDSFile::createDDSCubemapFileFromGBitmaps(GBitmap **gbmps)
 
 bool DDSFile::decompressToGBitmap(GBitmap *dest)
 {
+   const bool isCube = isCubemap();
+   const U32 numFaces = isCube ? 6 : 1;
    // TBD: do we support other formats?
    if (!isCompressedFormat(mFormat))
    {
-      dest->allocateBitmapWithMips(getWidth(), getHeight(), getMipLevels(), mFormat);
+      dest->allocateBitmapWithMips(getWidth(), getHeight(), getMipLevels(), mFormat, numFaces);
       U32 numMips = getMipLevels();
 
-      for (U32 i = 0; i < numMips; i++)
+      for (U32 face = 0; face < numFaces; face++)
       {
-         U8* addr = dest->getAddress(0, 0, i);
-
-         const U8* mipBuffer = mSurfaces[0]->mMips[i];
-         const U32 mipWidth = getWidth(i);
-         const U32 mipHeight = getHeight(i);
-
-         const U32 bpp = dest->getBytesPerPixel();
-         const U32 rowBytes = mipWidth * bpp;
-
-         for (U32 y = 0; y < mipHeight; ++y)
+         for (U32 i = 0; i < numMips; i++)
          {
-            dMemcpy(addr + y * rowBytes, mipBuffer + y * rowBytes, rowBytes);
+            U8* addr = dest->getAddress(0, 0, i, face);
+
+            const U8* mipBuffer = mSurfaces[face]->mMips[i];
+            const U32 mipWidth = getWidth(i);
+            const U32 mipHeight = getHeight(i);
+
+            const U32 bpp = dest->getBytesPerPixel();
+            const U32 rowBytes = mipWidth * bpp;
+
+            for (U32 y = 0; y < mipHeight; ++y)
+            {
+               dMemcpy(addr + y * rowBytes, mipBuffer + y * rowBytes, rowBytes);
+            }
          }
       }
       return true;
    }
 
-   dest->allocateBitmapWithMips(getWidth(), getHeight(), getMipLevels(), GFXFormatR8G8B8A8);
+   dest->allocateBitmapWithMips(getWidth(), getHeight(), getMipLevels(), GFXFormatR8G8B8A8, numFaces);
 
    // Decompress and copy mips...
 
    U32 numMips = getMipLevels();
-
-   for (U32 i = 0; i < numMips; i++)
+   for (U32 face = 0; face < numFaces; face++)
    {
-      U8 *addr = dest->getAddress(0, 0, i);
-      const U8 *mipBuffer = mSurfaces[0]->mMips[i];
-      ImageUtil::decompress(mipBuffer, addr, getWidth(i), getHeight(i), mFormat);
+      for (U32 i = 0; i < numMips; i++)
+      {
+         U8* addr = dest->getAddress(0, 0, i, face);
+         const U8* mipBuffer = mSurfaces[face]->mMips[i];
+         ImageUtil::decompress(mipBuffer, addr, getWidth(i), getHeight(i), mFormat);
 
+      }
    }
 
    return true;
