@@ -72,8 +72,8 @@ public:
    void pureVirtualCrash() override {}
 #endif
 
-   GFXLockedRect * lock( U32 mipLevel = 0, RectI *inRect = NULL ) override { return NULL; };
-   void unlock( U32 mipLevel = 0) override {};
+   GFXLockedRect * lock( U32 mipLevel = 0, RectI *inRect = NULL, U32 faceIndex = 0)override { return NULL; };
+   void unlock( U32 mipLevel = 0, U32 faceIndex = 0)override {};
    bool copyToBmp(GBitmap *) override { return false; };
 
    void zombify() override {}

@@ -67,6 +67,9 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
    retTex->isManaged = false;
    DXGI_FORMAT d3dTextureFormat = GFXD3D11TextureFormat[format];
 
+   if (retTex->isCubeMap())
+      miscFlags |= D3D11_RESOURCE_MISC_TEXTURECUBE;
+
    if( retTex->mProfile->isDynamic() )
    {
       usage = D3D11_USAGE_DYNAMIC;
@@ -199,7 +202,7 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
 			D3D11_TEXTURE2D_DESC desc;
 		  
 			ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-			desc.ArraySize = 1;
+			desc.ArraySize = retTex->isCubeMap() ? 6 : 1;
 			desc.BindFlags = bindFlags;
 			desc.CPUAccessFlags = cpuFlags;
 			desc.Format = d3dTextureFormat;
@@ -295,7 +298,9 @@ bool GFXD3D11TextureManager::_loadTexture(GFXTextureObject *aTexture, GBitmap *p
 
    // Check with profiler to see if we can do automatic mipmap generation.
    const bool supportsAutoMips = GFX->getCardProfiler()->queryProfile("autoMipMapLevel", true);
-
+   /*TODO: add bitmap support to gbitmap
+   const bool isCube = texture->isCubeMap();
+   const U32 numFaces = isCube ? 6 : 1;*/
    // Helper bool
    const bool isCompressedTexFmt = ImageUtil::isCompressedFormat(aTexture->mFormat);
 
@@ -519,14 +524,31 @@ bool GFXD3D11TextureManager::_loadTexture(GFXTextureObject *aTexture, DDSFile *d
    GFXD3D11TextureObject *texture = static_cast<GFXD3D11TextureObject*>(aTexture);
    GFXD3D11Device* dev = static_cast<GFXD3D11Device *>(GFX);
    // Fill the texture...
-   for( U32 i = 0; i < aTexture->mMipLevels; i++ )
+   const bool isCube = texture->isCubeMap();
+   const U32 numFaces = isCube ? 6 : 1;
+
+   // Loop over faces and mips
+   for (U32 face = 0; face < numFaces; ++face)
    {
-      PROFILE_SCOPE(GFXD3DTexMan_loadSurface);
+      for (U32 mip = 0; mip < aTexture->mMipLevels; ++mip)
+      {
+         PROFILE_SCOPE(GFXD3DTexMan_loadSurface);
 
-		AssertFatal( dds->mSurfaces.size() > 0, "Assumption failed. DDSFile has no surfaces." );
+         // DDSFile must have data for each face
+         AssertFatal(dds->mSurfaces.size() > face, "DDSFile missing cubemap face data.");
+         AssertFatal(dds->mSurfaces[face]->mMips.size() > mip, "DDSFile missing mip level.");
 
-		U32 subresource = D3D11CalcSubresource(i, 0, aTexture->mMipLevels);
-		dev->getDeviceContext()->UpdateSubresource(texture->get2DTex(), subresource, 0, dds->mSurfaces[0]->mMips[i], dds->getSurfacePitch(i), 0);
+         const U32 subresource = D3D11CalcSubresource(mip, face, aTexture->mMipLevels);
+
+         dev->getDeviceContext()->UpdateSubresource(
+            texture->get2DTex(),         // resource
+            subresource,                 // subresource index
+            nullptr,                     // box (nullptr for full subresource)
+            dds->mSurfaces[face]->mMips[mip], // source data pointer
+            dds->getSurfacePitch(mip),  // row pitch
+            0                            // depth pitch
+         );
+      }
    }
 
    D3D11_TEXTURE2D_DESC desc;
@@ -541,14 +563,14 @@ bool GFXD3D11TextureManager::_loadTexture(GFXTextureObject *aTexture, DDSFile *d
 void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth, DXGI_FORMAT format, U32 numMipLevels,U32 usageFlags, GFXTextureObject *inTex)
 {
 	GFXD3D11TextureObject *tex = static_cast<GFXD3D11TextureObject*>(inTex);
-	ID3D11Resource* resource = NULL;
-	
-	if(tex->get2DTex())
-		resource = tex->get2DTex();
-	else if(tex->getSurface())
-		resource = tex->getSurface();
-	else
-		resource = tex->get3DTex();
+   ID3D11Resource* resource;
+
+   if (tex->get2DTex())
+      resource = tex->get2DTex();
+   else if (tex->getSurface())
+      resource = tex->getSurface();
+   else
+      resource = tex->get3DTex();
 
 	HRESULT hr;
 	//TODO: add MSAA support later.
@@ -567,7 +589,13 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
 			desc.Texture3D.MipLevels = -1;
 			desc.Texture3D.MostDetailedMip = 0;
 		}
-		else
+      else if (tex->isCubeMap())
+      {
+         desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+         desc.Texture2D.MipLevels = -1;
+         desc.Texture2D.MostDetailedMip = 0;
+      }
+      else
 		{
 			desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
 			desc.Texture2D.MipLevels = -1;
@@ -580,12 +608,29 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
 
 	if(usageFlags & D3D11_BIND_RENDER_TARGET)
 	{
-		D3D11_RENDER_TARGET_VIEW_DESC desc;
-		desc.Format = format;
-		desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-		desc.Texture2D.MipSlice = 0;
-		hr = D3D11DEVICE->CreateRenderTargetView(resource, &desc, tex->getRTViewPtr());
-		AssertFatal(SUCCEEDED(hr), "CreateRenderTargetView:: failed to create view!");
+      if (tex->isCubeMap())
+      {
+         for (U32 face = 0; face < 6; face++)
+         {
+            D3D11_RENDER_TARGET_VIEW_DESC desc;
+            desc.Format = format;
+            desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
+            desc.Texture2DArray.ArraySize = 1;
+            desc.Texture2DArray.FirstArraySlice = face;
+            desc.Texture2DArray.MipSlice = 0;
+            hr = D3D11DEVICE->CreateRenderTargetView(resource, &desc, tex->getCubeFaceRTViewPtr(face));
+            AssertFatal(SUCCEEDED(hr), "CreateRenderTargetView:: failed to create view!");
+         }
+      }
+      else
+      {
+         D3D11_RENDER_TARGET_VIEW_DESC desc;
+         desc.Format = format;
+         desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+         desc.Texture2D.MipSlice = 0;
+         hr = D3D11DEVICE->CreateRenderTargetView(resource, &desc, tex->getRTViewPtr());
+         AssertFatal(SUCCEEDED(hr), "CreateRenderTargetView:: failed to create view!");
+      }
 	}
 
 	if(usageFlags & D3D11_BIND_DEPTH_STENCIL)

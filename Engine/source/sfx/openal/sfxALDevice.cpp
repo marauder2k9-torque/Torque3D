@@ -204,6 +204,7 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
    printALInfo(mDevice);
 
    mMaxBuffers = getMaxSources();
+   Con::setIntVariable("pref::SFX::maxSoftwareBuffers", mMaxBuffers);
 }
 
 //-----------------------------------------------------------------------------

@@ -64,7 +64,7 @@ GFXGLTextureObject::~GFXGLTextureObject()
    kill();
 }
 
-GFXLockedRect* GFXGLTextureObject::lock(U32 mipLevel, RectI *inRect)
+GFXLockedRect* GFXGLTextureObject::lock(U32 mipLevel /*= 0*/, RectI* inRect /*= NULL*/, U32 faceIndex /*= 0*/)
 {
    //AssertFatal(mBinding != GL_TEXTURE_3D, "GFXGLTextureObject::lock - We don't support locking 3D textures yet");
    U32 width = mTextureSize.x >> mipLevel;
@@ -100,7 +100,7 @@ GFXLockedRect* GFXGLTextureObject::lock(U32 mipLevel, RectI *inRect)
    return &mLockedRect;
 }
 
-void GFXGLTextureObject::unlock(U32 mipLevel)
+void GFXGLTextureObject::unlock(U32 mipLevel /*= 0*/, U32 faceIndex /*= 0*/)
 {
    if(!mLockedRect.bits)
       return;

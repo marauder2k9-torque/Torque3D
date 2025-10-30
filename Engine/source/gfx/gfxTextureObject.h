@@ -167,11 +167,11 @@ public:
 
    /// Acquire a lock on part of the texture. The GFXLockedRect returned
    /// is managed by the GFXTextureObject and does not need to be freed.
-   virtual GFXLockedRect * lock( U32 mipLevel = 0, RectI *inRect = NULL ) = 0;
+   virtual GFXLockedRect * lock( U32 mipLevel = 0, RectI *inRect = NULL, U32 faceIndex = 0) = 0;
 
    /// Releases a lock previously acquired. Note that the mipLevel parameter
    /// must match the corresponding lock!
-   virtual void unlock( U32 mipLevel = 0) = 0;
+   virtual void unlock( U32 mipLevel = 0, U32 faceIndex = 0) = 0;
 
    // copy the texture data into the specified bitmap.  
    //   - this texture object must be a render target.  the function will assert if this is not the case.
