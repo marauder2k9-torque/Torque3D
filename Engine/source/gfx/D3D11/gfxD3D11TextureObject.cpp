@@ -55,12 +55,16 @@ GFXD3D11TextureObject::~GFXD3D11TextureObject()
 
 ID3D11Texture2D* GFXD3D11TextureObject::get2DTex() const
 {
-   return static_cast<ID3D11Texture2D*>(mD3DTexture.Get());
+   ComPtr<ID3D11Texture2D> tex2D;
+   if (mD3DTexture) mD3DTexture.As(&tex2D);
+   return tex2D.Get();
 }
 
 ID3D11Texture3D* GFXD3D11TextureObject::get3DTex() const
 {
-   return static_cast<ID3D11Texture3D*>(mD3DTexture.Get());
+   ComPtr<ID3D11Texture3D> tex3D;
+   if (mD3DTexture) mD3DTexture.As(&tex3D);
+   return tex3D.Get();
 }
 
 ID3D11Texture2D** GFXD3D11TextureObject::get2DTexPtr()

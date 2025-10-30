@@ -57,7 +57,7 @@ public:
    // Public interface.
    const Point2I getSize() override { return mTargetSize; }
    GFXFormat getFormat() override { return mTargetFormat; }
-   void attachTexture(RenderSlot slot, GFXTextureObject *tex, U32 mipLevel=0, U32 zOffset = 0) override;
+   void attachTexture(RenderSlot slot, GFXTextureObject* tex, U32 mipLevel = 0, U32 zOffset = 0, U32 faceIndex = 0) override;
    void attachTexture(RenderSlot slot, GFXCubemap *tex, U32 face, U32 mipLevel=0) override;
    void resolve() override;
 

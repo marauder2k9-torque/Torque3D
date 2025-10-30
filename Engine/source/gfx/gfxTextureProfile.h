@@ -172,6 +172,7 @@ public:
    inline bool isPooled() const { return testFlag(Pooled); }
    inline bool canDiscard() const { return !testFlag(NoDiscard); }
    inline bool isSRGB() const { return testFlag(SRGB); }
+   inline bool isCubeMap() const { return testFlag(CubeMap); }
    //compare profile flags for equality
    inline bool compareFlags(const GFXTextureProfile& in_Cmp) const{ return (mProfile == in_Cmp.mProfile); }
 private:

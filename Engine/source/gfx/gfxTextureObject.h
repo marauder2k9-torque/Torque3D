@@ -154,6 +154,8 @@ public:
    /// Returns true if this texture is a render target.
    bool isRenderTarget() const { return mProfile->isRenderTarget(); }
 
+   bool isCubeMap() const { return mProfile->isCubeMap(); }
+
    /// Returns the file path to the texture if
    /// it was loaded from disk.
    const String& getPath() const { return mPath; }

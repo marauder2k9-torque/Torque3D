@@ -60,11 +60,6 @@ public:
    GFXD3D11TextureObject( GFXDevice * d, GFXTextureProfile *profile);
    ~GFXD3D11TextureObject();
 
-   bool isCubeMap() const
-   {
-      return mProfile && mProfile->testFlag(GFXTextureProfile::CubeMap);
-   }
-
    // Accessors
    ID3D11Resource* getResource() const { return mD3DTexture.Get(); }
    ID3D11Texture2D* get2DTex() const;

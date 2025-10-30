@@ -306,7 +306,7 @@ GFXFormat GFXGLTextureTarget::getFormat()
    return GFXFormatR8G8B8A8;
 }
 
-void GFXGLTextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *tex, U32 mipLevel/*=0*/, U32 zOffset /*= 0*/ )
+void GFXGLTextureTarget::attachTexture( RenderSlot slot, GFXTextureObject *tex, U32 mipLevel/*=0*/, U32 zOffset /*= 0*/, U32 faceIndex /*= 0*/)
 {
    if( tex == GFXTextureTarget::sDefaultDepthStencil )
       tex = GFXGL->getDefaultDepthTex();
