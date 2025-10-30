@@ -55,6 +55,7 @@ GFXTextureObject *GFXGLTextureManager::_createTextureObject(   U32 height,
                                                                U32 numMipLevels,
                                                                bool forceMips,
                                                                S32 antialiasLevel,
+                                                               U32 arraySize,   
                                                                GFXTextureObject *inTex )
 {
    AssertFatal(format >= 0 && format < GFXFormat_COUNT, "GFXGLTextureManager::_createTexture - invalid format!");

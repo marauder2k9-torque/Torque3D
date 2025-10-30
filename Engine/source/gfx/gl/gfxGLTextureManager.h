@@ -45,6 +45,7 @@ protected:
                                              U32 numMipLevels,
                                              bool forceMips = false,
                                              S32 antialiasLevel = 0,
+                                             U32 arraySize = 1,
                                              GFXTextureObject *inTex = NULL ) override;
    bool _loadTexture(GFXTextureObject *texture, DDSFile *dds) override;
    bool _loadTexture(GFXTextureObject *texture, GBitmap *bmp) override;

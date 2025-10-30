@@ -202,7 +202,7 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
 			D3D11_TEXTURE2D_DESC desc;
 		  
 			ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-			desc.ArraySize = retTex->isCubeMap() ? 6 : 1;
+			desc.ArraySize = retTex->getArraySize() * retTex->isCubeMap() ? 6 : 1;
 			desc.BindFlags = bindFlags;
 			desc.CPUAccessFlags = cpuFlags;
 			desc.Format = d3dTextureFormat;
@@ -270,6 +270,7 @@ GFXTextureObject *GFXD3D11TextureManager::_createTextureObject( U32 height,
                                                                U32 numMipLevels,
                                                                bool forceMips, 
                                                                S32 antialiasLevel,
+                                                               U32 arraySize,
                                                                GFXTextureObject *inTex )
 {
    GFXD3D11TextureObject *retTex;
@@ -281,7 +282,7 @@ GFXTextureObject *GFXD3D11TextureManager::_createTextureObject( U32 height,
    }      
    else
    {
-      retTex = new GFXD3D11TextureObject(GFX, profile);
+      retTex = new GFXD3D11TextureObject(GFX, profile, arraySize);
       retTex->registerResourceWithDevice(GFX);
    }
 
@@ -594,15 +595,38 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
 		}
       else if (tex->isCubeMap())
       {
-         desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-         desc.Texture2D.MipLevels = -1;
-         desc.Texture2D.MostDetailedMip = 0;
+         if (tex->getArraySize() == 1)
+         {
+            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+            desc.TextureCube.MipLevels = -1;
+            desc.TextureCube.MostDetailedMip = 0;
+         }
+         else
+         {
+            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+            desc.TextureCubeArray.MipLevels = -1;
+            desc.TextureCubeArray.MostDetailedMip = 0;
+            desc.TextureCubeArray.First2DArrayFace = 0;
+            desc.TextureCubeArray.NumCubes = tex->getArraySize();
+         }
+         
       }
       else
 		{
-			desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-			desc.Texture2D.MipLevels = -1;
-			desc.Texture2D.MostDetailedMip = 0;
+         if (tex->getArraySize() == 1)
+         {
+            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+            desc.Texture2D.MipLevels = -1;
+            desc.Texture2D.MostDetailedMip = 0;
+         }
+         else
+         {
+            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+            desc.Texture2DArray.MipLevels = -1;
+            desc.Texture2DArray.MostDetailedMip = 0;
+            desc.Texture2DArray.FirstArraySlice = 0;
+            desc.Texture2DArray.ArraySize = tex->getArraySize();
+         }
 		}
 		
 		hr = D3D11DEVICE->CreateShaderResourceView(resource,&desc, tex->getSRViewPtr());

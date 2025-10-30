@@ -68,7 +68,7 @@ public:
    void unlock(U32 mipLevel = 0, U32 faceIndex = 0) override;
 
    bool copyToBmp(GBitmap *) override; ///< Not implemented
-   
+   void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot) override {};
    bool mIsNPoT2;
 
    // GFXResource interface

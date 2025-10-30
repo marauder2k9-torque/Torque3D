@@ -57,7 +57,7 @@ protected:
    ComPtr<ID3D11RenderTargetView>   mCubeRTV[6];
 public:
 
-   GFXD3D11TextureObject( GFXDevice * d, GFXTextureProfile *profile);
+   GFXD3D11TextureObject( GFXDevice * d, GFXTextureProfile *profile, const U32 arraySize = 1);
    ~GFXD3D11TextureObject();
 
    // Accessors
@@ -93,6 +93,7 @@ public:
    void unlock(U32 mipLevel = 0, U32 faceIndex = 0) override;
 
    bool			copyToBmp(GBitmap* bmp) override;
+   void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot) override;
    ID3D11Texture2D*		getSurface() {return mD3DSurface.Get();}
    ID3D11Texture2D**	getSurfacePtr() {return mD3DSurface.GetAddressOf();}
 

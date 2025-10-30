@@ -45,6 +45,7 @@ class GFXTextureProfile;
 class GBitmap;
 struct DDSFile;
 class RectI;
+class GFXTexHandle;
 
 /// Contains information on a locked region of a texture.
 ///
@@ -91,6 +92,8 @@ public:
    String mPath;
 
    bool mDead;
+
+   U32 mArraySize;
 
    /// The device this texture belongs to.
    GFXDevice *mDevice;   
@@ -150,6 +153,7 @@ public:
    U32 getBitmapHeight() const { return mBitmapSize.y; }
    U32 getBitmapDepth() const { return mBitmapSize.z; }
    GFXFormat getFormat() const { return mFormat; }
+   U32 getArraySize() const { return mArraySize; }
 
    /// Returns true if this texture is a render target.
    bool isRenderTarget() const { return mProfile->isRenderTarget(); }
@@ -183,6 +187,8 @@ public:
    //   - returns true if successful, false otherwise
    //   - this process is not fast.
    virtual bool copyToBmp(GBitmap* bmp) = 0;
+
+   virtual void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot) = 0;
 
    #ifdef TORQUE_DEBUG
 

@@ -33,7 +33,7 @@ U32 GFXD3D11TextureObject::mTexCount = 0;
 //	GFXFormatR8G8B8 has now the same behaviour as GFXFormatR8G8B8X8. 
 //	This is because 24 bit format are now deprecated by microsoft, for data alignment reason there's no changes beetween 24 and 32 bit formats.
 //	DirectX 10-11 both have 24 bit format no longer.
-GFXD3D11TextureObject::GFXD3D11TextureObject( GFXDevice * d, GFXTextureProfile *profile) : GFXTextureObject( d, profile )
+GFXD3D11TextureObject::GFXD3D11TextureObject( GFXDevice * d, GFXTextureProfile *profile, const U32 arraySize) : GFXTextureObject( d, profile )
 {
 #ifdef D3D11_DEBUG_SPEW
    mTexCount++;
@@ -42,6 +42,7 @@ GFXD3D11TextureObject::GFXD3D11TextureObject( GFXDevice * d, GFXTextureProfile *
    isManaged = false;
    dMemset(&mLockRect, 0, sizeof(mLockRect));
    dMemset(&mLockBox, 0, sizeof(mLockBox));
+   mArraySize = arraySize;
 }
 
 GFXD3D11TextureObject::~GFXD3D11TextureObject()
@@ -304,4 +305,36 @@ bool GFXD3D11TextureObject::copyToBmp(GBitmap* bmp)
 
    PROFILE_END();
    return true;
+}
+
+void GFXD3D11TextureObject::updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot)
+{
+   AssertFatal(slot < getArraySize(), "GFXD3D11TextureObject::updateTextureSlot - trying to update a texture slot that is out of bounds");
+   AssertFatal(mFormat == texHandle->getFormat(), "GFXD3D11TextureObject::updateTextureSlot - Destination format doesn't match");
+   AssertFatal(getMipLevels() == texHandle->getMipLevels(), "updateTextureSlot::updateTextureSlot - Destination mip levels doesn't match");
+
+   GFXD3D11TextureObject* pTexObj = static_cast<GFXD3D11TextureObject*>((GFXTextureObject*)texHandle);
+
+   ID3D11Resource* dstRes = get2DTex();
+   ID3D11Resource* srcRes = pTexObj->get2DTex();
+
+   const U32 faceCount = isCubeMap() ? 6 : 1;
+   for (U32 face = 0; face < faceCount; face++)
+   {
+      for (U32 mip = 0; mip < getMipLevels(); ++mip)
+      {
+         const U32 dstSubresource = D3D11CalcSubresource(mip, face + faceCount * slot, getMipLevels());
+         const U32 srcSubresource = D3D11CalcSubresource(mip, face, getMipLevels());
+
+         D3D11DEVICECONTEXT->CopySubresourceRegion(
+            dstRes,                  // Destination resource
+            dstSubresource,          // Destination subresource (mip + slice)
+            0, 0, 0,                 // Destination box offset
+            srcRes,                  // Source resource
+            srcSubresource,          // Source subresource
+            nullptr                  // Copy entire subresource
+         );
+      }
+   }
+
 }
