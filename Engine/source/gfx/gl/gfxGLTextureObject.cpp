@@ -175,51 +175,233 @@ bool GFXGLTextureObject::copyToBmp(GBitmap * bmp)
 
    FrameAllocatorMarker mem;
 
+   const bool isCubemap = (mBinding == GL_TEXTURE_CUBE_MAP);
+   const U32 numFaces = isCubemap ? 6 : 1;
 
-   U32 mipLevels = getMipLevels();
-   for (U32 mip = 0; mip < mipLevels; mip++)
+   for (U32 mip = 0; mip < getMipLevels(); mip++)
    {
       U32 width = getWidth() >> mip;
       U32 height = getHeight() >> mip;
       if (width == 0) width = 1;
       if (height == 0) height = 1;
 
-      U32 srcPixelCount = width * height;
-      U8* dest = bmp->getWritableBits(mip);
-      U8* orig = (U8*)mem.alloc(srcPixelCount * srcBytesPerPixel);
-
-      // If the texture is multisampled, glGetTexImage cannot read it reliably.
+      // Check if multisampled
       GLint samples = 0;
-      glGetTexLevelParameteriv(mBinding, mip, GL_TEXTURE_SAMPLES, &samples);
+      GLenum target = mBinding;
+      if (mBinding == GL_TEXTURE_CUBE_MAP)
+         target = GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+
+      glGetTexLevelParameteriv(target, mip, GL_TEXTURE_SAMPLES, &samples);
       if (samples > 0)
       {
-         Con::warnf("GFXGLTextureObject::copyToBmp - texture is multisampled (%d samples) at mip %d; resolve before reading.", samples, mip);
+         Con::warnf("GFXGLTextureObject::copyToBmp - Texture is multisampled (%d samples) at mip %d; resolve first.", samples, mip);
          return false;
       }
 
-      glGetTexImage(mBinding, mip, GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], orig);
-      if (mFormat == GFXFormatR16G16B16A16F)
+      for (U32 face = 0; face < numFaces; face++)
       {
-         dMemcpy(dest, orig, srcPixelCount * srcBytesPerPixel);
-      }
-      else
-      {
-         for (U32 i = 0; i < srcPixelCount; ++i)
-         {
-            dest[0] = orig[0];
-            dest[1] = orig[1];
-            dest[2] = orig[2];
-            if (dstBytesPerPixel == 4)
-               dest[3] = orig[3];
+         GLenum faceTarget = isCubemap ? GFXGLFaceType[face] : mBinding;
 
-            orig += srcBytesPerPixel;
-            dest += dstBytesPerPixel;
+         U32 pixelCount = width * height;
+         U8* srcPixels = (U8*)mem.alloc(pixelCount * srcBytesPerPixel);
+         U8* dest = bmp->getWritableBits(mip, face);
+
+         if (!dest)
+         {
+            Con::errorf("GFXGLTextureObject::copyToBmp - No destination bits for mip=%u face=%u", mip, face);
+            continue;
          }
-      }
-   } // end for each mip
+
+         // Read texture data
+         glGetTexImage(faceTarget, mip, GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], srcPixels);
+
+         if (mFormat == GFXFormatR16G16B16A16F)
+         {
+            dMemcpy(dest, srcPixels, pixelCount * srcBytesPerPixel);
+         }
+         else
+         {
+            // Simple 8-bit per channel copy (RGBA)
+            U8* src = srcPixels;
+            for (U32 i = 0; i < pixelCount; ++i)
+            {
+               dest[0] = src[0];
+               dest[1] = src[1];
+               dest[2] = src[2];
+               if (dstBytesPerPixel == 4)
+                  dest[3] = src[3];
+
+               src += srcBytesPerPixel;
+               dest += dstBytesPerPixel;
+            }
+         }
+      } // face
+   } // mip
 
    glBindTexture(mBinding, 0);
    return true;
+}
+
+void GFXGLTextureObject::updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot, const S32 face)
+{
+   if (!texHandle.isValid())
+      return;
+
+   GFXGLTextureObject* srcTex = static_cast<GFXGLTextureObject*>(texHandle.getPointer());
+   if (!srcTex || srcTex->getHandle() == 0)
+      return;
+
+   const GLenum dstTarget = mBinding;             // destination binding (this)
+   const GLenum srcTarget = srcTex->getBinding(); // source binding
+   const bool dstIsArray = (dstTarget == GL_TEXTURE_2D_ARRAY || dstTarget == GL_TEXTURE_CUBE_MAP_ARRAY);
+   const bool dstIsCube = (dstTarget == GL_TEXTURE_CUBE_MAP || dstTarget == GL_TEXTURE_CUBE_MAP_ARRAY);
+   const bool srcIsCube = (srcTarget == GL_TEXTURE_CUBE_MAP || srcTarget == GL_TEXTURE_CUBE_MAP_ARRAY);
+
+   // Determine list of faces to copy from source
+   U32 firstFace = 0;
+   U32 faceCount = 1;
+   if (face >= 0)
+   {
+      firstFace = (U32)face;
+      faceCount = 1;
+   }
+   else if (srcIsCube)
+   {
+      firstFace = 0;
+      faceCount = 6;
+   }
+   else
+   {
+      firstFace = 0;
+      faceCount = 1;
+   }
+
+   // Ensure textures are valid
+   if (!glIsTexture(mHandle) || !glIsTexture(srcTex->getHandle()))
+   {
+      Con::errorf("updateTextureSlot: invalid GL texture handle src=%u dst=%u", srcTex->getHandle(), mHandle);
+      return;
+   }
+
+   // If copyImage supported, prefer that. We'll copy face-by-face (one-layer depth = 1)
+   if (GFXGL->mCapabilities.copyImage)
+   {
+      for (U32 mip = 0; mip < getMipLevels(); ++mip)
+      {
+         const GLsizei mipW = getMax(1u, srcTex->getWidth() >> mip);
+         const GLsizei mipH = getMax(1u, srcTex->getHeight() >> mip);
+
+         for (U32 f = firstFace; f < firstFace + faceCount; ++f)
+         {
+            // Compute source z offset (for cube arrays it's layer index; for cubemap it's face index)
+            GLint srcZ = 0;
+            if (srcTarget == GL_TEXTURE_CUBE_MAP_ARRAY)
+            {
+               srcZ = f;
+            }
+            else if (srcTarget == GL_TEXTURE_CUBE_MAP)
+            {
+               srcZ = f;
+            }
+            else
+            {
+               srcZ = 0; // 2D source
+            }
+
+            // Compute destination layer (z offset) depending on destination type
+            GLint dstZ = 0;
+            if (dstTarget == GL_TEXTURE_CUBE_MAP_ARRAY)
+            {
+               // each slot is a whole cubemap => slot * 6 + faceIndex
+               dstZ = (GLint)(slot * 6 + f);
+            }
+            else if (dstTarget == GL_TEXTURE_2D_ARRAY)
+            {
+               dstZ = (GLint)slot; // each slot is a single layer
+            }
+            else if (dstTarget == GL_TEXTURE_CUBE_MAP)
+            {
+               dstZ = (GLint)f;
+            }
+            else
+            {
+               dstZ = 0; // 2D texture target
+            }
+
+            // Copy single layer/face at this mip
+            glCopyImageSubData(
+               srcTex->getHandle(), srcTarget, mip, 0, 0, srcZ,
+               mHandle, dstTarget, mip, 0, 0, dstZ,
+               mipW, mipH, 1
+            );
+
+            GLenum err = glGetError();
+            if (err != GL_NO_ERROR)
+               Con::errorf("glCopyImageSubData failed with 0x%X (mip=%u face=%u)", err, mip, f);
+         }
+      }
+
+      return;
+   }
+
+   // Fallback: CPU-side copy using glGetTexImage + glTexSubImage
+   for (U32 mip = 0; mip < getMipLevels() && mip < srcTex->getMipLevels(); ++mip)
+   {
+      const GLsizei mipW = getMax(1u, srcTex->getWidth() >> mip);
+      const GLsizei mipH = getMax(1u, srcTex->getHeight() >> mip);
+      const U32 pixelSize = GFXFormat_getByteSize(mFormat); // assuming same fmt for src/dst
+      const U32 dataSize = mipW * mipH * pixelSize;
+
+      FrameAllocatorMarker mem;
+      U8* buffer = (U8*)mem.alloc(dataSize);
+
+      glBindTexture(srcTarget, srcTex->getHandle());
+      glBindTexture(dstTarget, mHandle);
+
+      for (U32 f = firstFace; f < firstFace + faceCount; ++f)
+      {
+         GLenum srcFaceTarget = srcTarget;
+         if (srcTarget == GL_TEXTURE_CUBE_MAP)
+            srcFaceTarget = GFXGLFaceType[f];
+
+         // read pixels from source
+         glGetTexImage(srcFaceTarget, mip, GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], buffer);
+
+         GLint dstLayer = 0;
+         if (dstTarget == GL_TEXTURE_CUBE_MAP_ARRAY)
+            dstLayer = (GLint)(slot * 6 + f);
+         else if (dstTarget == GL_TEXTURE_2D_ARRAY)
+            dstLayer = (GLint)slot;
+         else if (dstTarget == GL_TEXTURE_CUBE_MAP)
+            dstLayer = (GLint)f;
+         else
+            dstLayer = 0;
+
+         if (dstTarget == GL_TEXTURE_CUBE_MAP)
+         {
+            GLenum dstFaceTarget = GFXGLFaceType[f];
+            glTexSubImage2D(dstFaceTarget, mip, 0, 0, mipW, mipH,
+               GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], buffer);
+         }
+         else if (dstTarget == GL_TEXTURE_2D)
+         {
+            glTexSubImage2D(GL_TEXTURE_2D, mip, 0, 0, mipW, mipH,
+               GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], buffer);
+         }
+         else if (dstTarget == GL_TEXTURE_2D_ARRAY || dstTarget == GL_TEXTURE_CUBE_MAP_ARRAY)
+         {
+            glTexSubImage3D(dstTarget, mip, 0, 0, dstLayer, mipW, mipH, 1,
+               GFXGLTextureFormat[mFormat], GFXGLTextureType[mFormat], buffer);
+         }
+      }
+
+      glBindTexture(dstTarget, 0);
+      glBindTexture(srcTarget, 0);
+   }
+}
+
+void GFXGLTextureObject::copyTo(GFXTextureObject* dstTex)
+{
 }
 
 void GFXGLTextureObject::initSamplerState(const GFXSamplerStateDesc &ssd)

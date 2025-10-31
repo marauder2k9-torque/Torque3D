@@ -57,7 +57,7 @@ private:
    friend class GFXGLTextureObject;
    
    /// Creates internal GL texture
-   void innerCreateTexture(GFXGLTextureObject *obj, U32 height, U32 width, U32 depth, GFXFormat format, GFXTextureProfile *profile, U32 numMipLevels, bool forceMips = false);
+   void innerCreateTexture(GFXGLTextureObject *obj, U32 height, U32 width, U32 depth, GFXFormat format, GFXTextureProfile *profile, U32 numMipLevels, bool forceMips = false, U32 arraySize = 1);
 };
 
 #endif

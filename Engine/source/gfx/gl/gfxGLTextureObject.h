@@ -26,7 +26,9 @@
 #include "gfx/gfxTextureObject.h"
 #include "gfx/gl/tGL/tGL.h"
 #include "gfx/gfxStateBlock.h"
-
+#ifndef _MRECT_H_
+#include "math/mRect.h"
+#endif
 class GFXGLDevice;
 
 class GFXGLTextureObject : public GFXTextureObject 
@@ -68,8 +70,8 @@ public:
    void unlock(U32 mipLevel = 0, U32 faceIndex = 0) override;
 
    bool copyToBmp(GBitmap *) override; ///< Not implemented
-   void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot, const S32 face = -1) override {};
-   void copyTo(GFXTextureObject* dstTex) override {};
+   void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot, const S32 face = -1) override;
+   void copyTo(GFXTextureObject* dstTex) override;
    void generateMipMaps() override {};
    bool mIsNPoT2;
 
