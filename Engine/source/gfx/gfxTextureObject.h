@@ -188,7 +188,9 @@ public:
    //   - this process is not fast.
    virtual bool copyToBmp(GBitmap* bmp) = 0;
 
-   virtual void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot) = 0;
+   virtual void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot, const S32 face = -1) = 0;
+   virtual void copyTo(GFXTextureObject* dstTex) = 0;
+   virtual void generateMipMaps() = 0;
 
    #ifdef TORQUE_DEBUG
 

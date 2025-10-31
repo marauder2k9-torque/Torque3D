@@ -783,7 +783,7 @@ GFXTextureObject *GFXTextureManager::createTexture( U32 width, U32 height, GFXFo
    // Create the texture if we didn't get one from the pool.
    if ( !outTex )
    {
-      outTex = _createTextureObject( localHeight, localWidth, 0, format, profile, numMips, false, antialiasLevel );
+      outTex = _createTextureObject( localHeight, localWidth, 0, format, profile, numMips, false, antialiasLevel, arraySize );
 
       // Make sure we add it to the pool.
       if ( outTex && profile->isPooled() )

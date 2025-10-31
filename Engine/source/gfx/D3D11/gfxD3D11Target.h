@@ -49,6 +49,8 @@ class GFXD3D11TextureTarget : public GFXTextureTarget
 
    GFXFormat mTargetFormat;
 
+   U32 mTargetArrayIdx[MaxRenderSlotId];
+
 public:
 
    GFXD3D11TextureTarget(bool genMips);

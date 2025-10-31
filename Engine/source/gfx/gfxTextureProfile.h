@@ -232,14 +232,13 @@ GFX_DeclareTextureProfile(GFXDynamicTextureProfile);
 GFX_DeclareTextureProfile(GFXDynamicTextureSRGBProfile);
 
 // Default Cubemap Texture profiles
+// Dynamic Texure
+GFX_DeclareTextureProfile(GFXDynamicCubemapTextureProfile);
 // Texture we can render to.
 GFX_DeclareTextureProfile(GFXCubemapRenderTargetProfile);
-GFX_DeclareTextureProfile(GFXCubemapRenderTargetSRGBProfile);
 // Standard static diffuse textures
 GFX_DeclareTextureProfile(GFXCubemapStaticTextureProfile);
-GFX_DeclareTextureProfile(GFXCubemapStaticTextureSRGBProfile);
 // Standard static diffuse textures that are persistent in memory
 GFX_DeclareTextureProfile(GFXCubemapTexturePersistentProfile);
-GFX_DeclareTextureProfile(GFXCubemapTexturePersistentSRGBProfile);
 
 #endif

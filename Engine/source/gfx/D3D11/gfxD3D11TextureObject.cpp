@@ -247,17 +247,21 @@ bool GFXD3D11TextureObject::copyToBmp(GBitmap* bmp)
 
    // --- Copy texture (handle cubemap or 2D) ---
    const U32 faceCount = isCubeMap() && bmp->getNumFaces() == 6 ? 6 : 1;
+
    for (U32 face = 0; face < faceCount; ++face)
    {
       for (U32 mip = 0; mip < mipLevels; ++mip)
       {
-         const U32 subRes = D3D11CalcSubresource(mip, face, mipLevels);
+         const U32 srcSubRes = D3D11CalcSubresource(mip, face, mipLevels);
+         // Always map mip-level 0..mipLevels-1 on *slice 0* of the staging texture
+         const U32 dstSubRes = D3D11CalcSubresource(mip, face, mipLevels);
 
          D3D11DEVICECONTEXT->CopySubresourceRegion(
-            stagingTex.Get(), subRes, 0, 0, 0, mD3DTexture.Get(), subRes, NULL);
+            stagingTex.Get(), dstSubRes, 0, 0, 0,
+            mD3DTexture.Get(), srcSubRes, nullptr);
 
          D3D11_MAPPED_SUBRESOURCE mapped = {};
-         hr = D3D11DEVICECONTEXT->Map(stagingTex.Get(), subRes, D3D11_MAP_READ, 0, &mapped);
+         hr = D3D11DEVICECONTEXT->Map(stagingTex.Get(), dstSubRes, D3D11_MAP_READ, 0, &mapped);
          if (FAILED(hr))
          {
             Con::errorf("GFXD3D11TextureObject::copyToBmp - Failed to map staging texture (0x%X)", hr);
@@ -299,7 +303,7 @@ bool GFXD3D11TextureObject::copyToBmp(GBitmap* bmp)
             dst += width * destBpp;
          }
 
-         D3D11DEVICECONTEXT->Unmap(stagingTex.Get(), subRes);
+         D3D11DEVICECONTEXT->Unmap(stagingTex.Get(), dstSubRes);
       }
    }
 
@@ -307,34 +311,107 @@ bool GFXD3D11TextureObject::copyToBmp(GBitmap* bmp)
    return true;
 }
 
-void GFXD3D11TextureObject::updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot)
+void GFXD3D11TextureObject::generateMipMaps()
 {
-   AssertFatal(slot < getArraySize(), "GFXD3D11TextureObject::updateTextureSlot - trying to update a texture slot that is out of bounds");
-   AssertFatal(mFormat == texHandle->getFormat(), "GFXD3D11TextureObject::updateTextureSlot - Destination format doesn't match");
-   AssertFatal(getMipLevels() == texHandle->getMipLevels(), "updateTextureSlot::updateTextureSlot - Destination mip levels doesn't match");
+   //Generate mips
+   D3D11DEVICECONTEXT->GenerateMips(mSRView.Get());
+   //get mip level count
+   D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
+   mSRView->GetDesc(&viewDesc);
+   mMipLevels = viewDesc.TextureCube.MipLevels;
+}
 
-   GFXD3D11TextureObject* pTexObj = static_cast<GFXD3D11TextureObject*>((GFXTextureObject*)texHandle);
+void GFXD3D11TextureObject::updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot, const S32 faceIdx /*=-1*/)
+{
+   AssertFatal(slot < getArraySize(), "updateTextureSlot - destination slot out of bounds");
+   AssertFatal(mFormat == texHandle->getFormat(), "updateTextureSlot - format mismatch");
+   AssertFatal(getMipLevels() == texHandle->getMipLevels(), "updateTextureSlot - mip level mismatch");
+
+   GFXD3D11TextureObject* srcTex = static_cast<GFXD3D11TextureObject*>(texHandle.getPointer());
 
    ID3D11Resource* dstRes = get2DTex();
-   ID3D11Resource* srcRes = pTexObj->get2DTex();
+   ID3D11Resource* srcRes = srcTex->get2DTex();
 
-   const U32 faceCount = isCubeMap() ? 6 : 1;
-   for (U32 face = 0; face < faceCount; face++)
+   const UINT mipLevels = getMipLevels();
+
+   const bool dstIsCube = isCubeMap();
+   const bool srcIsCube = srcTex->isCubeMap();
+
+   const UINT dstArraySize = getArraySize();
+   const UINT srcArraySize = srcTex->getArraySize();
+
+   // Determine number of faces to copy
+   const UINT faceCount = srcIsCube ? 6 : 1;
+   const UINT startFace = (faceIdx >= 0) ? faceIdx : 0;
+   const UINT endFace = (faceIdx >= 0) ? faceIdx + 1 : faceCount;
+
+   for (UINT face = startFace; face < endFace; ++face)
    {
-      for (U32 mip = 0; mip < getMipLevels(); ++mip)
-      {
-         const U32 dstSubresource = D3D11CalcSubresource(mip, face + faceCount * slot, getMipLevels());
-         const U32 srcSubresource = D3D11CalcSubresource(mip, face, getMipLevels());
+      // Compute source slice
+      const UINT srcSlice = srcIsCube
+         ? (srcArraySize > 1 ? face + slot * 6 : face)   // only add slot*6 if it's a cubemap array
+         : (srcArraySize > 1 ? face + slot : 0);        // otherwise, single 2D texture or 2D array
 
-         D3D11DEVICECONTEXT->CopySubresourceRegion(
-            dstRes,                  // Destination resource
-            dstSubresource,          // Destination subresource (mip + slice)
-            0, 0, 0,                 // Destination box offset
-            srcRes,                  // Source resource
-            srcSubresource,          // Source subresource
-            nullptr                  // Copy entire subresource
-         );
+      const UINT dstSlice = dstIsCube
+         ? (dstArraySize > 1 ? face + slot * 6 : face)  // only add slot*6 if it's a cubemap array
+         : (dstArraySize > 1 ? face + slot : 0);        // otherwise, single 2D texture or 2D array
+
+      for (UINT mip = 0; mip < mipLevels; ++mip)
+      {
+         const UINT srcSubresource = D3D11CalcSubresource(mip, srcSlice, mipLevels);
+         const UINT dstSubresource = D3D11CalcSubresource(mip, dstSlice, mipLevels);
+
+         D3D11DEVICECONTEXT->CopySubresourceRegion(dstRes, dstSubresource, 0, 0, 0, srcRes, srcSubresource, nullptr);
       }
    }
+}
 
+void GFXD3D11TextureObject::copyTo(GFXTextureObject* dstTex)
+{
+   AssertFatal(dstTex, "GFXD3D11TextureObject::copyTo - destination is null");
+
+   GFXD3D11TextureObject* pDstTex = static_cast<GFXD3D11TextureObject*>(dstTex);
+
+   ID3D11Texture2D* srcTex = (ID3D11Texture2D*)mD3DTexture.Get();
+   ID3D11Texture2D* dstTex2D = pDstTex->get2DTex();
+
+   D3D11_TEXTURE2D_DESC srcDesc, dstDesc;
+   srcTex->GetDesc(&srcDesc);
+   dstTex2D->GetDesc(&dstDesc);
+
+   // Sanity check – sizes and formats must match for a full copy.
+   AssertFatal(srcDesc.Width == dstDesc.Width && srcDesc.Height == dstDesc.Height,
+      "GFXD3D11TextureObject::copyTo - Mismatched texture dimensions");
+   AssertFatal(srcDesc.Format == dstDesc.Format,
+      "GFXD3D11TextureObject::copyTo - Mismatched formats");
+
+   UINT srcMipLevels = srcDesc.MipLevels ? srcDesc.MipLevels : 1;
+   UINT dstMipLevels = dstDesc.MipLevels ? dstDesc.MipLevels : 1;
+   UINT mipLevels = getMin(srcMipLevels, dstMipLevels);
+
+   UINT srcArraySize = srcDesc.ArraySize;
+   UINT dstArraySize = dstDesc.ArraySize;
+   UINT arraySize = getMin(srcArraySize, dstArraySize);
+
+   // Handle cube maps and cube map arrays
+   bool isCubeSrc = (srcDesc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
+   bool isCubeDst = (dstDesc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
+
+   // In cubemaps, ArraySize is always 6 * numCubes
+   if (isCubeSrc) arraySize = srcArraySize; // 6 or 6*nCubes
+
+   for (UINT arraySlice = 0; arraySlice < arraySize; ++arraySlice)
+   {
+      for (UINT mip = 0; mip < mipLevels; ++mip)
+      {
+         UINT srcSubresource = D3D11CalcSubresource(mip, arraySlice, srcMipLevels);
+         UINT dstSubresource = D3D11CalcSubresource(mip, arraySlice, dstMipLevels);
+
+         D3D11DEVICECONTEXT->CopySubresourceRegion(
+            dstTex2D, dstSubresource,
+            0, 0, 0,
+            srcTex, srcSubresource,
+            nullptr);
+      }
+   }
 }

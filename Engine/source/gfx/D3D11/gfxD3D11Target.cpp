@@ -38,6 +38,7 @@ GFXD3D11TextureTarget::GFXD3D11TextureTarget(bool genMips)
       mResolveTargets[i] = NULL;
       mTargetViews[i] = NULL;
       mTargetSRViews[i] = NULL;
+      mTargetArrayIdx[i] = 0;
    }
 
    mGenMips = genMips;
@@ -76,8 +77,8 @@ void GFXD3D11TextureTarget::attachTexture(RenderSlot slot, GFXTextureObject* tex
    SAFE_RELEASE(mTargetViews[slot]);
    SAFE_RELEASE(mTargets[slot]);
    SAFE_RELEASE(mTargetSRViews[slot]);
-
    mResolveTargets[slot] = NULL;
+   mTargetArrayIdx[slot] = 0;
 
    if (slot == Color0)
    {
@@ -151,12 +152,23 @@ void GFXD3D11TextureTarget::attachTexture(RenderSlot slot, GFXTextureObject* tex
             ID3D11RenderTargetView* faceRTV = d3dto->getCubeFaceRTView(faceIndex);
             AssertFatal(faceRTV, "Cubemap face RTV is null!");
 
-            mTargets[slot] = d3dto->get2DTex();
-            if (mTargets[slot])
-               mTargets[slot]->AddRef();
+            mTargetArrayIdx[slot] = faceIndex;
 
-            mTargetViews[slot] = faceRTV;
-            mTargetViews[slot]->AddRef();
+            if (d3dto->getSurface() == NULL)
+            {
+               mTargets[slot] = d3dto->get2DTex();
+               mTargets[slot]->AddRef();
+               mTargetViews[slot] = faceRTV;
+               mTargetViews[slot]->AddRef();
+            }
+            else
+            {
+               mTargets[slot] = d3dto->getSurface();
+               mTargets[slot]->AddRef();
+               mTargetViews[slot] = faceRTV;
+               mTargetViews[slot]->AddRef();
+               mResolveTargets[slot] = d3dto;
+            }
          }
 
          // For mip generation
@@ -324,7 +336,9 @@ void GFXD3D11TextureTarget::resolveTo( GFXTextureObject *tex )
 
    D3D11_TEXTURE2D_DESC desc;
    mTargets[Color0]->GetDesc(&desc);
-   D3D11DEVICECONTEXT->CopySubresourceRegion(((GFXD3D11TextureObject*)(tex))->get2DTex(), 0, 0, 0, 0, mTargets[Color0], 0, NULL);
+   UINT mipLevels = desc.MipLevels ? desc.MipLevels : 1;
+   UINT subResource = D3D11CalcSubresource(0, mTargetArrayIdx[Color0], mipLevels);
+   D3D11DEVICECONTEXT->CopySubresourceRegion(((GFXD3D11TextureObject*)(tex))->get2DTex(), 0, 0, 0, 0, mTargets[Color0], subResource, NULL);
       
 }
 

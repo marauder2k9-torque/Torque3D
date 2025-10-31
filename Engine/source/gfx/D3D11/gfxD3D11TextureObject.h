@@ -93,7 +93,9 @@ public:
    void unlock(U32 mipLevel = 0, U32 faceIndex = 0) override;
 
    bool			copyToBmp(GBitmap* bmp) override;
-   void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot) override;
+   void generateMipMaps() override;
+   void updateTextureSlot(const GFXTexHandle& texHandle, const U32 slot, const S32 face = -1) override;
+   void copyTo(GFXTextureObject* dstTex) override;
    ID3D11Texture2D*		getSurface() {return mD3DSurface.Get();}
    ID3D11Texture2D**	getSurfacePtr() {return mD3DSurface.GetAddressOf();}
 

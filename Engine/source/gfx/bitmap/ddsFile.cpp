@@ -711,7 +711,7 @@ DDSFile *DDSFile::createDDSFileFromGBitmap( const GBitmap *gbmp )
 
          // If this is a straight copy, just do it, otherwise (ugh)
          if (ret->mFormat == gbmp->getFormat())
-            dMemcpy(mipMem, gbmp->getBits(i), mipSz);
+            dMemcpy(mipMem, gbmp->getBits(i, face), mipSz);
          else
          {
             // Assumption:
@@ -720,7 +720,7 @@ DDSFile *DDSFile::createDDSFileFromGBitmap( const GBitmap *gbmp )
             for (S32 pxl = 0; pxl < gbmp->getWidth(i) * gbmp->getHeight(i); pxl++)
             {
                U8* dst = &mipMem[pxl * ret->mBytesPerPixel];
-               const U8* src = &gbmp->getBits(i)[pxl * gbmp->getBytesPerPixel()];
+               const U8* src = &gbmp->getBits(i, face)[pxl * gbmp->getBytesPerPixel()];
                dMemcpy(dst, src, gbmp->getBytesPerPixel() * sizeof(U8));
                dst[ret->mBytesPerPixel - 1] = 255;
             }

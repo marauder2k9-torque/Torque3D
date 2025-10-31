@@ -245,12 +245,12 @@ private:
    /// <summary>
    /// The prefilter cubemap array
    /// </summary>
-   GFXCubemapArrayHandle mPrefilterArray;
+   GFXTexHandle mPrefilterArray;
 
    /// <summary>
    /// The irradiance cubemap array
    /// </summary>
-   GFXCubemapArrayHandle mIrradianceArray;
+   GFXTexHandle mIrradianceArray;
 
    //Utilized in forward rendering
 

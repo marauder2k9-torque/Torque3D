@@ -52,7 +52,8 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
                                                GFXTextureProfile *profile, 
                                                U32 numMipLevels,
                                                bool forceMips,
-                                               S32 antialiasLevel)
+                                               S32 antialiasLevel,
+															  U32 arraySize)
 {
    U32 usage = 0;
    U32 bindFlags = 0;
@@ -202,7 +203,7 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
 			D3D11_TEXTURE2D_DESC desc;
 		  
 			ZeroMemory(&desc, sizeof(D3D11_TEXTURE2D_DESC));
-			desc.ArraySize = retTex->getArraySize() * retTex->isCubeMap() ? 6 : 1;
+			desc.ArraySize = arraySize * (retTex->isCubeMap() ? 6 : 1);
 			desc.BindFlags = bindFlags;
 			desc.CPUAccessFlags = cpuFlags;
 			desc.Format = d3dTextureFormat;
@@ -222,6 +223,7 @@ void GFXD3D11TextureManager::_innerCreateTexture( GFXD3D11TextureObject *retTex,
 
 			retTex->get2DTex()->GetDesc(&desc);
 			retTex->mMipLevels = desc.MipLevels;
+			retTex->mArraySize = arraySize;
 		}
 
 		// start creating the resource views...
@@ -286,7 +288,7 @@ GFXTextureObject *GFXD3D11TextureManager::_createTextureObject( U32 height,
       retTex->registerResourceWithDevice(GFX);
    }
 
-   _innerCreateTexture(retTex, height, width, depth, format, profile, numMipLevels, forceMips, antialiasLevel);
+   _innerCreateTexture(retTex, height, width, depth, format, profile, numMipLevels, forceMips, antialiasLevel, arraySize);
 
    return retTex;
 }
@@ -496,7 +498,7 @@ bool GFXD3D11TextureManager::_refreshTexture(GFXTextureObject *texture)
    if(texture->mProfile->isRenderTarget() || texture->mProfile->isDynamic() || texture->mProfile->isZTarget())
    {
       realTex->release();
-      _innerCreateTexture(realTex, texture->getHeight(), texture->getWidth(), texture->getDepth(), texture->mFormat, texture->mProfile, texture->mMipLevels, false, texture->mAntialiasLevel);
+      _innerCreateTexture(realTex, texture->getHeight(), texture->getWidth(), texture->getDepth(), texture->mFormat, texture->mProfile, texture->mMipLevels, false, texture->mAntialiasLevel, texture->mArraySize);
       usedStrategies++;
    }
 
@@ -603,10 +605,10 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
          }
          else
          {
-            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
-            desc.TextureCubeArray.MipLevels = -1;
-            desc.TextureCubeArray.MostDetailedMip = 0;
-            desc.TextureCubeArray.First2DArrayFace = 0;
+				desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBEARRAY;
+				desc.TextureCubeArray.MostDetailedMip = 0;
+				desc.TextureCubeArray.MipLevels = -1;
+				desc.TextureCubeArray.First2DArrayFace = 0;
             desc.TextureCubeArray.NumCubes = tex->getArraySize();
          }
          
@@ -616,7 +618,7 @@ void GFXD3D11TextureManager::createResourceView(U32 height, U32 width, U32 depth
          if (tex->getArraySize() == 1)
          {
             desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-            desc.Texture2D.MipLevels = -1;
+				desc.Texture2D.MipLevels = -1;
             desc.Texture2D.MostDetailedMip = 0;
          }
          else
