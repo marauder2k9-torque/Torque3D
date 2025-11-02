@@ -112,6 +112,21 @@ bool AssetManager::onAdd()
 
 void AssetManager::onRemove()
 {
+    // Remove all private assets explicitly before purge.
+   Vector<AssetDefinition*> assetDefinitions;
+
+   // at this point all module assets should have been unloaded.
+   for (typeDeclaredAssetsHash::iterator assetItr = mDeclaredAssets.begin(); assetItr != mDeclaredAssets.end(); ++assetItr)
+   {
+      assetDefinitions.push_back(assetItr->value);
+   }
+
+   for (Vector<AssetDefinition*>::iterator assetItr = assetDefinitions.begin(); assetItr != assetDefinitions.end(); ++assetItr)
+   {
+      AssetDefinition* pAssetDefinition = *assetItr;
+      unloadAsset(pAssetDefinition);
+   }
+
     // Do we have an asset tags manifest?
     if ( !mAssetTagsManifest.isNull() )
     {
@@ -473,7 +488,7 @@ bool AssetManager::removeDeclaredAsset( const char* pAssetId )
     }
 
     // Remove from declared assets.
-    mDeclaredAssets.erase( declaredAssetItr );
+    mDeclaredAssets.erase(declaredAssetItr);
 
     // Info.
     if ( mEchoInfo )
