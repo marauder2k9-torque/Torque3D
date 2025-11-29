@@ -82,18 +82,18 @@ LangElement* ShaderFeature::expandNormalMap(LangElement* sampleNormalOp, LangEle
       {
          // The imposter system uses object space normals and
          // encodes them with the z axis in the alpha component.
-         meta->addStatement(new GenOp("   @ = @( normalize( @.xyw * 2.0 - 1.0 ), 0.0 ); // Obj DXTnm\r\n", normalDecl, Var::constTypeToString(GFXSCT_Float4), sampleNormalOp));
+         meta->addStatement(new GenOp("   @ = @( normalize( @.xyw * 2.0 - 1.0 ), 0.0 ); // Obj DXTnm\r\n", normalDecl, new TypeOp(GFXSCT_Float4), sampleNormalOp));
       }
       else if (hasBc3)
       {
          // BC3 Swizzle trick
-         meta->addStatement(new GenOp("   @ = @( @.ag * 2.0 - 1.0, 0.0, 0.0 ); // DXTnm\r\n", normalDecl, Var::constTypeToString(GFXSCT_Float4), sampleNormalOp));
+         meta->addStatement(new GenOp("   @ = @( @.ag * 2.0 - 1.0, 0.0, 0.0 ); // DXTnm\r\n", normalDecl, new TypeOp(GFXSCT_Float4), sampleNormalOp));
          meta->addStatement(new GenOp("   @.z = sqrt( 1.0 - dot( @.xy, @.xy ) ); // DXTnm\r\n", normalVar, normalVar, normalVar));
       }
       else if (hasBc5)
       {
          // BC5
-         meta->addStatement(new GenOp("   @ = @( @.gr * 2.0 - 1.0, 0.0, 0.0 ); // bc5nm\r\n", normalDecl, Var::constTypeToString(GFXSCT_Float4), sampleNormalOp));
+         meta->addStatement(new GenOp("   @ = @( @.gr * 2.0 - 1.0, 0.0, 0.0 ); // bc5nm\r\n", normalDecl, new TypeOp(GFXSCT_Float4), sampleNormalOp));
          meta->addStatement(new GenOp("   @.z = sqrt( 1.0 - dot( @.xy, @.xy ) ); // bc5nm\r\n", normalVar, normalVar, normalVar));
       }
    }
