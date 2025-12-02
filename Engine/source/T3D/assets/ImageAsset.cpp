@@ -511,11 +511,11 @@ GFXTexHandle ImageAsset::getTexture(GFXTextureProfile* requestedProfile)
    {
       //If we don't have an existing map case to the requested format, we'll just create it and insert it in
       GFXTexHandle newTex;
-      newTex.set(mImageFile, requestedProfile, avar("%s %s %s() - mTextureObject (line %d)", Parent::getAssetId(), mImageFile, __FUNCTION__, __LINE__));
+      newTex.set(mImageFile, requestedProfile, avar("%s %s %s() - GFXTexHandle newTex (line %d)", Parent::getAssetId(), mImageFile, __FUNCTION__, __LINE__));
       if (newTex)
       {
          mResourceMap.insert(requestedProfile, newTex);
-         return newTex;
+         return mResourceMap.find(requestedProfile)->value;
       }
    }
 

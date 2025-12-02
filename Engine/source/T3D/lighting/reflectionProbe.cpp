@@ -145,6 +145,18 @@ ReflectionProbe::~ReflectionProbe()
 #endif
    if (mReflectionModeType == StaticCubemap && mStaticCubemap)
       mStaticCubemap->deleteObject();
+
+   if (mIrridianceMap)
+   {
+      mIrridianceMap->deleteObject();
+   }
+
+   //
+   if (mPrefilterMap)
+   {
+      mPrefilterMap->deleteObject();
+   }
+
 }
 
 //-----------------------------------------------------------------------------

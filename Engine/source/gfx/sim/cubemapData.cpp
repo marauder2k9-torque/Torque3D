@@ -45,6 +45,15 @@ CubemapData::CubemapData()
 
 CubemapData::~CubemapData()
 {
+   if (mCubeMapAsset.notNull())
+   {
+      mCubeMapAsset.clear();
+   }
+
+   if (mCubemap)
+   {
+      mCubemap.free();
+   }
 }
 
 ConsoleDocClass( CubemapData, 
