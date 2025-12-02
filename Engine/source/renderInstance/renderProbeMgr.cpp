@@ -221,9 +221,6 @@ RenderProbeMgr::~RenderProbeMgr()
          SAFE_DELETE(i->value);
    }
    mConstantLookup.clear();
-
-   mIrradianceArray.free();
-   mPrefilterArray.free();
 }
 
 bool RenderProbeMgr::onAdd()
@@ -392,9 +389,6 @@ void RenderProbeMgr::registerProbe(ReflectionProbe::ProbeInfo* newProbe)
       mPrefilterArray = prefilter;
 
       mCubeSlotCount += PROBE_ARRAY_SLOT_BUFFER_SIZE;
-
-      irr.free();
-      prefilter.free();
    }
 
    newProbeRenderInst.mCubemapIndex = cubeIndex;
