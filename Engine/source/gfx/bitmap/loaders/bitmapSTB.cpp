@@ -253,6 +253,8 @@ bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
    // Detect format
    bool isHDR = stbi_is_hdr(filePath);
    bool is16Bit = stbi_is_16_bit(filePath);
+   if (ext.equal("png")) // force png to always be 8bit
+      is16Bit = false;
 
    void* data = nullptr;
 

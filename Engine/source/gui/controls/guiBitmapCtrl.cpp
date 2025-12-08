@@ -91,6 +91,7 @@ bool GuiBitmapCtrl::onWake()
 
 void GuiBitmapCtrl::onSleep()
 {
+   mBitmap = NULL;
    Parent::onSleep();
 }
 
