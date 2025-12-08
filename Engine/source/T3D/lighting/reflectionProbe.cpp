@@ -147,16 +147,10 @@ ReflectionProbe::~ReflectionProbe()
       mStaticCubemap->deleteObject();
 
    if (mIrridianceMap)
-   {
       mIrridianceMap->deleteObject();
-   }
 
-   //
    if (mPrefilterMap)
-   {
       mPrefilterMap->deleteObject();
-   }
-
 }
 
 //-----------------------------------------------------------------------------
