@@ -285,7 +285,7 @@ public:
    void processPix(   Vector<ShaderComponent*> &componentList, 
                               const MaterialFeatureData &fd ) override;
 
-   U32 getShaderStages() override { return GFXShaderStage::PIXEL_SHADER; }
+   //U32 getShaderStages() override { return GFXShaderStage::PIXEL_SHADER; }
 
    Material::BlendOp getBlendOp() override{ return Material::None; }
 
@@ -539,7 +539,7 @@ public:
    void processPix(   Vector<ShaderComponent*> &componentList, 
                               const MaterialFeatureData &fd ) override;
 
-   U32 getShaderStages() override { return GFXShaderStage::PIXEL_SHADER; }
+   //U32 getShaderStages() override { return GFXShaderStage::PIXEL_SHADER; }
 
    String getName() override
    {
