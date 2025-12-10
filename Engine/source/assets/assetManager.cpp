@@ -2743,6 +2743,17 @@ const char* AssetManager::getAssetLooseFile(const char* pAssetId, const S32& ind
 
 //-----------------------------------------------------------------------------
 
+static U32 HashAssetId(const char* str)
+{
+   U32 hash = 2166136261u;
+   while (*str)
+   {
+      hash ^= (U8)*str++;
+      hash *= 16777619u;
+   }
+   return hash;
+}
+
 bool AssetManager::scanDeclaredAssets( const char* pPath, const char* pExtension, const bool recurse, ModuleDefinition* pModuleDefinition )
 {
     // Debug Profiling.
