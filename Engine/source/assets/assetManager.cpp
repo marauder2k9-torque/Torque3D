@@ -525,6 +525,14 @@ bool AssetManager::removeDeclaredAsset( const char* pAssetId )
        mAssetToNetId.erase(netId);
     }
 
+    typeAssetToNetIdMap::iterator netId = mAssetToNetId.find(pAssetId);
+    typeNetIdToAssetMap::iterator netChar = mNetIdToAsset.find(netId->value);
+    if (netId != mAssetToNetId.end() && netChar != mNetIdToAsset.end())
+    {
+       mNetIdToAsset.erase(netChar);
+       mAssetToNetId.erase(netId);
+    }
+
     // Info.
     if ( mEchoInfo )
     {
@@ -2742,17 +2750,6 @@ const char* AssetManager::getAssetLooseFile(const char* pAssetId, const S32& ind
 }
 
 //-----------------------------------------------------------------------------
-
-static U32 HashAssetId(const char* str)
-{
-   U32 hash = 2166136261u;
-   while (*str)
-   {
-      hash ^= (U8)*str++;
-      hash *= 16777619u;
-   }
-   return hash;
-}
 
 bool AssetManager::scanDeclaredAssets( const char* pPath, const char* pExtension, const bool recurse, ModuleDefinition* pModuleDefinition )
 {
