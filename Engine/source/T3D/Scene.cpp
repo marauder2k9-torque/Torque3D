@@ -502,12 +502,12 @@ DefineEngineMethod(Scene, getObjectsByClass, String, (String className, bool che
    U32 len = 0;
    S32 i;
    //Get the length of our return string
-   for(U32 i=0; i < objectsList->size(); i++)
+   for(i=0; i < objectsList->size(); i++)
       len += dStrlen((*objectsList)[i]->getIdString());
 
    char* ret = Con::getReturnBuffer(len + 1);
    ret[0] = 0;
-   for (U32 i = 0; i < objectsList->size(); i++)
+   for (i = 0; i < objectsList->size(); i++)
    {
       dStrcat(ret, (*objectsList)[i]->getIdString(), len + 1);
       dStrcat(ret, " ", len + 1);

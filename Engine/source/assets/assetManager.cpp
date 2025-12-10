@@ -525,14 +525,6 @@ bool AssetManager::removeDeclaredAsset( const char* pAssetId )
        mAssetToNetId.erase(netId);
     }
 
-    typeAssetToNetIdMap::iterator netId = mAssetToNetId.find(pAssetId);
-    typeNetIdToAssetMap::iterator netChar = mNetIdToAsset.find(netId->value);
-    if (netId != mAssetToNetId.end() && netChar != mNetIdToAsset.end())
-    {
-       mNetIdToAsset.erase(netChar);
-       mAssetToNetId.erase(netId);
-    }
-
     // Info.
     if ( mEchoInfo )
     {
