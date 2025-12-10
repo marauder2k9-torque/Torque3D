@@ -149,7 +149,7 @@ SoundAsset::SoundAsset()
    mSubtitleString = StringTable->EmptyString();
 
    mLoadedState = AssetErrCode::NotLoaded;
-   mPreload = false;
+   mPreload = true;
    // SFX description inits
    // reverb is useless here, reverb is inacted on listener.
    mProfileDesc.mPitch = 1;
@@ -195,6 +195,9 @@ SoundAsset::~SoundAsset()
       if(mSFXProfile[i].isProperlyAdded() && !mSFXProfile[i].isDeleted())
          mSFXProfile[i].unregisterObject();
    }
+
+   if (mPlaylist.isProperlyAdded() && !mPlaylist.isDeleted())
+      mPlaylist.unregisterObject();
 }
 
 //-----------------------------------------------------------------------------
@@ -414,7 +417,7 @@ U32 SoundAsset::load()
                trackProfile->setPreload(mPreload);
 
                mSFXProfile[i] = *trackProfile;
-               mSFXProfile[i].registerObject(String::ToString("%s_profile_track%d", getAssetName()).c_str(),i);
+               mSFXProfile[i].registerObject(String::ToString("%s_profile_track%d", getAssetName()).c_str());
 
                mPlaylist.mSlots.mTrack[i] = trackProfile;
                
@@ -423,6 +426,7 @@ U32 SoundAsset::load()
       }
 
       mPlaylist.setDescription(&mProfileDesc);
+      mPlaylist.registerObject(String::ToString("%s_playlist", getAssetName()).c_str());
    }
    else
    {
