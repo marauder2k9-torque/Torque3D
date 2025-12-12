@@ -120,11 +120,13 @@ enum ConstantSortPosition
    cspUninit = 0,      
    /// Updated before every draw primitive call.
    cspPrimitive,
-   /// Potentially updated every draw primitive call, but not necessarily (lights for example)
+   /// Potentially updated every draw primitive call
    cspPotentialPrimitive,
-   /// Updated one per pass
+   /// Unique buffer just for lights.
+   cspLightBuffer,
+   /// Updated per pass
    cspPass,
-   /// Set once per scene
+   /// per scene const buffers (should only be set once)
    cspScene,
    /// Count var, do not use
    csp_Count
