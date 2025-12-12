@@ -95,6 +95,7 @@ class SFXALVoice : public SFXVoice
       void play( bool looping ) override;
       void setVelocity( const VectorF& velocity ) override;
       void setTransform( const MatrixF& transform ) override;
+      void setReverb(bool useReverb) override;
       void setVolume( F32 volume ) override;
       void setPitch( F32 pitch ) override;
       void setCone( F32 innerAngle, F32 outerAngle, F32 outerVolume ) override;

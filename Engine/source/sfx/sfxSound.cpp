@@ -262,7 +262,8 @@ bool SFXSound::_allocVoice( SFXDevice* device )
    }
    
    // Set reverb, if the source group allows it.
-   mVoice->setReverb(getSourceGroup()->getDescription()->mUseReverb);
+   if(getSourceGroup())
+      mVoice->setReverb(getSourceGroup()->getDescription()->mUseReverb);
    
    // Update the duration... it shouldn't have changed, but
    // its probably better that we're accurate if it did.

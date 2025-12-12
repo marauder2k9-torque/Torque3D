@@ -24,6 +24,41 @@
 #include "sfx/openal/sfxALBuffer.h"
 #include "platform/async/asyncUpdate.h"
 
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
+#define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
+#elif defined(__cplusplus)
+#define FUNCTION_CAST(T, ptr) reinterpret_cast<T>(ptr)
+#else
+#define FUNCTION_CAST(T, ptr) (T)(ptr)
+#endif
+
+
+/* Effect object functions */
+static LPALGENEFFECTS alGenEffects;
+static LPALDELETEEFFECTS alDeleteEffects;
+static LPALISEFFECT alIsEffect;
+static LPALEFFECTI alEffecti;
+static LPALEFFECTIV alEffectiv;
+static LPALEFFECTF alEffectf;
+static LPALEFFECTFV alEffectfv;
+static LPALGETEFFECTI alGetEffecti;
+static LPALGETEFFECTIV alGetEffectiv;
+static LPALGETEFFECTF alGetEffectf;
+static LPALGETEFFECTFV alGetEffectfv;
+
+/* Auxiliary Effect Slot object functions */
+static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
+static LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
+static LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
+static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
+static LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv;
+static LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
+static LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv;
+static LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
+static LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
+static LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
+static LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
+
 class SFXALRegisterProvider
 {
 public:
@@ -144,7 +179,10 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
       mDistanceModel(SFXDistanceModelLinear),
       mDistanceFactor(1.0f),
       mRolloffFactor(1.0f),
-      mUserRolloffFactor(1.0f)
+      mUserRolloffFactor(1.0f),
+      mHasEFX(false),
+      mEffect(0),
+      mAuxSlot(0)
 {
    SFXProvider* p = SFXSystem::getProvider(providerIndex);
 
@@ -189,6 +227,39 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
    if (alIsExtensionPresent("AL_EXT_MCFORMATS") == AL_TRUE)
       mCaps |= CAPS_MonoStereo;
 
+   if (mCaps & CAPS_Reverb)
+   {
+#define LOAD_PROC(T, x)  ((x) = FUNCTION_CAST(T, alGetProcAddress(#x)))
+      LOAD_PROC(LPALGENEFFECTS, alGenEffects);
+      LOAD_PROC(LPALDELETEEFFECTS, alDeleteEffects);
+      LOAD_PROC(LPALISEFFECT, alIsEffect);
+      LOAD_PROC(LPALEFFECTI, alEffecti);
+      LOAD_PROC(LPALEFFECTIV, alEffectiv);
+      LOAD_PROC(LPALEFFECTF, alEffectf);
+      LOAD_PROC(LPALEFFECTFV, alEffectfv);
+      LOAD_PROC(LPALGETEFFECTI, alGetEffecti);
+      LOAD_PROC(LPALGETEFFECTIV, alGetEffectiv);
+      LOAD_PROC(LPALGETEFFECTF, alGetEffectf);
+      LOAD_PROC(LPALGETEFFECTFV, alGetEffectfv);
+
+      LOAD_PROC(LPALGENAUXILIARYEFFECTSLOTS, alGenAuxiliaryEffectSlots);
+      LOAD_PROC(LPALDELETEAUXILIARYEFFECTSLOTS, alDeleteAuxiliaryEffectSlots);
+      LOAD_PROC(LPALISAUXILIARYEFFECTSLOT, alIsAuxiliaryEffectSlot);
+      LOAD_PROC(LPALAUXILIARYEFFECTSLOTI, alAuxiliaryEffectSloti);
+      LOAD_PROC(LPALAUXILIARYEFFECTSLOTIV, alAuxiliaryEffectSlotiv);
+      LOAD_PROC(LPALAUXILIARYEFFECTSLOTF, alAuxiliaryEffectSlotf);
+      LOAD_PROC(LPALAUXILIARYEFFECTSLOTFV, alAuxiliaryEffectSlotfv);
+      LOAD_PROC(LPALGETAUXILIARYEFFECTSLOTI, alGetAuxiliaryEffectSloti);
+      LOAD_PROC(LPALGETAUXILIARYEFFECTSLOTIV, alGetAuxiliaryEffectSlotiv);
+      LOAD_PROC(LPALGETAUXILIARYEFFECTSLOTF, alGetAuxiliaryEffectSlotf);
+      LOAD_PROC(LPALGETAUXILIARYEFFECTSLOTFV, alGetAuxiliaryEffectSlotfv);
+#undef LOAD_PROC
+
+      // generate our auxiliary slot for the effects.
+      alGenAuxiliaryEffectSlots(1, &mAuxSlot);
+   }
+
+   alSpeedOfSound(343.3f);
    // --- Device frequency ---
    ALCint freq = 0;
    alcGetIntegerv(mDevice, ALC_FREQUENCY, 1, &freq);
@@ -212,6 +283,12 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
 SFXALDevice::~SFXALDevice()
 {
    _releaseAllResources();
+
+   if (alIsEffect(mEffect))
+   {
+      alDeleteAuxiliaryEffectSlots(1, &mAuxSlot);
+      alDeleteEffects(1, &mEffect);
+   }
 
    ///cleanup of effects ends
    alcMakeContextCurrent( NULL );
@@ -295,6 +372,88 @@ SFXVoice* SFXALDevice::createVoice( bool is3D, SFXBuffer *buffer )
 
    _addVoice( voice );
 	return voice;
+}
+
+void SFXALDevice::setReverb(const SFXReverbProperties& r)
+{
+   if (!(mCaps & CAPS_Reverb))
+      return;
+
+   ALenum err;
+
+   /* Clear error state. */
+   alGetError();
+
+   if (alIsEffect(mEffect))
+      alDeleteEffects(1, &mEffect);
+
+   /* Create the effect object and check if we can do EAX reverb. */
+   alGenEffects(1, &mEffect);
+   alEffecti(mEffect, AL_EFFECT_TYPE, AL_EFFECT_EAXREVERB);
+   err = alGetError();
+
+   // Map your engine's properties to EFX parameters.
+   // Using EAX Reverb as an example:
+   if (err == AL_NO_ERROR)
+   {
+      alEffectf(mEffect, AL_EAXREVERB_DENSITY, r.flDensity);
+      alEffectf(mEffect, AL_EAXREVERB_DIFFUSION, r.flDiffusion);
+      alEffectf(mEffect, AL_EAXREVERB_GAIN, r.flGain);
+      alEffectf(mEffect, AL_EAXREVERB_GAINHF, r.flGainHF);
+      alEffectf(mEffect, AL_EAXREVERB_GAINLF, r.flGainLF);
+      alEffectf(mEffect, AL_EAXREVERB_DECAY_TIME, r.flDecayTime);
+      alEffectf(mEffect, AL_EAXREVERB_DECAY_HFRATIO, r.flDecayHFRatio);
+      alEffectf(mEffect, AL_EAXREVERB_DECAY_LFRATIO, r.flDecayLFRatio);
+
+      alEffectf(mEffect, AL_EAXREVERB_REFLECTIONS_GAIN, r.flReflectionsGain);
+      alEffectf(mEffect, AL_EAXREVERB_REFLECTIONS_DELAY, r.flReflectionsDelay);
+      alEffectfv(mEffect, AL_EAXREVERB_REFLECTIONS_PAN, r.flReflectionsPan);
+
+      alEffectf(mEffect, AL_EAXREVERB_LATE_REVERB_GAIN, r.flLateReverbGain);
+      alEffectf(mEffect, AL_EAXREVERB_LATE_REVERB_DELAY, r.flLateReverbDelay);
+      alEffectfv(mEffect, AL_EAXREVERB_LATE_REVERB_PAN, r.flLateReverbPan);
+
+      alEffectf(mEffect, AL_EAXREVERB_ECHO_TIME, r.flEchoTime);
+      alEffectf(mEffect, AL_EAXREVERB_ECHO_DEPTH, r.flEchoDepth);
+      alEffectf(mEffect, AL_EAXREVERB_MODULATION_TIME, r.flModulationTime);
+      alEffectf(mEffect, AL_EAXREVERB_MODULATION_DEPTH, r.flModulationDepth);
+
+      alEffectf(mEffect, AL_EAXREVERB_AIR_ABSORPTION_GAINHF, r.flAirAbsorptionGainHF);
+      alEffectf(mEffect, AL_EAXREVERB_HFREFERENCE, r.flHFReference);
+      alEffectf(mEffect, AL_EAXREVERB_LFREFERENCE, r.flLFReference);
+      alEffectf(mEffect, AL_EAXREVERB_ROOM_ROLLOFF_FACTOR, r.flRoomRolloffFactor);
+      alEffecti(mEffect, AL_EAXREVERB_DECAY_HFLIMIT, r.iDecayHFLimit);
+   }
+   else
+   {
+      alEffecti(mEffect, AL_EFFECT_TYPE, AL_EFFECT_REVERB);
+
+      alEffectf(mEffect, AL_REVERB_DENSITY, r.flDensity);
+      alEffectf(mEffect, AL_REVERB_DIFFUSION, r.flDiffusion);
+      alEffectf(mEffect, AL_REVERB_GAIN, r.flGain);
+      alEffectf(mEffect, AL_REVERB_GAINHF, r.flGainHF);
+      alEffectf(mEffect, AL_REVERB_DECAY_TIME, r.flDecayTime);
+      alEffectf(mEffect, AL_REVERB_DECAY_HFRATIO, r.flDecayHFRatio);
+      alEffectf(mEffect, AL_REVERB_REFLECTIONS_GAIN, r.flReflectionsGain);
+      alEffectf(mEffect, AL_REVERB_REFLECTIONS_DELAY, r.flReflectionsDelay);
+      alEffectf(mEffect, AL_REVERB_LATE_REVERB_GAIN, r.flLateReverbGain);
+      alEffectf(mEffect, AL_REVERB_LATE_REVERB_DELAY, r.flLateReverbDelay);
+      alEffectf(mEffect, AL_REVERB_AIR_ABSORPTION_GAINHF, r.flAirAbsorptionGainHF);
+      alEffectf(mEffect, AL_REVERB_ROOM_ROLLOFF_FACTOR, r.flRoomRolloffFactor);
+      alEffecti(mEffect, AL_REVERB_DECAY_HFLIMIT, r.iDecayHFLimit);
+   }
+
+   err = alGetError();
+   if (err != AL_NO_ERROR)
+   {
+      if (alIsEffect(mEffect))
+         alDeleteEffects(1, &mEffect);
+   }
+   else
+   {
+      // Bind updated effect to slot
+      alAuxiliaryEffectSloti(mAuxSlot, AL_EFFECTSLOT_EFFECT, (ALint)mEffect);
+   }
 }
 
 //-----------------------------------------------------------------------------

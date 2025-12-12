@@ -57,6 +57,8 @@ SFXALVoice* SFXALVoice::create( SFXALDevice* device, SFXALBuffer *buffer )
    if( buffer->mIs3d )
       alSourcef( sourceName, AL_ROLLOFF_FACTOR, device->mRolloffFactor );
 
+   alSource3i(sourceName, AL_AUXILIARY_SEND_FILTER, (ALint)device->getDeviceAuxSlot(), 0, AL_FILTER_NULL);
+
    SFXALVoice *voice = new SFXALVoice( buffer,
                                        sourceName );
 
@@ -224,6 +226,12 @@ void SFXALVoice::setTransform( const MatrixF& transform )
 
    alSourcefv( mSourceName, AL_POSITION, pos );
    alSourcefv( mSourceName, AL_DIRECTION, dir );
+}
+
+void SFXALVoice::setReverb(bool useReverb)
+{
+   if(!useReverb)
+      alSource3i(mSourceName, AL_AUXILIARY_SEND_FILTER, AL_EFFECTSLOT_NULL, 0, AL_FILTER_NULL);
 }
 
 void SFXALVoice::setVolume( F32 volume )

@@ -911,12 +911,12 @@ void SFXSource::_updateVolume( const MatrixF& listener )
 
       mDistToListener = ( pos - lpos ).len();
       mAttenuatedVolume = SFXDistanceAttenuation(
-         SFX->getDistanceModel(),
-         mMinDistance,
-         mMaxDistance,
-         mDistToListener,
-         mPreAttenuatedVolume,
-         SFX->getRolloffFactor() );
+                           SFX->getDistanceModel(),
+                           mMinDistance,
+                           mMaxDistance,
+                           mDistToListener,
+                           mPreAttenuatedVolume,
+                           SFX->getRolloffFactor());
    }
 }
 
