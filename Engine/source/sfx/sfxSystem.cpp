@@ -1626,12 +1626,33 @@ static ConsoleDocFragment _sfxCreateSource4(
    "SFXSound sfxCreateSource( SFXDescription description, string filename, float x, float y, float z );" );
 
 DefineEngineFunction( sfxCreateSource, S32, ( const char * sfxType, const char * arg0, const char * arg1, const char * arg2, const char * arg3 ), ("", "", "", ""),
-                     "( SFXTrack track | ( SFXDescription description, string filename ) [, float x, float y, float z ] ) "
-                     "Creates a new paused sound source using a profile or a description "
+                     "( SoundAsset | SFXTrack | ( SFXDescription description, string filename ) [, float x, float y, float z ] ) "
+                     "Creates a new paused sound source using an asset, profile, or description "
                      "and filename.  The return value is the source which must be "
                      "released by delete().\n"
                      "@hide" )
 {
+
+   if (AssetDatabase.isDeclaredAsset(sfxType))
+   {
+      AssetPtr<SoundAsset> soundAsset = sfxType;
+
+      SFXSource* source = NULL;
+      if (String::isEmpty(arg0))
+      {
+         source = SFX->createSource(soundAsset->getSFXTrack());
+      }
+      else
+      {
+         MatrixF transform;
+         transform.set(EulerF(0, 0, 0), Point3F(dAtof(arg0), dAtof(arg1), dAtof(arg2)));
+         source = SFX->createSource(soundAsset->getSFXTrack(), &transform);
+      }
+
+      if (source)
+         return source->getId();
+   }
+
    SFXDescription* description = NULL;
    SFXTrack* track = dynamic_cast< SFXTrack* >( Sim::findObject( sfxType ) );
    if ( !track )
@@ -1972,6 +1993,22 @@ DefineEngineFunction( sfxSetRolloffFactor, void, ( F32 value ),,
 
    SFX->setRolloffFactor( value );
 }
+
+DefineEngineFunction(sfxSetSpeedOfSound, void, (F32 value), ,
+   "Set the speed of sound for the sfx device, will be overriden by SFXAmbience settings.\n"
+   "@param value The new speed of sound for the simulation.\n\n"
+   "@pre @a value must be > 0.\n"
+   "@ingroup SFX")
+{
+   if (value <= 0.0f)
+   {
+      Con::errorf("sfxSetSpeedOfSound - factor must be >0");
+      return;
+   }
+
+   SFX->setSpeedOfSound(value);
+}
+
 
 //-----------------------------------------------------------------------------
 
