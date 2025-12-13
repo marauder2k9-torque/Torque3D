@@ -36,9 +36,8 @@
 MODULE_BEGIN( SFX3D )
 
    MODULE_INIT_AFTER( Scene )
-   MODULE_SHUTDOWN_BEFORE(SFX)
-   MODULE_SHUTDOWN_BEFORE(Scene)
-
+   MODULE_SHUTDOWN_BEFORE( Scene )
+   
    MODULE_INIT
    {
       if( !Con::getBoolVariable( "$SFX::noSFXWorld", false ) )

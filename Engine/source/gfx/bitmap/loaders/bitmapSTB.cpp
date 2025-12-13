@@ -370,16 +370,7 @@ bool sWriteSTB(const Torque::Path& path, GBitmap* bitmap, U32 compressionLevel)
 
 
    // we always have at least 1
-   U32 comp = 1;
-
-   if (format == GFXFormatR8G8B8)
-   {
-      comp = 3;
-   }
-   else if (format == GFXFormatR8G8B8A8 || format == GFXFormatR8G8B8X8 || format == GFXFormatR8G8B8A8_LINEAR_FORCE)
-   {
-      comp = 4;
-   }
+   U32 comp = bitmap->getBytesPerPixel();;
 
    if (ext.equal("png"))
    {

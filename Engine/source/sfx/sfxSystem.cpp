@@ -43,6 +43,8 @@
 #include "core/util/autoPtr.h"
 #include "core/module.h"
 
+#include "T3D/sfx/sfx3DWorld.h"
+
 
 Vector<SFXProvider*> SFXSystem::smProviders(__FILE__, __LINE__);
 SFXSystem::RegisterProviderSignal* SFXSystem::smRegisterProviderSignal;
@@ -458,8 +460,7 @@ SFXSystem::SFXSystem()
 
 SFXSystem::~SFXSystem()
 {
-   // Unregister stat variables.
-   
+   // Unregister stat variables
    Con::removeVariable( "SFX::numSources" );
    Con::removeVariable( "SFX::numSounds" );
    Con::removeVariable( "SFX::numPlaying" );
@@ -470,7 +471,6 @@ SFXSystem::~SFXSystem()
    Con::removeVariable( "SFX::ambientUpdateTime" );
    
    // Cleanup any remaining sources.
-   
    if( Sim::getSFXSourceSet() )
       Sim::getSFXSourceSet()->deleteAllObjects();
 
@@ -479,7 +479,6 @@ SFXSystem::~SFXSystem()
    mListeners.clear();
    
    // Delete subsystems.
-   
    if( mSoundscapeMgr )
       SAFE_DELETE( mSoundscapeMgr );
       
