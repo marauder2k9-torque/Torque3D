@@ -176,6 +176,9 @@ public:
       /// Set the rolloff scale factor for distance attenuation of 3D sounds.
       virtual void setRolloffFactor( F32 factor ) {}
 
+      /// Set the scale factor to use for doppler effects on 3D sounds.
+      virtual void setSpeedOfSound(F32 speedOfSound) {}
+
       /// send empty function to all sfxdevices
       virtual void openSlots() {}
       

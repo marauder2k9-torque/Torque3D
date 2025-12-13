@@ -259,7 +259,6 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
       alGenAuxiliaryEffectSlots(1, &mAuxSlot);
    }
 
-   alSpeedOfSound(343.3f);
    // --- Device frequency ---
    ALCint freq = 0;
    alcGetIntegerv(mDevice, ALC_FREQUENCY, 1, &freq);
@@ -539,3 +538,7 @@ void SFXALDevice::setRolloffFactor( F32 factor )
    mUserRolloffFactor = factor;
 }
 
+void SFXALDevice::setSpeedOfSound(F32 speedOfSound)
+{
+   alSpeedOfSound(speedOfSound);
+}

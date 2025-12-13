@@ -98,6 +98,7 @@ public:
    void setDopplerFactor(F32 factor) override;
    void setRolloffFactor(F32 factor) override;
    void resetReverb() override {}
+   void setSpeedOfSound(F32 speedOfSound) override;
 
    ALuint getDeviceAuxSlot() { return mAuxSlot; }
 };

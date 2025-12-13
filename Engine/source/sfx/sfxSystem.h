@@ -168,6 +168,9 @@ protected:
       
    /// The current curve rolloff factor.
    F32 mRolloffFactor;
+
+   /// The current speed of sound.
+   F32 mSpeedOfSound;
             
    /// The current position and orientation of all listeners.
    Vector< SFXListenerProperties > mListeners;
@@ -411,6 +414,12 @@ public:
       
    ///
    void setDopplerFactor( F32 factor );
+
+   /// <summary>
+   /// Change the devices speed of sound.
+   /// </summary>
+   /// <param name="speedOfSound">F32 for speed of sound.</param>
+   void setSpeedOfSound(F32 speedOfSound);
       
    ///
    F32 getRolloffFactor() const { return mRolloffFactor; }

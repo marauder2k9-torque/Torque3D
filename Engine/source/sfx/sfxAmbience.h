@@ -64,6 +64,9 @@ class SFXAmbience : public SimDataBlock
       
       /// Rolloff factor for this space.  Only applies to logarithmic distance model.
       F32 mRolloffFactor;
+
+      /// Speed of sound for this space.
+      F32 mSpeedOfSound;
    
       /// Sound track to play when inside the ambient space.
       DECLARE_SOUNDASSET(SFXAmbience, SoundTrack);
@@ -89,6 +92,9 @@ class SFXAmbience : public SimDataBlock
       
       /// Return the doppler shift factor to apply in this space.
       F32 getDopplerFactor() const { return mDopplerFactor; }
+
+      /// Return the doppler shift factor to apply in this space.
+      F32 getSpeedOfSound() const { return mSpeedOfSound; }
             
       /// Return the reverb environment of the ambient space.
       SFXEnvironment* getEnvironment() const { return mEnvironment; }

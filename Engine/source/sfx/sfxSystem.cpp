@@ -617,6 +617,7 @@ bool SFXSystem::createDevice(SFXProvider* provider)
    mDevice->setDistanceModel( mDistanceModel );
    mDevice->setDopplerFactor( mDopplerFactor );
    mDevice->setRolloffFactor( mRolloffFactor );
+   mDevice->setSpeedOfSound( mSpeedOfSound );
    //OpenAL requires slots for effects, this creates an empty function 
    //that will run when a sfxdevice is created.
    mDevice->openSlots();
@@ -1179,6 +1180,16 @@ void SFXSystem::setDopplerFactor( F32 factor )
    mDopplerFactor = factor;
    if( mDevice && changed )
       mDevice->setDopplerFactor( factor );
+}
+//-----------------------------------------------------------------------------
+
+void SFXSystem::setSpeedOfSound(F32 speedOfSound)
+{
+   const bool changed = (speedOfSound != mSpeedOfSound);
+
+   mSpeedOfSound = speedOfSound;
+   if (mDevice && changed)
+      mDevice->setSpeedOfSound(speedOfSound);
 }
 
 //-----------------------------------------------------------------------------

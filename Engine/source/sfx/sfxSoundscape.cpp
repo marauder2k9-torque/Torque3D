@@ -133,6 +133,7 @@ void SFXSoundscapeManager::update()
 
          SFX->setRolloffFactor( ambience->getRolloffFactor() );
          SFX->setDopplerFactor( ambience->getDopplerFactor() );
+         SFX->setSpeedOfSound( ambience->getSpeedOfSound() );
          SFX->setReverb( ambience->getEnvironment()->getReverb() );
       }
 
