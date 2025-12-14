@@ -24,6 +24,10 @@
 #include "sfx/openal/sfxALBuffer.h"
 #include "platform/async/asyncUpdate.h"
 
+#include "AL/al.h"
+#include "AL/alc.h"
+#include "AL/alext.h"
+
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define FUNCTION_CAST(T, ptr) (union{void *p; T f;}){ptr}.f
 #elif defined(__cplusplus)
@@ -58,6 +62,9 @@ static LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
 static LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
 static LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
 static LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
+
+static LPALCGETSTRINGISOFT alcGetStringiSOFT;
+static LPALCRESETDEVICESOFT alcResetDeviceSOFT;
 
 class SFXALRegisterProvider
 {
@@ -257,6 +264,62 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
 
       // generate our auxiliary slot for the effects.
       alGenAuxiliaryEffectSlots(1, &mAuxSlot);
+   }
+
+   if (mCaps & CAPS_HRTF)
+   {
+#define LOAD_PROC(d, T, x)  ((x) = FUNCTION_CAST(T, alcGetProcAddress((d), #x)))
+      LOAD_PROC(mDevice, LPALCGETSTRINGISOFT, alcGetStringiSOFT);
+      LOAD_PROC(mDevice, LPALCRESETDEVICESOFT, alcResetDeviceSOFT);
+#undef LOAD_PROC
+
+      ALboolean hasAngleExt = alIsExtensionPresent("AL_EXT_STEREO_ANGLES");
+      if (hasAngleExt == AL_TRUE)
+      {
+         Con::printf("AL_EXT_STEREO_ANGLES found");
+      }
+      ALCint num_hrtf;
+      alcGetIntegerv(mDevice, ALC_NUM_HRTF_SPECIFIERS_SOFT, 1, &num_hrtf);
+      if (!num_hrtf)
+      {
+         Con::printf("HRTFS not found.");
+      }
+      else
+      {
+         ALCint attr[5];
+         ALCint index = -1; // just select the default for now, users should be able to select these.
+         ALCint i;
+
+         Con::printf("Available HRTFS");
+         for (i = 0; i < num_hrtf; i++)
+         {
+            const ALCchar* name = alcGetStringiSOFT(mDevice, ALC_HRTF_SPECIFIER_SOFT, i);
+            Con::printf("    %d: %s", i, name);
+
+            ///* Check if this is the HRTF the user requested. */
+            //if (hrtfname && strcmp(name, hrtfname) == 0)
+            //   index = i;
+         }
+
+         i = 0;
+         attr[i++] = ALC_HRTF_SOFT;
+         attr[i++] = ALC_TRUE;
+         if (index == -1)
+         {
+            Con::printf("Using default HRTF...\n");
+         }
+         else
+         {
+            Con::printf("Selecting HRTF %d...\n", index);
+            attr[i++] = ALC_HRTF_ID_SOFT;
+            attr[i++] = index;
+         }
+         attr[i] = 0;
+
+         if (!alcResetDeviceSOFT(mDevice, attr))
+            Con::printf("Failed to reset device: %s\n", alcGetString(mDevice, alcGetError(mDevice)));
+      }
+     
    }
 
    // --- Device frequency ---

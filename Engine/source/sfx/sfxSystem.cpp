@@ -351,6 +351,7 @@ SFXSystem::SFXSystem()
       mStatAmbientUpdateTime( 0 ),
       mDopplerFactor( 0.5 ),
       mRolloffFactor( 1.0 ),
+      mSpeedOfSound(343.3f),
       mSoundscapeMgr( NULL )
 {
    VECTOR_SET_ASSOCIATION( mSounds );
@@ -361,7 +362,7 @@ SFXSystem::SFXSystem()
    // Always at least one listener.
    
    mListeners.increment();
-   
+
    // Register stat variables.
 
    Con::addVariable( "SFX::numSources", TypeS32, &mStatNumSources,
@@ -592,7 +593,7 @@ bool SFXSystem::createDevice(SFXProvider* provider)
    mDevice->setProvider(*provider);
 
    // Print capabilities.
-   Con::printf("| Device Sample rate: %d Hz", Con::getIntVariable("pref::SFX::frequency"));
+   Con::printf("| Device Sample rate: %d Hz", Con::getIntVariable("pref::SFX::frequency", 44100));
 
    if( mDevice->getCaps() & SFXDevice::CAPS_Reverb )
       Con::printf( "| CAPS_Reverb" );
