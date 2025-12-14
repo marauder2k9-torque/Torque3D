@@ -226,9 +226,14 @@ float getDistanceAtt( vec3 unormalizedLightVector , float invSqrAttRadius )
 
 vec3 evaluateStandardBRDF(Surface surface, SurfaceToLight surfaceToLight)
 {
+   if(surface.depth >= 0.9999f)
+   {
+      return vec3(0,0,0);
+   }
+   
    // Compute Fresnel term
    vec3 F = F_Schlick(surface.f0, surfaceToLight.HdotV);
-   F += lerp(vec3(0.04f,0.04f,0.04f), surface.baseColor.rgb, surface.metalness);
+   //F += lerp(vec3(0.04f,0.04f,0.04f), surface.baseColor.rgb, surface.metalness);
     
    // GGX Normal Distribution Function
    float D = D_GGX(surfaceToLight.NdotH, surface.linearRoughness);
