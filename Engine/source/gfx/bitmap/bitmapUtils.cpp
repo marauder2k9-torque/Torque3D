@@ -24,6 +24,11 @@
 
 #include "platform/platform.h"
 
+#ifndef STB_IMAGE_RESIZE2_IMPLEMENTATION
+#define STB_IMAGE_RESIZE2_IMPLEMENTATION
+#define STBIR_PROFILE
+#include "gfx/bitmap/loaders/stb/stb_image_resize2.h"
+#endif // !STB_IMAGE_RESIZE2_IMPLEMENTATION
 
 void bitmapExtrude5551_c(const void *srcMip, void *mip, U32 srcHeight, U32 srcWidth)
 {

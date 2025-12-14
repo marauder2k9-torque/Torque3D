@@ -28,6 +28,12 @@
 #ifndef _TORQUE_TYPES_H_
 #include "platform/types.h"
 #endif
+#ifndef _GFXENUMS_H_
+#include "gfx/gfxEnums.h"
+#endif
+#ifndef _MMATHFN_H_
+#include "math/mMathFn.h"
+#endif
 
 extern void (*bitmapExtrude5551)(const void *srcMip, void *mip, U32 height, U32 width);
 extern void (*bitmapExtrudeRGB)(const void *srcMip, void *mip, U32 height, U32 width, U32 bpp);
