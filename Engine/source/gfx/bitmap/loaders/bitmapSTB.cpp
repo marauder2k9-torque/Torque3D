@@ -42,12 +42,12 @@
 #ifndef STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_STATIC
-#include "stb_image.h"
+#include "gfx/bitmap/loaders/stb/stb_image.h"
 #endif
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_STATIC
-#include "stb_image_write.h"
+#include "gfx/bitmap/loaders/stb/stb_image_write.h"
 
 #pragma warning(pop)
 
@@ -61,13 +61,8 @@ static GFXFormat determineFormat(bool isHDR, bool is16Bit, int numChannels)
 {
    if (isHDR)
    {
-      switch (numChannels)
-      {
-      case 1: return GFXFormatR32F;
-      case 2: return GFXFormatR16G16F; // approximate, most HDRs are 3 or 4 channel though
-      case 3: return GFXFormatR16G16B16A16F; // store RGB in RGBA
-      case 4: return GFXFormatR16G16B16A16F;
-      }
+      // we force hdr to 4 channels.
+      return GFXFormatR32G32B32A32F;
    }
    else if (is16Bit)
    {
@@ -253,8 +248,6 @@ bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
    // Detect format
    bool isHDR = stbi_is_hdr(filePath);
    bool is16Bit = stbi_is_16_bit(filePath);
-   if (ext.equal("png")) // force png to always be 8bit
-      is16Bit = false;
 
    void* data = nullptr;
 
@@ -262,7 +255,7 @@ bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
       data = stbi_loadf(filePath, &x, &y, &n, 4);
    }
    else if (is16Bit)
-      data = stbi_load_16(filePath, &x, &y, &n, 4);
+      data = stbi_load_16(filePath, &x, &y, &n, 0);
    else
       data = stbi_load(filePath, &x, &y, &n, 0);
 
@@ -280,21 +273,21 @@ bool sReadSTB(const Torque::Path& path, GBitmap* bitmap)
    bitmap->deleteImage();
    bitmap->allocateBitmap(x, y, false, format);
 
-   if (isHDR)
-   {
-      U16* pBase = (U16*)bitmap->getBits();
-      const size_t totalPixels = (size_t)x * (size_t)y;
-      for (size_t i = 0; i < totalPixels * 4; ++i)
-      {
-         pBase[i] = convertFloatToHalf(reinterpret_cast<F32*>(data)[i]); // convert F32 -> U16
-      }
-   }
-   else
-   {
+   //if (isHDR)
+   //{
+   //   U16* pBase = (U16*)bitmap->getBits();
+   //   const size_t totalPixels = (size_t)x * (size_t)y;
+   //   for (size_t i = 0; i < totalPixels * 4; ++i)
+   //   {
+   //      pBase[i] = convertFloatToHalf(reinterpret_cast<F32*>(data)[i]); // convert F32 -> U16
+   //   }
+   //}
+   //else
+   //{
       U8* dst = (U8*)bitmap->getBits();
       U32 byteSize = bitmap->getByteSize();
       dMemcpy(dst, data, byteSize);
-   }
+   //}
 
    stbi_image_free(data);
 
@@ -368,38 +361,34 @@ bool sWriteSTB(const Torque::Path& path, GBitmap* bitmap, U32 compressionLevel)
    GFXFormat format = bitmap->getFormat();
    String ext = path.getExtension();
 
-
-   // we always have at least 1
-   U32 comp = bitmap->getBytesPerPixel();
-
    if (ext.equal("png"))
    {
       stbi_write_png_compression_level = compressionLevel;
-      if (stbi_write_png(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits(), 0))
+      if (stbi_write_png(path.getFullPath().c_str(), width, height, bytes, bitmap->getWritableBits(), 0))
          return true;
    }
 
    if (ext.equal("tga"))
    {
-      if (stbi_write_tga(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits()))
+      if (stbi_write_tga(path.getFullPath().c_str(), width, height, bytes, bitmap->getWritableBits()))
          return true;
    }
 
    if (ext.equal("bmp"))
    {
-      if (stbi_write_bmp(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits()))
+      if (stbi_write_bmp(path.getFullPath().c_str(), width, height, bytes, bitmap->getWritableBits()))
          return true;
    }
 
    if (ext.equal("jpg") || ext.equal("jpeg"))
    {
-      if (stbi_write_jpg(path.getFullPath().c_str(), width, height, comp, bitmap->getWritableBits(), compressionLevel))
+      if (stbi_write_jpg(path.getFullPath().c_str(), width, height, bytes, bitmap->getWritableBits(), compressionLevel))
          return true;
    }
 
    if (ext.equal("hdr"))
    {
-      if (stbi_write_hdr(path.getFullPath().c_str(), width, height, comp, (const F32*)bitmap->getWritableBits()))
+      if (stbi_write_hdr(path.getFullPath().c_str(), width, height, bytes, (const F32*)bitmap->getWritableBits()))
          return true;
    }
 

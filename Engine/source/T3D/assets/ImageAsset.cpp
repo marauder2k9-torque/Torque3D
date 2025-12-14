@@ -742,6 +742,9 @@ void ImageAsset::populateImage(void)
             return;
          }
 
+         if (dStrEndsWith(mImageFile, ".hdr"))
+            mIsHDRImage = true;
+
          if (!stbi_info(mImageFile, &mImageWidth, &mImageHeight, &mImageChannels))
          {
             StringTableEntry stbErr = stbi_failure_reason();
