@@ -26,6 +26,7 @@
 
 #include "AL/al.h"
 #include "AL/alc.h"
+#include "AL/efx.h"
 #include "AL/alext.h"
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
@@ -38,33 +39,41 @@
 
 
 /* Effect object functions */
-static LPALGENEFFECTS alGenEffects;
-static LPALDELETEEFFECTS alDeleteEffects;
-static LPALISEFFECT alIsEffect;
-static LPALEFFECTI alEffecti;
-static LPALEFFECTIV alEffectiv;
-static LPALEFFECTF alEffectf;
-static LPALEFFECTFV alEffectfv;
-static LPALGETEFFECTI alGetEffecti;
-static LPALGETEFFECTIV alGetEffectiv;
-static LPALGETEFFECTF alGetEffectf;
-static LPALGETEFFECTFV alGetEffectfv;
-
-/* Auxiliary Effect Slot object functions */
-static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots;
-static LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots;
-static LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot;
-static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti;
-static LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv;
-static LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf;
-static LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv;
-static LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti;
-static LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv;
-static LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf;
-static LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv;
-
-static LPALCGETSTRINGISOFT alcGetStringiSOFT;
-static LPALCRESETDEVICESOFT alcResetDeviceSOFT;
+static LPALGENFILTERS alGenFilters{ nullptr };
+static LPALDELETEFILTERS alDeleteFilters{ nullptr };
+static LPALISFILTER alIsFilter{ nullptr };
+static LPALFILTERF alFilterf{ nullptr };
+static LPALFILTERFV alFilterfv{ nullptr };
+static LPALFILTERI alFilteri{ nullptr };
+static LPALFILTERIV alFilteriv{ nullptr };
+static LPALGETFILTERF alGetFilterf{ nullptr };
+static LPALGETFILTERFV alGetFilterfv{ nullptr };
+static LPALGETFILTERI alGetFilteri{ nullptr };
+static LPALGETFILTERIV alGetFilteriv{ nullptr };
+static LPALGENEFFECTS alGenEffects{ nullptr };
+static LPALDELETEEFFECTS alDeleteEffects{ nullptr };
+static LPALISEFFECT alIsEffect{ nullptr };
+static LPALEFFECTF alEffectf{ nullptr };
+static LPALEFFECTFV alEffectfv{ nullptr };
+static LPALEFFECTI alEffecti{ nullptr };
+static LPALEFFECTIV alEffectiv{ nullptr };
+static LPALGETEFFECTF alGetEffectf{ nullptr };
+static LPALGETEFFECTFV alGetEffectfv{ nullptr };
+static LPALGETEFFECTI alGetEffecti{ nullptr };
+static LPALGETEFFECTIV alGetEffectiv{ nullptr };
+static LPALGENAUXILIARYEFFECTSLOTS alGenAuxiliaryEffectSlots{ nullptr };
+static LPALDELETEAUXILIARYEFFECTSLOTS alDeleteAuxiliaryEffectSlots{ nullptr };
+static LPALISAUXILIARYEFFECTSLOT alIsAuxiliaryEffectSlot{ nullptr };
+static LPALAUXILIARYEFFECTSLOTF alAuxiliaryEffectSlotf{ nullptr };
+static LPALAUXILIARYEFFECTSLOTFV alAuxiliaryEffectSlotfv{ nullptr };
+static LPALAUXILIARYEFFECTSLOTI alAuxiliaryEffectSloti{ nullptr };
+static LPALAUXILIARYEFFECTSLOTIV alAuxiliaryEffectSlotiv{ nullptr };
+static LPALGETAUXILIARYEFFECTSLOTF alGetAuxiliaryEffectSlotf{ nullptr };
+static LPALGETAUXILIARYEFFECTSLOTFV alGetAuxiliaryEffectSlotfv{ nullptr };
+static LPALGETAUXILIARYEFFECTSLOTI alGetAuxiliaryEffectSloti{ nullptr };
+static LPALGETAUXILIARYEFFECTSLOTIV alGetAuxiliaryEffectSlotiv{ nullptr };
+static LPALCGETSTRINGISOFT alcGetStringiSOFT{ nullptr };
+static LPALCRESETDEVICESOFT alcResetDeviceSOFT{ nullptr };
 
 class SFXALRegisterProvider
 {
@@ -266,7 +275,7 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
       alGenAuxiliaryEffectSlots(1, &mAuxSlot);
    }
 
-   if (mCaps & CAPS_HRTF)
+   if ((mCaps & CAPS_HRTF) && Con::getVariable("pref::SFX::useHrtf", false))
    {
 #define LOAD_PROC(d, T, x)  ((x) = FUNCTION_CAST(T, alcGetProcAddress((d), #x)))
       LOAD_PROC(mDevice, LPALCGETSTRINGISOFT, alcGetStringiSOFT);
