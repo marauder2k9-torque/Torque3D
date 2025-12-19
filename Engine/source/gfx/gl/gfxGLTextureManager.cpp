@@ -178,7 +178,11 @@ void GFXGLTextureManager::innerCreateTexture( GFXGLTextureObject *retTex,
 
     glTexParameteri(binding, GL_TEXTURE_MAX_LEVEL, retTex->mMipLevels-1 );
 
-    const bool hasTexStorage = GFXGL->mCapabilities.textureStorage;
+    bool hasTexStorage = false;
+    // not supported when creating these.
+    if (arraySize > 1 || isCube || profile->isDynamic())
+       hasTexStorage = false;
+
     const bool isCompressed = ImageUtil::isCompressedFormat(format);
 
     // --- Allocation by binding ---
@@ -402,12 +406,12 @@ bool GFXGLTextureManager::_loadTexture(GFXTextureObject *aTexture, GBitmap *pDL)
       
    if(texture->getBinding() == GL_TEXTURE_3D)
       return false;
-         
-   // No 24bit formats.
-   if(pDL->getFormat() == GFXFormatR8G8B8)
-      pDL->setFormat(GFXFormatR8G8B8A8);
-   else if (pDL->getFormat() == GFXFormatR8G8B8_SRGB)
-      pDL->setFormat(GFXFormatR8G8B8A8_SRGB);
+   //      
+   //// No 24bit formats.
+   //if(pDL->getFormat() == GFXFormatR8G8B8)
+   //   pDL->setFormat(GFXFormatR8G8B8A8);
+   //else if (pDL->getFormat() == GFXFormatR8G8B8_SRGB)
+   //   pDL->setFormat(GFXFormatR8G8B8A8_SRGB);
 
    // Bind to edit
    PRESERVE_TEXTURE(texture->getBinding());
