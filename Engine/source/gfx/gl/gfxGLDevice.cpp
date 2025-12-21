@@ -1035,7 +1035,8 @@ void GFXGLDevice::_updateRenderTargets()
       GFXGLTextureTarget *tex = dynamic_cast<GFXGLTextureTarget*>( mCurrentRT.getPointer() );
       if ( tex )
       {
-         tex->activate();
+         tex->applyState();
+         tex->makeActive();
       }
       else
       {
