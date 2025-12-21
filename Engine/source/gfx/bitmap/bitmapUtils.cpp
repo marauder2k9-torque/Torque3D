@@ -253,8 +253,8 @@ void bitmapStbResizeToOutput(const void* src, U32 srcHeight, U32 srcWidth, void*
       return;
    }
 
-   const int srcStride = srcWidth * desc.bytesPerPixel;
-   const int dstStride = outWidth * desc.bytesPerPixel;
+   const int srcStride = srcWidth * bpp;
+   const int dstStride = outWidth * bpp;
 
    stbir_resize(
       src,
@@ -348,6 +348,10 @@ GBitmapFormatDesc getFormatDesc(GFXFormat fmt)
       return { 4, {CH_B, CH_G, CH_R, CH_A}, STBIR_TYPE_UINT8, false, false, false, 1 };
    case GFXFormatR8G8B8A8_SRGB:
       return { 4, {CH_R, CH_G, CH_B, CH_A}, STBIR_TYPE_UINT8_SRGB_ALPHA, true, false, false, 1 };
+   case GFXFormatR16G16:
+      return { 2, {CH_R, CH_G, CH_NONE, CH_NONE}, STBIR_TYPE_UINT16, false, false, false, 2 };
+   case GFXFormatR16G16F:
+      return { 2, {CH_R, CH_G, CH_NONE, CH_NONE}, STBIR_TYPE_HALF_FLOAT, false, false, true, 2 };
 
       // 64-bit formats
    case GFXFormatR16G16B16A16:

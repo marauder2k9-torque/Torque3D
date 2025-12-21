@@ -154,8 +154,6 @@ U32 GBitmap::getFormatBytesPerPixel(GFXFormat fmt)
    case GFXFormatA8L8:
    case GFXFormatL16:
    case GFXFormatR16F:
-   case GFXFormatR16G16:
-   case GFXFormatR16G16F:
    case GFXFormatD16:
       return 2;
 
@@ -175,6 +173,8 @@ U32 GBitmap::getFormatBytesPerPixel(GFXFormat fmt)
    case GFXFormatD24X8:
    case GFXFormatD24S8:
    case GFXFormatD24FS8:
+   case GFXFormatR16G16:
+   case GFXFormatR16G16F:
    case GFXFormatR8G8B8A8_LINEAR_FORCE:
       return 4;
 
@@ -1700,10 +1700,7 @@ DefineEngineFunction(saveScaledImage, bool, (const char* bitmapSource, const cha
    if (isPow2(image->getWidth()) && isPow2(image->getHeight()))
       image->extrudeMipLevels();
 
-   if (isHDR)
-   {
-      image->setFormat(GFXFormatR8G8B8A8);
-   }
+   image->setFormat(GFXFormatR8G8B8A8);
 
    U32 mipCount = image->getNumMipLevels();
    U32 targetMips = mFloor(mLog2((F32)(resolutionSize ? resolutionSize : 256))) + 1;
