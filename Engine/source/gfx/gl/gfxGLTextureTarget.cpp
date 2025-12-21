@@ -62,8 +62,8 @@ private:
 class _GFXGLTextureTargetDesc : public _GFXGLTargetDesc
 {
 public:
-   _GFXGLTextureTargetDesc(GFXGLTextureObject* tex, U32 _mipLevel, U32 _zOffset)
-      : _GFXGLTargetDesc(_mipLevel, _zOffset), mTex(tex)
+   _GFXGLTextureTargetDesc(GFXGLTextureObject* tex, U32 _mipLevel, U32 _zOffset, U32 _face = 0)
+      : _GFXGLTargetDesc(_mipLevel, _zOffset), mTex(tex), mFace(_face)
    {
    }
 
@@ -73,6 +73,7 @@ public:
    U32 getWidth() override { return mTex->getWidth(); }
    U32 getHeight() override { return mTex->getHeight(); }
    U32 getDepth() override { return mTex->getDepth(); }
+   U32 getFace() { return mFace; }
    bool hasMips() override { return mTex->mMipLevels != 1; }
    GLenum getBinding() override { return mTex->getBinding(); }
    GFXFormat getFormat() override { return mTex->getFormat(); }
@@ -83,35 +84,6 @@ public:
          && mTex->getHeight() == tex->getHeight();
    }
    GFXGLTextureObject* getTextureObject() const { return mTex; }
-
-private:
-   StrongRefPtr<GFXGLTextureObject> mTex;
-};
-
-/// Internal struct used to track Cubemap texture information for FBO attachment
-class _GFXGLCubemapTargetDesc : public _GFXGLTargetDesc
-{
-public:
-   _GFXGLCubemapTargetDesc(GFXGLTextureObject* tex, U32 _face, U32 _mipLevel, U32 _zOffset)
-      : _GFXGLTargetDesc(_mipLevel, _zOffset), mTex(tex), mFace(_face)
-   {
-   }
-
-   virtual ~_GFXGLCubemapTargetDesc() {}
-
-   U32 getHandle() override { return mTex->getHandle(); }
-   U32 getWidth() override { return mTex->getWidth(); }
-   U32 getHeight() override { return mTex->getHeight(); }
-   U32 getDepth() override { return 0; }
-   bool hasMips() override { return mTex->getMipLevels() != 1; }
-   GLenum getBinding() override { return GFXGLFaceType[mFace]; }
-   GFXFormat getFormat() override { return mTex->getFormat(); }
-   bool isCompatible(const GFXGLTextureObject* tex) override
-   {
-      return mTex->getFormat() == tex->getFormat()
-         && mTex->getWidth() == tex->getWidth()
-         && mTex->getHeight() == tex->getHeight();
-   }
 
 private:
    StrongRefPtr<GFXGLTextureObject> mTex;
@@ -311,8 +283,9 @@ void GFXGLTextureTarget::attachTexture(RenderSlot slot, GFXTextureObject* tex, U
    if (tex == GFXTextureTarget::sDefaultDepthStencil)
       tex = GFXGL->getDefaultDepthTex();
 
+   // are we readding the same thing, face and all?
    _GFXGLTextureTargetDesc* mTex = static_cast<_GFXGLTextureTargetDesc*>(mTargets[slot].ptr());
-   if ((!tex && !mTex) || (mTex && mTex->getTextureObject() == tex))
+   if ((!tex && !mTex) || (mTex && mTex->getTextureObject() == tex && mTex->getFace() == face))
       return;
 
    // Triggers an update when we next render
@@ -322,14 +295,7 @@ void GFXGLTextureTarget::attachTexture(RenderSlot slot, GFXTextureObject* tex, U
    GFXGLTextureObject* glTexture = static_cast<GFXGLTextureObject*>(tex);
    if (tex && tex != GFXTextureTarget::sDefaultDepthStencil)
    {
-      if (tex->isCubeMap())
-      {
-         mTargets[slot] = new _GFXGLCubemapTargetDesc(glTexture, face, mipLevel, zOffset);
-      }
-      else
-      {
-         mTargets[slot] = new _GFXGLTextureTargetDesc(glTexture, mipLevel, zOffset);
-      }
+      mTargets[slot] = new _GFXGLTextureTargetDesc(glTexture, mipLevel, zOffset, face);
    }
    else
       mTargets[slot] = NULL;
