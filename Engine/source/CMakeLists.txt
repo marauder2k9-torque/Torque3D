@@ -9,6 +9,7 @@ endif (APPLE)
 # Find all dependencies (using vcpkg's toolchain integration)
 # ------------------------------------------------------------------
 find_package(ZLIB REQUIRED)
+find_package(PNG REQUIRED)
 find_package(SDL2 CONFIG REQUIRED)
 find_package(unofficial-pcre CONFIG REQUIRED)
 find_package(Ogg CONFIG REQUIRED)
@@ -26,6 +27,7 @@ find_package(OpenAL CONFIG REQUIRED)
 # ------------------------------------------------------------------
 set(TORQUE_LINK_THIRDPARTY ${TORQUE_LINK_THIRDPARTY}
     ZLIB::ZLIB
+    PNG::PNG
     $<TARGET_NAME_IF_EXISTS:SDL2::SDL2main>
     $<IF:$<TARGET_EXISTS:SDL2::SDL2>,SDL2::SDL2,SDL2::SDL2-static>
     unofficial::pcre::pcre unofficial::pcre::pcre16 unofficial::pcre::pcre32 unofficial::pcre::pcrecpp

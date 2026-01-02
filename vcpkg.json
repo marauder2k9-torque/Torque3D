@@ -4,6 +4,7 @@
   "dependencies": [
     { "name": "directx-dxc", "platform": "windows" },
     "zlib",
+    "libpng",
     "pcre",
     "libogg",
     "libvorbis",

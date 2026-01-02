@@ -3304,7 +3304,7 @@ Torque::Path AssetImporter::importSoundAsset(AssetImportObject* assetItem)
    //file path for reimporting support later
    if (!isReimport)
    {
-      newAsset->setDataField(StringTable->insert("originalFilePath"), NULL, qualifiedFromFile);
+      newAsset->setDataField(StringTable->insert("originalFilePath"), NULL, originalPath.c_str());
    }
 
    Taml tamlWriter;
