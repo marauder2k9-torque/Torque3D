@@ -519,7 +519,7 @@ GFXTexHandle ImageAsset::getTexture(GFXTextureProfile* requestedProfile)
       }
    }
 
-   return nullptr;
+   return NULL;
 }
 
 const char* ImageAsset::getImageTypeNameFromType(ImageAsset::ImageTypes type)
@@ -773,7 +773,7 @@ const char* ImageAsset::getImageInfo()
       if (newTex)
       {
          dSprintf(returnBuffer, bufSize, "%s %d %d %d", GFXStringTextureFormat[newTex->getFormat()], newTex->getHeight(), newTex->getWidth(), newTex->getDepth());
-         newTex = nullptr;
+         newTex = NULL;
       }
       else
       {
@@ -879,7 +879,7 @@ GuiControl* GuiInspectorTypeImageAssetPtr::constructEditControl()
 
    const char* previewImage;
 
-   if (mInspector->getInspectObject() != nullptr)
+   if (mInspector->getInspectObject() != NULL)
    {
       dSprintf(szBuffer, sizeof(szBuffer), "AssetBrowser.showDialog(\"ImageAsset\", \"AssetBrowser.changeAsset\", %s);",
          getIdString());
@@ -913,7 +913,7 @@ GuiControl* GuiInspectorTypeImageAssetPtr::constructEditControl()
 
    editTextCtrl->setPlaceholderText("(None)");
 
-   GuiControlProfile* toolDefaultProfile = nullptr;
+   GuiControlProfile* toolDefaultProfile = NULL;
    Sim::findObject("ToolsGuiDefaultProfile", toolDefaultProfile);
 
    //
@@ -943,7 +943,7 @@ GuiControl* GuiInspectorTypeImageAssetPtr::constructEditControl()
    // Create "Open in Editor" button
    mEditButton = new GuiBitmapButtonCtrl();
 
-   if (mInspector->getInspectObject() != nullptr)
+   if (mInspector->getInspectObject() != NULL)
       dSprintf(szBuffer, sizeof(szBuffer), "%d.apply(\"\");", getId());
    else
       dSprintf(szBuffer, sizeof(szBuffer), "%s = \"\";", mVariableName);
@@ -1076,7 +1076,7 @@ void GuiInspectorTypeImageAssetPtr::updateValue()
 void GuiInspectorTypeImageAssetPtr::updatePreviewImage()
 {
    const char* previewImage;
-   if (mInspector->getInspectObject() != nullptr)
+   if (mInspector->getInspectObject() != NULL)
       previewImage = getData();
    else
       previewImage = Con::getVariable(mVariableName);

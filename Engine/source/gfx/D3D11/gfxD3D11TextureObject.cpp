@@ -273,7 +273,6 @@ bool GFXD3D11TextureObject::copyToBmp(GBitmap* bmp)
 
          const U32 width = bmp->getWidth(mip);
          const U32 height = bmp->getHeight(mip);
-         const S32 rowPadding = mapped.RowPitch - width * srcBpp;
 
          for (U32 y = 0; y < height; ++y)
          {
@@ -395,7 +394,6 @@ void GFXD3D11TextureObject::copyTo(GFXTextureObject* dstTex)
 
    // Handle cube maps and cube map arrays
    bool isCubeSrc = (srcDesc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
-   bool isCubeDst = (dstDesc.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE) != 0;
 
    // In cubemaps, ArraySize is always 6 * numCubes
    if (isCubeSrc) arraySize = srcArraySize; // 6 or 6*nCubes

@@ -3,7 +3,7 @@
 #include "T3D/gameBase/gameConnection.h"
 #include "T3D/gameMode.h"
 
-Scene * Scene::smRootScene = nullptr;
+Scene * Scene::smRootScene = NULL;
 Vector<Scene*> Scene::smSceneList;
 
 IMPLEMENT_CALLBACK(Scene, onSaving, void, (const char* fileName), (fileName),
@@ -14,7 +14,7 @@ IMPLEMENT_CALLBACK(Scene, onSaving, void, (const char* fileName), (fileName),
 IMPLEMENT_CO_NETOBJECT_V1(Scene);
 
 Scene::Scene() : 
-   mParentScene(nullptr),
+   mParentScene(NULL),
    mSceneId(-1),
    mIsEditing(false),
    mIsDirty(false),
@@ -197,12 +197,12 @@ void Scene::processTick()
          if (gc)
          {
             GameBase* controlObj = gc->getControlObject();
-            if (controlObj == nullptr)
+            if (controlObj == NULL)
             {
                controlObj = gc->getCameraObject();
             }
 
-            if (mSubScenes[i]->testBox(controlObj != nullptr ? controlObj->getWorldBox() : Box3F::Zero))
+            if (mSubScenes[i]->testBox(controlObj != NULL ? controlObj->getWorldBox() : Box3F::Zero))
                {
                   //we have a client controlling object in the bounds, so we ensure the contents are loaded
                   hasClients = true;
@@ -430,7 +430,7 @@ DefineEngineFunction(getScene, Scene*, (U32 sceneId), (0),
    "@return The id of the Root Scene. Will be 0 if no root scene is loaded")
 {
    if (Scene::smSceneList.empty() || sceneId >= Scene::smSceneList.size())
-      return nullptr;
+      return NULL;
 
    return Scene::smSceneList[sceneId];
 }

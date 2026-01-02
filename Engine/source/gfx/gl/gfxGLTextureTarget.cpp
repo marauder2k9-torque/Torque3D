@@ -62,8 +62,9 @@ private:
 class _GFXGLTextureTargetDesc : public _GFXGLTargetDesc
 {
 public:
-   _GFXGLTextureTargetDesc(GFXGLTextureObject* tex, U32 _mipLevel, U32 _zOffset, U32 _face = 0)
-      : _GFXGLTargetDesc(_mipLevel, _zOffset), mTex(tex), mFace(_face)
+  
+   _GFXGLTextureTargetDesc(GFXGLTextureObject* tex, U32 _mipLevel, U32 _zOffset, U32 _face = 0, bool isCube = false)
+      : _GFXGLTargetDesc(_mipLevel, _zOffset), mTex(tex), mFace(_face), mIsCube(isCube)
    {
    }
 
@@ -75,7 +76,7 @@ public:
    U32 getDepth() override { return mTex->getDepth(); }
    U32 getFace() { return mFace; }
    bool hasMips() override { return mTex->mMipLevels != 1; }
-   GLenum getBinding() override { return mTex->getBinding(); }
+   GLenum getBinding() override { return mIsCube ? GFXGLFaceType[mFace] : mTex->getBinding(); }
    GFXFormat getFormat() override { return mTex->getFormat(); }
    bool isCompatible(const GFXGLTextureObject* tex) override
    {
@@ -88,6 +89,7 @@ public:
 private:
    StrongRefPtr<GFXGLTextureObject> mTex;
    U32 mFace;
+   bool mIsCube;
 };
 
 // Internal implementations
@@ -295,7 +297,7 @@ void GFXGLTextureTarget::attachTexture(RenderSlot slot, GFXTextureObject* tex, U
    GFXGLTextureObject* glTexture = static_cast<GFXGLTextureObject*>(tex);
    if (tex && tex != GFXTextureTarget::sDefaultDepthStencil)
    {
-      mTargets[slot] = new _GFXGLTextureTargetDesc(glTexture, mipLevel, zOffset, face);
+      mTargets[slot] = new _GFXGLTextureTargetDesc(glTexture, mipLevel, zOffset, face, glTexture->isCubeMap());
    }
    else
       mTargets[slot] = NULL;

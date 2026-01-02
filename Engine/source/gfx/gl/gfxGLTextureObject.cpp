@@ -253,8 +253,6 @@ void GFXGLTextureObject::updateTextureSlot(const GFXTexHandle& texHandle, const 
 
    const GLenum dstTarget = mBinding;             // destination binding (this)
    const GLenum srcTarget = srcTex->getBinding(); // source binding
-   const bool dstIsArray = (dstTarget == GL_TEXTURE_2D_ARRAY || dstTarget == GL_TEXTURE_CUBE_MAP_ARRAY);
-   const bool dstIsCube = (dstTarget == GL_TEXTURE_CUBE_MAP || dstTarget == GL_TEXTURE_CUBE_MAP_ARRAY);
    const bool srcIsCube = (srcTarget == GL_TEXTURE_CUBE_MAP || srcTarget == GL_TEXTURE_CUBE_MAP_ARRAY);
 
    // Determine list of faces to copy from source
