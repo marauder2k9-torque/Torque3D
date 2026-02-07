@@ -489,6 +489,8 @@ static bool sWriteStreamPNG(const String& bmType, Stream& stream, GBitmap* bitma
 {
    U32 waterMark = FrameAllocator::getWaterMark();
 
+   stream.write(U32_MAX); // to conform compatibility with bitmapSTB so if we choose to use a different format we can.
+
    if ( compressionLevel < 10 )
    {
       bool retVal = _writePNG(bitmap, stream, compressionLevel, 0, PNG_ALL_FILTERS);
