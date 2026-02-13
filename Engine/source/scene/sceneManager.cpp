@@ -87,6 +87,15 @@ MODULE_BEGIN( Scene )
       Con::addVariable( "$Scene::occluderMinHeightPercentage", TypeF32, &SceneCullingState::smOccluderMinHeightPercentage,
          "TODO\n\n"
          "@ingroup Rendering" );
+
+      Con::addVariable("$Scene::renderSceneContainerBins", TypeBool, &SceneContainer::smRenderDebugBins,
+         "If true we will render the scene container bins to visualize them.\n"
+         "@ingroup Rendering\n");
+
+      Con::addVariable("$Scene::renderSceneBVHTree", TypeBool, &SceneContainer::smRenderDebugBVHTree,
+         "If true we will render the scene BVH tree to visualize them.\n"
+         "@ingroup Rendering\n");
+
    }
    
    MODULE_SHUTDOWN
@@ -348,20 +357,20 @@ void SceneManager::renderSceneNoLights( SceneRenderState* renderState, U32 objec
 
 //-----------------------------------------------------------------------------
 
-void SceneManager::_renderScene( SceneRenderState* state, U32 objectMask, SceneZoneSpace* baseObject, U32 baseZone )
+void SceneManager::_renderScene(SceneRenderState* state, U32 objectMask, SceneZoneSpace* baseObject, U32 baseZone)
 {
-   AssertFatal( this == gClientSceneGraph, "SceneManager::_buildSceneGraph - Only the client scenegraph can support this call!" );
+   AssertFatal(this == gClientSceneGraph, "SceneManager::_buildSceneGraph - Only the client scenegraph can support this call!");
 
-   PROFILE_SCOPE( SceneGraph_batchRenderImages );
+   PROFILE_SCOPE(SceneGraph_batchRenderImages);
 
    // In the editor, override the type mask for diffuse passes.
 
-   if( gEditingMission && state->isDiffusePass() )
+   if (gEditingMission && state->isDiffusePass())
       objectMask = EDITOR_RENDER_TYPEMASK;
 
    // Update the zoning state and traverse zones.
 
-   if( getZoneManager() )
+   if (getZoneManager())
    {
       // Update.
 
@@ -370,26 +379,26 @@ void SceneManager::_renderScene( SceneRenderState* state, U32 objectMask, SceneZ
       // If zone culling isn't disabled, traverse the
       // zones now.
 
-      if( !state->getCullingState().disableZoneCulling() )
+      if (!state->getCullingState().disableZoneCulling())
       {
          // Find the start zone if we haven't already.
 
-         if( !baseObject )
+         if (!baseObject)
          {
-            getZoneManager()->findZone( state->getCameraPosition(), baseObject, baseZone );
-            AssertFatal( baseObject != NULL, "SceneManager::_renderScene - findZone() did not return an object" );
+            getZoneManager()->findZone(state->getCameraPosition(), baseObject, baseZone);
+            AssertFatal(baseObject != NULL, "SceneManager::_renderScene - findZone() did not return an object");
          }
 
          // Traverse zones starting in base object.
 
-         SceneTraversalState traversalState( &state->getCullingState() );
-         PROFILE_START( Scene_traverseZones );
-         baseObject->traverseZones( &traversalState, baseZone );
+         SceneTraversalState traversalState(&state->getCullingState());
+         PROFILE_START(Scene_traverseZones);
+         baseObject->traverseZones(&traversalState, baseZone);
          PROFILE_END();
 
          // Set the scene render box to the area we have traversed.
 
-         state->setRenderArea( traversalState.getTraversedArea() );
+         state->setRenderArea(traversalState.getTraversedArea());
       }
    }
 
@@ -399,7 +408,7 @@ void SceneManager::_renderScene( SceneRenderState* state, U32 objectMask, SceneZ
    // the opportunity to render editor visualizations even if
    // they are otherwise not in view.
 
-   if( !state->getCullingFrustum().getBounds().isOverlapped( state->getRenderArea() ) )
+   if (!state->getCullingFrustum().getBounds().isOverlapped(state->getRenderArea()))
    {
       // This handles fringe cases like flying backwards into a zone where you
       // end up pretty much standing on a zone border and looking directly into
@@ -411,23 +420,23 @@ void SceneManager::_renderScene( SceneRenderState* state, U32 objectMask, SceneZ
    }
 
    Box3F queryBox = state->getCullingFrustum().getBounds();
-   if( !gEditingMission )
+   if (!gEditingMission)
    {
-      queryBox.minExtents.setMax( state->getRenderArea().minExtents );
-      queryBox.maxExtents.setMin( state->getRenderArea().maxExtents );
+      queryBox.minExtents.setMax(state->getRenderArea().minExtents);
+      queryBox.maxExtents.setMin(state->getRenderArea().maxExtents);
    }
 
-   PROFILE_START( Scene_cullObjects );
+   PROFILE_START(Scene_cullObjects);
 
    //TODO: We should split the codepaths here based on whether the outdoor zone has visible space.
    //    If it has, we should use the container query-based path.
    //    If it hasn't, we should fill the object list directly from the zone lists which will usually
    //       include way fewer objects.
-   
+
    // Gather all objects that intersect the scene render box.
 
    mBatchQueryList.clear();
-   getContainer()->findObjectList( queryBox, objectMask, &mBatchQueryList );
+   getContainer()->findObjectList(queryBox, objectMask, &mBatchQueryList);
 
    // Cull the list.
 
@@ -445,16 +454,16 @@ void SceneManager::_renderScene( SceneRenderState* state, U32 objectMask, SceneZ
    // is the power of proliferation of things done wrong.
 
    GameConnection* connection = GameConnection::getConnectionToServer();
-   if( connection )
+   if (connection)
    {
-      Player* player = dynamic_cast< Player* >( connection->getControlObject() );
-      if( player )
+      Player* player = dynamic_cast<Player*>(connection->getControlObject());
+      if (player)
       {
-         mBatchQueryList.setSize( numRenderObjects );
-         if( !mBatchQueryList.contains( player ) )
+         mBatchQueryList.setSize(numRenderObjects);
+         if (!mBatchQueryList.contains(player))
          {
-            mBatchQueryList.push_back( player );
-            numRenderObjects ++;
+            mBatchQueryList.push_back(player);
+            numRenderObjects++;
          }
       }
    }
@@ -470,11 +479,17 @@ void SceneManager::_renderScene( SceneRenderState* state, U32 objectMask, SceneZ
 
    // Render the remaining objects.
 
-   PROFILE_START( Scene_renderObjects );
-   state->renderObjects( mBatchQueryList.address(), numRenderObjects );
+   PROFILE_START(Scene_renderObjects);
+   state->renderObjects(mBatchQueryList.address(), numRenderObjects);
    PROFILE_END();
 
    // Render bounding boxes, if enabled.
+
+   if (SceneContainer::smRenderDebugBins || SceneContainer::smRenderDebugBVHTree)
+   {
+      if(state->isDiffusePass())
+         getContainer()->renderDebug(state);
+   }
 
    if( smRenderBoundingBoxes && state->isDiffusePass() )
    {

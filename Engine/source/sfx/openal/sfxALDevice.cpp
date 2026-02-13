@@ -275,7 +275,7 @@ SFXALDevice::SFXALDevice(U32 providerIndex)
       alGenAuxiliaryEffectSlots(1, &mAuxSlot);
    }
 
-   if ((mCaps & CAPS_HRTF) && Con::getVariable("pref::SFX::useHrtf", false))
+   if ((mCaps & CAPS_HRTF) && Con::getBoolVariable("pref::SFX::useHrtf", false))
    {
 #define LOAD_PROC(d, T, x)  ((x) = FUNCTION_CAST(T, alcGetProcAddress((d), #x)))
       LOAD_PROC(mDevice, LPALCGETSTRINGISOFT, alcGetStringiSOFT);

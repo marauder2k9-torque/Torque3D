@@ -52,6 +52,9 @@
 #include "scene/sceneObject.h"
 #endif
 
+#ifndef _TBVH_H_
+#include "core/util/tBVH.h"
+#endif
 
 /// @file
 /// SceneObject database.
@@ -545,6 +548,51 @@ public:
 
 //----------------------------------------------------------------------------
 
+class SceneObjectProxy : public BVHProxy
+{
+const F32 MARGIN = 2.0f;
+public:
+   explicit SceneObjectProxy(SceneObject* obj)
+      : mObject(obj) {}
+
+   Box3F getBounds() const override
+   {
+      Box3F fatAABB = mObject->getWorldBox();
+
+      Point3F expanded = fatAABB.getCenter() + mObject->getVelocity();
+      fatAABB.extend(expanded);
+
+      fatAABB.minExtents -= Point3F(MARGIN);
+      fatAABB.maxExtents += Point3F(MARGIN);
+
+      return fatAABB;
+   }
+
+   BVHNode* getBVHNode() const override
+   {
+      return mObject->mBVHNode;
+   }
+
+   bool castRay(const Point3F& start, const Point3F& end, RayInfo* info) const override
+   {
+      return mObject->castRay(start, end, info);
+   }
+
+   bool castRayRendered(const Point3F& start, const Point3F& end, RayInfo* info) const override
+   {
+      return mObject->castRayRendered(start, end, info);
+   }
+
+   SceneObject* mObject;
+};
+
+enum BVHVisibility
+{
+   BVH_Outside,
+   BVH_Intersect,
+   BVH_Inside
+};
+
 /// Database for SceneObjects.
 ///
 /// ScenceContainer implements a grid-based spatial subdivision for the contents of a scene.
@@ -579,6 +627,13 @@ class SceneContainer
          void *key;
       };
 
+      static bool SceneContainer::smRenderDebugBins;
+      static bool SceneContainer::smRenderDebugBVHTree;
+
+      void renderBVHNode(BVHNode* node, const GFXStateBlockDesc& desc, const Frustum& frustum, U32 depth);
+      void renderGrid(const GFXStateBlockDesc& desc);
+      void renderDebug(SceneRenderState* state);
+      
    private:
 
       /// Container queries based on #mCurrSeqKey are are not re-entrant;
@@ -652,6 +707,11 @@ class SceneContainer
 
       void polyhedronFindObjects( const Polyhedron& polyhedron, U32 mask, FindCallback, void *key = NULL );
 
+      void queryBVHNode(const Box3F& box, BVHNode* node, U32 mask, Vector< SceneObject* >* outFound);
+      void queryBVHNode(const Box3F& box, BVHNode* node, U32 mask, FindCallback callback, void* key = NULL);
+      void queryBVHFromLeaf(const Box3F& box, BVHNode* leaf, U32 mask, FindCallback callback, void* key = NULL);
+      void queryBVH(const Box3F& box, U32 mask, FindCallback callback, void* key = NULL);
+
       /// Find all objects of the given type(s) and add them to the given vector.
       /// @param mask Object type mask (@see SimObjectTypes).
       /// @param outFound Vector to add found objects to.
@@ -723,6 +783,8 @@ class SceneContainer
       Vector<SimObjectPtr<SceneObject>*>  mSearchList;///< Object searches to support console querying of the database.  ONLY WORKS ON SERVER
       S32                                 mCurrSearchPos;
       Point3F                             mSearchReferencePoint;
+
+      BVH* mSceneBVH;
 
       void cleanupSearchVectors();
 

@@ -311,7 +311,7 @@ void GFXD3D11Device::enumerateAdapters(Vector<GFXAdapter*> &adapterList)
       DXGI_FORMAT format = GFXD3D11TextureFormat[GFXFormatR8G8B8A8_SRGB];
 
       // Get the number of elements
-      hr = pOutput->GetDisplayModeList(format, 0, &numModes, NULL);
+      hr = pOutput->GetDisplayModeList(format, DXGI_ENUM_MODES_SCALING, &numModes, NULL);
 
       if(FAILED(hr))
          AssertFatal(false, "GFXD3D11Device::enumerateAdapters -> GetDisplayModeList call failure");
@@ -319,7 +319,7 @@ void GFXD3D11Device::enumerateAdapters(Vector<GFXAdapter*> &adapterList)
       displayModes = new DXGI_MODE_DESC[numModes];
 
       // Get the list
-      hr = pOutput->GetDisplayModeList(format, 0, &numModes, displayModes);
+      hr = pOutput->GetDisplayModeList(format, DXGI_ENUM_MODES_SCALING, &numModes, displayModes);
 
       if(FAILED(hr))
          AssertFatal(false, "GFXD3D11Device::enumerateAdapters -> GetDisplayModeList call failure");
@@ -415,7 +415,7 @@ void GFXD3D11Device::enumerateVideoModes()
       DXGI_FORMAT format = GFXD3D11TextureFormat[GFXFormatR8G8B8A8_SRGB];
 
       // Get the number of elements
-      hr = pOutput->GetDisplayModeList(format, 0, &numModes, NULL);
+      hr = pOutput->GetDisplayModeList(format, DXGI_ENUM_MODES_SCALING, &numModes, NULL);
 
       if(FAILED(hr))
          AssertFatal(false, "GFXD3D11Device::enumerateVideoModes -> GetDisplayModeList call failure");
@@ -423,7 +423,7 @@ void GFXD3D11Device::enumerateVideoModes()
       displayModes = new DXGI_MODE_DESC[numModes];
 
       // Get the list
-      hr = pOutput->GetDisplayModeList(format, 0, &numModes, displayModes);
+      hr = pOutput->GetDisplayModeList(format, DXGI_ENUM_MODES_SCALING, &numModes, displayModes);
 
       if(FAILED(hr))
          AssertFatal(false, "GFXD3D11Device::enumerateVideoModes -> GetDisplayModeList call failure");
@@ -438,6 +438,7 @@ void GFXD3D11Device::enumerateVideoModes()
          toAdd.resolution.x = displayModes[numMode].Width;
          toAdd.resolution.y = displayModes[numMode].Height;
          mVideoModes.push_back(toAdd);
+         //Con::printf("W:%d H:%d", displayModes[numMode].Width, displayModes[numMode].Height);
       }
 
       delete[] displayModes;

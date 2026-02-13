@@ -197,9 +197,7 @@ void AssimpShapeLoader::enumerateScene()
 
    // Define post-processing steps
    unsigned flags =
-      aiProcess_Triangulate |
-      aiProcess_JoinIdenticalVertices |
-      aiProcess_ValidateDataStructure |
+      aiProcessPreset_TargetRealtime_MaxQuality |
       aiProcess_ConvertToLeftHanded & ~aiProcess_MakeLeftHanded;
 
    if (opts.convertLeftHanded)   flags |= aiProcess_MakeLeftHanded;
@@ -458,34 +456,37 @@ void AssimpShapeLoader::processAnimations()
       {
          aiAnimation* anim = mScene->mAnimations[i];
 
-         duration = 0.0f;
-         for (U32 j = 0; j < anim->mNumChannels; j++)
-         {
-            aiNodeAnim* nodeAnim = anim->mChannels[j];
-            // Determine the maximum keyframe time for this animation
-            for (U32 k = 0; k < nodeAnim->mNumPositionKeys; k++) {
-               maxKeyTime = getMax(maxKeyTime, (F32)nodeAnim->mPositionKeys[k].mTime);
-            }
-            for (U32 k = 0; k < nodeAnim->mNumRotationKeys; k++) {
-               maxKeyTime = getMax(maxKeyTime, (F32)nodeAnim->mRotationKeys[k].mTime);
-            }
-            for (U32 k = 0; k < nodeAnim->mNumScalingKeys; k++) {
-               maxKeyTime = getMax(maxKeyTime, (F32)nodeAnim->mScalingKeys[k].mTime);
-            }
+         AssimpAppSequence* defaultAssimpSeq = new AssimpAppSequence(anim);
+         appSequences.push_back(defaultAssimpSeq);
 
-            ambientChannels.push_back(nodeAnim);
+         //duration = 0.0f;
+         //for (U32 j = 0; j < anim->mNumChannels; j++)
+         //{
+         //   aiNodeAnim* nodeAnim = anim->mChannels[j];
+         //   // Determine the maximum keyframe time for this animation
+         //   for (U32 k = 0; k < nodeAnim->mNumPositionKeys; k++) {
+         //      maxKeyTime = getMax(maxKeyTime, (F32)nodeAnim->mPositionKeys[k].mTime);
+         //   }
+         //   for (U32 k = 0; k < nodeAnim->mNumRotationKeys; k++) {
+         //      maxKeyTime = getMax(maxKeyTime, (F32)nodeAnim->mRotationKeys[k].mTime);
+         //   }
+         //   for (U32 k = 0; k < nodeAnim->mNumScalingKeys; k++) {
+         //      maxKeyTime = getMax(maxKeyTime, (F32)nodeAnim->mScalingKeys[k].mTime);
+         //   }
 
-            duration = getMax(duration, maxKeyTime);
-         }
+         //   ambientChannels.push_back(nodeAnim);
+
+         //   duration = getMax(duration, maxKeyTime);
+         //}
       }
 
-      ambientSeq->mNumChannels = ambientChannels.size();
+      /*ambientSeq->mNumChannels = ambientChannels.size();
       ambientSeq->mChannels = ambientChannels.address();
       ambientSeq->mDuration = duration;
       ambientSeq->mTicksPerSecond = ColladaUtils::getOptions().animFPS;
 
       AssimpAppSequence* defaultAssimpSeq = new AssimpAppSequence(ambientSeq);
-      appSequences.push_back(defaultAssimpSeq);
+      appSequences.push_back(defaultAssimpSeq);*/
    }
 }
 

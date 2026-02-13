@@ -43,14 +43,6 @@ set(TORQUE_LINK_THIRDPARTY ${TORQUE_LINK_THIRDPARTY}
     OpenAL::OpenAL
 )
 
-if(WIN32)
-find_package(directx-dxc CONFIG REQUIRED)
-
-set(TORQUE_LINK_THIRDPARTY ${TORQUE_LINK_THIRDPARTY}
-    Microsoft::DirectXShaderCompiler
-)
-endif(WIN32)
-
 if (MSVC)
     add_compile_options(/wd4648 /wd4191)
 else()

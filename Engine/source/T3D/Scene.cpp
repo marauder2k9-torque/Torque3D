@@ -497,8 +497,6 @@ DefineEngineMethod(Scene, getObjectsByClass, String, (String className, bool che
 
    object->getObjectsByClass(object, StringTable->insert(className.c_str()), objectsList, checkSubScenes);
 
-   char* retBuffer = Con::getReturnBuffer(1024);
-
    U32 len = 0;
    S32 i;
    //Get the length of our return string

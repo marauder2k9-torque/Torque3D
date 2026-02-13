@@ -1,5 +1,8 @@
 #pragma once
 
+#ifndef _SHADERGENNODES_H_
+#define _SHADERGENNODES_H_
+
 #ifndef _SHADERFEATURE_H_
 #include "shaderGen/shaderFeature.h"
 #endif
@@ -239,3 +242,5 @@ public:
       return "NormalMap_" + params->inputName;
    }
 };
+
+#endif // !_SHADERGENNODES_H_

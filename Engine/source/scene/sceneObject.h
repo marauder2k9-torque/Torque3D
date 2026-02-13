@@ -74,7 +74,6 @@
 #include "scene/sceneQueryUtil.h"
 #endif
 
-
 class SceneManager;
 class SceneRenderState;
 class SceneTraversalState;
@@ -86,6 +85,8 @@ class Convex;
 class LightInfo;
 class SFXAmbience;
 class SceneContainer;
+
+struct BVHNode;
 
 struct ObjectRenderInst;
 struct Move;
@@ -350,7 +351,7 @@ class SceneObject : public NetObject, public ProcessObject
       SceneObject();
       virtual ~SceneObject();
       bool mPathfindingIgnore;
-
+      BVHNode* mBVHNode;
       /// Triggered when a SceneObject onAdd is called.
       static Signal< void( SceneObject* ) > smSceneObjectAdd;
 

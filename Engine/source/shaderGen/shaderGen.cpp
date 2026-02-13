@@ -243,6 +243,10 @@ void ShaderGen::generateShader( const MaterialFeatureData& featureData,
       }
 
       stageName = Torque::getStringHash64(stageName);
+
+      if (GFX->getAdapterType() == OpenGL)
+         stageName = cacheName;
+
       stageName += postfix;
 
       FileCacheSet::iterator file = mFileCache.find(stageName);

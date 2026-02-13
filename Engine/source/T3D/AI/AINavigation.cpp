@@ -427,7 +427,7 @@ bool AINavigation::avoidObstacles()
    if (!avoidance.isZero())
    {
       avoidance.normalizeSafe();
-      F32 clearance = getCtrl()->getAIInfo()->mRadius * 1.5f;
+      //F32 clearance = getCtrl()->getAIInfo()->mRadius * 1.5f;
       Point3F newDest = info.point + avoidance * rayLength;
       mMoveDestination = newDest;
       obj->enableCollision();

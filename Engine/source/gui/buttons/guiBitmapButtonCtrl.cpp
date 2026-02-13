@@ -669,10 +669,4 @@ bool GuiBitmapButtonCtrl::pointInControl(const Point2I& parentCoordPoint)
       return Parent::pointInControl(parentCoordPoint);
 }
 
-DefineEngineMethod(GuiBitmapButtonCtrl, getBitmap, StringTableEntry, (), , "get name") {
-   return object->getBitmapFile();
-}DefineEngineMethod(GuiBitmapButtonCtrl, getBitmapAsset, StringTableEntry, (), , assetText(Bitmap, asset reference)) {
-   return object->_getBitmap();
-}DefineEngineMethod(GuiBitmapButtonCtrl, setBitmap, void, (const char* assetName), , assetText(Bitmap, assignment.first tries asset then flat file.)) {
-   object->setBitmap(StringTable->insert(assetName));
-}
+DEF_ASSET_BINDS_REFACTOR(GuiBitmapButtonCtrl, Bitmap)

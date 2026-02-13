@@ -29,7 +29,8 @@
 #include "platform/profiler.h"
 #include "console/engineAPI.h"
 #include "math/util/frustum.h"
-
+#include "gfx/gfxDrawUtil.h"
+#include "scene/sceneRenderState.h"
 
 // [rene, 02-Mar-11]
 //  - *Loads* of copy&paste sin in this file (among its many other sins); all the findObjectXXX methods
@@ -47,6 +48,8 @@ const F32 SceneContainer::csmTotalAxisBinSize = SceneContainer::csmBinSize * Sce
 const U32 SceneContainer::csmOverflowBinIdx = (SceneContainer::csmNumAxisBins * SceneContainer::csmNumAxisBins);
 const U32 SceneContainer::csmTotalNumBins = SceneContainer::csmOverflowBinIdx + 1;
 
+bool SceneContainer::smRenderDebugBins = false;
+bool SceneContainer::smRenderDebugBVHTree = false;
 
 // Statics used by buildPolyList methods
 static AbstractPolyList* sPolyList;
@@ -354,7 +357,171 @@ struct SceneRayHelper
 //    SceneContainer.
 //=============================================================================
 
-//-----------------------------------------------------------------------------
+static BVHVisibility classifyNode(
+   const Frustum& frustum,
+   const Box3F& box)
+{
+   if (!frustum.getBounds().isOverlapped(box))
+      return BVH_Outside;
+
+   if (frustum.getBounds().isContained(box))
+      return BVH_Inside;
+
+   return BVH_Intersect;
+}
+
+void SceneContainer::renderBVHNode( BVHNode* node, const GFXStateBlockDesc& desc, const Frustum& frustum, U32 depth)
+{
+   if (!node)
+      return;
+
+   BVHVisibility vis = classifyNode(frustum, node->bounds);
+
+   // Early-out: node fully outside view
+   if (vis == BVH_Outside)
+   {
+      return;
+   }
+
+   // Choose color based on visibility & node type
+   ColorI color;
+   if (node->isLeaf())
+   {
+      if (vis == BVH_Inside)      color = ColorI(255, 255, 0, 255); // bright yellow
+      else if (vis == BVH_Intersect) color = ColorI(255, 128, 0, 255); // orange
+      else                        color = ColorI(128, 128, 128, 80); // culled leaf
+   }
+   else
+   {
+      if (vis == BVH_Inside)      color = ColorI(0, 255, 0, 255);   // green
+      else if (vis == BVH_Intersect) color = ColorI(0, 128, 255, 255); // blue
+      else                        color = ColorI(64, 64, 64, 60);  // culled internal
+   }
+
+   const Box3F& box = node->bounds;
+   GFX->getDrawUtil()->drawObjectBox(
+      desc,
+      box.getExtents() * 0.5f,
+      box.getCenter(),
+      MatrixF::Identity,
+      color
+   );
+
+   if (!node->isLeaf())
+   {
+      renderBVHNode(node->left, desc, frustum, depth + 1);
+      renderBVHNode(node->right, desc, frustum, depth + 1);
+   }
+}
+
+void SceneContainer::renderGrid(const GFXStateBlockDesc& desc)
+{
+   const F32 binSize = csmBinSize;
+   const S32 numBins = csmNumAxisBins;
+
+   for (S32 x = 0; x < numBins; ++x)
+   {
+      for (S32 y = 0; y < numBins; ++y)
+      {
+         Box3F box;
+         box.minExtents.set(x * binSize, y * binSize, -1.0f);
+         box.maxExtents.set((x + 1) * binSize, (y + 1) * binSize, 1.0f);
+
+         GFX->getDrawUtil()->drawObjectBox(
+            desc,
+            box.getExtents() * 0.5f,
+            box.getCenter(),
+            MatrixF::Identity,
+            ColorI(0, 0, 255, 80)
+         );
+      }
+   }
+}
+
+void SceneContainer::renderDebug(SceneRenderState* state)
+{
+   GFXStateBlockDesc desc;
+   desc.setFillModeWireframe();
+   desc.setZReadWrite(true, false);
+
+   if (smRenderDebugBVHTree && mSceneBVH->mRoot)
+      renderBVHNode(mSceneBVH->mRoot, desc, state->getCullingFrustum(), 0);
+
+   if (smRenderDebugBins)
+      renderGrid(desc);
+
+}
+
+void SceneContainer::queryBVHNode(const Box3F& box, BVHNode* node, U32 mask, FindCallback callback, void* key)
+{
+   if (!node)
+      return;
+
+   if (!node->bounds.isOverlapped(box))
+      return;
+
+   if (node->isLeaf())
+   {
+      SceneObjectProxy* objProx = (SceneObjectProxy*)node->object;
+      SceneObject* obj = objProx->mObject;
+      if (!obj || !(obj->getTypeMask() & mask) || !obj->isCollisionEnabled())
+         return;
+
+      (*callback)(obj, key);
+      return;
+   }
+
+   queryBVHNode(box, node->left, mask, callback, key);
+   queryBVHNode(box, node->right, mask, callback, key);
+}
+
+void SceneContainer::queryBVHFromLeaf(const Box3F& box, BVHNode* leaf, U32 mask, FindCallback callback, void* key)
+{
+   if (!leaf)
+      return;
+
+   BVHNode* node = leaf;
+
+   while (node->parent)
+   {
+      BVHNode* parent = node->parent;
+      BVHNode* sibling = (parent->left == node) ? parent->right : parent->left;
+
+      queryBVHNode(box, sibling, mask, callback, key);
+      node = parent;
+   }
+}
+
+void SceneContainer::queryBVHNode(const Box3F& box, BVHNode* node, U32 mask, Vector< SceneObject* >* outFound)
+{
+   if (!node)
+      return;
+
+   if (!node->bounds.isOverlapped(box))
+      return;
+
+   if (node->isLeaf())
+   {
+      if (!node->bounds.isOverlapped(box))
+         return;
+
+      SceneObjectProxy* objProx = (SceneObjectProxy*)node->object;
+      SceneObject* obj = objProx->mObject;
+      if (!obj || !(obj->getTypeMask() & mask) || !obj->isCollisionEnabled())
+         return;
+
+      outFound->push_back(obj);
+      return;
+   }
+
+   queryBVHNode(box, node->left, mask, outFound);
+   queryBVHNode(box, node->right, mask, outFound);
+}
+
+void SceneContainer::queryBVH(const Box3F& box, U32 mask, FindCallback callback, void* key)
+{
+   queryBVHNode(box, mSceneBVH->mRoot, mask, callback, key);
+}
 
 SceneContainer::SceneContainer()
 {
@@ -372,6 +539,8 @@ SceneContainer::SceneContainer()
    VECTOR_SET_ASSOCIATION( mTerrains );
 
    cleanupSearchVectors();
+
+   mSceneBVH = new BVH;
 }
 
 //-----------------------------------------------------------------------------
@@ -396,6 +565,8 @@ SceneContainer::~SceneContainer()
 
    delete[] mBinArray;
 
+   delete mSceneBVH;
+
    cleanupSearchVectors();
 }
 
@@ -416,6 +587,10 @@ bool SceneContainer::addObject(SceneObject* obj)
       mWaterAndZones.push_back(obj);
    if( obj->getTypeMask() & TerrainObjectType )
       mTerrains.push_back( obj );
+
+   BVHNode* leaf = mSceneBVH->createLeaf(new SceneObjectProxy(obj));
+   mSceneBVH->insertLeaf(leaf);
+   obj->mBVHNode = leaf;
 
    return true;
 }
@@ -454,6 +629,16 @@ bool SceneContainer::removeObject(SceneObject* obj)
       if( iter != mTerrains.end() )
          mTerrains.erase_fast(iter);
    }
+
+   BVHNode* leaf = obj->mBVHNode;
+   AssertFatal(leaf && leaf->isLeaf(), "Invalid BVH leaf");
+
+   mSceneBVH->removeLeaf(leaf);
+
+   obj->mBVHNode = NULL;
+   obj->mContainer = NULL;
+
+   delete leaf;
 
    return true;
 }
@@ -600,6 +785,9 @@ void SceneContainer::checkBins(SceneObject* object)
       removeFromBins(object);
       insertIntoBins(object);
    }
+
+
+   mSceneBVH->updateLeaf(object->mBVHNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -859,7 +1047,7 @@ void SceneContainer::findObjectList( const Box3F& searchBox, U32 mask, Vector<Sc
    AssertFatal( !mSearchInProgress, "SceneContainer::findObjectList - Container queries are not re-entrant" );
    mSearchInProgress = true;
 
-   U32 minX, maxX, minY, maxY;
+   /*U32 minX, maxX, minY, maxY;
    getBinRange(searchBox.minExtents.x, searchBox.maxExtents.x, minX, maxX);
    getBinRange(searchBox.minExtents.y, searchBox.maxExtents.y, minY, maxY);
    mCurrSeqKey++;
@@ -911,7 +1099,11 @@ void SceneContainer::findObjectList( const Box3F& searchBox, U32 mask, Vector<Sc
             }
          }
       }
-   }
+   }*/
+
+   outFound->clear();
+
+   queryBVHNode(searchBox, mSceneBVH->mRoot, mask, outFound);
 
    mSearchInProgress = false;
 }

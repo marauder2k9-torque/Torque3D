@@ -365,7 +365,7 @@ Var* ShaderFeatureGLSL::addOutVpos( MultiLine *meta,
       Var *outPosition = (Var*) LangElement::find( "gl_Position" );
       AssertFatal( outPosition, "ShaderFeatureGLSL::addOutVpos - gl_Position somehow undefined?." );
       meta->addStatement(new GenOp("   @ = @;\r\n", outVpos, outPosition));
-      meta->addStatement(new GenOp("   @.z = @.z * 0.5 + 0.5;\r\n", outVpos, outVpos));
+      //meta->addStatement(new GenOp("   @.z = @.z * 0.5 + 0.5;\r\n", outVpos, outVpos));
    }
 
    return outVpos;
@@ -374,35 +374,6 @@ Var* ShaderFeatureGLSL::addOutVpos( MultiLine *meta,
 Var* ShaderFeatureGLSL::getInVpos(  MultiLine *meta,
                                     Vector<ShaderComponent*> &componentList )
 {
-   //Var* inVpos = (Var*)LangElement::find("inVpos");
-   //if (inVpos)
-   //   return inVpos;
-
-   //ShaderConnector* connectComp = dynamic_cast<ShaderConnector*>(componentList[C_CONNECTOR]);
-   //inVpos = connectComp->getElement(RT_TEXCOORD);
-   //inVpos->setName("inVpos");
-   //inVpos->setStructName("IN");
-   //inVpos->setType("vec4");
-
-   //Var* targetSize = (Var*)LangElement::find("targetSize");
-   //if (!targetSize)
-   //{
-   //   targetSize = new Var();
-   //   targetSize->setType("vec2");
-   //   targetSize->setName("targetSize");
-   //   targetSize->uniform = true;
-   //   targetSize->constSortPos = cspPotentialPrimitive;
-   //}
-
-   //// transform projection space to screen space, needs to be done per-pixel. D3D automatically does this with SV_POSITION semantic types (note GLSL doesn't have semantics, even though Torque still uses the RT_ enums for them for some shaderconnector business)
-   //// optional: OGL provides this data as gl_FragCoord automatically
-   //// Note: for 100% parity with gl_FragCoord (but NOT with vpos in D3D) set .w = 1/.w
-   //meta->addStatement(new GenOp("   @.xyz = @.xyz / @.w;\r\n", inVpos, inVpos, inVpos));
-   //meta->addStatement(new GenOp("   @.w = @.w;\r\n", inVpos, inVpos)); // for parity w/ gl_FragCoord set: meta->addStatement(new GenOp("    @.w = 1.0 / @.w;\r\n", inVpos, inVpos));
-   //meta->addStatement(new GenOp("   @.xy = @.xy * 0.5 + vec2(0.5,0.5);\r\n", inVpos, inVpos)); // get the screen coord to 0 to 1
-   //meta->addStatement(new GenOp("   @.y = 1.0 - @.y;\r\n", inVpos, inVpos)); // flip the y axis 
-   //meta->addStatement(new GenOp("   @.xy *= @;\r\n", inVpos, targetSize)); // scale to monitor
-
    Var* inVpos = (Var*)LangElement::find("inVpos");
    if (inVpos)
       return inVpos;
@@ -423,9 +394,14 @@ Var* ShaderFeatureGLSL::getInVpos(  MultiLine *meta,
       targetSize->constSortPos = cspPotentialPrimitive;
    }
 
-   meta->addStatement(new GenOp("   @ = gl_FragCoord;\r\n", inVpos, targetSize));
-   meta->addStatement(new GenOp("   @.y = @.y - gl_FragCoord.y;\r\n", inVpos, targetSize));
-
+   // transform projection space to screen space, needs to be done per-pixel. D3D automatically does this with SV_POSITION semantic types (note GLSL doesn't have semantics, even though Torque still uses the RT_ enums for them for some shaderconnector business)
+   // optional: OGL provides this data as gl_FragCoord automatically
+   // Note: for 100% parity with gl_FragCoord (but NOT with vpos in D3D) set .w = 1/.w
+   meta->addStatement(new GenOp("   @.xyz = @.xyz / @.w;\r\n", inVpos, inVpos, inVpos));
+   meta->addStatement(new GenOp("   @.w = @.w;\r\n", inVpos, inVpos)); // for parity w/ gl_FragCoord set: meta->addStatement(new GenOp("    @.w = 1.0 / @.w;\r\n", inVpos, inVpos));
+   meta->addStatement(new GenOp("   @.xy = @.xy * 0.5 + vec2(0.5,0.5);\r\n", inVpos, inVpos)); // get the screen coord to 0 to 1
+   meta->addStatement(new GenOp("   @.y = 1.0 - @.y;\r\n", inVpos, inVpos)); // flip the y axis 
+   meta->addStatement(new GenOp("   @.xy *= @;\r\n", inVpos, targetSize)); // scale to monitor
    return inVpos;
 }
 

@@ -558,7 +558,7 @@ ShadowMapParams::ShadowMapParams( LightInfo *light )
    numSplits = 4;
    logWeight = 0.91f;
    texSize = 1024;
-   shadowDistance = gClientSceneGraph->getVisibleDistance();;
+   shadowDistance = 100.0f;
    shadowSoftness = 0.2f;
    fadeStartDist = 75.0f;
    lastSplitTerrainOnly = false;
@@ -627,10 +627,7 @@ void ShadowMapParams::_validate()
 
    // Keep it in a valid range... less than 32 is dumb.
    texSize = mClamp( texSize, 32, maxTexSize );
-   F32 viewDist = gClientSceneGraph->getVisibleDistance();
-   viewDist *= Con::getFloatVariable("pref::Shadows::drawDistance");
-
-   shadowDistance = mClamp(shadowDistance, 25.0f, viewDist);
+   shadowDistance = mClamp(shadowDistance, 25.0f, 10000.0f);
 }
 
 LightShadowMap* ShadowMapParams::getOrCreateShadowMap()

@@ -1124,6 +1124,33 @@ void ModuleManager::findModules(const bool loadedOnly, typeModuleDefinitionVecto
 
 //-----------------------------------------------------------------------------
 
+static bool hasMatchingType(const StringTableEntry a, const StringTableEntry b)
+{
+   char aBuf[256];
+   char bBuf[256];
+
+   dStrncpy(aBuf, a, sizeof(aBuf));
+   dStrncpy(bBuf, b, sizeof(bBuf));
+
+   aBuf[sizeof(aBuf) - 1] = '\0';
+   bBuf[sizeof(bBuf) - 1] = '\0';
+
+   for (char* aTok = dStrtok(aBuf, ","); aTok; aTok = dStrtok(nullptr, ","))
+   {
+      for (char* bTok = dStrtok(bBuf, ","); bTok; bTok = dStrtok(nullptr, ","))
+      {
+         if (dStricmp(aTok, bTok) == 0)
+            return true;
+      }
+
+      // reset inner strtok state
+      dStrncpy(bBuf, b, sizeof(bBuf));
+      bBuf[sizeof(bBuf) - 1] = '\0';
+   }
+
+   return false;
+}
+
 void ModuleManager::findModuleTypes( const char* pModuleType, const bool loadedOnly, typeConstModuleDefinitionVector& moduleDefinitions )
 {
     // Fetch module type.
@@ -1136,8 +1163,8 @@ void ModuleManager::findModuleTypes( const char* pModuleType, const bool loadedO
         ModuleDefinitionEntry* pModuleDefinitionEntry = moduleIdItr->value;
 
         // Skip if note the module type we're searching for.
-        if ( pModuleDefinitionEntry->mModuleType != moduleType )
-            continue;
+        if (!hasMatchingType(pModuleDefinitionEntry->mModuleType, pModuleType))
+           continue;
 
         // Iterate module definitions.
         for ( typeModuleDefinitionVector::iterator moduleDefinitionItr = pModuleDefinitionEntry->begin(); moduleDefinitionItr != pModuleDefinitionEntry->end(); ++moduleDefinitionItr )

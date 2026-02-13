@@ -529,6 +529,15 @@ void GuiCanvas::setClampTorqueCursor(bool onOff)
 void GuiCanvas::setCursor(GuiCursor *curs)
 {
    mDefaultCursor = curs;
+
+   // if we have a custom cursor disable the default.
+   if (mPlatformWindow)
+   {
+      if (curs)
+         mPlatformWindow->getCursorController()->setCursorVisible(false);
+      else
+         mPlatformWindow->getCursorController()->setCursorVisible(true);
+   }
 }
 
 void GuiCanvas::setCursorON(bool onOff)

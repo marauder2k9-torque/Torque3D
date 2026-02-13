@@ -162,6 +162,7 @@ SceneObject::SceneObject()
    mDirtyGameObject = false;
 
    mContainer = NULL;
+   mBVHNode = NULL;
    mContainerIndex = 0;
 }
 
