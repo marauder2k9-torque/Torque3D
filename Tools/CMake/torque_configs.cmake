@@ -165,5 +165,6 @@ advanced_option(TORQUE_SHOW_LEGACY_FILE_FIELDS "If on, shows legacy direct file 
 advanced_option(USE_TEMPLATE_MATRIX "Set to true to use the new templated matrix class(still in beta)." OFF)
 #testing
 advanced_option(TORQUE_TESTING "Unit test build" OFF)
+advanced_option(TORQUE_KORKSCRIPT "Use the new scripting language" OFF)
 
 setupVersionNumbers()

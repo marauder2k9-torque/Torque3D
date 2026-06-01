@@ -15,7 +15,7 @@ namespace TorqueScript
 
    TorqueScriptRuntime::TorqueScriptRuntime()
    {
-      Con::registerRuntime(0, this);
+      //Con::registerRuntime(0, this);
    }
 
    TorqueScriptRuntime::~TorqueScriptRuntime()

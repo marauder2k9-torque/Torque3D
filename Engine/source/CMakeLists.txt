@@ -69,6 +69,12 @@ torqueAddSourceDirectories("app" "app/net")
 # Handle console
 torqueAddSourceDirectories("console")
 torqueAddSourceDirectories("console/torquescript")
+
+if(TORQUE_KORKSCRIPT)
+torqueAddSourceDirectories("console/korkscript" "console/korkscript/lexer" "console/korkscript/parser"
+                           "console/korkscript/codegen" "console/korkscript/korkdebug" "console/korkscript/ast")
+endif(TORQUE_KORKSCRIPT)
+
 set(TORQUE_INCLUDE_DIRECTORIES ${TORQUE_INCLUDE_DIRECTORIES} "ts/vhacd")
 # Handle Platform
 torqueAddSourceDirectories("platform" "platform/threads" "platform/async"

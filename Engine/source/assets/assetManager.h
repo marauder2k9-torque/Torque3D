@@ -214,9 +214,27 @@ public:
         // Did we find the asset?
         if ( pAssetDefinition == NULL )
         {
-            // No, so warn.
-            Con::warnf( "Asset Manager: Failed to acquire asset Id '%s' as it does not exist.", pAssetId );
-            return NULL;
+           // is this actually an asset id? or a loose file name?
+           if (StringUnit::getUnitCount(pAssetId, ASSET_SCOPE_TOKEN) != 2)
+           {
+              AssetQuery query;
+              if (findAssetLooseFile(&query, pAssetId) > 0)
+              {
+                 if (mEchoInfo)
+                 {
+                    Con::printf("Asset Manager: Resolved loose file '%s' to Asset Id '%s'.", pAssetId, query.mAssetList[0]);
+                 }
+
+                 pAssetDefinition = findAsset(query.mAssetList[0]);
+              }
+           }
+
+           if (pAssetDefinition == NULL)
+           {
+               // No, so warn.
+               Con::warnf("Asset Manager: Failed to acquire asset Id '%s' as it does not exist.", pAssetId);
+               return NULL;
+           }
         }
 
         // Is asset loading?
