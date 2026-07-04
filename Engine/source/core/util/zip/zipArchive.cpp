@@ -139,7 +139,7 @@ void ZipArchive::dumpCentralDirectory(ZipEntry* entry, String* indent)
 
 //-----------------------------------------------------------------------------
 
-void ZipArchive::insertEntry(ZipEntry *ze)
+bool ZipArchive::insertEntry(ZipEntry *ze)
 {
    char path[1024];
    dStrncpy(path, ze->mCD.mFilename.c_str(), sizeof(path));
@@ -176,7 +176,7 @@ void ZipArchive::insertEntry(ZipEntry *ze)
          }
 
          root = newEntry;
-         
+
          *slash = '/';
          ptr = slash + 1;
       }
@@ -198,9 +198,12 @@ void ZipArchive::insertEntry(ZipEntry *ze)
             // pointer otherwise it will leak as it won't have got inserted.
 
             delete ze;
+            return false;
          }
       }
    } while(slash);
+
+   return true;
 }
 
 void ZipArchive::removeEntry(ZipEntry *ze)
@@ -306,7 +309,8 @@ Stream *ZipArchive::createNewFile(const char *filename, Compressor *method)
    ZipEntry *ze = new ZipEntry;
    ze->mIsDirectory = false;
    ze->mCD.setFilename(filename);
-   insertEntry(ze);
+   if(!insertEntry(ze))
+      return NULL;
 
    ZipTempStream *stream = new ZipTempStream(&ze->mCD);
    if(stream->open())

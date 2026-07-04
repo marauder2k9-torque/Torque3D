@@ -316,7 +316,7 @@ protected:
 
    bool readCentralDirectory();
 
-   void insertEntry(ZipEntry *ze);
+   bool insertEntry(ZipEntry *ze);
    void removeEntry(ZipEntry *ze);
    
    Stream *createNewFile(const char *filename, Compressor *method);
