@@ -21,7 +21,7 @@
 //-----------------------------------------------------------------------------
 
 #include "console/engineAPI.h"
-#include "console/simObject.h"
+#include "sim/simObject.h"
 
 DefineNewEngineMethod(SimObject, RegisterObject, bool, (),,"")
 {

@@ -23,6 +23,8 @@
 #ifndef _SDLINPUTMANAGER_H_
 #define _SDLINPUTMANAGER_H_
 
+#if defined(TORQUE_SDL)
+
 #ifndef _PLATFORMINPUT_H_
 #include "platform/platformInput.h"
 #endif
@@ -110,5 +112,7 @@ public:
    S32 getJoystickOpenState(S32 sdlIndex);
    void getJoystickTorqueInst(S32 sdlIndex, char* instBuffer);
 };
+
+#endif  // defined(TORQUE_SDL)
 
 #endif  // _SDLINPUTMANAGER_H_

@@ -32,7 +32,7 @@
 #include "math/mathUtils.h"
 #include "console/consoleTypes.h"
 #include "console/consoleObject.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "scene/sceneRenderState.h"
 #include "scene/sceneManager.h"
 #include "ts/tsShapeInstance.h"

@@ -21,14 +21,14 @@
 //-----------------------------------------------------------------------------
 
 #include "persistenceManager.h"
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #include "console/consoleTypes.h"
 #include "console/engineAPI.h"
 #include "core/stream/fileStream.h"
 #include "gui/core/guiTypes.h"
 #include "materials/customMaterialDefinition.h"
 #include "ts/tsShapeConstruct.h"
-#include "sim/netStringTable.h"
+#include "network/netStringTable.h"
 
 
 IMPLEMENT_CONOBJECT(PersistenceManager);

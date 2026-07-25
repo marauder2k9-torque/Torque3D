@@ -21,7 +21,7 @@
 //-----------------------------------------------------------------------------
 #ifndef _FILEDIALOG_H_
 #define _FILEDIALOG_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 
 // [03/14/07] The file dialogs need refactoring, and will be refactored in Jugg.
 // Things that might need to change:

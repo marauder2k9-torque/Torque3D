@@ -26,10 +26,10 @@
 //~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~~//
 
 #include "platform/platform.h"
-#include "core/dnet.h"
+#include "network/connectionProtocol.h"
 #include "core/stream/bitStream.h"
 #include "console/consoleTypes.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "scene/pathManager.h"
 #include "scene/sceneManager.h"
 #include "sfx/sfxSystem.h"

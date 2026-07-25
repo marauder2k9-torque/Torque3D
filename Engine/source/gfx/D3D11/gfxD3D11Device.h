@@ -26,7 +26,7 @@
 #include <d3d11_1.h>
 
 #include "platform/tmm_off.h"
-#include "platformWin32/platformWin32.h"
+ 
 #include "gfx/D3D11/gfxD3D11Shader.h"
 #include "gfx/D3D11/gfxD3D11StateBlock.h"
 #include "gfx/D3D11/gfxD3D11TextureManager.h"

@@ -24,11 +24,11 @@
 #define _MESSAGE_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #ifndef _NETCONNECTION_H_
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #endif
 
 // Forward Refs

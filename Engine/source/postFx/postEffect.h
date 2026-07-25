@@ -24,7 +24,7 @@
 #define _POST_EFFECT_H_
 
 #ifndef _SIMSET_H_
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #endif
 #ifndef _MPOINT3_H_
 #include "math/mPoint3.h"

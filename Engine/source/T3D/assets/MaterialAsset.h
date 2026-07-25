@@ -45,7 +45,7 @@
 #endif
 
 #ifndef _NETCONNECTION_H_
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #endif
 
 #ifndef _GUI_INSPECTOR_TYPES_H_

@@ -23,7 +23,7 @@
 #include "assets/assetBase.h"
 #include "assets/assetManager.h"
 #include "module/moduleDefinition.h"
-#include "console/sim.h"
+#include "sim/sim.h"
 
 
 DefineEngineMethod(AssetManager, compileReferencedAssets, bool, (const char* moduleDefinition), (""),

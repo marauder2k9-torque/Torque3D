@@ -24,7 +24,7 @@
 #define _DECALDATA_H_
 
 #ifndef _SIMDATABLOCK_H_
-#include "console/simDatablock.h"
+#include "sim/simDatablock.h"
 #endif
 #ifndef _MATERIALDEFINITION_H_
 #include "materials/materialDefinition.h"

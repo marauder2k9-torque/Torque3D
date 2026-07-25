@@ -24,7 +24,7 @@
 #define _MODULE_MANAGER_H
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #ifndef _TVECTOR_H_

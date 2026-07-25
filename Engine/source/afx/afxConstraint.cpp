@@ -27,7 +27,7 @@
 
 #include "T3D/aiPlayer.h"
 #include "T3D/tsStatic.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "ts/tsShapeInstance.h"
 
 #include "afxConstraint.h"

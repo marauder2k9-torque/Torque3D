@@ -1116,7 +1116,7 @@ namespace Con
    /// 
    /// NOTE: if you get a rather cryptic template error coming through here, most likely you are trying to 
    /// convert a parameter which EngineMarshallType does not have a specialization for.
-   /// Another problem can occur if you do not include "console/simBase.h" and "console/engineAPI.h" 
+   /// Another problem can occur if you do not include "sim/simBase.h" and "console/engineAPI.h" 
    /// since _EngineConsoleExecCallbackHelper and SimConsoleThreadExecCallback are required.
    ///
    /// @see _EngineConsoleExecCallbackHelper

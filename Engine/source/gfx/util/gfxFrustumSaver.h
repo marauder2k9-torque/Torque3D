@@ -23,7 +23,7 @@
 #ifndef TORQUE_GFX_UTIL_GFXFRUSTUMSAVER_H_
 #define TORQUE_GFX_UTIL_GFXFRUSTUMSAVER_H_
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 
 #ifndef _MATHUTIL_FRUSTUM_H_
 #include "math/util/frustum.h"

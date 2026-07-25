@@ -23,7 +23,7 @@
 #include "util/settings.h"
 #include "console/engineAPI.h"
 #include "console/consoleTypes.h"
-#include "console/SimXMLDocument.h"
+#include "sim/SimXMLDocument.h"
 
 IMPLEMENT_CONOBJECT(Settings);
 

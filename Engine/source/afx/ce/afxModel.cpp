@@ -28,7 +28,7 @@
 #include "T3D/objectTypes.h"
 #include "T3D/gameBase/gameProcess.h"
 #include "core/resourceManager.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "scene/sceneRenderState.h"
 #include "scene/sceneManager.h"
 #include "ts/tsShapeInstance.h"

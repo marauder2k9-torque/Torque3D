@@ -30,13 +30,9 @@
 class GuiButtonCtrl : public GuiButtonBaseCtrl
 {
    typedef GuiButtonBaseCtrl Parent;
-protected:
-   bool mHasTheme;
 public:
    DECLARE_CONOBJECT(GuiButtonCtrl);
    GuiButtonCtrl();
-   bool onWake() override;
-   void onRender(Point2I offset, const RectI &updateRect) override;
 };
 
 #endif //_GUI_BUTTON_CTRL_H

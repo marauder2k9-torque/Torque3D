@@ -28,7 +28,7 @@
 #ifndef _OBJECTTYPES_H_
 #define _OBJECTTYPES_H_
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 
 // Uncomment the AFX_CAP_AFXMODEL_TYPE define below to enable a type flag
 // for afxModel objects.

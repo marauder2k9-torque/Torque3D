@@ -24,7 +24,7 @@
 #define _FILEOBJECT_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 #ifndef _FILESTREAM_H_
 #include "core/stream/fileStream.h"

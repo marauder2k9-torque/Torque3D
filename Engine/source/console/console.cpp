@@ -31,7 +31,7 @@
 #include "core/tAlgorithm.h"
 #include "console/consoleTypes.h"
 #include "console/telnetDebugger.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/stringStack.h"
 #include "console/ICallMethod.h"
 #include "console/engineAPI.h"

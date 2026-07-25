@@ -26,7 +26,7 @@
 #include "platform/platform.h"
 #endif
 #ifndef _TORQUE_TYPES_H_
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #endif
 #ifndef _GFXENUMS_H_
 #include "gfx/gfxEnums.h"

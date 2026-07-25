@@ -27,7 +27,7 @@
 #include "core/resourceManager.h"
 #include "ts/tsShapeInstance.h"
 #include "ts/tsLastDetail.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "materials/materialManager.h"
 #include "forest/windDeformation.h"
 

@@ -27,7 +27,7 @@
 #include "math/mMath.h"
 #include "console/console.h"
 #include "console/consoleTypes.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "collision/boxConvex.h"
 #include "collision/earlyOutPolyList.h"
 #include "collision/extrudedPolyList.h"

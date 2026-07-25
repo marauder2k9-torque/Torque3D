@@ -35,7 +35,7 @@
 #include "renderInstance/renderPassManager.h"
 #include "gfx/gfxDrawUtil.h"
 #include "gfx/gfxTransformSaver.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "T3D/gameBase/processList.h"
 #include "console/engineAPI.h"
 

@@ -24,7 +24,7 @@
 #define _CONSOLE_LOGGER_H_
 
 #ifndef _SIMOBJECT_H_
-   #include "console/simObject.h"
+   #include "sim/simObject.h"
 #endif
 #ifndef _CONSOLE_H_
    #include "console/console.h"

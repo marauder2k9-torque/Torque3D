@@ -22,7 +22,7 @@
 
 #include "platform/platform.h"
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/engineAPI.h"
 #include "console/telnetConsole.h"
 

@@ -96,15 +96,15 @@
 #include "app/net/serverQuery.h"
 
 #include "platform/platform.h"
-#include "core/dnet.h"
+#include "network/connectionProtocol.h"
 #include "core/util/tVector.h"
 #include "core/stream/bitStream.h"
 #include "console/console.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "app/banList.h"
 #include "app/auth.h"
-#include "sim/netConnection.h"
-#include "sim/netInterface.h"
+#include "network/netConnection.h"
+#include "network/netInterface.h"
 
 // cafTODO: breaks T2D
 #include "console/script.h"
@@ -863,7 +863,18 @@ bool pickMasterServer()
 void clearServerList()
 {
    gPacketStatusList.clear();
-   gServerList.clear();
+   for (S32 i = gServerList.size() - 1; i >= 0; i--)
+   {
+      if (!gServerList[i].isFake())
+         gServerList.erase(i);
+   }
+
+   for (S32 i = gP2PPeerList.size() - 1; i >= 0; i--)
+   {
+      if (!gP2PPeerList[i].isFake())
+         gP2PPeerList.erase(i);
+   }
+
    gFinishedList.clear();
    gPingList.clear();
    gQueryList.clear();
@@ -1046,13 +1057,25 @@ static void removeServerInfo( const NetAddress* addr )
 #if defined(TORQUE_DEBUG)
 // This function is solely for testing the functionality of the server browser
 // with more servers in the list.
+
+void clearFakeServers()
+{
+   for (S32 i = gServerList.size() - 1; i >= 0; i--)
+   {
+      if (gServerList[i].isFake())
+         gServerList.erase(i);
+   }
+
+   gServerBrowserDirty = true;
+}
+
 void addFakeServers( S32 howMany )
 {
    static S32 sNumFakeServers = 1;
-   ServerInfo newServer;
 
    for ( S32 i = 0; i < howMany; i++ )
    {
+      ServerInfo newServer;
       newServer.numPlayers = (U8)(Platform::getRandom() * 64.0f);
       newServer.maxPlayers = 64;
       char buf[256];
@@ -1069,7 +1092,7 @@ void addFakeServers( S32 howMany )
       Net::stringToAddress( "IP:198.74.33.35:28000", &newServer.address );
       newServer.ping = (U32)( Platform::getRandom() * 200.0f );
       newServer.cpuSpeed = 470;
-      newServer.status = ServerInfo::Status_Responded;
+      newServer.status = ServerInfo::Status_Responded | ServerInfo::Status_Fake;
 
       gServerList.push_back( newServer );
       sNumFakeServers++;
@@ -1077,6 +1100,68 @@ void addFakeServers( S32 howMany )
 
    gServerBrowserDirty = true;
 }
+
+void clearFakeP2PPeers()
+{
+   for (S32 i = gP2PPeerList.size() - 1; i >= 0; i--)
+   {
+      if (gP2PPeerList[i].isFake())
+         gP2PPeerList.erase(i);
+   }
+
+   gP2PListDirty = true;
+}
+
+void addFakeP2PPeers(S32 howMany)
+{
+   static S32 sNumFakePeers = 1;
+   for (S32 i = 0; i < howMany; i++)
+   {
+      // Fake peerKey values start at a high offset so they can't collide
+      // with 0 (InvalidPeerKey)
+      P2PPeerInfo newPeer;
+      newPeer.peerKey = 1000000 + sNumFakePeers;
+
+      newPeer.numPlayers = (U8)(Platform::getRandom() * 4.0f);
+      newPeer.maxPlayers = 4;
+
+      char buf[256];
+      dSprintf(buf, 255, "Fake peer #%d", sNumFakePeers);
+      dsize_t nameLen = dStrlen(buf) + 1;
+      newPeer.displayName = (char*)dMalloc(nameLen);
+      dStrcpy(newPeer.displayName, buf, nameLen);
+
+      newPeer.ping = (U32)(Platform::getRandom() * 200.0f);
+      newPeer.status = P2PPeerInfo::Status_Responded | P2PPeerInfo::Status_Fake;
+
+      gP2PPeerList.push_back(newPeer);
+      sNumFakePeers++;
+   }
+
+   gP2PListDirty = true;
+   Con::executef("onP2PListChanged");
+}
+
+DefineEngineFunction(addFakeServers, void, (U32 howMany), , "addFakeServers(howMany);")
+{
+   addFakeServers(howMany);
+}
+
+DefineEngineFunction(clearFakeServers, void, (), , "clearFakeServers();")
+{
+   clearFakeServers();
+}
+
+DefineEngineFunction(addFakeP2PPeers, void, (U32 howMany), , "addFakeP2PPeers(howMany);")
+{
+   addFakeP2PPeers(howMany);
+}
+
+DefineEngineFunction(clearFakeP2PPeers, void, (), , "clearFakeP2PPeers();")
+{
+   clearFakeP2PPeers();
+}
+
 #endif // DEBUG
 
 //-----------------------------------------------------------------------------
@@ -1494,6 +1579,186 @@ static void updateQueryProgress()
    Con::executef( "onServerQueryStatus", "query", msg, Con::getFloatArg( progress ) );
 }
 
+//-----------------------------------------------------------------------------
+// Peer2Peer functions
+//-----------------------------------------------------------------------------
+
+Vector<P2PPeerInfo> gP2PPeerList(__FILE__, __LINE__);
+bool gP2PListDirty = false;
+
+static U32 gP2PAdvertisedPeerKey = 0;   // 0 == not currently advertising
+static U32 gP2PAdvertiseKey = 0;        // per-request key, same role as gKey elsewhere
+
+P2PPeerInfo::~P2PPeerInfo()
+{
+   dFree(displayName);
+}
+
+void clearP2PPeerList()
+{
+   for (U32 i = 0; i < gP2PPeerList.size(); i++)
+      ; // P2PPeerInfo's destructor handles displayName; Vector::clear() below
+        // destructs each element as it empties, matching how gServerList's
+        // equivalent teardown works elsewhere in this file.
+   gP2PPeerList.clear();
+   gP2PListDirty = true;
+}
+
+//-----------------------------------------------------------------------------
+// Advertise
+//-----------------------------------------------------------------------------
+
+void startP2PAdvertise(U32 peerKey, const char* displayName, U8 maxPlayers)
+{
+   if (peerKey == 0)
+   {
+      Con::errorf("startP2PAdvertise: peerKey must be non-zero");
+      return;
+   }
+
+   gP2PAdvertisedPeerKey = peerKey;
+
+   BitStream* out = BitStream::getPacketStream();
+   out->clearStringBuffer();
+   out->write(U8(NetInterface::P2PAdvertise));
+   out->write(U8(0));               // flags - reserved, matches sendPacket()'s convention
+   out->write(U32(gP2PAdvertiseKey++));
+   out->write(peerKey);
+   writeCString(out, displayName);
+   out->write(maxPlayers);
+
+   BitStream::sendPacketStream(&gMasterServerPing.address);
+
+   Con::printf("Advertising P2P peerKey %u to master server", peerKey);
+}
+
+void stopP2PAdvertise()
+{
+   if (gP2PAdvertisedPeerKey == 0)
+      return; // not currently advertising
+
+   BitStream* out = BitStream::getPacketStream();
+   out->clearStringBuffer();
+   out->write(U8(NetInterface::P2PStopAdvertise));
+   out->write(U8(0));
+   out->write(U32(gP2PAdvertiseKey++));
+   out->write(gP2PAdvertisedPeerKey);
+
+   BitStream::sendPacketStream(&gMasterServerPing.address);
+
+   Con::printf("Stopped advertising P2P peerKey %u", gP2PAdvertisedPeerKey);
+   gP2PAdvertisedPeerKey = 0;
+}
+
+//-----------------------------------------------------------------------------
+// List query / response
+//-----------------------------------------------------------------------------
+
+void queryP2PPeerList()
+{
+   BitStream* out = BitStream::getPacketStream();
+   out->clearStringBuffer();
+   out->write(U8(NetInterface::P2PListRequest));
+   out->write(U8(0));
+   out->write(U32(gP2PAdvertiseKey++));
+
+   BitStream::sendPacketStream(&gMasterServerPing.address);
+
+   Con::printf("Requesting P2P peer list from master server");
+}
+
+// Wired into DemoNetInterface::handleInfoPacket's switch (see integration
+// notes at the bottom of this file) - follows the exact same
+// flags/key-already-consumed convention every other case in that switch
+// relies on (handleInfoPacket reads flags+key BEFORE the switch runs; see
+// its body).
+static void handleP2PListResponse(BitStream* stream, U32 key, U8 /*flags*/)
+{
+   clearP2PPeerList();
+
+   U16 count;
+   stream->read(&count);
+
+   for (U16 i = 0; i < count; i++)
+   {
+      P2PPeerInfo info;
+      stream->read(&info.peerKey);
+
+      char nameBuf[256];
+      readCString(stream, nameBuf);
+      info.displayName = dStrdup(nameBuf);
+
+      stream->read(&info.numPlayers);
+      stream->read(&info.maxPlayers);
+      info.status.set(P2PPeerInfo::Status_Responded);
+
+      gP2PPeerList.push_back(info);
+   }
+
+   gP2PListDirty = true;
+   Con::executef("onP2PListChanged");
+
+   Con::printf("Received P2P peer list (%d peers)", count);
+}
+
+DefineEngineFunction(startP2PAdvertise, void, (U32 peerKey, const char* displayName, U8 maxPlayers), (10),
+   "@brief Advertises this client as available for P2P connections via the "
+   "master server's peer list. peerKey should be a value this client "
+   "generates and that will later be passed to requestP2PConnection() by "
+   "whoever chooses to connect to it - see gameConnectionPunchthrough.tscript.\n"
+   "@param peerKey Stable, non-zero identifier for this peer.\n"
+   "@param displayName Human-readable name shown in a peer browser UI.\n"
+   "@param maxPlayers Informational only - shown in listings, not enforced here.\n")
+{
+   startP2PAdvertise(peerKey, displayName, maxPlayers);
+}
+
+DefineEngineFunction(stopP2PAdvertise, void, (), ,
+   "@brief Stops advertising this client for P2P connections.\n")
+{
+   stopP2PAdvertise();
+}
+
+DefineEngineFunction(queryP2PPeerList, void, (), ,
+   "@brief Requests the current list of advertised P2P peers from the master "
+   "server. Results populate the list read via getP2PPeerCount()/"
+   "getP2PPeerInfo(); implement onP2PListChanged() in script to know when a "
+   "fresh list has arrived, rather than polling.\n")
+{
+   queryP2PPeerList();
+}
+
+DefineEngineFunction(getP2PPeerCount, S32, (), ,
+   "@brief Returns the number of peers in the most recently received P2P "
+   "peer list.\n")
+{
+   return gP2PPeerList.size();
+}
+
+DefineEngineFunction(getP2PPeerInfo, const char*, (S32 index), ,
+   "@brief Returns info for one entry in the P2P peer list, as a "
+   "space-separated string: peerKey displayName numPlayers maxPlayers ping. "
+   "displayName is NOT quoted - if it may contain spaces, treat everything "
+   "from the second field through (count-2) fields from the end as the name, "
+   "or store display names without spaces.\n"
+   "@param index Index into the list, 0 to getP2PPeerCount()-1.\n")
+{
+   if (index < 0 || index >= (S32)gP2PPeerList.size())
+   {
+      Con::errorf("getP2PPeerInfo: index %d out of range (count: %d)", index, gP2PPeerList.size());
+      return "";
+   }
+
+   P2PPeerInfo& info = gP2PPeerList[index];
+   char* buffer = Con::getReturnBuffer(512);
+   dSprintf(buffer, 512, "%u %s %u %u %u",
+      info.peerKey,
+      info.displayName ? info.displayName : "",
+      info.numPlayers,
+      info.maxPlayers,
+      info.ping);
+   return buffer;
+}
 
 //-----------------------------------------------------------------------------
 // Server packet handlers:
@@ -2228,8 +2493,12 @@ void DemoNetInterface::handleInfoPacket( const NetAddress* address, U8 packetTyp
       case MasterServerExtendedListResponse:
          handleExtendedMasterServerListResponse(stream, key, flags);
          break;
+      case NetInterface::P2PListResponse:
+         handleP2PListResponse(stream, key, flags);
+         break;
    }
 }
 
 
 ConsoleFunctionGroupEnd( ServerQuery );
+

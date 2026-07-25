@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 
 #ifndef _SCRIPTMSGLISTENER_H_
 #define _SCRIPTMSGLISTENER_H_

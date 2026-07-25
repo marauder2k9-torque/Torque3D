@@ -28,31 +28,16 @@
 #endif
 
 
-/// A checkbox button.
 class GuiCheckBoxCtrl : public GuiButtonBaseCtrl
 {
-   public:
-   
-      typedef GuiButtonBaseCtrl Parent;
+public:
 
-   protected:
+   typedef GuiButtonBaseCtrl Parent;
 
-      S32 mIndent;
-       
-   public:
-   
-      GuiCheckBoxCtrl();
-      
-      S32 getIndent() const { return mIndent; }
-      void setIndent( S32 value ) { mIndent = value; }
+   GuiCheckBoxCtrl();
 
-      void onRender( Point2I offset, const RectI &updateRect ) override;
-      bool onWake() override;
-
-      void autoSize();
-
-      DECLARE_CONOBJECT( GuiCheckBoxCtrl );
-      DECLARE_DESCRIPTION( "A toggle button that displays a text label and an on/off checkbox." );
+   DECLARE_CONOBJECT(GuiCheckBoxCtrl);
+   DECLARE_DESCRIPTION("A toggle button that displays a text label and an on/off checkbox.");
 };
 
 #endif //_GUI_CHECKBOX_CTRL_H

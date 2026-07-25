@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "platform/nativeDialogs/fileDialog.h"
 #include "platform/threads/mutex.h"
 #include "core/util/safeDelete.h"

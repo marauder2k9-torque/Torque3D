@@ -39,7 +39,7 @@
 #include "lighting/lightInfo.h"
 #include "lighting/lightManager.h"
 #include "core/stream/bitStream.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "ts/tsShape.h"
 #include "ts/tsShapeInstance.h"
 #include "math/mRandom.h"

@@ -33,7 +33,7 @@
 #include "console/consoleTypes.h"
 #endif
 #ifndef _CONSOLEOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 #ifndef _DATACHUNKER_H_
 #include "core/dataChunker.h"

@@ -23,7 +23,7 @@
 #ifndef _GUIIMAGELIST_H_
 #define _GUIIMAGELIST_H_
 
-#include "console/simDatablock.h"
+#include "sim/simDatablock.h"
 
 #ifndef _GUITYPES_H_
 #include "gui/core/guiTypes.h"

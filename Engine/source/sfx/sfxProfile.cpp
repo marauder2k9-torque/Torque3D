@@ -31,7 +31,7 @@
 #include "sfx/sfxDescription.h"
 #include "sfx/sfxSystem.h"
 #include "sfx/sfxStream.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "core/stream/bitStream.h"
 #include "core/resourceManager.h"
 #include "console/engineAPI.h"

@@ -551,3 +551,133 @@ void renderFixedBitmapBordersFilledIndex( const RectI &bounds, S32 startIndex, G
       // End drawing fill
    }
 }
+
+//=============================================================================
+//    State-Aware Button Rendering.
+//=============================================================================
+// All button-family draw calls (GuiButtonBaseCtrl) are routed through the
+// functions below. Each resolves its own color/frame-index from GuiState so
+// callers never pre-compute a ColorI or bitmap-array index themselves; this
+// keeps every button draw call funneled through one place per kind of draw,
+// which is what makes batching the underlying draw calls later feasible
+// without touching GuiButtonBaseCtrl.
+
+void renderStateFill(const RectI& bounds, GuiState state, GuiControlProfile* profile)
+{
+   ColorI fillColor = profile->mFillColor;
+   ColorI borderColor = profile->mBorderColor;
+
+   switch (state)
+   {
+   case GuiState::Highlighted:
+      fillColor = profile->mFillColorHL;
+      borderColor = profile->mBorderColorHL;
+      break;
+   case GuiState::Depressed:
+      fillColor = profile->mFillColorSEL;
+      borderColor = profile->mBorderColorSEL;
+      break;
+   case GuiState::Disabled:
+      fillColor = profile->mFillColorNA;
+      borderColor = profile->mBorderColorNA;
+      break;
+   case GuiState::Error:
+      fillColor = profile->mFillColorERR;
+      borderColor = profile->mBorderColorERR;
+      break;
+   case GuiState::Normal:
+   default:
+      break;
+   }
+
+   if (profile->mBorder != 0)
+      renderFilledBorder(bounds, borderColor, fillColor, profile->mBorderThickness);
+   else
+      GFX->getDrawUtil()->drawRectFill(bounds, fillColor);
+}
+
+void renderStateBitmapBorders(const RectI& bounds, GuiState state, GuiControlProfile* profile)
+{
+   // Matches the indexMultiplier convention used by themed push-button
+   // profiles: 1 = normal, 2 = depressed/on, 3 = highlighted, 4 = disabled.
+   // Error has no themed frame set of its own; falls back to normal.
+   S32 indexMultiplier = 1;
+
+   switch (state)
+   {
+   case GuiState::Disabled:
+      indexMultiplier = 4;
+      break;
+   case GuiState::Depressed:
+      indexMultiplier = 2;
+      break;
+   case GuiState::Highlighted:
+      indexMultiplier = 3;
+      break;
+   case GuiState::Normal:
+   case GuiState::Error:
+   default:
+      indexMultiplier = 1;
+      break;
+   }
+
+   renderSizableBitmapBordersFilled(bounds, indexMultiplier, profile);
+}
+
+Point2I renderStateGlyph(const Point2I& offset, GuiState state, bool isOn, GuiControlProfile* profile)
+{
+   if (profile->mBitmapArrayRects.size() < 4)
+      return Point2I(0, 0);
+
+   //   - Disabled: frame (4 + isOn) on the newer 6-frame layout, or a single
+   //     shared disabled frame (index 2) on the older 4-frame layout.
+   //   - Depressed: off/on frame (0/1) plus 2.
+   //   - Otherwise (Normal/Highlighted/Error): plain off/on frame (0/1).
+   S32 index = isOn ? 1 : 0;
+
+   if (state == GuiState::Disabled)
+   {
+      index = (profile->mBitmapArrayRects.size() >= 6) ? (4 + (isOn ? 1 : 0)) : 2;
+   }
+   else if (state == GuiState::Depressed)
+   {
+      index += 2;
+   }
+
+   GFX->getDrawUtil()->drawBitmapSR(profile->getBitmap(), offset, profile->mBitmapArrayRects[index]);
+
+   return profile->mBitmapArrayRects[index].extent;
+}
+
+void renderStateBorderOnly(const RectI& bounds, GuiState state, GuiControlProfile* profile)
+{
+   ColorI borderColor = profile->mBorderColor;
+
+   switch (state)
+   {
+   case GuiState::Highlighted:
+      borderColor = profile->mFontColorHL;
+      break;
+   case GuiState::Depressed:
+      borderColor = profile->mFontColorSEL;
+      break;
+   case GuiState::Disabled:
+      borderColor = profile->mBorderColorNA;
+      break;
+   case GuiState::Error:
+      borderColor = profile->mBorderColorERR;
+      break;
+   case GuiState::Normal:
+   default:
+      borderColor = profile->mBorderColor;
+      break;
+   }
+
+   RectI stroke = bounds;
+   for (S32 i = 0; i < profile->mBorderThickness; i++)
+   {
+      GFX->getDrawUtil()->drawRect(stroke, borderColor);
+      stroke.inset(1, 1);
+   }
+}
+

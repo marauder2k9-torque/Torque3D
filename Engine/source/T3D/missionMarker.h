@@ -27,7 +27,7 @@
 #include "core/stream/bitStream.h"
 #endif
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 #ifndef _SHAPEBASE_H_
 #include "T3D/shapeBase.h"

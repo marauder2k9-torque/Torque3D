@@ -28,7 +28,7 @@
 #include "platform/platform.h"
 #include "T3D/shapeBase.h"
 
-#include "core/dnet.h"
+#include "network/connectionProtocol.h"
 #include "sfx/sfxSystem.h"
 #include "sfx/sfxSource.h"
 #include "sfx/sfxTrack.h"

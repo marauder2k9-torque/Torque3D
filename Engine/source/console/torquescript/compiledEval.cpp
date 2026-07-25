@@ -30,8 +30,8 @@
 #include "core/strings/stringUnit.h"
 #include "console/consoleInternal.h"
 
-#include "console/simBase.h"
-#include "sim/netStringTable.h"
+#include "sim/simBase.h"
+#include "network/netStringTable.h"
 #include "console/stringStack.h"
 #include "util/messaging/message.h"
 #include "core/frameAllocator.h"
@@ -1211,22 +1211,37 @@ Con::EvalResult CodeBlock::exec(U32 ip, const char* functionName, Namespace* thi
                }
             }
 
-            // If we didn't get a group, then make sure we have a pointer to
-            // the rootgroup.
-            if (!grp)
-               grp = Sim::getRootGroup();
+            SimComponent* comp = dynamic_cast<SimComponent*>(currentNewObject);
+            if (comp)
+            {
+               SimObject* enclosing = (objectCreationStackIndex > 0)
+                                      ? objectCreationStack[objectCreationStackIndex - 1].newObject
+                                      : NULL;
 
-            // add to the parent group
-            grp->addObject(currentNewObject);
+               if (enclosing && !enclosing->attachComponent(comp))
+               {
+                  delete comp; // no valid owner, or attach refused (collision, etc.)
+               }
+            }
+            else
+            {
+               // If we didn't get a group, then make sure we have a pointer to
+               // the rootgroup.
+               if (!grp)
+                  grp = Sim::getRootGroup();
 
-            // If for some reason the add failed, add the object to the
-            // root group so it won't leak.
-            if (currentNewObject->getGroup() == NULL)
-               Sim::getRootGroup()->addObject(currentNewObject);
+               // add to the parent group
+               grp->addObject(currentNewObject);
 
-            // add to any set we might be in
-            if (set)
-               set->addObject(currentNewObject);
+               // If for some reason the add failed, add the object to the
+               // root group so it won't leak.
+               if (currentNewObject->getGroup() == NULL)
+                  Sim::getRootGroup()->addObject(currentNewObject);
+
+               // add to any set we might be in
+               if (set)
+                  set->addObject(currentNewObject);
+            }
          }
 
          // store the new object's ID on the stack (overwriting the group/set

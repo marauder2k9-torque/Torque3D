@@ -26,7 +26,7 @@
 #include "math/mMath.h"
 #include "core/color.h"
 #include "gfx/gfxCubemap.h"
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #include "math/mathUtils.h"
 
 

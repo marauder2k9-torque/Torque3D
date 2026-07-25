@@ -24,7 +24,7 @@
 #define _GIZMO_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #ifndef _MMATRIX_H_

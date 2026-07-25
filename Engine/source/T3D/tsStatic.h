@@ -38,7 +38,7 @@
 #include "core/resource.h"
 #endif
 #ifndef _NETSTRINGTABLE_H_
-#include "sim/netStringTable.h"
+#include "network/netStringTable.h"
 #endif
 #ifndef _TSSHAPE_H_
 #include "ts/tsShape.h"

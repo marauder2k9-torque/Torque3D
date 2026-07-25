@@ -24,7 +24,7 @@
 #define _PLATFORM_THREAD_SEMAPHORE_H_
 
 #ifndef _TORQUE_TYPES_H_
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #endif
 
 // Forward ref used by platform code

@@ -24,7 +24,7 @@
 #define _MISSIONAREA_H_
 
 #ifndef _NETOBJECT_H_
-#include "sim/netObject.h"
+#include "network/netObject.h"
 #endif
 
 class MissionArea : public NetObject

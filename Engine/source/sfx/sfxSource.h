@@ -24,7 +24,7 @@
 #define _SFXSOURCE_H_
 
 #ifndef _SIMSET_H_
-   #include "console/simSet.h"
+   #include "sim/simSet.h"
 #endif
 #ifndef _SFXCOMMON_H_
    #include "sfx/sfxCommon.h"

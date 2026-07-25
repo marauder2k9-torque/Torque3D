@@ -1,7 +1,7 @@
 name: Windows Build
 on:
     push:
-        branches: [development]
+        branches: [Torque3D-PlatformSquash]
     pull_request:
         branches: [development]
 
@@ -14,7 +14,6 @@ permissions:
 
 jobs:
     build-windows:
-        if: github.repository == 'TorqueGameEngines/Torque3D'
         name: ${{matrix.config.name}}
         runs-on: ${{matrix.config.os}}
         strategy:

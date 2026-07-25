@@ -1,8 +1,8 @@
-﻿#ifndef _TORQUESCRIPT_PARSER_H_
+#ifndef _TORQUESCRIPT_PARSER_H_
 #define _TORQUESCRIPT_PARSER_H_
 #include <cstdio>
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 
 const char* CMDGetCurrentFile();
 S32 CMDGetCurrentLine();

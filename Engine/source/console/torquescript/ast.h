@@ -24,7 +24,7 @@
 #define _AST_H_
 
 #include "evalState.h"
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 
 class SimObject;
 class SimGroup;

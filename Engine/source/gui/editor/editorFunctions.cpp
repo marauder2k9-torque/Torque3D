@@ -23,7 +23,7 @@
 #include "platform/platform.h"
 #include "gui/editor/editorFunctions.h"
 
-#include "console/simObject.h"
+#include "sim/simObject.h"
 
 
 bool validateObjectName( const char *data, const SimObject *object )

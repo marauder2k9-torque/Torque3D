@@ -39,7 +39,7 @@
 #include "console/engineAPI.h"
 
 //#include "console/engineTypes.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 IMPLEMENT_CO_NETOBJECT_V1(PhysicalZone);
 
 ConsoleDocClass( PhysicalZone,

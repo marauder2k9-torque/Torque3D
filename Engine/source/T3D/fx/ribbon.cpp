@@ -28,7 +28,7 @@
 #include "T3D/fx/ribbon.h"
 #include "math/mathUtils.h"
 #include "math/mathIO.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "gfx/primBuilder.h"
 #include "gfx/gfxDrawUtil.h"
 #include "materials/sceneData.h"

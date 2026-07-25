@@ -25,7 +25,7 @@
 /// \brief Header for language support
 //-----------------------------------------------------------------------------
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "core/util/tVector.h"
 //lang_ localization
 #include "core/fileObject.h"

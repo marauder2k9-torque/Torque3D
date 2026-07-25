@@ -21,7 +21,7 @@
 //-----------------------------------------------------------------------------
 
 #include "console/consoleInternal.h"
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #include "console/engineAPI.h"
 
 namespace Con

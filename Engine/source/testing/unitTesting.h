@@ -29,6 +29,9 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#ifndef _PLATFORM_H_
+#include "platform/platform.h"
+#endif
 
 /// Convenience to define a test fixture with a Fixture suffix for use with
 /// TEST_FIX.
@@ -40,5 +43,7 @@
 #define TEST_FIX(test_fixture, test_name)\
    GTEST_TEST_(test_fixture, test_name, test_fixture##Fixture, \
    ::testing::internal::GetTypeId<test_fixture##Fixture>())
+
+S32 RunUnitTests(S32 argc, const char** argv);
 
 #endif // _UNIT_TESTING_H_

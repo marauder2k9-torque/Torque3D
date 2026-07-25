@@ -24,7 +24,7 @@
 #include "T3D/examples/shapeDatablockExample.h"
 
 #include "math/mathIO.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "scene/sceneRenderState.h"
 #include "console/consoleTypes.h"
 #include "core/resourceManager.h"

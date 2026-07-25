@@ -28,7 +28,7 @@
 #endif
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #ifndef _GFX_GFXDRAWER_H_

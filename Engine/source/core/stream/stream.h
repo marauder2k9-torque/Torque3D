@@ -24,7 +24,7 @@
 #define _STREAM_H_
 
 #ifndef _TORQUE_TYPES_H_
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #endif
 #ifndef _ENDIAN_H_
 #include "core/util/endian.h"

@@ -29,7 +29,7 @@
 #include "torqueConfig.h"
 #endif
 #ifndef _TORQUE_TYPES_H_
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #endif
 #ifndef _PLATFORMASSERT_H_
 #include "platform/platformAssert.h"
@@ -516,7 +516,7 @@ template<class T> void dCopyArray(T *dst, const T *src, dsize_t size)
    #define dALIGN( decl ) __declspec( align( 16 ) ) decl
    #define dALIGN_BEGIN __declspec( align( 16 ) )
    #define dALIGN_END
-#elif defined( TORQUE_COMPILER_GCC )
+#elif defined( TORQUE_COMPILER_GCC ) || defined( TORQUE_COMPILER_CLANG )
    #define dALIGN( decl ) decl __attribute__( ( aligned( 16 ) ) )
    #define dALIGN_BEGIN
    #define dALIGN_END __attribute__( ( aligned( 16 ) ) )

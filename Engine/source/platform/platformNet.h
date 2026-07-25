@@ -26,6 +26,7 @@
 #include "platform/platform.h"
 #include "core/util/rawData.h"
 #include "core/util/journal/journaledSignal.h"
+#include "core/stream/bitStream.h"
 
 #ifndef MAXPACKETSIZE
 #define MAXPACKETSIZE 1500
@@ -149,6 +150,31 @@ struct NetAddress
    }
 
    U32 getHash() const;
+
+   /// Wire tag for an address written by writeToStream().
+   enum WireType : U8
+   {
+      WireIPv4 = 1,
+      WireIPv6 = 2,
+      WireInvalid = 0xFF  ///< returned by readFromStream on failure
+   };
+
+   enum { MaxAddressListCount = 16 };
+
+   /// Write this address to a BitStream. Only IPAddress and IPV6Address are
+   /// meaningful to send as data (as opposed to using a NetAddress locally
+   /// as a sendto() destination)
+   void writeToStream(BitStream* stream) const;
+
+   /// Read an address previously written by writeToStream().
+   bool readFromStream(BitStream* stream);
+
+   /// Write a bounded list of addresses. Caps at MaxAddressListCount.
+   static void writeAddressList(BitStream* stream, const Vector<NetAddress>& addresses);
+
+   /// Read a list previously written by writeAddressList().
+   static void readAddressList(BitStream* stream, Vector<NetAddress>* outAddresses);
+
 };
 
 class NetSocket

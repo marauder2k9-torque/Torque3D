@@ -30,7 +30,7 @@
    #include "sfx/sfxVoice.h"
 #endif
 #ifndef _SIMBASE_H_
-   #include "console/simBase.h"
+   #include "sim/simBase.h"
 #endif
 #ifndef _MPOINT3_H_
    #include "math/mPoint3.h"

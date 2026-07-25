@@ -1,10 +1,9 @@
 #include "testing/unitTesting.h"
 
 #include "platform/platform.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/consoleTypes.h"
 #include "console/scriptObjects.h"
-#include "console/simBase.h"
 #include "console/engineAPI.h"
 #include "math/mMath.h"
 #include "console/stringStack.h"

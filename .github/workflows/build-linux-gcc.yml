@@ -1,7 +1,7 @@
 name: Linux Build
 on:
     push:
-        branches: [development]
+        branches: [Torque3D-PlatformSquash]
     pull_request:
         branches: [development]
 
@@ -14,7 +14,6 @@ permissions:
 
 jobs:
     build-linux:
-        if: github.repository == 'TorqueGameEngines/Torque3D'
         name: ${{matrix.config.name}}
         runs-on: ubuntu-latest
         strategy:
@@ -75,6 +74,7 @@ jobs:
                       libpulse-dev \
                       libdbus-1-dev \
                       libfreetype6-dev \
+                      libfontconfig1-dev \
                       libxcursor-dev \
                       libxinerama-dev \
                       libxi-dev \

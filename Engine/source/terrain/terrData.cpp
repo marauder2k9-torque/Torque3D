@@ -38,7 +38,7 @@
 #include "core/stream/fileStream.h"
 #include "core/stream/bitStream.h"
 #include "console/consoleTypes.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "core/util/safeDelete.h"
 #include "T3D/objectTypes.h"
 #include "renderInstance/renderPassManager.h"

@@ -24,7 +24,7 @@
 #define _LEVELINFO_H_
 
 #ifndef _NETOBJECT_H_
-   #include "sim/netObject.h"
+   #include "network/netObject.h"
 #endif
 #ifndef _COLOR_H_
    #include "core/color.h"

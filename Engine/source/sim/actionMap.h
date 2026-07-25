@@ -30,7 +30,7 @@
 #include "core/util/tVector.h"
 #endif
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 #ifndef _ITICKABLE_H_  
 #include "core/iTickable.h"  

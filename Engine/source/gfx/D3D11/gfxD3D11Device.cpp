@@ -32,7 +32,7 @@
 #include "gfx/D3D11/gfxD3D11OcclusionQuery.h"
 #include "gfx/D3D11/gfxD3D11Shader.h"
 #include "gfx/D3D11/gfxD3D11Target.h"
-#include "platformWin32/platformWin32.h"
+ 
 #include "windowManager/win32/win32Window.h"
 #include "windowManager/platformWindow.h"
 #include "gfx/D3D11/screenshotD3D11.h"

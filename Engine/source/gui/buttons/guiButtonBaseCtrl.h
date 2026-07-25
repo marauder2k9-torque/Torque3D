@@ -27,10 +27,21 @@
 #include "gui/core/guiControl.h"
 #endif
 
+#ifndef _H_GUIDEFAULTCONTROLRENDER_
+#include "gui/core/guiDefaultControlRender.h"
+#endif
+
 
 /// Base class for all button controls.  Subclasses are mostly for specific
 /// rendering types.
 ///
+/// GuiButtonBaseCtrl also serves as the single, directly-instantiable button
+/// control: its render behavior is selected by #buttonType (push/check/radio)
+/// and #renderStyle (filled/themed vs. border-only), rather than by picking a
+/// different C++ subclass. This keeps every button-family draw path -- push
+/// buttons, checkboxes, radio buttons, and border-only buttons -- routed
+/// through the same onRender(), all sharing the click/highlight/sibling/sound
+/// handling already implemented on this class.
 class GuiButtonBaseCtrl : public GuiControl
 {
 public:
@@ -44,6 +55,16 @@ public:
       ButtonTypeRadio,
    };
 
+   /// Selects which onRender() draw path is used, independently of ButtonType.
+   /// A push button and a border-only button can both be ButtonTypePush, for
+   /// example; RenderStyle picks how that state is actually painted.
+   enum RenderStyle
+   {
+      RenderStyleFilled,   ///< Filled/themed rendering (formerly GuiButtonCtrl / GuiToggleButtonCtrl).
+      RenderStyleCheckBox, ///< Bitmap-array glyph + label rendering (formerly GuiCheckBoxCtrl / GuiRadioCtrl).
+      RenderStyleBorder,   ///< Border-only rendering, for surrounding child controls (formerly GuiBorderButtonCtrl).
+   };
+
 protected:
 
    StringTableEntry mButtonText;
@@ -54,6 +75,11 @@ protected:
    S32 mButtonType;
    S32 mRadioGroup;
    bool mUseMouseEvents;
+
+   S32 mRenderStyle;   ///< One of RenderStyle; selects the onRender() draw path.
+
+   bool mHasTheme;     ///< RenderStyleFilled only: true if the profile has a >=36-frame bitmap theme.
+   S32 mIndent;         ///< RenderStyleCheckBox only: extra space before the glyph.
 
    /// Point where left mouse button was pressed down.  Used to find when to start
    /// a mouse drag.
@@ -77,10 +103,21 @@ protected:
 
    /// @}
 
+   /// @name Render Helpers
+   /// One of these is called from onRender() depending on mRenderStyle.
+   /// @{
+   GuiState resolveState() const;
+   void renderFilledButton(Point2I offset, const RectI& updateRect);
+   void renderCheckBoxButton(Point2I offset, const RectI& updateRect);
+   void renderBorderButton(Point2I offset, const RectI& updateRect);
+   /// @}
+
 public:
 
    GuiButtonBaseCtrl();
    bool onWake() override;
+   void onPreRender() override;
+   void onRender(Point2I offset, const RectI& updateRect) override;
 
    DECLARE_CONOBJECT(GuiButtonBaseCtrl);
    DECLARE_CATEGORY("Gui Buttons");
@@ -101,6 +138,11 @@ public:
 
    void setHighlighted(bool highlighted);
    bool isHighlighted() { return mHighlighted; }
+
+   S32 getIndent() const { return mIndent; }
+   void setIndent(S32 value) { mIndent = value; }
+
+   void autoSize();
 
    void acceleratorKeyPress(U32 index) override;
    void acceleratorKeyRelease(U32 index) override;
@@ -128,5 +170,8 @@ public:
 
 typedef GuiButtonBaseCtrl::ButtonType GuiButtonType;
 DefineEnumType(GuiButtonType);
+
+typedef GuiButtonBaseCtrl::RenderStyle GuiButtonRenderStyle;
+DefineEnumType(GuiButtonRenderStyle);
 
 #endif

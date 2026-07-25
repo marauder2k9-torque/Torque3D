@@ -45,7 +45,7 @@
 #include "sfx/sfxTypes.h"
 #include "math/mathUtils.h"
 #include "math/mathIO.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "T3D/fx/particleEmitter.h"
 #include "T3D/fx/splash.h"
 #include "T3D/physics/physicsPlugin.h"

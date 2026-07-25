@@ -24,71 +24,41 @@
 #define _TORQUE_PLATFORM_PLATFORMINTRINSICS_GCC_H_
 
 /// @file
-/// Compiler intrinsics for GCC.
-
-#ifdef TORQUE_OS_MAC
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <libkern/OSAtomic.h>
-#endif
+/// Compiler intrinsics for GCC and Clang.
 
 // Fetch-And-Add
 //
-// NOTE: These do not return the pre-add value because
-// not all platforms (damn you OSX) can do that.
+// NOTE: These do not return the pre-add value because not all platforms
+// (historically, OSX's OSAtomic API) could do that — kept as void to
+// preserve the existing call-site contract even though the underlying
+// __atomic_fetch_add does have the old value available.
 //
-inline void dFetchAndAdd( volatile U32& ref, U32 val )
+inline void dFetchAndAdd(volatile U32& ref, U32 val)
 {
-   #if !defined(TORQUE_OS_MAC)
-      __sync_fetch_and_add(&ref, val );
-   #else
-      OSAtomicAdd32( val, (int32_t* ) &ref);
-   #endif
+   __atomic_fetch_add(&ref, val, __ATOMIC_SEQ_CST);
 }
 
-inline void dFetchAndAdd( volatile S32& ref, S32 val )
+inline void dFetchAndAdd(volatile S32& ref, S32 val)
 {
-   #if !defined(TORQUE_OS_MAC)
-      __sync_fetch_and_add( &ref, val );
-   #else
-      OSAtomicAdd32( val, (int32_t* ) &ref);
-   #endif
+   __atomic_fetch_add(&ref, val, __ATOMIC_SEQ_CST);
 }
 
 // Compare-And-Swap
 
-inline bool dCompareAndSwap( volatile U32& ref, U32 oldVal, U32 newVal )
+inline bool dCompareAndSwap(volatile U32& ref, U32 oldVal, U32 newVal)
 {
-   // bool
-   //OSAtomicCompareAndSwap32(int32_t oldValue, int32_t newValue, volatile int32_t *theValue);
-   #if !defined(TORQUE_OS_MAC)
-      return ( __sync_val_compare_and_swap( &ref, oldVal, newVal ) == oldVal );
-   #else
-      return OSAtomicCompareAndSwap32(oldVal, newVal, (int32_t *) &ref);
-   #endif
+   return __atomic_compare_exchange_n(&ref, &oldVal, newVal, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 }
 
-inline bool dCompareAndSwap( volatile U64& ref, U64 oldVal, U64 newVal )
+inline bool dCompareAndSwap(volatile U64& ref, U64 oldVal, U64 newVal)
 {
-   #if !defined(TORQUE_OS_MAC)
-      return ( __sync_val_compare_and_swap( &ref, oldVal, newVal ) == oldVal );
-   #else
-      return OSAtomicCompareAndSwap64(oldVal, newVal, (int64_t *) &ref);
-   #endif
+   return __atomic_compare_exchange_n(&ref, &oldVal, newVal, false, __ATOMIC_SEQ_CST, __ATOMIC_SEQ_CST);
 }
 
 /// Performs an atomic read operation.
-inline U32 dAtomicRead( volatile U32 &ref )
+inline U32 dAtomicRead(volatile U32& ref)
 {
-   #if !defined(TORQUE_OS_MAC)
-      return __sync_fetch_and_add( &ref, 0 );
-   #else
-      return OSAtomicAdd32( 0, (int32_t* ) &ref);
-   #endif
+   return __atomic_load_n(&ref, __ATOMIC_SEQ_CST);
 }
-
-#ifdef TORQUE_OS_MAC
-#pragma GCC diagnostic pop
-#endif
 
 #endif // _TORQUE_PLATFORM_PLATFORMINTRINSICS_GCC_H_

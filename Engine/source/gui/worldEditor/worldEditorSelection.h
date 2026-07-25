@@ -24,7 +24,7 @@
 #define _WORLDEDITORSELECTION_H_
 
 #ifndef _SIMPERSISTSET_H_
-   #include "console/simPersistSet.h"
+   #include "sim/simPersistSet.h"
 #endif
 #ifndef _MPOINT3_H_
    #include "math/mPoint3.h"

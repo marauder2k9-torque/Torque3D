@@ -30,7 +30,7 @@
 #include "gfx/gfxTarget.h"
 #endif
 #ifndef _SIMDATABLOCK_H_
-#include "console/simDatablock.h"
+#include "sim/simDatablock.h"
 #endif
 #ifndef _MMATH_H_
 #include "math/mMath.h"

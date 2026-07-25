@@ -31,11 +31,12 @@
 #include "console/engineAPI.h"
 #include "console/consoleInternal.h"
 #include "core/stream/bitStream.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "T3D/gameBase/gameConnection.h"
 #include "math/mathIO.h"
 #include "T3D/gameBase/moveManager.h"
 #include "T3D/gameBase/gameProcess.h"
+#include "sim/component/simComponent.h"
 
 #ifdef TORQUE_DEBUG_NET_MOVES
 #include "T3D/aiConnection.h"
@@ -567,12 +568,16 @@ U32 GameBase::getPacketDataChecksum(GameConnection * connection)
    return ret;
 }
 
-void GameBase::writePacketData(GameConnection*, BitStream*)
+void GameBase::writePacketData(GameConnection* conn, BitStream* stream)
 {
+   for (U32 i = 0; i < getComponentCount(); i++)
+      getComponent(i)->writePacketData(conn, stream);
 }
 
-void GameBase::readPacketData(GameConnection*, BitStream*)
+void GameBase::readPacketData(GameConnection* conn, BitStream* stream)
 {
+   for (U32 i = 0; i < getComponentCount(); i++)
+      getComponent(i)->readPacketData(conn, stream);
 }
 
 U32 GameBase::packUpdate( NetConnection *connection, U32 mask, BitStream *stream )

@@ -24,7 +24,7 @@
 #define _ARRAYOBJECT_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 // This class is based on original code by community

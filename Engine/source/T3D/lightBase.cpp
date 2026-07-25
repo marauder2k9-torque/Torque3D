@@ -31,7 +31,7 @@
 #include "console/consoleTypes.h"
 #include "console/typeValidators.h"
 #include "core/stream/bitStream.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "lighting/lightManager.h"
 #include "lighting/shadowMap/lightShadowMap.h"
 #include "scene/sceneRenderState.h"

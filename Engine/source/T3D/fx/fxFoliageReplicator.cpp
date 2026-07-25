@@ -57,11 +57,11 @@
 #include "core/stream/bitStream.h"
 #include "math/mRandom.h"
 #include "math/mathIO.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "scene/sceneManager.h"
 #include "renderInstance/renderPassManager.h"
 #include "scene/sceneRenderState.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "materials/shaderData.h"
 #include "console/engineAPI.h"
 

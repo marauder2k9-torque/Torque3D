@@ -34,7 +34,7 @@
 #include "lighting/lightManager.h"
 #include "scene/sceneRenderState.h"
 #include "renderInstance/renderPassManager.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "environment/timeOfDay.h"
 #include "gfx/gfxTransformSaver.h"
 #include "materials/materialManager.h"

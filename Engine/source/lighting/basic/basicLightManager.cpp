@@ -24,7 +24,7 @@
 #include "lighting/basic/basicLightManager.h"
 
 #include "platform/platformTimer.h"
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #include "console/consoleTypes.h"
 #include "core/module.h"
 #include "core/util/safeDelete.h"

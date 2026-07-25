@@ -24,7 +24,7 @@
 #define _HASHFUNCTION_H_
 
 #ifndef _TORQUE_TYPES_H_
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #endif
 
 namespace Torque

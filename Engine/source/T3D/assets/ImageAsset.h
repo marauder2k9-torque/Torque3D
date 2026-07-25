@@ -44,7 +44,7 @@
 #include "gfx/gfxTextureHandle.h"
 #endif
 #ifndef _NETCONNECTION_H_
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #endif
 #ifndef _GFXDEVICE_H_
 #include "gfx/gfxDevice.h"

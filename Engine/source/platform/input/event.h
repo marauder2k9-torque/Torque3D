@@ -29,7 +29,7 @@
 #ifndef _EVENT_H_
 #define _EVENT_H_
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #include "platform/input/IInputDevice.h"
 #include "core/util/journal/journaledSignal.h"
 #include "core/util/tSingleton.h"
@@ -284,6 +284,17 @@ enum InputObjectInstancesEnum
    XI_Y              = 0x31A,
    XI_GUIDE          = 0x31B,
 
+   SI_TOUCH_FINGER0 = 0x320,
+   SI_TOUCH_FINGER1 = 0x321,
+   SI_TOUCH_FINGER2 = 0x322,
+   SI_TOUCH_FINGER3 = 0x323,
+   SI_TOUCH_FINGER4 = 0x324,
+   SI_TOUCH_FINGER5 = 0x325,
+   SI_TOUCH_FINGER6 = 0x326,
+   SI_TOUCH_FINGER7 = 0x327,
+   SI_TOUCH_FINGER8 = 0x328,
+   SI_TOUCH_FINGER9 = 0x329,
+
    INPUT_DEVICE_PLUGIN_CODES_START = 0x400,
 };
 
@@ -297,6 +308,7 @@ enum InputDeviceTypesEnum
    JoystickDeviceType,
    GamepadDeviceType,
    XInputDeviceType,
+   TouchDeviceType,
 
    NUM_INPUT_DEVICE_TYPES,
 
@@ -334,10 +346,13 @@ enum InputEventType
    SI_INT     = 0x07,   // Integer value (S32)
    SI_FLOAT   = 0x08,   // Float value (F32)
    SI_KEY     = 0x0A,   // Keyboard key
+   SI_TOUCH = 0x0B,     // Touch contact point (finger down/move/up).
 };
 
 /// Wildcard match used by the input system.
 #define SI_ANY       0xff
+
+enum { MaxTouchFingers = SI_TOUCH_FINGER9 - SI_TOUCH_FINGER0 + 1 };
 
 // Modifier Keys
 enum InputModifiers
@@ -421,6 +436,10 @@ struct InputEventInfo
    F32 fValue;
 
    /// Extended float values (often used for absolute rotation Quat)
+   /// For SI_TOUCH events, fValue2/fValue3 carry normalized Y position and
+   /// pressure respectively (fValue2 = Y 0.0 top..1.0 bottom, fValue3 =
+   /// pressure 0.0..1.0, or 1.0 if the source hardware doesn't report
+   /// pressure).
    F32 fValue2;
    F32 fValue3;
    F32 fValue4;

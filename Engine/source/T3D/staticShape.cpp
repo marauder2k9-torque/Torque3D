@@ -25,11 +25,11 @@
 // Copyright (C) 2015 Faust Logic, Inc.
 //~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~//~~~~~~~~~~~~~~~~~~~~~//
 #include "platform/platform.h"
-#include "core/dnet.h"
+#include "network/connectionProtocol.h"
 #include "core/stream/bitStream.h"
 #include "app/game.h"
 #include "math/mMath.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/console.h"
 #include "console/consoleTypes.h"
 #include "console/engineAPI.h"
@@ -37,7 +37,7 @@
 #include "ts/tsShapeInstance.h"
 #include "T3D/staticShape.h"
 #include "math/mathIO.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "scene/sceneObjectLightingPlugin.h"
 
 extern void wireCube(F32 size,Point3F pos);

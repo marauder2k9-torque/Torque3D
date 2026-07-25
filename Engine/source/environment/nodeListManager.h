@@ -33,7 +33,7 @@
 #include "math/mQuat.h"
 #endif
 #ifndef _NETCONNECTION_H_
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #endif
 
 //-----------------------------------------------------------------------------

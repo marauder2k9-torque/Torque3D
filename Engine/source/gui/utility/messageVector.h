@@ -30,7 +30,7 @@
 #include "core/util/tVector.h"
 #endif
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 /// Store a list of chat messages.

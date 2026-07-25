@@ -22,7 +22,7 @@
 
 #include "testing/unitTesting.h"
 #include "platform/platform.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/consoleTypes.h"
 #include "console/runtimeClassRep.h"
 #include "console/script.h"

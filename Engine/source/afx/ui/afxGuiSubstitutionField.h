@@ -27,7 +27,7 @@
 #define _AFX_GUI_SUBSTITUTION_FIELD_H_
 #include "torqueConfig.h"
 #ifdef TORQUE_TOOLS
-#include "console/simFieldDictionary.h"
+#include "sim/simFieldDictionary.h"
 #include "gui/editor/inspector/field.h"
 
 class afxGuiSubstitutionField : public GuiInspectorField

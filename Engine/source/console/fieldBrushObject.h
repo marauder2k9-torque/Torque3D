@@ -24,10 +24,10 @@
 #define _FIELDBRUSHOBJECT_H_
 
 #ifndef _SIM_H_
-   #include "console/simObject.h"
+   #include "sim/simObject.h"
 #endif
 #ifndef _SIMFIELDDICTIONARY_H_
-   #include "console/simFieldDictionary.h"
+   #include "sim/simFieldDictionary.h"
 #endif
 #ifndef _CONSOLEINTERNAL_H_
    #include "console/consoleInternal.h"

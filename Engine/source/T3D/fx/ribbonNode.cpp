@@ -25,7 +25,7 @@
 #include "core/stream/bitStream.h"
 #include "T3D/fx/ribbon.h"
 #include "math/mathIO.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "console/engineAPI.h"
 
 IMPLEMENT_CO_DATABLOCK_V1(RibbonNodeData);

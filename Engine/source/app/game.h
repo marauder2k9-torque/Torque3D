@@ -24,7 +24,7 @@
 #define _GAME_H_
 
 #ifndef _TORQUE_TYPES_H_
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #endif
 
 /// Processes the next frame, including gui, rendering, and tick interpolation.

@@ -23,7 +23,7 @@
 #ifndef _GUI_INSPECTOR_CUSTOMFIELD_H_
 #define _GUI_INSPECTOR_CUSTOMFIELD_H_
 
-#include "console/simFieldDictionary.h"
+#include "sim/simFieldDictionary.h"
 #include "gui/editor/inspector/field.h"
 
 class GuiInspectorCustomField : public GuiInspectorField

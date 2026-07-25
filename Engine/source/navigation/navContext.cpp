@@ -21,7 +21,7 @@
 //-----------------------------------------------------------------------------
 
 #include "navContext.h"
-#include "console/sim.h"
+#include "sim/sim.h"
 
 void NavContext::doResetLog()
 {

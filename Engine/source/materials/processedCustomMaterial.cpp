@@ -35,7 +35,7 @@
 #include "materials/materialParameters.h"
 #include "gfx/sim/gfxStateBlockData.h"
 #include "core/util/safeDelete.h"
-#include "console/simFieldDictionary.h"
+#include "sim/simFieldDictionary.h"
 #include "console/propertyParsing.h"
 #include "gfx/util/screenspace.h"
 #include "scene/reflectionManager.h"

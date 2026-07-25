@@ -39,7 +39,7 @@
 #include "ts/tsMaterialList.h"
 #include "console/consoleTypes.h"
 #include "T3D/shapeBase.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "gfx/gfxDevice.h"
 #include "gfx/gfxTransformSaver.h"
 #include "ts/tsRenderState.h"

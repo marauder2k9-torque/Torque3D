@@ -24,11 +24,11 @@
 #define _PERSISTENCEMANAGER_H_
 
 #ifndef _SIMOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 
 #ifndef _SIMOBJECTLIST_H_
-#include "console/simObjectList.h"
+#include "sim/simObjectList.h"
 #endif
 
 #ifndef _TOKENIZER_H_

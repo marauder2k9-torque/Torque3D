@@ -29,7 +29,7 @@
 #define _PROCESSLIST_H_
 
 #ifndef _SIM_H_
-#include "console/sim.h"
+#include "sim/sim.h"
 #endif
 #ifndef _TSIGNAL_H_
 #include "core/util/tSignal.h"

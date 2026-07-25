@@ -27,7 +27,7 @@
 
 #include "compiler.h"
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 
 template< typename T >
 struct Token

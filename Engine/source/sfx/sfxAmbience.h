@@ -24,7 +24,7 @@
 #define _SFXAMBIENCE_H_
 
 #ifndef _SIMDATABLOCK_H_
-   #include "console/simDatablock.h"
+   #include "sim/simDatablock.h"
 #endif
 #ifndef _CONSOLETYPES_H_
    #include "console/consoleTypes.h"

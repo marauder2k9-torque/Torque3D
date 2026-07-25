@@ -21,7 +21,7 @@
 //-----------------------------------------------------------------------------
 
 #include "platform/platform.h"
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #include "console/consoleTypes.h"
 #include "console/console.h"
 #include "console/engineAPI.h"

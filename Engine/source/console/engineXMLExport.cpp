@@ -24,7 +24,7 @@
 #include "console/engineAPI.h"
 #include "console/engineTypes.h"
 #include "console/engineFunctions.h"
-#include "console/SimXMLDocument.h"
+#include "sim/SimXMLDocument.h"
 
 
 /// @file

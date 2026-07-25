@@ -25,7 +25,7 @@
 #include "console/consoleTypes.h"
 #include "console/consoleInternal.h"
 #include "core/stream/bitStream.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "T3D/gameBase/gameConnection.h"
 #include "math/mathIO.h"
 #include "T3D/gameBase/moveManager.h"

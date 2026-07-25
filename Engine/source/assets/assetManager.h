@@ -24,7 +24,7 @@
 #define _ASSET_MANAGER_H_
 
 #ifndef _SIMBASE_H_
-#include "console/sim.h"
+#include "sim/sim.h"
 #endif
 
 #ifndef _TAML_H_
@@ -60,7 +60,7 @@
 #endif
 
 #ifndef _NETCONNECTION_H_
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #endif
 
 // Debug Profiling.

@@ -3,7 +3,7 @@
 #define _NAVMESH_TOOL_H_
 #ifdef TORQUE_TOOLS
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 #ifndef _GUITYPES_H_
 #include "gui/core/guiTypes.h"

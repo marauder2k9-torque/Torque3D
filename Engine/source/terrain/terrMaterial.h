@@ -24,7 +24,7 @@
 #define _TERRMATERIAL_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #include "T3D/assets/ImageAsset.h"

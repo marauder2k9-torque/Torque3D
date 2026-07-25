@@ -25,7 +25,9 @@
 #include "console/console.h"
 #include "console/engineAPI.h"
 #include "gfx/gfxDevice.h"
+#include "gfx/gfxDrawUtil.h"
 #include "gui/core/guiCanvas.h"
+#include "gui/core/guiDefaultControlRender.h"
 #include "i18n/lang.h"
 #include "sfx/sfxSystem.h"
 #include "sfx/sfxTrack.h"
@@ -34,19 +36,25 @@
 IMPLEMENT_CONOBJECT(GuiButtonBaseCtrl);
 
 ConsoleDocClass(GuiButtonBaseCtrl,
-   "@brief The base class for the various button controls.\n\n"
+   "@brief The button control. Covers push buttons, checkboxes, radio buttons, and "
+   "border-only buttons in a single class.\n\n"
 
-   "This is the base class for the various types of button controls.  If no more specific functionality is required than "
-   "offered by this class, then it can be instantiated and used directly.  Otherwise, its subclasses should be used:\n"
+   "Behavior is selected by #buttonType:\n"
+   "- PushButton: triggers an action when clicked.\n"
+   "- ToggleButton: toggles between on/off state (checkbox-style).\n"
+   "- RadioButton: toggles on/off in concert with sibling radio buttons sharing the same #groupNum.\n\n"
 
-   "- GuiRadioCtrl (radio buttons)\n"
-   "- GuiCheckBoxCtrl (checkboxes)\n"
-   "- GuiButtonCtrl (push buttons with text labels)\n"
+   "Independently, #renderStyle selects how the button is drawn:\n"
+   "- Filled: filled/themed push-button look.\n"
+   "- CheckBox: bitmap-array glyph plus text label (the usual look for ToggleButton/RadioButton).\n"
+   "- Border: draws only a state-colored border, useful for wrapping child controls.\n\n"
+
+   "Other, more specialized button controls (bitmapped buttons, color swatches, etc.) remain "
+   "separate subclasses where their behavior genuinely differs, such as:\n"
+
    "- GuiBitmapButtonCtrl (bitmapped buttons)\n"
    "- GuiBitmapButtonTextCtrl (bitmapped buttons with a text label)\n"
-   "- GuiToggleButtonCtrl (toggle buttons, i.e. push buttons with \"sticky\" behavior)\n"
-   "- GuiSwatchButtonCtrl (color swatch buttons)\n"
-   "- GuiBorderButtonCtrl (push buttons for surrounding child controls)\n\n"
+   "- GuiSwatchButtonCtrl (color swatch buttons)\n\n"
 
    "@ingroup GuiButtons"
 );
@@ -97,6 +105,16 @@ ImplementEnumType(GuiButtonType,
 { GuiButtonBaseCtrl::ButtonTypeRadio, "RadioButton", "A button placed in groups for presenting choices." },
 EndImplementEnumType;
 
+ImplementEnumType(GuiButtonRenderStyle,
+   "Draw path used by a button control, independent of its ButtonType.\n\n"
+   "@ingroup GuiButtons")
+{
+   GuiButtonBaseCtrl::RenderStyleFilled, "Filled", "Filled/themed rendering (push button look)."
+},
+{ GuiButtonBaseCtrl::RenderStyleCheckBox, "CheckBox", "Bitmap-array glyph and label (checkbox/radio look)." },
+{ GuiButtonBaseCtrl::RenderStyleBorder, "Border", "Border-only rendering, for surrounding child controls." },
+EndImplementEnumType;
+
 
 //-----------------------------------------------------------------------------
 
@@ -105,14 +123,19 @@ GuiButtonBaseCtrl::GuiButtonBaseCtrl()
    mDepressed = false;
    mHighlighted = false;
    mActive = true;
-   static StringTableEntry sButton = StringTable->insert("Button");
-   mButtonText = sButton;
+   mButtonText = StringTable->EmptyString();
    mButtonTextID = StringTable->EmptyString();
    mStateOn = false;
    mRadioGroup = -1;
    mButtonType = ButtonTypePush;
    mUseMouseEvents = false;
    mMouseDragged = false;
+
+   mRenderStyle = RenderStyleFilled;
+   mHasTheme = false;
+   mIndent = 0;
+
+   setExtent(140, 30);
 }
 
 //-----------------------------------------------------------------------------
@@ -136,8 +159,14 @@ void GuiButtonBaseCtrl::initPersistFields()
       "The default group is -1.");
    addField("buttonType", TYPEID< ButtonType >(), Offset(mButtonType, GuiButtonBaseCtrl),
       "Button behavior type.\n");
+   addField("renderStyle", TYPEID< RenderStyle >(), Offset(mRenderStyle, GuiButtonBaseCtrl),
+      "Button draw path, independent of buttonType. 'Filled' for a push-button look, "
+      "'CheckBox' for a checkbox/radio glyph + label look, 'Border' to draw only a "
+      "state-colored border around child controls.\n");
    addField("useMouseEvents", TypeBool, Offset(mUseMouseEvents, GuiButtonBaseCtrl),
       "If true, mouse events will be passed on to script.  Default is false.\n");
+   addField("indent", TypeS32, Offset(mIndent, GuiButtonBaseCtrl),
+      "CheckBox render style only: extra space, in pixels, before the glyph.\n");
 
    endGroup("Button");
 
@@ -156,6 +185,29 @@ bool GuiButtonBaseCtrl::onWake()
       mStateOn = Con::getBoolVariable(mConsoleVariable);
    if (mButtonTextID && *mButtonTextID != 0)
       setTextID(mButtonTextID);
+
+   switch (mRenderStyle)
+   {
+   case RenderStyleFilled:
+      // Button Theme? (36+ frame bitmap array means the profile supplies a
+      // themed/sizable border set rather than a plain fill+border look.)
+      mHasTheme = (mProfile->constructBitmapArray() >= 36);
+      break;
+
+   case RenderStyleCheckBox:
+      // Make sure there is a bitmap array for this control type, if it is
+      // declared as such in the profile.
+      if (mProfile->mBitmapArrayRects.empty() && !mProfile->constructBitmapArray())
+      {
+         Con::errorf("GuiButtonBaseCtrl::onWake - failed to create bitmap array from profile '%s'", mProfile->getName());
+         return false;
+      }
+      break;
+
+   case RenderStyleBorder:
+   default:
+      break;
+   }
 
    return true;
 }
@@ -504,6 +556,222 @@ void GuiButtonBaseCtrl::setHighlighted(bool highlighted)
    }
 }
 
+//-----------------------------------------------------------------------------
+//    Rendering.
+//-----------------------------------------------------------------------------
+
+void GuiButtonBaseCtrl::onPreRender()
+{
+   Parent::onPreRender();
+
+   // Keep mStateOn in sync with a bound console variable every frame, so an
+   // external change to the variable (e.g. from another control or from script)
+   // is reflected visually without requiring a click on this control.
+   // Formerly done in GuiToggleButtonCtrl::onPreRender() (Filled/push-style) and
+   // in GuiCheckBoxCtrl::onRender() (CheckBox-style); centralized here so both
+   // render styles -- and RenderStyleBorder, which never had this before -- get
+   // the same behavior consistently.
+   if (mConsoleVariable[0])
+   {
+      bool stateOn = Con::getBoolVariable(mConsoleVariable);
+      if (stateOn != mStateOn)
+         mStateOn = stateOn;
+   }
+}
+
+void GuiButtonBaseCtrl::onRender(Point2I offset, const RectI& updateRect)
+{
+   switch (mRenderStyle)
+   {
+   case RenderStyleCheckBox:
+      renderCheckBoxButton(offset, updateRect);
+      break;
+
+   case RenderStyleBorder:
+      renderBorderButton(offset, updateRect);
+      break;
+
+   case RenderStyleFilled:
+   default:
+      renderFilledButton(offset, updateRect);
+      break;
+   }
+}
+
+//-----------------------------------------------------------------------------
+
+GuiState GuiButtonBaseCtrl::resolveState() const
+{
+   // Precedence matches renderFilledButton's/renderBorderButton's original
+   // behavior specifically, where a checked-on button (mStateOn) and an
+   // actively-depressed one (mDepressed) intentionally use the same visual:
+   // disabled beats everything, then depressed-or-checked-on, then
+   // highlighted.
+   //
+   // NOT universal: renderCheckBoxButton's glyph selection does NOT use this.
+   // There, mStateOn (checked) and mDepressed (actively clicked) select
+   // different, independent things -- checked picks the off/on frame, while
+   // only an actual mouse-press adds the "+2 depressed" offset on top of
+   // whichever frame is already selected. Folding mStateOn into Depressed
+   // here would make a merely-checked-and-hovered checkbox render as if it
+   // were being actively clicked. See renderCheckBoxButton for its own,
+   // separate state resolution.
+   if (!mActive)
+      return GuiState::Disabled;
+   if (mDepressed || mStateOn)
+      return GuiState::Depressed;
+   if (mHighlighted)
+      return GuiState::Highlighted;
+   return GuiState::Normal;
+}
+
+//-----------------------------------------------------------------------------
+
+void GuiButtonBaseCtrl::renderFilledButton(Point2I offset, const RectI& updateRect)
+{
+   // Formerly GuiButtonCtrl::onRender / GuiToggleButtonCtrl::onRender (identical).
+   // All fill/border/theme drawing now routes through guiDefaultControlRender's
+   // state-aware helpers -- this function only resolves state and lays out text.
+
+   GuiState state = resolveState();
+
+   RectI boundsRect(offset, getExtent());
+
+   if (!mHasTheme)
+      renderStateFill(boundsRect, state, mProfile);
+   else
+      renderStateBitmapBorders(boundsRect, state, mProfile);
+
+   ColorI fontColor = mActive ? (mHighlighted ? mProfile->mFontColorHL : mProfile->mFontColor) : mProfile->mFontColorNA;
+
+   Point2I textPos = offset;
+   if (mDepressed)
+      textPos += Point2I(1, 1);
+
+   GFX->getDrawUtil()->setBitmapModulation(fontColor);
+   renderJustifiedText(textPos, getExtent(), mButtonText);
+
+   //render the children
+   renderChildControls(offset, updateRect);
+}
+
+//-----------------------------------------------------------------------------
+
+void GuiButtonBaseCtrl::renderCheckBoxButton(Point2I offset, const RectI& updateRect)
+{
+   // Formerly GuiCheckBoxCtrl::onRender (also used, unchanged, for GuiRadioCtrl).
+   // Console-variable sync now happens once per frame in onPreRender().
+   // Glyph drawing now routes through guiDefaultControlRender's
+   // renderStateGlyph(); this function only resolves state and lays out text.
+   //
+   // NOTE: this deliberately does NOT use resolveState(). That helper folds
+   // mStateOn into GuiState::Depressed to match renderFilledButton's original
+   // behavior (where a checked-on push button uses the same themed frame as
+   // an actively-depressed one). The checkbox glyph never worked that way:
+   // mStateOn only ever selected the off/on frame (0/1), and only an actual
+   // mouse-press (mDepressed) added the +2 depressed offset -- a checked,
+   // merely-hovered checkbox must stay on frame 0/1, not jump to 2/3.
+
+   ColorI fontColor = mActive ? (mHighlighted ? mProfile->mFontColorHL : mProfile->mFontColor) : mProfile->mFontColorNA;
+
+   GuiState glyphState = GuiState::Normal;
+   if (!mActive)
+      glyphState = GuiState::Disabled;
+   else if (mDepressed)
+      glyphState = GuiState::Depressed;
+
+   S32 xOffset = 0;
+   GFX->getDrawUtil()->clearBitmapModulation();
+   if (mProfile->mBitmapArrayRects.size() >= 4)
+   {
+      S32 y = (getHeight() - mProfile->mBitmapArrayRects[0].extent.y) / 2;
+      renderStateGlyph(offset + Point2I(mIndent, y), glyphState, mStateOn, mProfile);
+      // xOffset is measured from frame 0's extent (not the drawn frame's
+      // extent) to match the original layout exactly, since different
+      // state frames can vary slightly in size.
+      xOffset = mProfile->mBitmapArrayRects[0].extent.x + 2 + mIndent;
+   }
+
+   if (mButtonText[0] != '\0')
+   {
+      GFX->getDrawUtil()->setBitmapModulation(fontColor);
+      renderJustifiedText(Point2I(offset.x + xOffset, offset.y),
+         Point2I(getWidth() - getHeight(), getHeight()),
+         mButtonText);
+   }
+   //render the children
+   renderChildControls(offset, updateRect);
+}
+
+//-----------------------------------------------------------------------------
+
+void GuiButtonBaseCtrl::renderBorderButton(Point2I offset, const RectI& updateRect)
+{
+   // Formerly (the standalone class) GuiBorderButtonCtrl::onRender.
+   //
+   // NOTE: the original's depressed/on and highlighted overlays are drawn from
+   // two independent `if`s, not mutually exclusive -- onMouseEnter() can set
+   // both mDepressed and mHighlighted at once (e.g. dragging back onto a
+   // locked button), in which case both overlays are drawn stacked on top of
+   // the base border. Preserved here rather than simplified to if/else, which
+   // would silently drop the highlighted overlay in that case.
+
+   // NOTE: only the always-on base border was gated by mBorder > 0 in the
+   // original; the depressed/highlighted overlays below drew unconditionally
+   // whenever active, regardless of mBorder.
+   if (mProfile->mBorder > 0)
+      renderStateBorderOnly(RectI(offset, getExtent()), GuiState::Normal, mProfile);
+
+   if (mActive)
+   {
+      if (mStateOn || mDepressed)
+         renderStateBorderOnly(RectI(offset, getExtent()), GuiState::Depressed, mProfile);
+
+      if (mHighlighted)
+         renderStateBorderOnly(RectI(offset, getExtent()), GuiState::Highlighted, mProfile);
+   }
+
+   renderChildControls(offset, updateRect);
+}
+
+//-----------------------------------------------------------------------------
+
+void GuiButtonBaseCtrl::autoSize()
+{
+   // Formerly GuiCheckBoxCtrl::autoSize. Only meaningful for the CheckBox render
+   // style, which sizes itself around the glyph bitmap plus the text label.
+   if (mRenderStyle != RenderStyleCheckBox)
+      return;
+
+   U32 width, height;
+   U32 bmpArrayRect0Width = 0;
+
+   if (!mAwake)
+   {
+      mProfile->incLoadCount();
+
+      if (mProfile->mBitmapArrayRects.empty())
+         mProfile->constructBitmapArray();
+      if (!mProfile->mBitmapArrayRects.empty())
+         bmpArrayRect0Width = mProfile->mBitmapArrayRects[0].extent.x;
+   }
+
+   U32 bmpWidth = bmpArrayRect0Width + 2 + mIndent;
+   U32 strWidth = mProfile->mFont->getStrWidthPrecise(mButtonText);
+
+   width = bmpWidth + strWidth + 2;
+
+   U32 bmpHeight = mProfile->mBitmapArrayRects[0].extent.y;
+   U32 fontHeight = mProfile->mFont->getHeight();
+
+   height = getMax(bmpHeight, fontHeight) + 4;
+
+   setExtent(width, height);
+
+   if (!mAwake)
+      mProfile->decLoadCount();
+}
+
 //=============================================================================
 //    Console Methods.
 //=============================================================================
@@ -590,4 +858,22 @@ DefineEngineMethod(GuiButtonBaseCtrl, isHighlighted, bool, (), ,
    "This method should not generally be called.")
 {
    return object->isHighlighted();
+}
+
+//-----------------------------------------------------------------------------
+
+DefineEngineMethod(GuiButtonBaseCtrl, isStateOn, bool, (), ,
+   "Test whether the button is currently in its 'on' state (checked, for a "
+   "CheckBox render style, or selected, for a radio button).\n"
+   "@return True if the button is currently toggled on.\n")
+{
+   return object->getStateOn();
+}
+
+//-----------------------------------------------------------------------------
+
+DefineEngineMethod(GuiButtonBaseCtrl, autoSize, void, (), ,
+   "Resize the control to fit its glyph and text label (CheckBox render style only).\n")
+{
+   object->autoSize();
 }

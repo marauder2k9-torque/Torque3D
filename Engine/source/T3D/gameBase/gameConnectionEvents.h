@@ -24,7 +24,7 @@
 #define _GAMECONNECTIONEVENTS_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #ifndef _GAMECONNECTION_H_

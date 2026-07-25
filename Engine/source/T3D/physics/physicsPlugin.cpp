@@ -26,7 +26,7 @@
 #include "console/console.h"
 #include "console/engineAPI.h"
 #include "console/consoleTypes.h"
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #include "core/strings/stringFunctions.h"
 #include "scene/sceneObject.h"
 #include "scene/sceneManager.h"

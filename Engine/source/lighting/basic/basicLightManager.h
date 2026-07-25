@@ -33,7 +33,7 @@
 #include "gfx/gfxShader.h"
 #endif
 #ifndef _SIMOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 #ifndef _TSINGLETON_H_
 #include "core/util/tSingleton.h"

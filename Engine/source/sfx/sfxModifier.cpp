@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/engineAPI.h"
 #include "sfx/sfxModifier.h"
 #include "sfx/sfxSource.h"

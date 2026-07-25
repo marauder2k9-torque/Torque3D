@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/engineAPI.h"
 #include "gui/editor/inspector/customField.h"
 #include "gui/editor/guiInspector.h"

@@ -47,7 +47,7 @@
    #include "core/util/rawData.h"
 #endif
 #ifndef _SIMOBJECT_H_
-   #include "console/simObject.h"
+   #include "sim/simObject.h"
 #endif
 #ifndef _SFXSTREAM_H_
    #include "sfx/sfxStream.h"

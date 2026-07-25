@@ -24,7 +24,7 @@
 #define _TCPOBJECT_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #include "platform/platformNet.h"

@@ -37,7 +37,7 @@
 #include "math/mathIO.h"
 #include "T3D/debris.h"
 #include "math/mathUtils.h"
-#include "sim/netObject.h"
+#include "network/netObject.h"
 #include "sfx/sfxTrack.h"
 #include "sfx/sfxSource.h"
 #include "sfx/sfxSystem.h"

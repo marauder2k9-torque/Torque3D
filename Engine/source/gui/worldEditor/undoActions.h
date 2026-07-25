@@ -27,7 +27,7 @@
 #include "util/undo.h"
 #endif
 #ifndef _CONSOLE_SIMOBJECTMEMENTO_H_
-#include "console/simObjectMemento.h"
+#include "sim/simObjectMemento.h"
 #endif
 
 // Need full definition visible for SimObjectPtr<GuiInspectorField>

@@ -2,7 +2,7 @@
 #define _SCRIPT_MODULE_H_
 #include "runtime.h"
 #include "console/console.h"
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 
 namespace Con
 {

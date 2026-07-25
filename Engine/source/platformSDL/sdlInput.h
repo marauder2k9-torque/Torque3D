@@ -1,7 +1,9 @@
 #ifndef SDL_INPUT_H
 #define SDL_INPUT_H
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
+
+#if defined(TORQUE_SDL)
 
 namespace KeyMapSDL
 {
@@ -9,5 +11,7 @@ namespace KeyMapSDL
 
    U32 getSDLScanCodeFromTorque(U32 torque);
 }
+
+#endif  // defined(TORQUE_SDL)
 
 #endif

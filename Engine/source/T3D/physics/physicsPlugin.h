@@ -24,7 +24,7 @@
 #define _T3D_PHYSICS_PHYSICSPLUGIN_H_
 
 #ifndef _SIMSET_H_
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #endif
 #ifndef _TSIGNAL_H_
 #include "core/util/tSignal.h"

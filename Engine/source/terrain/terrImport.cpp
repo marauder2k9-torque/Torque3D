@@ -24,7 +24,7 @@
 
 #include "terrain/terrData.h"
 #include "gfx/bitmap/gBitmap.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "core/strings/stringUnit.h"
 #include "core/resourceManager.h"
 #include "gui/worldEditor/terrainEditor.h"

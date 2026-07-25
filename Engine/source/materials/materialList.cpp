@@ -33,7 +33,7 @@
 #include "materials/materialFeatureTypes.h"
 #include "materials/processedMaterial.h"
 #include "core/volume.h"
-#include "console/simSet.h"
+#include "sim/simSet.h"
 
 #include "scene/reflectionManager.h"
 #include "renderInstance/renderDeferredMgr.h"

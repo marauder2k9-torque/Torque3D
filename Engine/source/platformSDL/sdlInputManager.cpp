@@ -20,12 +20,13 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+#include "sdlInputManager.h"
+#if defined(TORQUE_SDL)
+
 #include "console/console.h"
 #include "console/consoleTypes.h"
 #include "console/engineAPI.h"
 #include "sim/actionMap.h"
-
-#include "sdlInputManager.h"
 
 typedef SDL_JoystickType SDLJoystickType;
 DefineEnumType(SDLJoystickType);
@@ -233,7 +234,7 @@ void SDLInputManager::process()
 }
 
 //------------------------------------------------------------------------------
-void SDLInputManager::processEvent(SDL_Event &evt)
+void SDLInputManager::processEvent(SDL_Event& evt)
 {
    switch (evt.type)
    {
@@ -244,7 +245,7 @@ void SDLInputManager::processEvent(SDL_Event &evt)
          break;
       // SDL axis value inputs are in (range: -32768 to 32767)
       // Torque axis values are -1.0 to 1.0
-      F32 value = ((F32)evt.jaxis.value) / (F32) (evt.jaxis.value > 0 ? SDL_JOYSTICK_AXIS_MAX : -SDL_JOYSTICK_AXIS_MIN);
+      F32 value = ((F32)evt.jaxis.value) / (F32)(evt.jaxis.value > 0 ? SDL_JOYSTICK_AXIS_MAX : -SDL_JOYSTICK_AXIS_MIN);
       S32 mapAxis = SI_XAXIS + evt.jaxis.axis;
       if (evt.jaxis.axis > 1 && torqueMapping->numAxes == 4 && smJoystickSplitAxesLR)
          mapAxis += 1; // On a 4 axis, we'll shift the second two so we use LX LY RX RY instead of LX LY LZ RX
@@ -258,7 +259,7 @@ void SDLInputManager::processEvent(SDL_Event &evt)
       if (mJoystickMap.isEmpty() || !mJoystickMap.find(evt.jball.which, torqueMapping) || evt.jball.ball >= MaxBalls)
          break;
       if (evt.jball.xrel != 0)
-         buildInputEvent(JoystickDeviceType, torqueMapping->torqueInstID, SI_INT, evt.jball.ball ? SI_XBALL2 : SI_XBALL, SI_MOVE, (S32) evt.jball.xrel);
+         buildInputEvent(JoystickDeviceType, torqueMapping->torqueInstID, SI_INT, evt.jball.ball ? SI_XBALL2 : SI_XBALL, SI_MOVE, (S32)evt.jball.xrel);
       if (evt.jball.yrel != 0)
          buildInputEvent(JoystickDeviceType, torqueMapping->torqueInstID, SI_INT, evt.jball.ball ? SI_YBALL2 : SI_YBALL, SI_MOVE, (S32) evt.jball.yrel);
       break;
@@ -313,7 +314,7 @@ void SDLInputManager::processEvent(SDL_Event &evt)
          break;
       // SDL axis value inputs are in (range: -32768 to 32767)
       // Torque axis values are -1.0 to 1.0
-      F32 value = ((F32)evt.caxis.value) / (F32) (evt.caxis.value > 0 ? SDL_JOYSTICK_AXIS_MAX : -SDL_JOYSTICK_AXIS_MIN);
+      F32 value = ((F32)evt.caxis.value) / (F32)(evt.caxis.value > 0 ? SDL_JOYSTICK_AXIS_MAX : -SDL_JOYSTICK_AXIS_MIN);
       buildInputEvent(GamepadDeviceType, torqueMapping->torqueInstID, SI_AXIS, map_EventForControllerAxis[evt.caxis.axis], SI_MOVE, value);
       break;
    }
@@ -344,6 +345,35 @@ void SDLInputManager::processEvent(SDL_Event &evt)
 
    case SDL_CONTROLLERDEVICEREMAPPED:
       break;
+
+   case SDL_FINGERDOWN:
+   case SDL_FINGERMOTION:
+   case SDL_FINGERUP:
+   {
+      // evt.tfinger.fingerId is SDL's own opaque per-platform finger
+      // identifier (not a small sequential index) — TouchIdentifier maps
+      // it to a stable SI_TOUCH_FINGERn slot shared with the native
+      // touch backend's equivalent event pump, so ActionMap/script see
+      // the same shape regardless of backend.
+      InputObjectInstances fingerSlot;
+
+      if (evt.type == SDL_FINGERUP)
+      {
+         if (TouchIdentifier::acquireSlot((S64)evt.tfinger.fingerId, fingerSlot))
+         {
+            Input::buildTouchEvent(fingerSlot, evt.tfinger.x, evt.tfinger.y, evt.tfinger.pressure, SI_BREAK);
+            TouchIdentifier::releaseSlot((S64)evt.tfinger.fingerId);
+         }
+         break;
+      }
+
+      if (!TouchIdentifier::acquireSlot((S64)evt.tfinger.fingerId, fingerSlot))
+         break;   // All MaxTouchFingers slots in use; drop this contact.
+
+      Input::buildTouchEvent(fingerSlot, evt.tfinger.x, evt.tfinger.y, evt.tfinger.pressure,
+         evt.type == SDL_FINGERDOWN ? SI_MAKE : SI_MOVE);
+      break;
+   }
 
    default:
 #ifdef TORQUE_DEBUG
@@ -415,7 +445,7 @@ void SDLInputManager::buildHatEvents(U32 deviceType, U32 deviceInst, U8 lastStat
 
    if (smPOVMaskEvents)
    {
-      buildInputEvent(deviceType, deviceInst, SI_INT, hatIndex ? SI_POVMASK2 : SI_POVMASK, SI_VALUE, (S32) currentState);
+      buildInputEvent(deviceType, deviceInst, SI_INT, hatIndex ? SI_POVMASK2 : SI_POVMASK, SI_VALUE, (S32)currentState);
    }
 }
 
@@ -427,7 +457,7 @@ S32 SDLInputManager::openController(S32 sdlIndex, S32 requestedTID)
 
    if (SDL_IsGameController(sdlIndex))
    {
-      SDL_GameController *inputDevice = SDL_GameControllerOpen(sdlIndex);
+      SDL_GameController* inputDevice = SDL_GameControllerOpen(sdlIndex);
       if (inputDevice)
       {
          SDL_JoystickID sdlId = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(inputDevice));
@@ -448,7 +478,7 @@ S32 SDLInputManager::openController(S32 sdlIndex, S32 requestedTID)
          controllerState* torqueMapping = NULL;
          if (mControllerMap.find(sdlId, torqueMapping))
          {
-            if (torqueMapping->torqueInstID == (U32) requestedTID)
+            if (torqueMapping->torqueInstID == (U32)requestedTID)
             {
                SDL_GameControllerClose(inputDevice);
                return requestedTID;  // Already open at the requested ID
@@ -483,6 +513,13 @@ S32 SDLInputManager::openController(S32 sdlIndex, S32 requestedTID)
          mControllers[gamepadSlot].sdlInstID = sdlId;
          mControllerMap.insertUnique(sdlId, &mControllers[gamepadSlot]);
 
+         // Report through the shared, backend-agnostic registry as well,
+         // so engine code that queries DeviceIdentifier (rather than
+         // reaching into SDLInputManager directly) sees this controller
+         // too — same call a native GameController-framework/XInput
+         // backend would make.
+         DeviceIdentifier::addDevice(GamepadDeviceType, sdlId, SDL_GameControllerName(inputDevice));
+
          return gamepadSlot;
       }
    }
@@ -505,6 +542,7 @@ bool SDLInputManager::closeControllerByIndex(S32 index)
 
    if (mControllers[index].inputDevice && mControllers[index].sdlInstID != -1)
    {
+      DeviceIdentifier::removeDevice(GamepadDeviceType, mControllers[index].sdlInstID);
       SDL_GameControllerClose(mControllers[index].inputDevice);
       mControllerMap.erase(mControllers[index].sdlInstID);
       mControllers[index].sdlInstID = -1;
@@ -521,7 +559,7 @@ S32 SDLInputManager::openJoystick(S32 sdlIndex, S32 requestedTID)
    if ((sdlIndex < 0) || (sdlIndex >= SDL_NumJoysticks()) || (requestedTID < 0) || (requestedTID >= MaxJoysticks))
       return -1;
 
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       SDL_JoystickID sdlId = SDL_JoystickInstanceID(inputDevice);
@@ -542,7 +580,7 @@ S32 SDLInputManager::openJoystick(S32 sdlIndex, S32 requestedTID)
       joystickState* torqueMapping = NULL;
       if (mJoystickMap.find(sdlId, torqueMapping))
       {
-         if (torqueMapping->torqueInstID == (U32) requestedTID)
+         if (torqueMapping->torqueInstID == (U32)requestedTID)
          {
             SDL_JoystickClose(inputDevice);
             return requestedTID;  // Already open at the requested ID
@@ -578,6 +616,8 @@ S32 SDLInputManager::openJoystick(S32 sdlIndex, S32 requestedTID)
       mJoysticks[joystickSlot].numAxes = SDL_JoystickNumAxes(inputDevice);
       mJoystickMap.insertUnique(sdlId, &mJoysticks[joystickSlot]);
 
+      DeviceIdentifier::addDevice(JoystickDeviceType, sdlId, SDL_JoystickName(inputDevice));
+
       return joystickSlot;
    }
    return -1;
@@ -599,6 +639,7 @@ bool SDLInputManager::closeJoystickByIndex(S32 index)
 
    if (mJoysticks[index].inputDevice && mJoysticks[index].sdlInstID != -1)
    {
+      DeviceIdentifier::removeDevice(JoystickDeviceType, mJoysticks[index].sdlInstID);
       SDL_JoystickClose(mJoysticks[index].inputDevice);
       mJoystickMap.erase(mJoysticks[index].sdlInstID);
       mJoysticks[index].reset();
@@ -615,7 +656,7 @@ void SDLInputManager::closeDevice(S32 sdlIndex)
       return;
 
    SDL_JoystickID sdlId = -1;
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       sdlId = SDL_JoystickInstanceID(inputDevice);
@@ -650,7 +691,7 @@ void SDLInputManager::deviceConnectedCallback(S32 index)
    // This will generate the script callback:
    // onSDLDeviceConnected(%sdlIndex, %isController, %deviceName)
    bool isController = SDL_IsGameController(index);
-   const char *deviceName = isController ? SDL_GameControllerNameForIndex(index) : SDL_JoystickNameForIndex(index);
+   const char* deviceName = isController ? SDL_GameControllerNameForIndex(index) : SDL_JoystickNameForIndex(index);
    SDL_JoystickType deviceType = SDL_JoystickGetDeviceType(index);
    onSDLDeviceConnected_callback(index, deviceName, castConsoleTypeToString(deviceType));
 }
@@ -668,7 +709,7 @@ S32 SDLInputManager::getJoystickOpenState(S32 sdlIndex)
    S32 currentState = 0;
    // We need to open the joystick to get the sdl instanceID
    // This will increase the refcount on the joystick if it was already open.
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       SDL_JoystickID sdlId = SDL_JoystickInstanceID(inputDevice);
@@ -693,7 +734,7 @@ void SDLInputManager::getJoystickTorqueInst(S32 sdlIndex, char* instBuffer)
    if (sdlIndex < 0 || sdlIndex >= SDL_NumJoysticks())
       return;
 
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       SDL_JoystickID sdlId = SDL_JoystickInstanceID(inputDevice);
@@ -719,7 +760,7 @@ DefineEngineStaticMethod(SDLInputManager, numJoysticks, S32, (), ,
 }
 
 //------------------------------------------------------------------------------
-DefineEngineStaticMethod(SDLInputManager, getDeviceOpenState, S32, ( S32 sdlIndex ), ( 0 ),
+DefineEngineStaticMethod(SDLInputManager, getDeviceOpenState, S32, (S32 sdlIndex), (0),
    "@brief Used to determine the current state of the N'th item in the SDL device list.\n\n"
    "@param sdlIndex The SDL index for this device.\n"
    "@return values:\n"
@@ -736,7 +777,7 @@ DefineEngineStaticMethod(SDLInputManager, getDeviceOpenState, S32, ( S32 sdlInde
 }
 
 //------------------------------------------------------------------------------
-DefineEngineStaticMethod(SDLInputManager, openAsJoystick, S32, ( S32 sdlIndex, S32 torqueInstId ), ( 0, 0 ),
+DefineEngineStaticMethod(SDLInputManager, openAsJoystick, S32, (S32 sdlIndex, S32 torqueInstId), (0, 0),
    "@brief Used to open the device as a Joystick.\n\n"
    "If the device is currently open as a Game Controller, it will be closed and opened as "
    "a Joystick. If it is currently opened as a Joystick with a different T3D instance ID, "
@@ -783,7 +824,7 @@ DefineEngineStaticMethod(SDLInputManager, closeDevice, void, (S32 sdlIndex), (0)
 
 
 //------------------------------------------------------------------------------
-DefineEngineStaticMethod(SDLInputManager, getTorqueInstFromDevice, const char *, (S32 sdlIndex), (0),
+DefineEngineStaticMethod(SDLInputManager, getTorqueInstFromDevice, const char*, (S32 sdlIndex), (0),
    "@brief Gets the T3D instance identifier for an open SDL joystick.\n\n"
    "@param sdlIndex The SDL index for this device.\n"
    "@return Returns the T3D instance ID used for mapping this device or Null if it does not exist.\n"
@@ -801,7 +842,7 @@ DefineEngineStaticMethod(SDLInputManager, getTorqueInstFromDevice, const char *,
 }
 
 //------------------------------------------------------------------------------
-DefineEngineStaticMethod(SDLInputManager, JoystickNameForIndex, const char *, (S32 sdlIndex), (0),
+DefineEngineStaticMethod(SDLInputManager, JoystickNameForIndex, const char*, (S32 sdlIndex), (0),
    "@brief Exposes SDL_JoystickNameForIndex() to script.\n\n"
    "@param sdlIndex The SDL index for this device.\n"
    "@return Returns the name of the selected joystick or Null if it does not exist.\n"
@@ -814,7 +855,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickNameForIndex, const char *, (S
 }
 
 //------------------------------------------------------------------------------
-DefineEngineStaticMethod(SDLInputManager, ControllerNameForIndex, const char *, (S32 sdlIndex), (0),
+DefineEngineStaticMethod(SDLInputManager, ControllerNameForIndex, const char*, (S32 sdlIndex), (0),
    "@brief Exposes SDL_GameControllerNameForIndex() to script.\n\n"
    "@param sdlIndex The SDL index for this device.\n"
    "@return Returns the implementation dependent name for the game controller, "
@@ -828,7 +869,7 @@ DefineEngineStaticMethod(SDLInputManager, ControllerNameForIndex, const char *, 
 }
 
 //------------------------------------------------------------------------------
-DefineEngineStaticMethod(SDLInputManager, JoystickGetGUID, const char *, (S32 sdlIndex), (0),
+DefineEngineStaticMethod(SDLInputManager, JoystickGetGUID, const char*, (S32 sdlIndex), (0),
    "@brief Exposes SDL_JoystickGetDeviceGUID() to script.\n\n"
    "@param sdlIndex The SDL index for this device.\n"
    "@return GUID for the indexed device or Null if it does not exist.\n"
@@ -837,7 +878,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickGetGUID, const char *, (S32 sd
 {
    if (sdlIndex < 0 || sdlIndex >= SDL_NumJoysticks())
       return NULL;
-      
+
    SDL_JoystickGUID guidVal = SDL_JoystickGetDeviceGUID(sdlIndex);
    char *guidStr = Con::getReturnBuffer(64);
    SDL_JoystickGetGUIDString(guidVal, guidStr, 64);
@@ -858,7 +899,7 @@ DefineEngineStaticMethod(SDLInputManager, GetVendor, S32, (S32 sdlIndex), (0),
    if (sdlIndex < 0 || sdlIndex >= SDL_NumJoysticks())
       return 0;
 
-   return (S32) SDL_JoystickGetDeviceVendor(sdlIndex);
+   return (S32)SDL_JoystickGetDeviceVendor(sdlIndex);
 }
 
 //------------------------------------------------------------------------------
@@ -921,7 +962,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickNumAxes, S32, (S32 sdlIndex), 
       return 0;
 
    S32 numAxes = 0;
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       numAxes = SDL_JoystickNumAxes(inputDevice);
@@ -949,7 +990,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickNumBalls, S32, (S32 sdlIndex),
       return 0;
 
    S32 numBalls = 0;
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       numBalls = SDL_JoystickNumBalls(inputDevice);
@@ -977,7 +1018,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickNumButtons, S32, (S32 sdlIndex
       return 0;
 
    S32 numButtons = 0;
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       numButtons = SDL_JoystickNumButtons(inputDevice);
@@ -1005,7 +1046,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickNumHats, S32, (S32 sdlIndex), 
       return 0;
 
    S32 numHats = 0;
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       numHats = SDL_JoystickNumHats(inputDevice);
@@ -1048,7 +1089,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickIsHaptic, bool, (S32 sdlIndex)
       return false;
 
    bool isHaptic = false;
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       isHaptic = (SDL_JoystickIsHaptic(inputDevice) == SDL_TRUE);
@@ -1069,7 +1110,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickPowerLevel, SDLPowerEnum, (S32
    SDL_JoystickPowerLevel powerLevel = SDL_JOYSTICK_POWER_UNKNOWN;
    if (sdlIndex >= 0 && sdlIndex < SDL_NumJoysticks())
    {
-      SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+      SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
       if (inputDevice)
       {
          powerLevel = SDL_JoystickCurrentPowerLevel(inputDevice);
@@ -1103,7 +1144,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickGetSpecs, String, (S32 sdlInde
       return specStr;
 
    bool isController = SDL_IsGameController(sdlIndex);
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       SDL_JoystickPowerLevel powerLevel = SDL_JoystickCurrentPowerLevel(inputDevice);
@@ -1132,13 +1173,13 @@ DefineEngineStaticMethod(SDLInputManager, JoystickGetAxes, String, (S32 sdlIndex
    if (sdlIndex < 0 || sdlIndex >= SDL_NumJoysticks())
       return axesStr;
 
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       S32 numAxes = SDL_JoystickNumAxes(inputDevice);
       for (S32 i = 0; i < numAxes; i++)
       {
-         F32 axisVal = (F32) SDL_JoystickGetAxis(inputDevice, i);
+         F32 axisVal = (F32)SDL_JoystickGetAxis(inputDevice, i);
          F32 value = axisVal / (F32)(axisVal > 0.0f ? SDL_JOYSTICK_AXIS_MAX : -SDL_JOYSTICK_AXIS_MIN);
          axesStr += String::ToString("%0.3f\t", value);
       }
@@ -1160,13 +1201,13 @@ DefineEngineStaticMethod(SDLInputManager, JoystickGetButtons, String, (S32 sdlIn
    if (sdlIndex < 0 || sdlIndex >= SDL_NumJoysticks())
       return buttonStr;
 
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       S32 numbuttons = SDL_JoystickNumButtons(inputDevice);
       for (S32 i = 0; i < numbuttons; i++)
       {
-         buttonStr += String::ToString("%d\t", (S32) SDL_JoystickGetButton(inputDevice, i));
+         buttonStr += String::ToString("%d\t", (S32)SDL_JoystickGetButton(inputDevice, i));
       }
       SDL_JoystickClose(inputDevice);
    }
@@ -1187,7 +1228,7 @@ DefineEngineStaticMethod(SDLInputManager, JoystickGetHats, String, (S32 sdlIndex
    if (sdlIndex < 0 || sdlIndex >= SDL_NumJoysticks())
       return hatStr;
 
-   SDL_Joystick *inputDevice = SDL_JoystickOpen(sdlIndex);
+   SDL_Joystick* inputDevice = SDL_JoystickOpen(sdlIndex);
    if (inputDevice)
    {
       S32 numHats = SDL_JoystickNumHats(inputDevice);
@@ -1217,12 +1258,12 @@ DefineEngineStaticMethod(SDLInputManager, ControllerGetAxes, String, (S32 sdlInd
    if (!isController)
       return axesStr;
 
-   SDL_GameController *inputDevice = SDL_GameControllerOpen(sdlIndex);
+   SDL_GameController* inputDevice = SDL_GameControllerOpen(sdlIndex);
    if (inputDevice)
    {
       for (S32 i = SDL_CONTROLLER_AXIS_LEFTX; i < SDL_CONTROLLER_AXIS_MAX; i++)
       {
-         F32 axisVal = (F32)SDL_GameControllerGetAxis(inputDevice, (SDL_GameControllerAxis) i);
+         F32 axisVal = (F32)SDL_GameControllerGetAxis(inputDevice, (SDL_GameControllerAxis)i);
          F32 value = axisVal / (F32)(axisVal > 0.0f ? SDL_JOYSTICK_AXIS_MAX : -SDL_JOYSTICK_AXIS_MIN);
          axesStr += String::ToString("%0.3f\t", value);
       }
@@ -1250,12 +1291,12 @@ DefineEngineStaticMethod(SDLInputManager, ControllerGetButtons, String, (S32 sdl
    if (!isController)
       return buttonStr;
 
-   SDL_GameController *inputDevice = SDL_GameControllerOpen(sdlIndex);
+   SDL_GameController* inputDevice = SDL_GameControllerOpen(sdlIndex);
    if (inputDevice)
    {
       for (S32 i = SDL_CONTROLLER_BUTTON_A; i < SDL_CONTROLLER_BUTTON_MAX; i++)
       {
-         buttonStr += String::ToString("%d\t", (S32)SDL_GameControllerGetButton(inputDevice, (SDL_GameControllerButton) i));
+         buttonStr += String::ToString("%d\t", (S32)SDL_GameControllerGetButton(inputDevice, (SDL_GameControllerButton)i));
       }
       SDL_GameControllerClose(inputDevice);
    }
@@ -1276,7 +1317,7 @@ DefineEngineStaticMethod(SDLInputManager, GameControllerMapping, String, (S32 sd
    if (sdlIndex < 0 || sdlIndex >= SDL_NumJoysticks())
       return mapping;
 
-   SDL_GameController *inputDevice = SDL_GameControllerOpen(sdlIndex);
+   SDL_GameController* inputDevice = SDL_GameControllerOpen(sdlIndex);
    if (inputDevice)
    {
       char* sdlStr = SDL_GameControllerMapping(inputDevice);
@@ -1380,3 +1421,5 @@ DefineEngineStaticMethod(SDLInputManager, GameControllerMappingForIndex, String,
 
    return mapping;
 }
+
+#endif  // defined(TORQUE_SDL)

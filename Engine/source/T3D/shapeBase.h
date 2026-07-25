@@ -46,7 +46,7 @@
    #include "scene/sceneRenderState.h"
 #endif
 #ifndef _NETSTRINGTABLE_H_
-   #include "sim/netStringTable.h"
+   #include "network/netStringTable.h"
 #endif
 #ifndef _RENDERPASSMANAGER_H_
    #include "renderInstance/renderPassManager.h"

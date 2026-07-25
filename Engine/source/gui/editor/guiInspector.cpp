@@ -26,7 +26,9 @@
 #include "gui/editor/inspector/group.h"
 #include "gui/buttons/guiIconButtonCtrl.h"
 #include "gui/editor/inspector/dynamicGroup.h"
+#include "gui/editor/inspector/guiInspectorComponentGroup.h"
 #include "gui/containers/guiScrollCtrl.h"
+#include "sim/component/simComponent.h"
 #include "gui/editor/inspector/customField.h"
 #include "console/typeValidators.h"
 
@@ -668,6 +670,46 @@ void GuiInspector::refresh()
 
    mTargets.first()->onInspect(this);
 
+   // Component inspector sections. Only for single-object inspection,
+   // matching the "Ungrouped"/SimObjectID special-casing above which is
+   // also single-target-only - showing per-component sections when
+   // multiple different objects are being edited simultaneously isn't
+   // well-defined (which object's components would be shown?).
+   if (mTargets.size() == 1)
+   {
+      SimObject * inspected = mTargets.first();
+      
+      for (U32 i = 0; i < inspected->getComponentCount(); i++)
+      {
+         SimComponent * comp = inspected->getComponent(i);
+         
+         String sectionName;
+         if (comp->getInstanceName())
+            sectionName = String::ToString("%s [%s]", comp->getComponentDisplayName(), comp->getInstanceName());
+         else
+            sectionName = String(comp->getComponentDisplayName());
+         
+         if (isGroupFiltered(sectionName.c_str()))
+            continue;
+         
+         GuiInspectorComponentGroup * group = new GuiInspectorComponentGroup(sectionName, this, inspected, comp);
+         
+         group->registerObject();
+         
+         if (group->getNumFields() == 0)
+         {
+            // Component ended up exposing no visible fields (all hidden
+            // via FIELD_HideInInspectors, or genuinely none declared).
+            group->deleteObject();
+         }
+         else
+         {
+            mGroups.push_back(group);
+            addObject(group);
+         }
+      }
+   }
+   
    // Deal with dynamic fields
    if ( !isGroupFiltered( "Dynamic Fields" ) )
    {
@@ -797,6 +839,8 @@ void GuiInspector::updateVisibility()
 
 		for (GuiInspectorGroup* group : mGroups)
 		{
+         if (!group) return;
+
 			const AbstractClassRep::Field* g = target->findField(group->getGroupName().c_str());
 
 			// if group has its own visibility function let it control it.

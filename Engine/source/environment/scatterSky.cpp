@@ -26,7 +26,7 @@
 #include "core/stream/bitStream.h"
 #include "console/consoleTypes.h"
 #include "console/engineAPI.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "math/util/sphereMesh.h"
 #include "math/mathUtils.h"
 #include "math/util/matrixSet.h"

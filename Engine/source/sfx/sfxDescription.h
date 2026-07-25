@@ -31,7 +31,7 @@
    #include "console/consoleTypes.h"
 #endif
 #ifndef _SIMDATABLOCK_H_
-   #include "console/simDatablock.h"
+   #include "sim/simDatablock.h"
 #endif
 #ifndef _MPOINT3_H_
    #include "math/mPoint3.h"

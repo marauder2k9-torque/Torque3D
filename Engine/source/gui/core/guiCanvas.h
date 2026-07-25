@@ -29,7 +29,7 @@
 #define _GUICANVAS_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 #ifndef _GUICONTROL_H_
 #include "gui/core/guiControl.h"

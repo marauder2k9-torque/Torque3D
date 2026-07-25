@@ -21,10 +21,3 @@
 //-----------------------------------------------------------------------------
 
 #include "platform/platform.h"
-/// Spawn the User default web browser with a URL
-/// @param webAddress URL to pass to browser
-/// @return true if browser successfully spawned
-bool Platform::openWebBrowser(const char* webAddress)
-{
-   return !SDL_OpenURL(webAddress);
-}

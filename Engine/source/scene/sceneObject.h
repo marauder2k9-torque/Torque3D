@@ -29,7 +29,7 @@
 #define _SCENEOBJECT_H_
 
 #ifndef _NETOBJECT_H_
-#include "sim/netObject.h"
+#include "network/netObject.h"
 #endif
 
 #ifndef _COLLISION_H_

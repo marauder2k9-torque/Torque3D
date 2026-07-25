@@ -26,7 +26,7 @@
 #include <cstdarg>
 
 #ifndef _TORQUE_TYPES_H_
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #endif
 
 #include <string.h>

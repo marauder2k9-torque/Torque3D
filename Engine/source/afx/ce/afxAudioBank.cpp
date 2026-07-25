@@ -26,7 +26,7 @@
 #include "afx/arcaneFX.h"
 
 #include "console/consoleTypes.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "sfx/sfxDescription.h"
 
 #include "afx/ce/afxAudioBank.h"

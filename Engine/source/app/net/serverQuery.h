@@ -46,6 +46,7 @@ struct ServerInfo
 
       // Status flags:
       Status_New         = 0,
+      Status_Fake       = BIT(27),
       Status_Querying   = BIT(28),
       Status_Updating   = BIT(29),
       Status_Responded  = BIT(30),
@@ -86,6 +87,57 @@ struct ServerInfo
       isFavorite = false;
       status = Status_New;
    }
+
+   ServerInfo(const ServerInfo& other)
+   {
+      numPlayers = other.numPlayers;
+      maxPlayers = other.maxPlayers;
+      numBots = other.numBots;
+      name = other.name ? dStrdup(other.name) : NULL;
+      gameType = other.gameType ? dStrdup(other.gameType) : NULL;
+      missionName = other.missionName ? dStrdup(other.missionName) : NULL;
+      missionType = other.missionType ? dStrdup(other.missionType) : NULL;
+      statusString = other.statusString ? dStrdup(other.statusString) : NULL;
+      infoString = other.infoString ? dStrdup(other.infoString) : NULL;
+      address = other.address;
+      version = other.version;
+      ping = other.ping;
+      cpuSpeed = other.cpuSpeed;
+      isFavorite = other.isFavorite;
+      status = other.status;
+   }
+
+   ServerInfo& operator=(const ServerInfo& other)
+   {
+      if (this == &other)
+         return *this;
+
+      dFree(name);
+      dFree(gameType);
+      dFree(missionName);
+      dFree(missionType);
+      dFree(statusString);
+      dFree(infoString);
+
+      numPlayers = other.numPlayers;
+      maxPlayers = other.maxPlayers;
+      numBots = other.numBots;
+      name = other.name ? dStrdup(other.name) : NULL;
+      gameType = other.gameType ? dStrdup(other.gameType) : NULL;
+      missionName = other.missionName ? dStrdup(other.missionName) : NULL;
+      missionType = other.missionType ? dStrdup(other.missionType) : NULL;
+      statusString = other.statusString ? dStrdup(other.statusString) : NULL;
+      infoString = other.infoString ? dStrdup(other.infoString) : NULL;
+      address = other.address;
+      version = other.version;
+      ping = other.ping;
+      cpuSpeed = other.cpuSpeed;
+      isFavorite = other.isFavorite;
+      status = other.status;
+
+      return *this;
+   }
+
    ~ServerInfo();
 
    bool isNew()            { return( status == Status_New ); }
@@ -96,12 +148,10 @@ struct ServerInfo
 
    bool isDedicated()      { return( status.test( Status_Dedicated ) ); }
    bool isPassworded()     { return( status.test( Status_Passworded ) ); }
+   bool isFake()           { return(status.test(Status_Fake)); }
    bool isLinux()          { return( status.test( Status_Linux ) ); }
 
 };
-
-
-//-----------------------------------------------------------------------------
 
 extern Vector<ServerInfo> gServerList;
 extern bool gServerBrowserDirty;
@@ -120,6 +170,79 @@ extern void sendHeartbeat( U8 flags );
 
 #ifdef TORQUE_DEBUG
 extern void addFakeServers( S32 howMany );
+extern void addFakeP2PPeers(S32 howMany);
 #endif // DEBUG
+
+
+//-----------------------------------------------------------------------------
+// Peer2Peer
+struct P2PPeerInfo
+{
+   enum StatusFlags
+   {
+      Status_New        = 0,
+      Status_Responded  = BIT(0),
+      Status_TimedOut   = BIT(1),
+      Status_Fake       = BIT(3),
+   };
+
+   U32      peerKey;         ///< stable identifier for this peer - NOT an address
+   char* displayName;     ///< human-readable name shown in a peer browser UI
+   U8       numPlayers;      ///< if this peer is itself hosting others (e.g. a P2P "host"), 0 otherwise
+   U8       maxPlayers;
+   U32      ping;
+   BitSet32 status;
+
+   P2PPeerInfo()
+   {
+      peerKey = 0;
+      displayName = NULL;
+      numPlayers = 0;
+      maxPlayers = 0;
+      ping = 0;
+      status = Status_New;
+   }
+
+   P2PPeerInfo(const P2PPeerInfo& other)
+   {
+      peerKey = other.peerKey;
+      displayName = other.displayName ? dStrdup(other.displayName) : NULL;
+      numPlayers = other.numPlayers;
+      maxPlayers = other.maxPlayers;
+      ping = other.ping;
+      status = other.status;
+   }
+
+   P2PPeerInfo& operator=(const P2PPeerInfo& other)
+   {
+      if (this == &other)
+         return *this;
+
+      dFree(displayName);
+      peerKey = other.peerKey;
+      displayName = other.displayName ? dStrdup(other.displayName) : NULL;
+      numPlayers = other.numPlayers;
+      maxPlayers = other.maxPlayers;
+      ping = other.ping;
+      status = other.status;
+
+      return *this;
+   }
+
+   ~P2PPeerInfo();
+
+   bool hasResponded()  { return status.test(Status_Responded); }
+   bool isTimedOut()    { return status.test(Status_TimedOut); }
+   bool isFake()        { return status.test(Status_Fake); }
+};
+
+extern Vector<P2PPeerInfo> gP2PPeerList;
+extern bool gP2PListDirty;
+
+extern void startP2PAdvertise(U32 peerKey, const char* displayName, U8 maxPlayers);
+extern void stopP2PAdvertise();
+extern void queryP2PPeerList();
+extern void clearP2PPeerList();
+
 
 #endif

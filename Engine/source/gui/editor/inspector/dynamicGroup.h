@@ -25,7 +25,7 @@
 
 #include "gui/editor/inspector/group.h"
 
-#include "console/simFieldDictionary.h"
+#include "sim/simFieldDictionary.h"
 
 
 class GuiInspectorDynamicGroup : public GuiInspectorGroup

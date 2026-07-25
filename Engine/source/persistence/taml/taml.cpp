@@ -63,7 +63,7 @@
 #endif
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #ifndef _MATHTYPES_H_

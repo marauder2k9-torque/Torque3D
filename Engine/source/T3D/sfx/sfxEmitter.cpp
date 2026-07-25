@@ -28,7 +28,7 @@
 #include "sfx/sfxTypes.h"
 #include "scene/sceneRenderState.h"
 #include "core/stream/bitStream.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "math/mathIO.h"
 #include "math/mQuat.h"
 #include "renderInstance/renderPassManager.h"

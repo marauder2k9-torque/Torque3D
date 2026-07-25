@@ -23,7 +23,7 @@
 #include "gfx/D3D11/gfxD3D11CardProfiler.h"
 #include "gfx/D3D11/gfxD3D11Device.h"
 #include "gfx/D3D11/gfxD3D11EnumTranslate.h"
-#include "platformWin32/videoInfo/wmiVideoInfo.h"
+#include "platform/win32/win32VideoInfo.h"
 #include "console/console.h"
 #include "gfx/primBuilder.h"
 

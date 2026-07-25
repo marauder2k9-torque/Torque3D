@@ -24,7 +24,7 @@
 
 #include "console/consoleInternal.h"
 #include "console/engineAPI.h"
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #include "app/mainLoop.h"
 #include "windowManager/platformWindow.h"
 #include "windowManager/platformWindowMgr.h"

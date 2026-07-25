@@ -38,7 +38,7 @@
 #include "lighting/lightInfo.h"
 #include "math/mathIO.h"
 
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 
 ConsoleDocClass( CloudLayer,
    "@brief A layer of clouds which change shape over time and are affected by scene lighting.\n\n"

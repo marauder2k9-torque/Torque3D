@@ -23,7 +23,7 @@
 #define _SHADERTDATA_H_
 
 #ifndef _SIMOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 #ifndef _GFXSHADER_H_
 #include "gfx/gfxShader.h"

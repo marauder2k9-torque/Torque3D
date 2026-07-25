@@ -26,7 +26,7 @@
 #ifdef TORQUE_OGGTHEORA
 
 #ifndef _SIMOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 
 #ifndef _THEORATEXTURE_H_

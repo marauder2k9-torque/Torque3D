@@ -23,7 +23,7 @@
 #ifndef _SETTINGS_H_
 #define _SETTINGS_H_
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "core/util/tVector.h"
 
 class SimXMLDocument;

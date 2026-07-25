@@ -24,7 +24,7 @@
 #include "console/console.h"
 #include "console/consoleObject.h"
 #include "console/typeValidators.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "math/mPoint3.h"
 #include <stdarg.h>
 

@@ -24,23 +24,25 @@
 #define _PLATFORMINTRINSICS_H_
 
 #ifndef _TORQUE_TYPES_H_
-#  include "platform/types.h"
+#  include "platform/platformTypes.h"
 #endif
 
 #if defined( TORQUE_COMPILER_VISUALC )
 #  include "platform/platformIntrinsics.visualc.h"
-#elif defined ( TORQUE_COMPILER_GCC )
+#elif defined ( TORQUE_COMPILER_GCC ) || defined( TORQUE_COMPILER_CLANG )
 #  include "platform/platformIntrinsics.gcc.h"
 #else
 #  error No intrinsics implemented for compiler.
 #endif
 
-//TODO: 64bit safe
-
 template< typename T >
 inline bool dCompareAndSwap( T* volatile& refPtr, T* oldPtr, T* newPtr )
 {
-   return dCompareAndSwap( *reinterpret_cast< volatile uintptr_t* >( &refPtr ), ( uintptr_t ) oldPtr, ( uintptr_t ) newPtr );
+#if defined(TORQUE_ARCH_64BIT)
+   return dCompareAndSwap( *reinterpret_cast< volatile U64* >( &refPtr ), ( U64 ) oldPtr, ( U64 ) newPtr );
+#else
+   return dCompareAndSwap( *reinterpret_cast< volatile U32* >( &refPtr ), ( U32 ) oldPtr, ( U32 ) newPtr );
+#endif
 }
 
 // Test-And-Set

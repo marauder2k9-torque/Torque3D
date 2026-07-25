@@ -148,17 +148,20 @@ private:
    const char* mFunctionName;
 };
 
-int main(int argc, char** argv)
+S32 RunUnitTests(S32 argc, const char** argv)
 {
    testing::GTEST_FLAG(output) = "xml:test_detail.xml";
    testing::GTEST_FLAG(stack_trace_depth) = 10;
 
-   printf("Running main() from %s\n", __FILE__);
-   // Initialize Google Test.
-   testing::InitGoogleTest(&argc, argv);
+   printf("Running unit tests from %s\n", __FILE__);
 
-   // torques handle command.
-   StandardMainLoop::init();
+   // Initialize Google Test. Mutates argv's strings in place, stripping
+   // GTest's own flags (--gtest_filter, etc.) out — MUST happen before
+   // StandardMainLoop::handleCommandLine() below sees argv, exactly as
+   // in the original standalone main() (see unitTesting.h's ordering
+   // note).
+   testing::InitGoogleTest(&argc, const_cast<char**>(argv));
+
    // setup torque for testing.
    GFXInit::enumerateAdapters();
    GFXAdapter* a = GFXInit::chooseAdapter(NullDevice, "");
@@ -172,13 +175,13 @@ int main(int argc, char** argv)
 
    // this call is to add the tests that exist in runTests.tscript
    // note these tests will not appear in the test explorer.
-   if(argc > 1)
-      StandardMainLoop::handleCommandLine(argc, (const char**)argv);
+   if (argc > 1)
+      StandardMainLoop::handleCommandLine(argc, argv);
 
    // run tests.
    int res = RUN_ALL_TESTS();
-   StandardMainLoop::shutdown();
-   return 0;
+
+   return res;
 }
 
 DefineEngineFunction(addUnitTest, void, (const char* function), ,

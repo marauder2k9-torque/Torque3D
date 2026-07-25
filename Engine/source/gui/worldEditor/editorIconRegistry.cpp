@@ -24,7 +24,7 @@
 #include "gui/worldEditor/editorIconRegistry.h"
 
 #include "console/engineAPI.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "gui/core/guiTypes.h"
 
 EditorIconRegistry gEditorIcons;

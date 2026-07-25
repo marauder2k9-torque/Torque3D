@@ -24,7 +24,7 @@
 #define _LIGHTFLAREDATA_H_
 
 #ifndef _SIMDATABLOCK_H_
-#include "console/simDatablock.h"
+#include "sim/simDatablock.h"
 #endif
 #ifndef _GFXTEXTUREHANDLE_H_
 #include "gfx/gfxTextureHandle.h"

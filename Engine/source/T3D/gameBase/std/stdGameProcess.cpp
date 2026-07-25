@@ -25,7 +25,7 @@
 
 #include "platform/profiler.h"
 #include "console/consoleTypes.h"
-#include "core/dnet.h"
+#include "network/connectionProtocol.h"
 #include "core/stream/bitStream.h"
 #include "core/frameAllocator.h"
 #include "core/util/refBase.h"

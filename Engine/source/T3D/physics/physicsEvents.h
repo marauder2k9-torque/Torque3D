@@ -24,7 +24,7 @@
 #define _PHYSICSEVENTS_H_
 
 #ifndef _NETCONNECTION_H_
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #endif
 
 class SceneObject;

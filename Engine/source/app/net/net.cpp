@@ -21,14 +21,14 @@
 //-----------------------------------------------------------------------------
 
 #include "platform/platform.h"
-#include "core/dnet.h"
+#include "network/connectionProtocol.h"
 #include "core/idGenerator.h"
 #include "core/stream/bitStream.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/console.h"
 #include "console/consoleTypes.h"
-#include "sim/netConnection.h"
-#include "sim/netObject.h"
+#include "network/netConnection.h"
+#include "network/netObject.h"
 #include "app/net/serverQuery.h"
 #include "console/engineAPI.h"
 #include <vector>

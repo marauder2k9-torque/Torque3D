@@ -32,7 +32,7 @@
 #endif
 
 #ifndef _SIM_H_
-#include "console/sim.h"
+#include "sim/sim.h"
 #endif
 
 

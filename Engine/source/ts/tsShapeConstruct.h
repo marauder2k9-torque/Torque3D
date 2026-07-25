@@ -33,7 +33,7 @@
 #include "ts/tsShape.h"
 #endif
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 #ifndef _COLLADA_UTILS_H_
 #include "ts/collada/colladaUtils.h"

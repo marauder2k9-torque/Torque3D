@@ -3,7 +3,7 @@
 #include "console/engineAPI.h"
 
 #ifndef _NETOBJECT_H_
-#include "sim/netObject.h"
+#include "network/netObject.h"
 #endif
 
 #ifndef _ITICKABLE_H_

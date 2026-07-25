@@ -21,8 +21,8 @@
 //-----------------------------------------------------------------------------
 
 #include "console/consoleInternal.h"
-#include "console/simDatablock.h"
-#include "console/simSet.h"
+#include "sim/simDatablock.h"
+#include "sim/simSet.h"
 #include "console/engineAPI.h"
 
 namespace Sim

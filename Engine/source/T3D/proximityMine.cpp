@@ -26,7 +26,7 @@
 #include "console/console.h"
 #include "console/consoleTypes.h"
 #include "console/engineAPI.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "math/mMath.h"
 #include "math/mathIO.h"
 #include "math/mathUtils.h"

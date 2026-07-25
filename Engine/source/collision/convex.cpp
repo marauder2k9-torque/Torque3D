@@ -23,7 +23,7 @@
 #include "platform/platform.h"
 #include "collision/convex.h"
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #include "core/dataChunker.h"
 #include "collision/collision.h"
 #include "scene/sceneObject.h"

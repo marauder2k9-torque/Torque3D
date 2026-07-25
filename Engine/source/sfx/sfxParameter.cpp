@@ -22,9 +22,9 @@
 
 #include "sfx/sfxParameter.h"
 #include "console/consoleTypes.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/engineAPI.h"
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #include "math/mMathFn.h"
 #include "math/mathTypes.h"
 #include "math/mathIO.h"

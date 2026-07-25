@@ -33,11 +33,11 @@
 #include "console/console.h"
 #include "console/consoleInternal.h"
 #include "console/typeValidators.h"
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #include "console/engineTypes.h"
 #include "console/engineAPI.h"
 
-#include "sim/netObject.h"
+#include "network/netObject.h"
 
 IMPLEMENT_SCOPE( ConsoleAPI, Console,,
    "Functionality related to the legacy TorqueScript console system." );

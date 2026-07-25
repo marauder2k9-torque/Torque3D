@@ -26,7 +26,7 @@
 #include "scene/zones/sceneTraversalState.h"
 #include "scene/zones/sceneZoneSpaceManager.h"
 #include "scene/sceneRenderState.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "core/stream/bitStream.h"
 #include "console/engineAPI.h"
 

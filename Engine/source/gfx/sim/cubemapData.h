@@ -24,7 +24,7 @@
 #define _CUBEMAPDATA_H_
 
 #ifndef _SIMOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 
 #ifndef _GFXCUBEMAP_H_

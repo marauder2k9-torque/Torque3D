@@ -37,7 +37,7 @@
 #include "gfx/gfxDebugEvent.h"
 #include "gfx/gfxOcclusionQuery.h"
 #include "renderInstance/renderPassManager.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "scene/reflectionManager.h"
 #include "ts/tsShapeInstance.h"
 #include "T3D/gameFunctions.h"

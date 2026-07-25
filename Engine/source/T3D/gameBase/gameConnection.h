@@ -29,13 +29,13 @@
 #define _GAMECONNECTION_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 #ifndef _GAMEBASE_H_
 #include "T3D/gameBase/gameBase.h"
 #endif
 #ifndef _NETCONNECTION_H_
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #endif
 #ifndef _MOVEMANAGER_H_
 #include "T3D/gameBase/moveManager.h"

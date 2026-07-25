@@ -22,7 +22,7 @@
 #ifndef _POPUPMENU_H_
 #define _POPUPMENU_H_
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "core/util/tVector.h"
 #include "util/messaging/dispatcher.h"
 #include "gui/core/guiCanvas.h"

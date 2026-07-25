@@ -43,7 +43,7 @@
 #endif
 
 #ifndef _SIMOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 
 #ifndef _ENGINEFUNCTIONS_H_
@@ -62,7 +62,7 @@
 
 // Needed for the executef macros. Blame GCC.
 #ifndef _SIMEVENTS_H_
-#include "console/simEvents.h"
+#include "sim/simEvents.h"
 #endif
 
 

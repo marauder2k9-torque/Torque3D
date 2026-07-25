@@ -43,7 +43,7 @@
 
 #ifdef TORQUE_COMPILER_VISUALC
    #define TORQUE_API extern "C" __declspec( dllexport )
-#elif defined( TORQUE_COMPILER_GCC )
+#elif defined( TORQUE_COMPILER_GCC ) || defined( TORQUE_COMPILER_CLANG )
    #define TORQUE_API extern "C" __attribute__( ( visibility( "default" ) ) )
 #else
    #error Unsupported compiler.
@@ -52,7 +52,7 @@
 
 // #pragma pack is bugged in GCC in that the packing in place at the template instantiation
 // sites rather than their definition sites is used.  Enable workarounds.
-#ifdef TORQUE_COMPILER_GCC
+#if defined(TORQUE_COMPILER_GCC) || defined(TORQUE_COMPILER_CLANG)
    #define _PACK_BUG_WORKAROUNDS
 #endif
 

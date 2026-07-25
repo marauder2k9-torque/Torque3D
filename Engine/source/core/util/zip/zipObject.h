@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "core/util/zip/zipArchive.h"
 #include "core/util/tVector.h"
 #include "core/stream/streamObject.h"

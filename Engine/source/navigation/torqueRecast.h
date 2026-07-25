@@ -23,7 +23,7 @@
 #ifndef _TORQUE_RECAST_H_
 #define _TORQUE_RECAST_H_
 
-#include "console/simSet.h"
+#include "sim/simSet.h"
 #include "math/mPoint3.h"
 #include "math/mBox.h"
 

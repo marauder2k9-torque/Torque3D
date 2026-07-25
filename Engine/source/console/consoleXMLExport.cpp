@@ -23,7 +23,7 @@
 #include "console/consoleInternal.h"
 #include "console/engineAPI.h"
 #include "console/consoleObject.h"
-#include "console/SimXMLDocument.h"
+#include "sim/SimXMLDocument.h"
 
 #include "console/consoleXMLExport.h"
 

@@ -26,7 +26,7 @@
 #include "gfx/gfxStateBlock.h"
 #endif
 #ifndef _SIMOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 
 

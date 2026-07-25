@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 #include "platform/platformAssert.h"
 
 #ifndef _PLATFORM_THREADS_MUTEX_H_

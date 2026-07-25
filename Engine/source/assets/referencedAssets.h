@@ -24,11 +24,11 @@
 #define _REFERENCED_ASSETS_H_
 
 #ifndef _SIM_H_
-#include "console/sim.h"
+#include "sim/sim.h"
 #endif
 
 #ifndef _SIMOBJECT_H_
-#include "console/simObject.h"
+#include "sim/simObject.h"
 #endif
 
 #ifndef _CONSOLEOBJECT_H_

@@ -49,7 +49,7 @@
    #include "console/engineFunctions.h"
 #endif
 #ifndef _SIMOBJECTREF_H_
-   #include "console/simObjectRef.h"
+   #include "sim/simObjectRef.h"
 #endif
 #ifndef TINYXML_INCLUDED
    #include "tinyxml2.h"

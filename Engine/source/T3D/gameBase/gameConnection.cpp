@@ -29,11 +29,11 @@
 #include "T3D/gameBase/gameConnection.h"
 
 #include "platform/profiler.h"
-#include "core/dnet.h"
+#include "network/connectionProtocol.h"
 #include "core/util/safeDelete.h"
 #include "core/stream/bitStream.h"
 #include "console/consoleTypes.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "sfx/sfxProfile.h"
 #include "sfx/sfxDescription.h"
 #include "app/game.h"

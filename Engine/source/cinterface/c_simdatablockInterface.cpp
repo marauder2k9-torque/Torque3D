@@ -20,7 +20,7 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "console/simDatablock.h"
+#include "sim/simDatablock.h"
 #include "console/engineAPI.h"
 
 DefineNewEngineMethod(SimDataBlock, AssignId, void, (),, "")

@@ -24,7 +24,7 @@
 #define _ASSET_QUERY_H_
 
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 
 #ifndef _TVECTOR_H_

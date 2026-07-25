@@ -21,7 +21,7 @@
 //-----------------------------------------------------------------------------
 
 #include "sfx/sfxEnvironment.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "core/stream/bitStream.h"
 #include "core/module.h"
 #include "console/typeValidators.h"

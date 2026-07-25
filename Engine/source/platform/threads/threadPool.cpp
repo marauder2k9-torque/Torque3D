@@ -363,26 +363,34 @@ void ThreadPool::shutdown()
 	for( WorkerThread* thread = mThreads; thread != 0; thread = thread->getNext() )
 		thread->stop();
 
-	// Release the semaphore as many times as there are threads.
-	// Doing this separately guarantees we're not waking a thread
-	// that hasn't been set its stop flag yet.
+   while (dAtomicRead(mNumThreads) > 0)
+   {
+      for (U32 n = 0; n < numThreads; ++n)
+         mSemaphore.release();
 
-	for( U32 n = 0; n < numThreads; ++ n )
-		mSemaphore.release();
+      // Give woken threads a moment to actually run, check
+      // checkForStop(), and decrement mNumThreads before we check
+      // again — avoids a tight spin loop burning CPU while threads
+      // are being scheduled.
+      Platform::sleep(1);
+   }
 
-	// Delete each worker thread.  Wait until death as we're prone to
-	// running into issues with decomposing work item lists otherwise.
+   // Delete each worker thread.  Wait until death as we're prone to
+   // running into issues with decomposing work item lists otherwise.
+   // mNumThreads reaching zero above guarantees every thread has
+   // already exited its run() loop by this point, so these join()
+   // calls return promptly rather than potentially blocking forever.
 
-	for( WorkerThread* thread = mThreads; thread != 0; )
-	{
-		WorkerThread* next = thread->getNext();
-		thread->join();
-		delete thread;
-		thread = next;
-	}
+   for (WorkerThread* thread = mThreads; thread != 0; )
+   {
+      WorkerThread* next = thread->getNext();
+      thread->join();
+      delete thread;
+      thread = next;
+   }
 
-	mThreads = NULL;
-	mNumThreads = 0;
+   mThreads = NULL;
+   mNumThreads = 0;
 }
 
 //--------------------------------------------------------------------------

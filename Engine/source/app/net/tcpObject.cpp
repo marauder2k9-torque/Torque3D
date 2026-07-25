@@ -23,7 +23,7 @@
 #include "app/net/tcpObject.h"
 
 #include "platform/platform.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "console/consoleInternal.h"
 #include "core/strings/stringUnit.h"
 #include "console/engineAPI.h"

@@ -22,7 +22,7 @@
 #ifndef _SAMPLER_H_
 #define _SAMPLER_H_
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 
 /// The sampling framework.
 ///

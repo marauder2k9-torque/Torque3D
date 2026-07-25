@@ -27,15 +27,13 @@
 #include "gui/buttons/guiButtonCtrl.h"
 #endif
 
+/// @deprecated
 class GuiToggleButtonCtrl : public GuiButtonCtrl
 {
    typedef GuiButtonCtrl Parent;
 public:
    DECLARE_CONOBJECT(GuiToggleButtonCtrl);
    GuiToggleButtonCtrl();
-
-   void onPreRender() override;
-   void onRender(Point2I offset, const RectI &updateRect) override;
 };
 
 #endif //_GUITOGGLEBUTTONCTRL_H_

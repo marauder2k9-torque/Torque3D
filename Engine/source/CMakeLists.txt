@@ -149,8 +149,11 @@ torqueAddSourceDirectories("util" "util/messaging")
 # Handle assets
 torqueAddSourceDirectories("assets")
 
+# Handle network
+torqueAddSourceDirectories("network")
+
 # Handle Sim
-torqueAddSourceDirectories("sim")
+torqueAddSourceDirectories("sim" "sim/component")
 
 # Handle module
 torqueAddSourceDirectories("module")
@@ -227,39 +230,22 @@ torqueAddSourceDirectories("renderInstance")
 # Handle i18n
 torqueAddSourceDirectories("i18n")
 
-# Begin handling platform specific stuff
-# Handle Platform POSIX
-if (UNIX)
-	torqueAddSourceDirectories("platformPOSIX")
-
-  if(NOT APPLE)
-    if (TORQUE_CPU_X32 OR TORQUE_CPU_X64)
-      torqueAddSourceDirectories("platformX86UNIX")
-    endif (TORQUE_CPU_X32 OR TORQUE_CPU_X64)
-  endif(NOT APPLE)
-endif (UNIX)
-
-# Handle platformMac
-if (APPLE)
-  torqueAddSourceDirectories("platformMac")
-endif (APPLE)
-
-# Handle platformWin32
+# Handle platforms
 if (WIN32)
-	torqueAddSourceDirectories("platformWin32" "platformWin32/videoInfo")
-endif (WIN32)
+	torqueAddSourceDirectories("platform/win32")
+elseif (APPLE)
+  torqueAddSourceDirectories("platform/macos")
+elseif (UNIX )
+    torqueAddSourceDirectories("platform/linux")
+endif()
 
 # Handle platformSDL
 torqueAddSourceDirectories("platformSDL" "platformSDL/threads")
 
-# Handle platformX11
-if (UNIX AND NOT APPLE)
-  torqueAddSourceDirectories("platformX11")
-endif (UNIX AND NOT APPLE)
+torqueAddSourceDirectories("componentTestBed" "componentTestBed/components")
 
 if(TORQUE_TESTING)
   torqueAddSourceDirectories("testing")
-  set(TORQUE_COMPILE_DEFINITIONS ${TORQUE_COMPILE_DEFINITIONS} TORQUE_SHARED SDL_MAIN_HANDLED)
 endif(TORQUE_TESTING)
 
 # Add the collected files to our engine group
@@ -430,21 +416,8 @@ if (NOT TORQUE_NET_CURL)
 endif()
 
 ################# Executable Generation ###################
+set(TORQUE_SOURCE_FILES "main/main.cpp" ${TORQUE_SOURCE_FILES})
 
-if (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
-    set(TORQUE_COMPILE_DEFINITIONS ${TORQUE_COMPILE_DEFINITIONS} TORQUE_SHARED)
-    add_library(TorqueEngine SHARED ${TORQUE_SOURCE_FILES})
-    target_compile_definitions(TorqueEngine PUBLIC ${TORQUE_COMPILE_DEFINITIONS})
-    target_link_libraries(TorqueEngine ${TORQUE_LINK_LIBRARIES} ${TORQUE_LINK_THIRDPARTY})
-    target_include_directories(TorqueEngine PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} "${CMAKE_BINARY_DIR}/temp" ${TORQUE_INCLUDE_DIRECTORIES})
-    set(TORQUE_SOURCE_FILES "main/main.cpp")
-    set(TORQUE_LINK_LIBRARIES TorqueEngine)
-else()
-    if(NOT TORQUE_TESTING)
-        set(TORQUE_SOURCE_FILES "main/main.cpp" ${TORQUE_SOURCE_FILES})
-    endif()
-endif (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
- 
 if (APPLE)
     add_executable(${TORQUE_APP_NAME} MACOSX_BUNDLE ${TORQUE_SOURCE_FILES})
  
@@ -525,13 +498,6 @@ if(MSVC)
         target_compile_options(${TORQUE_APP_NAME} PRIVATE
             /arch:SSE2  # Safe baseline for all configs - dispatch handles ISA upgrades at runtime
         )
-    endif()
-    if (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
-        if(IS_X86)
-            target_compile_options(TorqueEngine PRIVATE
-                /arch:SSE2
-            )
-        endif()
     endif()
 endif()
 
@@ -624,15 +590,6 @@ if (MSVC)
         $<$<CONFIG:RelWithDebInfo>:/INCREMENTAL /DEBUG:FULL /OPT:REF /OPT:ICF>
         $<$<CONFIG:Release>:/INCREMENTAL>
     )
- 
-    if (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
-        target_compile_options(TorqueEngine PRIVATE
-            ${_TORQUE_MSVC_ALL}
-            $<$<CONFIG:Debug>:${_TORQUE_MSVC_DEBUG}>
-            $<$<CONFIG:RelWithDebInfo>:${_TORQUE_MSVC_RELWITHDEBINFO}>
-            $<$<CONFIG:Release>:${_TORQUE_MSVC_RELEASE}>
-        )
-    endif()
 
 endif (MSVC)
  
@@ -701,18 +658,6 @@ if (UNIX)
     target_link_options(${TORQUE_APP_NAME} PRIVATE
         $<$<CONFIG:Release>:${_TORQUE_UNIX_RELEASE_LINK}>
     )
- 
-    if (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
-        target_compile_options(TorqueEngine PRIVATE
-            ${_TORQUE_UNIX_ALL}
-            $<$<CONFIG:Debug>:${_TORQUE_UNIX_DEBUG}>
-            $<$<CONFIG:RelWithDebInfo>:${_TORQUE_UNIX_RELWITHDEBINFO}>
-            $<$<CONFIG:Release>:${_TORQUE_UNIX_RELEASE}>
-        )
-        target_link_options(TorqueEngine PRIVATE
-            $<$<CONFIG:Release>:${_TORQUE_UNIX_RELEASE_LINK}>
-        )
-    endif()
 endif (UNIX)
  
 ################# Output Naming (MSVC) ###################
@@ -724,10 +669,6 @@ if(MSVC)
         list(GET OUTPUT_CONFIG ${INDEX} CONF)
         list(GET OUTPUT_SUFFIX ${INDEX} SUFFIX)
         set_property(TARGET ${TORQUE_APP_NAME} PROPERTY OUTPUT_NAME_${CONF} ${TORQUE_APP_NAME}_${SUFFIX})
-        if (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
-            set_property(TARGET TorqueEngine PROPERTY ${CONF}_POSTFIX "_${SUFFIX}")
-            set_property(TARGET TorqueEngine PROPERTY ${CONF}_OUTPUT_NAME ${TORQUE_APP_NAME})
-        endif (TORQUE_DYNAMIC_LIBRARY AND NOT TORQUE_TESTING)
     endforeach()
     set_property(DIRECTORY ${CMAKE_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${TORQUE_APP_NAME})
 endif()
@@ -785,7 +726,6 @@ target_include_directories(${TORQUE_APP_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR
 
 if(TORQUE_TESTING)
   if(WIN32)
-        target_link_options(${TORQUE_APP_NAME} PRIVATE "/SUBSYSTEM:CONSOLE")
         set_target_properties(gtest PROPERTIES COMPILE_FLAGS "/Zc:wchar_t-")
         set_target_properties(gmock PROPERTIES COMPILE_FLAGS "/Zc:wchar_t-")
     endif()

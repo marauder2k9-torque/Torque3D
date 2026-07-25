@@ -22,7 +22,7 @@
 
 #include "gfx/gfxDevice.h"
 #include "scene/pathManager.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "core/stream/bitStream.h"
 #include "scene/simPath.h"
 #include "math/mathIO.h"

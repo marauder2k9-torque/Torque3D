@@ -24,7 +24,7 @@
 #define _PLATFORM_THREADS_THREAD_H_
 
 #ifndef _TORQUE_TYPES_H_
-   #include "platform/types.h"
+   #include "platform/platformTypes.h"
 #endif
 #ifndef _TVECTOR_H_
    #include "core/util/tVector.h"

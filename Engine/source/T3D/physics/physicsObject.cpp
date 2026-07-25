@@ -23,8 +23,8 @@
 #include "platform/platform.h"
 #include "T3D/physics/physicsObject.h"
 
-#include "console/simEvents.h"
-#include "console/simSet.h"
+#include "sim/simEvents.h"
+#include "sim/simSet.h"
 
 
 PhysicsObject::PhysicsObject()

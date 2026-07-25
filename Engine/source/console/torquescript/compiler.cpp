@@ -24,7 +24,7 @@
 #include "console/console.h"
 
 #include "compiler.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 
 extern FuncVars gEvalFuncVars;
 extern FuncVars gGlobalScopeFuncVars;

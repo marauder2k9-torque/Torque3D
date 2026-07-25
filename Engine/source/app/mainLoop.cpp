@@ -51,9 +51,9 @@
 #include "gfx/video/videoCapture.h"
 #include "gfx/gfxTextureManager.h"
 
-#include "sim/netStringTable.h"
+#include "network/netStringTable.h"
 #include "sim/actionMap.h"
-#include "sim/netInterface.h"
+#include "network/netInterface.h"
 
 #include "util/sampler.h"
 #include "platform/threads/threadPool.h"

@@ -27,7 +27,7 @@
 #include "math/mMath.h"
 #endif
 #ifndef _SIMBASE_H_
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #endif
 #ifndef _DYNAMIC_CONSOLETYPES_H_
 #include "console/dynamicTypes.h"

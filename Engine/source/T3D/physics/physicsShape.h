@@ -39,7 +39,7 @@
    #include "console/dynamicTypes.h"
 #endif
 #ifndef _SIMOBJECTREF_H_
-   #include "console/simObjectRef.h"
+   #include "sim/simObjectRef.h"
 #endif
 
 #include "T3D/assets/ShapeAsset.h"

@@ -23,7 +23,7 @@
 #ifndef _GUI_INSPECTOR_DYNAMICFIELD_H_
 #define _GUI_INSPECTOR_DYNAMICFIELD_H_
 
-#include "console/simFieldDictionary.h"
+#include "sim/simFieldDictionary.h"
 #include "gui/editor/inspector/field.h"
 
 

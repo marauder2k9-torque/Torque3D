@@ -23,7 +23,7 @@
 #ifndef _STRINGUNIT_H_
 #define _STRINGUNIT_H_
 
-#include "platform/types.h"
+#include "platform/platformTypes.h"
 
 /// These functions are used for chunking up strings by delimiter.
 /// Especially useful for handling TorqueScript space-delimited fields

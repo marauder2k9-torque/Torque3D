@@ -20,8 +20,8 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
-#include "console/simBase.h"
-#include "console/simDatablock.h"
+#include "sim/simBase.h"
+#include "sim/simDatablock.h"
 #include "gui/editor/guiInspector.h"
 #include "gui/editor/inspector/datablockField.h"
 #include "gui/editor/inspector/group.h"

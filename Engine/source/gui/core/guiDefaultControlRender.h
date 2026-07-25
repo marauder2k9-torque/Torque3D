@@ -30,6 +30,21 @@
 class GuiControlProfile;
 class ColorI;
 
+/// Maps onto GuiControlProfile's existing per-state fields as follows:
+///   Normal      -> mFillColor / mBorderColor / mFontColor
+///   Highlighted -> mFillColorHL / mBorderColorHL / mFontColorHL
+///   Depressed   -> mFillColorSEL / mBorderColorSEL / mFontColorSEL (pressed/checked-on)
+///   Disabled    -> mFillColorNA / mBorderColorNA / mFontColorNA
+///   Error       -> mFillColorERR / mBorderColorERR / mFontColorERR
+enum class GuiState : U8
+{
+   Normal,
+   Highlighted,
+   Depressed,
+   Disabled,
+   Error,
+};
+
 void renderRaisedBox( const RectI &bounds, GuiControlProfile *profile);
 void renderSlightlyRaisedBox( const RectI &bounds, GuiControlProfile *profile);
 void renderLoweredBox( const RectI &bounds, GuiControlProfile *profile);
@@ -41,5 +56,9 @@ void renderSizableBitmapBordersFilled( const RectI &bounds, S32 baseMultiplier, 
 void renderSizableBitmapBordersFilledIndex( const RectI &bounds, S32 startIndex, GuiControlProfile *profile);
 void renderFixedBitmapBordersFilled( const RectI &bounds, S32 baseMultiplier, GuiControlProfile *profile); //  Added
 void renderFixedBitmapBordersFilled( const RectI &bounds, S32 startIndex, GuiControlProfile *profile);
+void renderStateFill(const RectI& bounds, GuiState state, GuiControlProfile* profile);
+void renderStateBitmapBorders(const RectI& bounds, GuiState state, GuiControlProfile* profile);
+Point2I renderStateGlyph(const Point2I& offset, GuiState state, bool isOn, GuiControlProfile* profile);
+void renderStateBorderOnly(const RectI& bounds, GuiState state, GuiControlProfile* profile);
 
 #endif

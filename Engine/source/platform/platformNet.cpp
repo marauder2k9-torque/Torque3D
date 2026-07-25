@@ -25,6 +25,7 @@
 #include "core/strings/stringFunctions.h"
 #include "core/util/hashFunction.h"
 #include "console/consoleTypes.h"
+#include "network/netStun.h"
 
 #ifdef TORQUE_NET_CURL
 #include <httpObject.h>
@@ -568,12 +569,17 @@ bool Net::init()
 
    Process::notify(&Net::process, PROCESS_NET_ORDER);
 
+   // for nat punch
+   NetStun::init();
+
    return(true);
 }
 
 void Net::shutdown()
 {
    Process::remove(&Net::process);
+
+   NetStun::shutdown();
 
 #ifdef TORQUE_NET_CURL
    HTTPObject::shutdown();
@@ -1106,6 +1112,7 @@ Net::Error Net::sendto(const NetAddress *address, const U8 *buffer, S32  bufferS
 
 void Net::process()
 {
+   NetStun::update();
    // Process listening sockets
    processListenSocket(PlatformNetState::udpSocket);
    processListenSocket(PlatformNetState::udp6Socket);
@@ -1987,6 +1994,101 @@ U32 NetAddress::getHash() const
    }
    return value;
 }
+
+void NetAddress::writeToStream(BitStream* stream) const
+{
+   switch (type)
+   {
+   case IPAddress:
+   {
+      stream->write(U8(WireIPv4));
+      for (U32 i = 0; i < 4; i++)
+         stream->write(address.ipv4.netNum[i]);
+      stream->write(port);
+      break;
+   }
+
+   case IPV6Address:
+   {
+      stream->write(U8(WireIPv6));
+      for (U32 i = 0; i < 16; i++)
+         stream->write(address.ipv6.netNum[i]);
+      stream->write(port);
+      // netFlow/netScope deliberately not written - see header comment.
+      break;
+   }
+
+   default:
+      AssertWarn(false, "NetAddress::writeToStream - refusing to serialize a "
+         "non-unicast address type (broadcast/multicast) as wire data");
+      stream->write(U8(WireInvalid));
+      break;
+   }
+}
+
+bool NetAddress::readFromStream(BitStream* stream)
+{
+   U8 wireType;
+   stream->read(&wireType);
+
+   dMemset(this, 0, sizeof(NetAddress));
+
+   switch (wireType)
+   {
+   case WireIPv4:
+   {
+      type = IPAddress;
+      for (U32 i = 0; i < 4; i++)
+         stream->read(&address.ipv4.netNum[i]);
+      stream->read(&port);
+      return true;
+   }
+
+   case WireIPv6:
+   {
+      type = IPV6Address;
+      for (U32 i = 0; i < 16; i++)
+         stream->read(&address.ipv6.netNum[i]);
+      stream->read(&port);
+      address.ipv6.netFlow = 0;
+      address.ipv6.netScope = 0;
+      return true;
+   }
+
+   default:
+      return false; // unknown/invalid tag - stream position still
+      // consistent (only the one type byte was consumed)
+   }
+}
+
+void NetAddress::writeAddressList(BitStream* stream, const Vector<NetAddress>& addresses)
+{
+   U32 count = addresses.size();
+   if (count > MaxAddressListCount)
+      count = MaxAddressListCount;
+
+   stream->write(U8(count));
+   for (U32 i = 0; i < count; i++)
+      addresses[i].writeToStream(stream);
+}
+
+void NetAddress::readAddressList(BitStream* stream, Vector<NetAddress>* outAddresses)
+{
+   U8 count;
+   stream->read(&count);
+
+   if (count > MaxAddressListCount)
+      count = MaxAddressListCount; // defensive clamp against a hostile/corrupt sender
+
+   for (U32 i = 0; i < count; i++)
+   {
+      NetAddress addr;
+      if (addr.readFromStream(stream))
+         outAddresses->push_back(addr);
+      // else: unrecognized entry, skip it and keep reading the rest of the list
+   }
+}
+
 
 bool Net::isAddressTypeAvailable(NetAddress::Type addressType)
 {

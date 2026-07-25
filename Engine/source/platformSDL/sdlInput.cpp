@@ -20,12 +20,15 @@
 // IN THE SOFTWARE.
 //-----------------------------------------------------------------------------
 
+#include "sdlInput.h"
+
+#if defined(TORQUE_SDL)
+
 #include "platform/platformInput.h"
 #include "console/engineAPI.h"
 #include "core/util/journal/process.h"
 #include "windowManager/platformWindowMgr.h"
 
-#include "sdlInput.h"
 #include "platform/platformInput.h"
 #include "sdlInputManager.h"
 #include "SDL.h"
@@ -151,6 +154,9 @@ void Input::destroy()
       delete smManager;
       smManager = NULL;
    }
+
+   TouchIdentifier::releaseAll();
+   DeviceIdentifier::clear();
 }
 
 //------------------------------------------------------------------------------
@@ -227,6 +233,24 @@ InputManager* Input::getManager()
 {
    return( smManager );
 }
+
+//------------------------------------------------------------------------------
+void Input::buildTouchEvent(InputObjectInstances fingerSlot, F32 x, F32 y, F32 pressure, InputActionType action)
+{
+   InputEventInfo event;
+   event.deviceType = TouchDeviceType;
+   event.deviceInst = fingerSlot;
+   event.objType = SI_TOUCH;
+   event.objInst = fingerSlot;
+   event.action = action;
+   event.fValue = x;
+   event.fValue2 = y;
+   event.fValue3 = pressure;
+   event.modifier = getModifierKeys();
+
+   event.postToSignal(smInputEvent);
+}
+
 
 //-----------------------------------------------------------------------------
 // Clipboard functions
@@ -431,3 +455,5 @@ U32 KeyMapSDL::getSDLScanCodeFromTorque(U32 torque)
 
    return T3D_SDL[torque];
 }
+
+#endif  // defined(TORQUE_SDL)

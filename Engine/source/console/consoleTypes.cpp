@@ -22,12 +22,12 @@
 
 #include "console/console.h"
 #include "console/consoleTypes.h"
-#include "console/simPersistID.h"
+#include "sim/simPersistID.h"
 #include "core/stringTable.h"
 #include "core/util/str.h"
 #include "core/util/uuid.h"
 #include "core/color.h"
-#include "console/simBase.h"
+#include "sim/simBase.h"
 #include "math/mRect.h"
 #include "core/strings/stringUnit.h"
 

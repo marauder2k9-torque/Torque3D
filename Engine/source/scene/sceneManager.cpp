@@ -34,7 +34,7 @@
 #include "gfx/gfxDrawUtil.h"
 #include "gfx/gfxDebugEvent.h"
 #include "console/engineAPI.h"
-#include "sim/netConnection.h"
+#include "network/netConnection.h"
 #include "T3D/gameBase/gameConnection.h"
 #include "math/mathUtils.h"
 
