@@ -1,7 +1,7 @@
 name: Windows Build
 on:
     push:
-        branches: [Torque3D-PlatformSquash]
+        branches: [Torque3D-ModuleComponent]
     pull_request:
         branches: [development]
 
