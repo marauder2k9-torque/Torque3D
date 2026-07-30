@@ -200,11 +200,24 @@ protected:
    void handleResize     (WindowId did, S32 width,     S32 height);
    void handleAppEvent   (WindowId did, S32 event);
    void handlePaintEvent (WindowId did);
+   void handleDPIChange  (PlatformWindow *window, F32 newScale);
 
    PlatformWindow *mPlatformWindow;
    GFXFence **mFences;
    S32 mNextFenceIdx;
    S32 mNumFences;
+
+   /// @name DPI / Display Scale
+   F32 mUserScaleOverride;
+   F32 mEffectiveScale;
+
+   /// Recomputes mEffectiveScale from mUserScaleOverride/the platform
+   /// window and, if it actually changed
+   void _updateEffectiveScale();
+
+   static bool setProtectedUserScaleOverride( void *object, const char *index, const char *data );
+
+   /// @}
 
    static bool setProtectedNumFences( void *object, const char *index, const char *data );
    virtual void setupFences();
@@ -247,6 +260,12 @@ public:
    /// @param   preRenderOnly   If set to true, only the onPreRender methods of all the GuiControls will be called
    /// @param   bufferSwap      If set to true, it will swap buffers at the end. This is to support canvas-subclassing.
    virtual void renderFrame(bool preRenderOnly, bool bufferSwap = true);
+
+   /// Returns the effective DPI scale everything in this canvas's control
+   /// tree should use this frame -- see mEffectiveScale/mUserScaleOverride
+   /// for how it's derived. 1.0 == "96 DPI" / no scaling, matching every
+   /// platform's own definition of a logical pixel.
+   F32 getEffectiveScale() const { return mEffectiveScale; }
 
 
    /// Repaints the canvas by calling the platform window display event.

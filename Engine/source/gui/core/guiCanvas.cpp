@@ -164,7 +164,9 @@ GuiCanvas::GuiCanvas(): GuiControl(),
                         mDisplayWindow(true),
                         mMenuBarCtrl(NULL),
                         mMenuBackground(NULL),
-                        mConstrainMouse(false)
+                        mConstrainMouse(false),
+                        mUserScaleOverride(0.0f),
+                        mEffectiveScale(1.0f)
 {
    setBounds(0, 0, 640, 480);
    mAwake = true;
@@ -213,6 +215,9 @@ void GuiCanvas::initPersistFields()
    addProtectedField( "numFences", TypeS32, Offset( mNumFences, GuiCanvas ), &setProtectedNumFences, &defaultProtectedGetFn, "The number of GFX fences to use." );
 
    addField("displayWindow", TypeBool, Offset(mDisplayWindow, GuiCanvas), "Controls if the canvas window is rendered or not." );
+
+   addProtectedField( "uiScaleOverride", TypeF32, Offset( mUserScaleOverride, GuiCanvas ), &setProtectedUserScaleOverride, &defaultProtectedGetFn,
+      "User override for the GUI's effective DPI scale. 0 (default) means use whatever the OS/monitor reports; any positive value forces that scale regardless of platform-reported DPI." );
    endGroup("Canvas Rendering");
 
    addGroup("KeyboardMode Callbacks");
@@ -291,7 +296,13 @@ bool GuiCanvas::onAdd()
       mPlatformWindow->resizeEvent .notify(this, &GuiCanvas::handleResize);
       mPlatformWindow->appEvent    .notify(this, &GuiCanvas::handleAppEvent);
       mPlatformWindow->displayEvent.notify(this, &GuiCanvas::handlePaintEvent);
+      mPlatformWindow->dpiChangeEvent.notify(this, &GuiCanvas::handleDPIChange);
       mPlatformWindow->setInputController( dynamic_cast<IProcessInput*>(this) );
+
+      // Compute the initial effective scale now that mPlatformWindow
+      // actually exists -- _updateEffectiveScale() reads
+      // mPlatformWindow->getDPIScale()
+      _updateEffectiveScale();
    }
 
    // Need to get painted, too! :)
@@ -414,6 +425,36 @@ void GuiCanvas::handleResize( WindowId did, S32 width, S32 height )
    // Notify the scripts
    if ( isMethod( "onResize" ) )
       Con::executef( this, "onResize", Con::getIntArg( width ), Con::getIntArg( height ) );
+}
+
+void GuiCanvas::handleDPIChange( PlatformWindow *window, F32 newScale )
+{
+   // newScale is the platform window's raw report -- _updateEffectiveScale()
+   // still goes through mUserScaleOverride the same as always, so a user
+   // override continues to win over whatever the OS just reported.
+   _updateEffectiveScale();
+}
+
+void GuiCanvas::_updateEffectiveScale()
+{
+   const F32 osScale = mPlatformWindow ? mPlatformWindow->getDPIScale() : 1.0f;
+   const F32 newEffectiveScale = (mUserScaleOverride > 0.0f) ? mUserScaleOverride : osScale;
+
+   if (newEffectiveScale == mEffectiveScale)
+      return;
+
+   mEffectiveScale = newEffectiveScale;
+
+   if ( isMethod( "onDPIScaleChanged" ) )
+      Con::executef( this, "onDPIScaleChanged", Con::getFloatArg( mEffectiveScale ) );
+}
+
+bool GuiCanvas::setProtectedUserScaleOverride( void *object, const char *index, const char *data )
+{
+   GuiCanvas *canvas = reinterpret_cast<GuiCanvas *>( object );
+   canvas->mUserScaleOverride = dAtof( data );
+   canvas->_updateEffectiveScale();
+   return true;
 }
 
 void GuiCanvas::handlePaintEvent(WindowId did)
@@ -1772,7 +1813,11 @@ void GuiCanvas::constrainMouseCoords(Point2I mousePoint)
    Point2I windowPos = getPlatformWindow()->getPosition();//this is the offset
    Point2I winSize = getWindowSize();//window size too!
 
-   S32 newDisplay = Con::getIntVariable("pref::Video::deviceId", 0);
+   // Which monitor THIS canvas's window is on
+   S32 newDisplay = getPlatformWindow()->getCurrentMonitorIndex();
+   if (newDisplay < 0)
+      newDisplay = Con::getIntVariable("pref::Video::deviceId", 0); // not yet determined (e.g. window hasn't moved since creation) -- fall back to the primary-window global rather than guess index 0 blindly
+
    SDL_DisplayMode displayM;
    if (0 == SDL_GetDesktopDisplayMode(newDisplay, &displayM))
    {

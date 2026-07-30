@@ -152,6 +152,10 @@ public:
    bool isMinimized() override;
    bool isMaximized() override;
 
+   /// Derives the effective DPI scale as (drawable pixel size / logical
+   /// window size)
+   F32 getDPIScale() const override;
+
    void minimize() override;
    void maximize() override;
    void hide() override;

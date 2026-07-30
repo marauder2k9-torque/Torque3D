@@ -39,6 +39,9 @@ struct GFXVideoMode;
 class GFXWindowTarget;
 class IProcessInput;
 typedef Signal<void(PlatformWindow *PlatformWindow, bool resize)> ScreenResChangeSignal;
+
+/// Fired when this window's effective DPI scale changes
+typedef Signal<void(PlatformWindow *window, F32 newScale)> DPIChangeSignal;
 /// Abstract representation of a native OS window.
 ///
 /// Every windowing system has its own representations and conventions as
@@ -110,6 +113,8 @@ protected:
       mOffscreenRender = false;
       mDisplayWindow = false;
       mWindowId = 0;
+      mLastKnownDPIScale = 1.0f;
+      mCurrentMonitorIndex = -1;
       // This controller maps window input (Mouse/Keyboard) to a generic input consumer
       mWindowInputGenerator = new WindowInputGenerator( this );
    }
@@ -498,9 +503,60 @@ public:
    DisplayEvent      displayEvent;
    ResizeEvent       resizeEvent;
    IdleEvent         idleEvent;
+   DPIChangeSignal   dpiChangeEvent;
 
    /// @}
    static ScreenResChangeSignal& getScreenResChangeSignal() { return smScreenResChangeSignal; }
+
+   /// @name DPI / Display Scale
+   /// @{
+
+   /// Returns this window's current effective DPI scale, where 1.0 means
+   /// "96 DPI" (the same baseline every OS uses for its own definition of a
+   /// logical/effective pixel). This is a live, per-monitor value on
+   /// platforms that support per-monitor DPI (Win32, macOS) -- it can
+   /// change without a resize if the window is dragged to a different
+   /// monitor, which is exactly what dpiChangeEvent exists to report.
+   virtual F32 getDPIScale() const = 0;
+
+protected:
+   /// Cached result of the last getDPIScale() query
+   F32 mLastKnownDPIScale;
+
+   /// Re-queries getDPIScale()
+   void _updateDPIScale()
+   {
+      const F32 newScale = getDPIScale();
+      if (newScale != mLastKnownDPIScale)
+      {
+         mLastKnownDPIScale = newScale;
+         dpiChangeEvent.trigger(this, newScale);
+      }
+   }
+
+public:
+   /// @}
+
+   /// @name Monitor Tracking
+   ///
+   /// Which monitor THIS window is currently on. This is deliberately
+   /// per-window state, not read from a single global -- the pre-existing
+   /// $pref::Video::deviceId global (still used elsewhere, e.g. as a
+   /// "primary/main window" concept)
+   S32 getCurrentMonitorIndex() const { return mCurrentMonitorIndex; }
+
+   /// @}
+
+protected:
+   /// See getCurrentMonitorIndex(). -1 until _updateCurrentMonitor() has
+   /// run at least once.
+   S32 mCurrentMonitorIndex;
+
+   /// Re-derives mCurrentMonitorIndex from this window's current position
+   /// against PlatformWindowManager's monitor rect table
+   void _updateCurrentMonitor();
+
+public:
    
    /// Get the platform specific object needed to create or attach an accelerated
    /// graohics drawing context on or to the window
