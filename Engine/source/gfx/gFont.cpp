@@ -22,6 +22,7 @@
 
 #include "platform/platform.h"
 #include "gfx/gFont.h"
+#include "platform/stbPlatformFont.h"
 
 #include "core/resourceManager.h"
 #include "core/stream/fileStream.h"
@@ -74,7 +75,7 @@ static S32 QSORT_CALLBACK GlyphMapCompare(const void *a, const void *b)
 }
 
 
-const U32 GFont::csm_fileVersion = 3;
+const U32 GFont::csm_fileVersion = 4; // v4 adds mIsSDFFont/mSDFPixelRange and per-CharInfo rasterMode/sdfPixelRange (see read()'s v3 fallback path for old-cache compatibility)
 
 String GFont::getFontCacheFilename(const String &faceName, U32 size)
 {
@@ -100,7 +101,26 @@ GFont* GFont::load( const Torque::Path& path )
    }
    else
    {
-      PlatformFont   *platFont = createPlatformFont(ret->getFontFaceName(), ret->getFontSize(), ret->getFontCharSet());
+      // The face name saved in the .uft cache is either an OS face name
+      // ("Arial") or a .ttf/.otf/.ttc file name
+      const Torque::Path facePath( ret->getFontFaceName() );
+      const String faceExt = facePath.getExtension();
+      const bool isTrueTypeFile = faceExt.equal("ttf", String::NoCase)
+                                || faceExt.equal("otf", String::NoCase)
+                                || faceExt.equal("ttc", String::NoCase);
+
+      PlatformFont *platFont = NULL;
+
+      if (isTrueTypeFile)
+      {
+         const String ttfPath = String::ToString("%s/%s",
+            Con::getVariable("$GUI::fontDirectory"), ret->getFontFaceName().c_str());
+         platFont = createStbPlatformFont(ttfPath.c_str(), ret->getFontSize(), ret->getFontCharSet(), false);
+      }
+      else
+      {
+         platFont = createPlatformFont(ret->getFontFaceName(), ret->getFontSize(), ret->getFontCharSet());
+      }
 
       if ( platFont == NULL )
       {
@@ -136,8 +156,28 @@ Resource<GFont> GFont::create(const String &faceName, U32 size, const char *cach
       }
    }
 
-   // Otherwise attempt to have the platform generate a new font
-   PlatformFont *platFont = createPlatformFont(faceName, size, charset);
+   // Otherwise attempt to have the platform generate a new font.
+   //
+   // faceName is either an OS-installed face name ("Arial") or a
+   // .ttf/.otf/.ttc file name. 
+   const Torque::Path facePath( faceName );
+   const String faceExt = facePath.getExtension();
+   const bool isTrueTypeFile = faceExt.equal("ttf", String::NoCase)
+                             || faceExt.equal("otf", String::NoCase)
+                             || faceExt.equal("ttc", String::NoCase);
+
+   PlatformFont *platFont = NULL;
+
+   if (isTrueTypeFile)
+   {
+      const String ttfPath = String::ToString("%s/%s",
+         Con::getVariable("$GUI::fontDirectory"), faceName.c_str());
+      platFont = createStbPlatformFont(ttfPath.c_str(), size, charset, false);
+   }
+   else
+   {
+      platFont = createPlatformFont(faceName, size, charset);
+   }
    
    if (platFont == NULL)
    {
@@ -182,6 +222,11 @@ Resource<GFont> GFont::create(const String &faceName, U32 size, const char *cach
    font->mAscent   = platFont->getFontBaseLine();
    font->mDescent  = platFont->getFontHeight() - platFont->getFontBaseLine();
 
+   // SDF-ness is a property of the backing rasterizer (see
+   // PlatformFont::isSDFProvider() / StbPlatformFont).
+   font->mIsSDFFont = platFont->isSDFProvider();
+   // Actual per-glyph sdfPixelRange comes back on each CharInfo
+
    // Flag it to save when we exit
    font->mNeedSave = true;
 
@@ -210,6 +255,8 @@ GFont::GFont()
    mAscent = 0;
    mDescent = 0;
    mNeedSave = false;
+   mIsSDFFont = false;
+   mSDFPixelRange = 0.0f;
    
    mMutex = Mutex::createMutex();
 }
@@ -285,6 +332,11 @@ bool GFont::loadCharInfo(const UTF16 ch)
         PlatformFont::CharInfo &ci = mPlatformFont->getCharInfo(ch);
         if(ci.bitmapData)
             addBitmap(ci);
+
+        // Capture the font-level SDF range from the first glyph that
+        // reports one.
+        if(mIsSDFFont && ci.sdfPixelRange > 0.0f)
+            mSDFPixelRange = ci.sdfPixelRange;
 
         mCharInfoList.push_back(ci);
         mRemapTable[ch] = mCharInfoList.size() - 1;
@@ -657,11 +709,17 @@ void GFont::wrapString(const UTF8 *txt, U32 lineWidth, Vector<U32> &startLineOff
 
 bool GFont::read(Stream& io_rStream)
 {
-    // Handle versioning
+    // Handle versioning. v3 is the pre-SDF format (still readable -- every
+    // field this rewrite added is simply defaulted for a v3 file, since a
+    // v3 cache can only ever have come from a bitmap-mode OS rasterizer
+    // anyway). v4 adds mIsSDFFont/mSDFPixelRange and per-CharInfo
+    // rasterMode/sdfPixelRange.
     U32 version;
     io_rStream.read(&version);
-    if(version != csm_fileVersion)
+    if(version != csm_fileVersion && version != 3)
         return false;
+
+    const bool isLegacyV3 = (version == 3);
 
     char buf[256];
     io_rStream.readString(buf);
@@ -674,6 +732,17 @@ bool GFont::read(Stream& io_rStream)
     io_rStream.read(&mBaseline);
     io_rStream.read(&mAscent);
     io_rStream.read(&mDescent);
+
+    if(isLegacyV3)
+    {
+       mIsSDFFont = false;
+       mSDFPixelRange = 0.0f;
+    }
+    else
+    {
+       io_rStream.read(&mIsSDFFont);
+       io_rStream.read(&mSDFPixelRange);
+    }
 
     U32 size = 0;
     io_rStream.read(&size);
@@ -691,6 +760,19 @@ bool GFont::read(Stream& io_rStream)
         io_rStream.read(&ci->yOrigin);
         io_rStream.read(&ci->xIncrement);
         ci->bitmapData = NULL;
+
+        if(isLegacyV3)
+        {
+           ci->rasterMode = PlatformFont::GlyphRasterMode::Bitmap;
+           ci->sdfPixelRange = 0.0f;
+        }
+        else
+        {
+           U8 rasterModeRaw = 0;
+           io_rStream.read(&rasterModeRaw);
+           ci->rasterMode = (PlatformFont::GlyphRasterMode)rasterModeRaw;
+           io_rStream.read(&ci->sdfPixelRange);
+        }
    }
 
    U32 numSheets = 0;
@@ -766,6 +848,9 @@ bool GFont::write(Stream& stream)
     stream.write(mAscent);
     stream.write(mDescent);
 
+    stream.write(mIsSDFFont);
+    stream.write(mSDFPixelRange);
+
     // Write char info list
     stream.write(U32(mCharInfoList.size()));
     U32 i;
@@ -780,6 +865,8 @@ bool GFont::write(Stream& stream)
         stream.write(ci->xOrigin);
         stream.write(ci->yOrigin);
         stream.write(ci->xIncrement);
+        stream.write((U8)ci->rasterMode);
+        stream.write(ci->sdfPixelRange);
    }
 
    stream.write(mTextureSheets.size());
