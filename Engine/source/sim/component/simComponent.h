@@ -53,11 +53,11 @@ public:
 
    /// Called after a static (typed, AbstractClassRep-backed) field on
    /// THIS component is set via setDataField.
-   virtual void onStaticModified(const char* slotName, const char* newValue) {}
+   void onStaticModified(const char* slotName, const char* newValue) override {}
 
    /// Called after a dynamic field on this component is set. Dynamic
    /// fields have no fixed bit mapping and play no part in networking.
-   virtual void onDynamicModified(const char* slotName, const char* newValue) {}
+   void onDynamicModified(const char* slotName, const char* newValue) override {}
 
    // Ticking passed down from Owner
    virtual void processTick(const Move* move) {}

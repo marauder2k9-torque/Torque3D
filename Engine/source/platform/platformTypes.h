@@ -177,7 +177,7 @@ typedef double F64;
 
 typedef std::size_t dsize_t;
 
-#if TORQUE_ARCH_64BIT
+#if defined(TORQUE_ARCH_64BIT)
     typedef U64 MEM_ADDRESS;
 #else
     typedef U32 MEM_ADDRESS;
