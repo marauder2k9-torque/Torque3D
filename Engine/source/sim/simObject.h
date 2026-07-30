@@ -45,6 +45,10 @@
 #include "T3D/objectTypes.h"
 #endif
 
+#ifndef _TDICTIONARY_H_
+#include "core/util/tDictionary.h"
+#endif
+
 class Stream;
 class LightManager;
 class SimFieldDictionary;
@@ -320,13 +324,17 @@ class SimObject: public ConsoleObject, public TamlCallbacks
       /// Table of dynamic fields assigned to this object.
       SimFieldDictionary *mFieldDictionary;
 
-      /// Components attached to this object via addComponent(). See
-      /// sim/component/simComponent.h - components are ConsoleObject-
-      /// derived, not SimObject, and are never registered with Sim
-      /// (no SimObjectId consumed). setDataField/getDataField fall
-      /// through to this list when a field is not found on this
-      /// object's own static fields (see those methods' bodies).
+      /// Components attached to this object
       Vector<SimComponent*> mComponents;
+
+      /// Stores the SAME encoding handlesConsoleMethod()'s routingId
+      /// uses (0 = this object's own namespace, 1+i = mComponents[i])
+      Map<StringTableEntry, S32> mMethodRoutingCache;
+
+      /// Called whenever mComponents' contents change (addComponent,
+      /// attachComponent, removeComponent, and the onRemove() teardown
+      /// loop) 
+      void invalidateMethodRoutingCache() { mMethodRoutingCache.clear(); }
 
       /// Buffer to store textual representation of this object's numeric ID in.
       char mIdString[ 11 ];
@@ -1055,9 +1063,20 @@ class SimObject: public ConsoleObject, public TamlCallbacks
       /// Copy SimObject to another SimObject (Originally designed for T2D).
       virtual void copyTo(SimObject* object);
 
-      // Component Console Overrides
-      virtual bool handlesConsoleMethod(const char * fname, S32 * routingId) { return false; }
-      virtual void getConsoleMethodData(const char * fname, S32 routingId, S32 * type, S32 * minArgs, S32 * maxArgs, void ** callback, const char ** usage) {}
+      /// Called by compiledEval.cpp's MethodCall dispatch (see
+      /// OP_CALLFUNC)
+      ///
+      /// routingId encoding:
+      ///    -1              : not handled (implicit - return false instead)
+      ///     0               : handled directly by this object's own
+      ///                       namespace (getNamespace()->lookup succeeded)
+      ///     1 + componentIdx : handled by mComponents[componentIdx] -
+      ///                       offset by 1 so componentIdx 0 doesn't
+      ///                       collide with the "handled directly" value
+      ///                       of 0 above.
+      ///
+      virtual bool handlesConsoleMethod(const char * fname, S32 * routingId);
+      virtual void getConsoleMethodData(const char * fname, S32 routingId, S32 * type, S32 * minArgs, S32 * maxArgs, void ** callback, const char ** usage);
       
       DECLARE_CONOBJECT( SimObject );
       DECLARE_CALLBACK(void, onInspectPostApply, (SimObject* obj));

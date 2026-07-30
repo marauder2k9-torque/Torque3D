@@ -949,6 +949,100 @@ bool SimObject::isMethod( const char* methodName )
 
 //-----------------------------------------------------------------------------
 
+bool SimObject::handlesConsoleMethod(const char* fname, S32* routingId)
+{
+   StringTableEntry stname = StringTable->insert(fname);
+
+   // Cache hit - same routingId handlesConsoleMethod would have computed
+   S32 cachedRoutingId = 0;
+   if (mMethodRoutingCache.tryGetValue(stname, cachedRoutingId))
+   {
+      *routingId = cachedRoutingId;
+      return true;
+   }
+
+   // Own namespace first - if this object's own class/instance namespace
+   // already resolves the name, that's what setDataField/ordinary script
+   // dispatch would have found anyway; nothing to route to a component.
+   if (isMethod(fname))
+   {
+      *routingId = 0;
+      mMethodRoutingCache.insert(stname, 0);
+      return true;
+   }
+
+   // Fall through to attached components. mComponents is Vector<SimComponent*>
+   // - SimComponent IS a SimObject (see simComponent.h), so this can call
+   // isMethod() directly without any cast.
+   for (U32 i = 0; i < mComponents.size(); i++)
+   {
+      SimComponent* component = mComponents[i];
+      if (component && component->isMethod(fname))
+      {
+         *routingId = 1 + S32(i); // see handlesConsoleMethod's doc comment for the +1 offset
+         mMethodRoutingCache.insert(stname, *routingId);
+         return true;
+      }
+   }
+
+   return false;
+}
+
+//-----------------------------------------------------------------------------
+
+void SimObject::getConsoleMethodData(const char* fname, S32 routingId,
+   S32* type, S32* minArgs, S32* maxArgs, void** callback, const char** usage)
+{
+   *callback = NULL;
+   *usage = NULL;
+   *type = Namespace::Entry::InvalidFunctionType;
+   *minArgs = 0;
+   *maxArgs = 0;
+
+   StringTableEntry stname = StringTable->insert(fname);
+
+   // routingId 0 means handlesConsoleMethod found it on THIS object's own
+   // namespace
+   if (routingId == 0)
+   {
+      if (!getNamespace())
+         return;
+
+      Namespace::Entry* entry = getNamespace()->lookup(stname);
+      if (!entry)
+         return;
+
+      *type = entry->mType;
+      *minArgs = entry->mMinArgs;
+      *maxArgs = entry->mMaxArgs;
+      *usage = entry->mUsage;
+      *callback = (void*)entry->cb.mVoidCallbackFunc; // any union member - same address
+      return;
+   }
+
+   // routingId >= 1 means component index (routingId - 1) in mComponents -
+   // see handlesConsoleMethod's doc comment for the encoding.
+   U32 componentIdx = U32(routingId - 1);
+   if (componentIdx >= mComponents.size())
+      return;
+
+   SimComponent* component = mComponents[componentIdx];
+   if (!component || !component->getNamespace())
+      return;
+
+   Namespace::Entry* entry = component->getNamespace()->lookup(stname);
+   if (!entry)
+      return;
+
+   *type = entry->mType;
+   *minArgs = entry->mMinArgs;
+   *maxArgs = entry->mMaxArgs;
+   *usage = entry->mUsage;
+
+}
+
+//-----------------------------------------------------------------------------
+
 bool SimObject::isField( const char* fieldName, bool includeStatic, bool includeDynamic )
 {
    const char* strFieldName = StringTable->insert( fieldName );
@@ -1038,8 +1132,18 @@ void SimObject::assignFieldsFrom(SimObject *parent)
 
             if (f->networkMask != 0)
             {
-               NetObject* netObj = static_cast<NetObject*>(this);
-               netObj->setMaskBits(f->networkMask);
+               if (NetObject* netObj = dynamic_cast<NetObject*>(this))
+               {
+                  netObj->setMaskBits(f->networkMask);
+               }
+               else if (SimComponent* component = dynamic_cast<SimComponent*>(this))
+               {
+                  NetObject* ownerObj = dynamic_cast<NetObject*>(component->getOwner());
+                  if (ownerObj)
+                  {
+                     ownerObj->setMaskBits(component->getOwnerNetMask() << f->networkMask);
+                  }
+               }
             }
          }
       }
@@ -1062,6 +1166,22 @@ void SimObject::setDataField(StringTableEntry slotName, const char *array, const
    if(mFlags.test(ModStaticFields))
    {
       const AbstractClassRep::Field *fld = findField(slotName);
+
+      // Not found on this object itself - check attached components before
+      // falling through to dynamic fields.
+      if (!fld && mComponents.size() > 0)
+      {
+         for (U32 i = 0; i < mComponents.size(); i++)
+         {
+            SimComponent* component = mComponents[i];
+            if (component && component->findField(slotName))
+            {
+               component->setDataField(slotName, array, value);
+               return;
+            }
+         }
+      }
+
       if(fld)
       {
          // Skip the special field types as they are not data.
@@ -1176,6 +1296,17 @@ const char *SimObject::getDataField(StringTableEntry slotName, const char *array
    {
       S32 array1 = array ? dAtoi(array) : -1;
       const AbstractClassRep::Field *fld = findField(slotName);
+
+      // See the matching comment in setDataField()
+      if (!fld && mComponents.size() > 0)
+      {
+         for (U32 i = 0; i < mComponents.size(); i++)
+         {
+            SimComponent* component = mComponents[i];
+            if (component && component->findField(slotName))
+               return component->getDataField(slotName, array);
+         }
+      }
 
       if(fld)
       {
@@ -1310,8 +1441,20 @@ SimComponent* SimObject::addComponent(const char* componentClassName, const char
       return NULL;
    }
 
+   // Components are deliberately never registered with Sim (no
+   // SimObjectId consumed - see mComponents' doc comment)
+   comp->onAdd();
+
+   if (!comp->isProperlyAdded())
+   {
+      Con::errorf("SimObject::addComponent - '%s' failed onAdd()", componentClassName);
+      delete comp;
+      return NULL;
+   }
+
    // Net mask assignment - see simComponent.h "Networking / mask bits".
    mComponents.push_back(comp);
+   invalidateMethodRoutingCache();
 
    if (mFieldDictionary)
    {
@@ -1383,6 +1526,7 @@ bool SimObject::attachComponent(SimComponent* comp)
 
    // Net mask assignment - see simComponent.h "Networking / mask bits".
    mComponents.push_back(comp);
+   invalidateMethodRoutingCache();
 
    rebindComponentNetMasks();
 
@@ -1446,6 +1590,7 @@ bool SimObject::removeComponent(SimComponent* comp)
       {
          comp->unregisterObject();
          mComponents.erase(i);
+         invalidateMethodRoutingCache();
          delete comp;
 
          rebindComponentNetMasks();
@@ -1464,6 +1609,7 @@ bool SimObject::removeComponent(SimComponent* comp)
 
 void SimObject::clearComponents()
 {
+   invalidateMethodRoutingCache();
    while (mComponents.size() > 0)
    {
       SimComponent* c = mComponents.last();

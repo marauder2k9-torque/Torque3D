@@ -55,6 +55,10 @@ void RenderComponent::initPersistFields()
 void RenderComponent::setSize(const Point3F& size)
 {
    mSize = size;
+   if(NetObject* n_obj = dynamic_cast<NetObject*>(getOwner()))
+   {
+      n_obj->setMaskBits(getOwnerNetMask() << 1);
+   }
 }
 
 //-----------------------------------------------------------------------------
@@ -62,6 +66,10 @@ void RenderComponent::setSize(const Point3F& size)
 void RenderComponent::setColor(const LinearColorF& color)
 {
    mColor = color;
+   if(NetObject* n_obj = dynamic_cast<NetObject*>(getOwner()))
+   {
+      n_obj->setMaskBits(getOwnerNetMask() << 1);
+   }
 }
 
 //-----------------------------------------------------------------------------

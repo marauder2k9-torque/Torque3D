@@ -1993,6 +1993,24 @@ Con::EvalResult CodeBlock::exec(U32 ip, const char* functionName, Namespace* thi
                nsEntry = ns->lookup(fnName);
             else
                nsEntry = NULL;
+
+            // Not found directly on thisObject - see if an attached
+            // component claims this method name instead
+            if (!nsEntry)
+            {
+               S32 routingId = 0;
+               if (thisObject->handlesConsoleMethod(fnName, &routingId) && routingId >= 1)
+               {
+                  U32 componentIdx = U32(routingId - 1);
+                  SimComponent* component = thisObject->getComponent(componentIdx);
+                  if (component)
+                  {
+                     thisObject = component;
+                     ns = thisObject->getNamespace();
+                     nsEntry = ns ? ns->lookup(fnName) : NULL;
+                  }
+               }
+            }
          }
          else // it's a ParentCall
          {
