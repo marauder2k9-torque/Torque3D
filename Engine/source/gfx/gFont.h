@@ -57,7 +57,7 @@ public:
    GFont();
    virtual ~GFont();
    
-   static Resource<GFont> create(const String &faceName, U32 size, const char *cacheDirectory = 0, U32 charset = TGE_ANSI_CHARSET);
+   static Resource<GFont> create(const String &faceName, U32 size, const char *cacheDirectory = 0, U32 charset = TGE_ANSI_CHARSET, bool useSDF = false);
 
    GFXTexHandle getTextureHandle(S32 index) const { return mTextureSheets[index]; }
 
@@ -121,6 +121,23 @@ public:
    U32      getFontSize() const { return mSize; }
    U32      getFontCharSet() const { return mCharSet; }
 
+   /// True if this font's glyphs are signed-distance-field data
+   bool isSDFFont() const { return mIsSDFFont; }
+
+   /// Spread, in the SDF's own reference-rasterization pixels, that every
+   /// glyph's distance field was baked with. 0 for non-SDF fonts.
+   F32 getSDFPixelRange() const { return mSDFPixelRange; }
+
+   void cacheDisplaySize(U32 size)
+   {
+      if (!mIsSDFFont)
+         return;
+      for (U32 i = 0; i < mSDFDisplaySizesUsed.size(); ++i)
+         if (mSDFDisplaySizesUsed[i] == size)
+            return;
+      mSDFDisplaySizesUsed.push_back(size);
+   }
+
    bool read(Stream& io_rStream);
    bool write(Stream& io_rStream);
 
@@ -154,6 +171,14 @@ private:
    U32 mBaseline;
    U32 mAscent;
    U32 mDescent;
+
+   /// See isSDFFont()/getSDFPixelRange() above. Populated once from the
+   /// backing PlatformFont at creation time (GFont::create), not per-glyph —
+   /// a single GFont is either entirely SDF or entirely bitmap, matching how
+   /// StbPlatformFont itself is constructed in one mode or the other.
+   bool mIsSDFFont;
+   F32  mSDFPixelRange;
+   Vector<U32> mSDFDisplaySizesUsed;
 
    /// List of character info structures, must be accessed through the 
    /// getCharInfo(U32) function to account for remapping.

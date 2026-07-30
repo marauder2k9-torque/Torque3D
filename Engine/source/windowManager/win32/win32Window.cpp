@@ -610,6 +610,40 @@ bool Win32Window::isMaximized()
     return false;
 }
 
+F32 Win32Window::getDPIScale() const
+{
+   if (!mWindowHandle)
+      return 1.0f;
+
+   // GetDpiForWindow is Windows 10 1607+ only and gives the correct
+   // PER-MONITOR value
+   typedef UINT (WINAPI *GetDpiForWindowFn)(HWND);
+   static GetDpiForWindowFn sGetDpiForWindow = []() -> GetDpiForWindowFn
+   {
+      HMODULE user32 = GetModuleHandleW(L"user32.dll");
+      return user32 ? reinterpret_cast<GetDpiForWindowFn>(GetProcAddress(user32, "GetDpiForWindow")) : nullptr;
+   }();
+
+   if (sGetDpiForWindow)
+   {
+      const UINT dpi = sGetDpiForWindow(mWindowHandle);
+      if (dpi > 0)
+         return (F32)dpi / 96.0f;
+   }
+
+   // Fallback for pre-1607 Windows: system DPI (not per-monitor -- this is
+   // the best available answer on older Windows, which only ever had one
+   // system-wide DPI setting to query anyway).
+   HDC hdc = GetDC(mWindowHandle);
+   if (!hdc)
+      return 1.0f;
+
+   const int dpiX = GetDeviceCaps(hdc, LOGPIXELSX);
+   ReleaseDC(mWindowHandle, hdc);
+
+   return dpiX > 0 ? (F32)dpiX / 96.0f : 1.0f;
+}
+
 WindowId Win32Window::getWindowId()
 {
 	return mWindowId;
@@ -726,6 +760,24 @@ LRESULT PASCAL Win32Window::WindowProc( HWND hWnd, UINT message, WPARAM wParam, 
 		}
 		break;
 
+	case WM_DPICHANGED:
+      // Fired when the window moves to a monitor with a different DPI, or
+      // the user changes the OS display scale setting live.
+      if (window)
+      {
+         window->_updateDPIScale();
+
+         const RECT *suggested = reinterpret_cast<const RECT*>(lParam);
+         if (suggested)
+         {
+            SetWindowPos(hWnd, nullptr,
+               suggested->left, suggested->top,
+               suggested->right - suggested->left, suggested->bottom - suggested->top,
+               SWP_NOZORDER | SWP_NOACTIVATE);
+         }
+      }
+      return 0;
+
 	case WM_MOUSEACTIVATE:
 		SetFocus(hWnd);
 		return MA_ACTIVATE;
@@ -778,6 +830,10 @@ LRESULT PASCAL Win32Window::WindowProc( HWND hWnd, UINT message, WPARAM wParam, 
 
 		window->mPosition.x = (int)LOWORD(lParam);
 		window->mPosition.y = (int)HIWORD(lParam);
+
+		// Re-derive which monitor THIS window is on 
+		window->_updateCurrentMonitor();
+		window->_updateDPIScale();
 		return 0;
 
 		// Update viewport when the window moves

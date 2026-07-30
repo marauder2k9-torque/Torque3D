@@ -59,6 +59,16 @@ extern const char *getCharSetName(const U32 charSet);
 class PlatformFont
 {
 public:
+   /// Rasterization mode a CharInfo's bitmapData was produced in.
+   /// Existing GDI/CoreText/FreeType-backed PlatformFont implementations
+   /// only ever produce Bitmap; SDF is produced by StbPlatformFont when
+   /// its font asset requests SDF mode (see StbPlatformFont.h).
+   enum class GlyphRasterMode
+   {
+      Bitmap = 0,   ///< bitmapData is 8-bit coverage, baked at this exact pixel size
+      SDF    = 1,   ///< bitmapData is 8-bit signed distance field, sampled at ANY size via threshold
+   };
+
    struct CharInfo
    {
       S16 bitmapIndex;     ///< @note -1 indicates character is NOT to be
@@ -71,6 +81,19 @@ public:
       S32  yOrigin;
       S32  xIncrement;
       U8  *bitmapData;     ///< temp storage for bitmap data
+
+      /// @name SDF metadata
+      /// Defaulted to Bitmap/0 so every existing PlatformFont implementation
+      /// (win32/mac/linux GDI-CoreText-FreeType) is unaffected
+      GlyphRasterMode rasterMode = GlyphRasterMode::Bitmap;
+      F32 sdfPixelRange = 0.0f;  ///< distance-field spread, in source-rasterization pixels, used by the
+                                  ///< threshold shader to derive a stable-width outline/AA band at any draw scale
+      /// @}
+
+      CharInfo()
+         : bitmapIndex(0), xOffset(0), yOffset(0), width(0), height(0),
+           xOrigin(0), yOrigin(0), xIncrement(0), bitmapData(nullptr),
+           rasterMode(GlyphRasterMode::Bitmap), sdfPixelRange(0.0f) {}
    };
    
    virtual ~PlatformFont() {}
@@ -90,8 +113,32 @@ public:
    /// @todo Rethink this so we don't have a private public.
    virtual bool create( const char *name, dsize_t size, U32 charset = TGE_ANSI_CHARSET ) = 0;
    static void enumeratePlatformFonts( Vector<StringTableEntry>& fonts, UTF16* fontFamily = NULL );
+
+   /// Does this rasterizer produce SDF glyphs?
+   virtual bool isSDFProvider() const { return false; }
 };
 
 extern PlatformFont *createPlatformFont(const char *name, dsize_t size, U32 charset = TGE_ANSI_CHARSET);
+
+/// Creates an stb_truetype-backed PlatformFont loading a specific .ttf/.otf
+/// file directly (not an OS-installed face lookup like createPlatformFont).
+/// @param  fontFilePath  path to a .ttf/.otf file, resolved the same way any
+///                       other engine asset path is resolved
+/// @param  size          requested pixel size. In SDF mode this only affects
+///                       the *hinted-metrics reference size* the rasterizer
+///                       bakes at — the resulting glyphs are then sampled at
+///                       any device pixel size by the renderer, so re-calling
+///                       this per DPI bucket is unnecessary (though harmless)
+///                       for SDF fonts. In bitmap mode it behaves exactly
+///                       like createPlatformFont: one exact baked size.
+/// @param  charset       kept for signature parity with createPlatformFont;
+///                       stb_truetype works from Unicode codepoints directly
+///                       and does not need a Win32-style charset table, so
+///                       this is accepted but unused.
+/// @param  sdfMode       false = Bitmap rasterization (drop-in equivalent of
+///                       today's behavior, sourced from the ttf file instead
+///                       of the OS). true = SDF rasterization (see
+///                       GlyphRasterMode::SDF above).
+extern PlatformFont *createStbPlatformFont(const char *fontFilePath, dsize_t size, U32 charset = TGE_ANSI_CHARSET, bool sdfMode = false);
 
 #endif // _PLATFORMFONT_H_

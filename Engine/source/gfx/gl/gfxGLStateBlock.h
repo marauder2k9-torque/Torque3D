@@ -23,12 +23,18 @@
 #ifndef _GFXGLSTATEBLOCK_H_
 #define _GFXGLSTATEBLOCK_H_
 
-#include "gfx/gfxStateBlock.h"
+#ifndef _TORQUE_TYPES_H_
+#include "platform/platformTypes.h"
+#endif
+
+struct GFXSamplerStateDesc;
 
 namespace DictHash
 {
    U32 hash(const GFXSamplerStateDesc &data);
 }
+
+#include "gfx/gfxStateBlock.h"
 
 class GFXGLStateBlock : public GFXStateBlock
 {   

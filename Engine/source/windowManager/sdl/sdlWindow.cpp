@@ -176,7 +176,8 @@ void PlatformWindowSDL::_setVideoMode( const GFXVideoMode &mode )
 {
    mVideoMode = mode;
    mSuppressReset = true;
-   S32 newDisplay = Con::getIntVariable("pref::Video::deviceId", 0);
+   S32 newDisplay = (mCurrentMonitorIndex >= 0) ? mCurrentMonitorIndex
+                                                : Con::getIntVariable("pref::Video::deviceId", 0);
 
    // Set our window to have the right style based on the mode
    if(mode.fullScreen && !Platform::getWebDeployment() && !mOffscreenRender)
@@ -299,13 +300,17 @@ const Point2I PlatformWindowSDL::getClientExtent()
 
 void PlatformWindowSDL::setBounds( const RectI &newBounds )
 {
-   // TODO SDL
+   SDL_SetWindowPosition(mWindowHandle, newBounds.point.x, newBounds.point.y);
+   SDL_SetWindowSize(mWindowHandle, newBounds.extent.x, newBounds.extent.y);
 }
 
 const RectI PlatformWindowSDL::getBounds() const
 {
-   // TODO SDL
-   return RectI(0, 0, 0, 0);   
+   Point2I pos, size;
+   SDL_GetWindowPosition(mWindowHandle, &pos.x, &pos.y);
+   SDL_GetWindowSize(mWindowHandle, &size.x, &size.y);
+
+   return RectI(pos.x, pos.y, size.x, size.y);
 }
 
 void PlatformWindowSDL::setPosition( const Point2I newPosition )
@@ -581,20 +586,26 @@ void PlatformWindowSDL::_triggerTextNotify(const SDL_Event& evt)
 
 void PlatformWindowSDL::_updateMonitorFromMove(const SDL_Event& evt)
 {
-   SDL_Rect sdlRect;
-   S32 monitorCount = SDL_GetNumVideoDisplays();
-   for (S32 index = 0; index < monitorCount; ++index)
-   {
-      if (0 == SDL_GetDisplayBounds(index, &sdlRect))
-      {
-         if ((evt.window.data1 >= sdlRect.x) && (evt.window.data1 < (sdlRect.x + sdlRect.w)) &&
-            (evt.window.data2 >= sdlRect.y) && (evt.window.data2 < (sdlRect.y + sdlRect.h)))
-         {
-            Con::setIntVariable("pref::Video::deviceId", index);
-            return;
-         }
-      }
-   }
+   // Per-window monitor tracking -- see PlatformWindow::_updateCurrentMonitor().
+   _updateCurrentMonitor();
+}
+
+F32 PlatformWindowSDL::getDPIScale() const
+{
+   if (!mWindowHandle)
+      return 1.0f;
+
+   // Queried via SDL_GetDisplayDPI on the window's current display, rather
+   // than a drawable-size-vs-window-size ratio (SDL_GL_GetDrawableSize)
+   const int displayIndex = SDL_GetWindowDisplayIndex(mWindowHandle);
+   if (displayIndex < 0)
+      return 1.0f;
+
+   float ddpi = 0.0f;
+   if (SDL_GetDisplayDPI(displayIndex, &ddpi, nullptr, nullptr) != 0 || ddpi <= 0.0f)
+      return 1.0f;
+
+   return ddpi / 96.0f;
 }
 
 void PlatformWindowSDL::_processSDLEvent(SDL_Event &evt)
@@ -651,6 +662,9 @@ void PlatformWindowSDL::_processSDLEvent(SDL_Event &evt)
                // If display device has changed, make sure window params are compatible with the new device.
                if (oldDisplay != Con::getIntVariable("pref::Video::deviceId", 0))
                   Con::executef("configureCanvas");
+
+               // A monitor change can also mean a DPI change
+               _updateDPIScale();
                break;
             }
             case SDL_WINDOWEVENT_RESIZED:
@@ -661,6 +675,10 @@ void PlatformWindowSDL::_processSDLEvent(SDL_Event &evt)
                getGFXTarget()->resetMode();
                resizeEvent.trigger(getWindowId(), width, height);
                getScreenResChangeSignal().trigger(this, true);
+
+               // Some platforms/compositors report a live DPI-scale change
+               // as a resize rather than (or in addition to) a move
+               _updateDPIScale();
                break;
             }
             case SDL_WINDOWEVENT_CLOSE:

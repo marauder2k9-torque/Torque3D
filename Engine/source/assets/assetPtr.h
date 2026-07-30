@@ -31,10 +31,10 @@
 
 class AssetPtrCallback
 {
-    friend class AssetManager;
+   friend class AssetManager;
 
 protected:
-    virtual void onAssetRefreshed( AssetPtrBase* pAssetPtrBase ) = 0;    
+   virtual void onAssetRefreshed(AssetPtrBase* pAssetPtrBase) = 0;
 };
 
 //-----------------------------------------------------------------------------
@@ -42,40 +42,40 @@ protected:
 class AssetPtrBase
 {
 public:
-    AssetPtrBase() {};
-    virtual ~AssetPtrBase()
-    {
-        // Un-register any notifications.
-        unregisterRefreshNotify();
-    };
+   AssetPtrBase() {};
+   virtual ~AssetPtrBase()
+   {
+      // Un-register any notifications.
+      unregisterRefreshNotify();
+   };
 
-    /// Referencing.
-    virtual void clear( void ) = 0;
-    virtual void setAssetId( const char* pAssetId ) = 0;
-    virtual StringTableEntry getAssetId( void ) const = 0;
-    virtual StringTableEntry getAssetType( void ) const = 0;
-    virtual bool isAssetId( const char* pAssetId ) const = 0;
+   /// Referencing.
+   virtual void clear(void) = 0;
+   virtual void setAssetId(const char* pAssetId) = 0;
+   virtual StringTableEntry getAssetId(void) const = 0;
+   virtual StringTableEntry getAssetType(void) const = 0;
+   virtual bool isAssetId(const char* pAssetId) const = 0;
 
-    /// Validity.
-    virtual bool isNull( void ) const = 0;
-    virtual bool notNull( void ) const = 0;
+   /// Validity.
+   virtual bool isNull(void) const = 0;
+   virtual bool notNull(void) const = 0;
 
-    /// Notification.
-    inline void registerRefreshNotify( AssetPtrCallback* pCallback )
-    {
-        // Sanity!
-        AssertFatal( AssetDatabase.isProperlyAdded(), "AssetPtrBase::registerRefreshNotify() - Cannot register an asset pointer with the asset system." );
+   /// Notification.
+   inline void registerRefreshNotify(AssetPtrCallback* pCallback)
+   {
+      // Sanity!
+      AssertFatal(AssetDatabase.isProperlyAdded(), "AssetPtrBase::registerRefreshNotify() - Cannot register an asset pointer with the asset system.");
 
-        // register refresh notify.
-        AssetDatabase.registerAssetPtrRefreshNotify( this, pCallback );
-    }
+      // register refresh notify.
+      AssetDatabase.registerAssetPtrRefreshNotify(this, pCallback);
+   }
 
-    void unregisterRefreshNotify( void )
-    {
-        // Un-register the refresh notify if the asset system is available.
-        if ( AssetDatabase.isProperlyAdded() )
-            AssetDatabase.unregisterAssetPtrRefreshNotify( this );
-    }
+   void unregisterRefreshNotify(void)
+   {
+      // Un-register the refresh notify if the asset system is available.
+      if (AssetDatabase.isProperlyAdded())
+         AssetDatabase.unregisterAssetPtrRefreshNotify(this);
+   }
 };
 
 //-----------------------------------------------------------------------------
@@ -83,103 +83,128 @@ public:
 template<typename T> class AssetPtr : public AssetPtrBase
 {
 private:
-    SimObjectPtr<T> mpAsset;
+   SimObjectPtr<T> mpAsset;
 
 public:
-    AssetPtr() {}
-    AssetPtr( const char* pAssetId )
-    {
-        // Finish if this is an invalid asset Id.
-        if ( pAssetId == NULL || *pAssetId == 0 )
-            return;
+   AssetPtr() {}
+   AssetPtr(const char* pAssetId)
+   {
+      // Finish if this is an invalid asset Id.
+      if (pAssetId == NULL || *pAssetId == 0)
+         return;
 
-        // Acquire asset.
-        mpAsset = AssetDatabase.acquireAsset<T>( pAssetId );
-    }
-    AssetPtr( const AssetPtr<T>& assetPtr )
-    {
-        // Does the asset pointer have an asset?
-        if ( assetPtr.notNull() )
-        {
-            // Yes, so acquire the asset.
-            mpAsset = AssetDatabase.acquireAsset<T>( assetPtr->getAssetId() );
-        }
-    }
-    virtual ~AssetPtr()
-    {
-        // Do we have an asset?
-        if ( notNull() )
-        {
-            // Yes, so release it.
-            AssetDatabase.releaseAsset( mpAsset->getAssetId() );
-        }
-    }
+      // Acquire asset.
+      mpAsset = AssetDatabase.acquireAsset<T>(pAssetId);
+   }
+   AssetPtr(const AssetPtr<T>& assetPtr)
+   {
+      // Does the asset pointer have an asset?
+      if (assetPtr.notNull())
+      {
+         // Yes, so acquire the asset.
+         mpAsset = AssetDatabase.acquireAsset<T>(assetPtr->getAssetId());
+      }
+   }
+   virtual ~AssetPtr()
+   {
+      // Do we have an asset?
+      if (notNull())
+      {
+         // Yes, so release it.
+         AssetDatabase.releaseAsset(mpAsset->getAssetId());
+      }
+   }
 
-    /// Assignment.
-    AssetPtr<T>& operator=( const char* pAssetId )
-    {
-        // Do we have an asset?
-        if ( notNull() )
-        {
-            // Yes, so finish if the asset Id is already assigned.
-            if ( isAssetId( pAssetId ) )
-                return *this;
+   /// Assignment.
+   AssetPtr<T>& operator=(const char* pAssetId)
+   {
+      // Do we have an asset?
+      if (notNull())
+      {
+         // Yes, so finish if the asset Id is already assigned.
+         if (isAssetId(pAssetId))
+            return *this;
 
-            // No, so release it.
-            AssetDatabase.releaseAsset( mpAsset->getAssetId() );
-        }
+         // No, so release it.
+         AssetDatabase.releaseAsset(mpAsset->getAssetId());
+      }
 
-        // Is the asset Id at least okay to attempt to acquire the asset?
-        if ( pAssetId != NULL && *pAssetId != 0 )
-        {
-            // Yes, so acquire the asset.
-            mpAsset = AssetDatabase.acquireAsset<T>( pAssetId );
-        }
-        else
-        {
-            // No, so remove reference.
-            mpAsset = NULL;
-        }
+      // Is the asset Id at least okay to attempt to acquire the asset?
+      if (pAssetId != NULL && *pAssetId != 0)
+      {
+         // Yes, so acquire the asset.
+         mpAsset = AssetDatabase.acquireAsset<T>(pAssetId);
+      }
+      else
+      {
+         // No, so remove reference.
+         mpAsset = NULL;
+      }
 
-        // Return Reference.
-        return *this;
-    }
+      // Return Reference.
+      return *this;
+   }
 
-    AssetPtr<T>& operator=( const AssetPtr<T>& assetPtr )
-    {
-        // Set asset pointer.
-        *this = assetPtr->getAssetId();
+   AssetPtr<T>& operator=(const AssetPtr<T>& assetPtr)
+   {
+      // Guard against a null right-hand side -- assetPtr->getAssetId()
+      // below dereferences the raw pointer operator->() returns (see
+      // this class's own operator->(), just "return mpAsset;", no null
+      // check), so calling it unconditionally here is a null-pointer
+      // member call whenever assetPtr is itself null (e.g. a default-
+      // constructed AssetPtr<T> that was never assigned an asset --
+      // exactly the state of an unset GuiStyleValue<AssetRef<ImageAsset>>
+      // in guiStyleProperties.h, which is what surfaced this: copying a
+      // GuiStyleProperties/GuiStyleValue whole-struct-wise, e.g. in
+      // GuiControlNew::resolveStyle(), does this on every resolve for
+      // every control, not just ones that actually use a bitmapAsset).
+      // The copy CONSTRUCTOR just above already guards this identically
+      // via assetPtr.notNull() -- this brings the assignment operator
+      // in line with it rather than leaving the two inconsistent.
+      if (assetPtr.notNull())
+      {
+         // Set asset pointer.
+         *this = assetPtr->getAssetId();
+      }
+      else
+      {
+         // Right-hand side has no asset -- this should end up with
+         // none either, matching plain "*this = (const char*)NULL"
+         // semantics (see operator=(const char*) above: NULL/empty
+         // clears mpAsset rather than leaving the old value in place).
+         *this = (const char*)NULL;
+      }
 
-        // Return Reference.
-        return *this;
-    }
+      // Return Reference.
+      return *this;
+   }
 
-    /// Referencing.
-    void clear( void ) override
-    {
-        // Do we have an asset?
-        if ( notNull() )
-        {
-            // Yes, so release it.
-            AssetDatabase.releaseAsset( mpAsset->getAssetId() );
-        }
+   /// Referencing.
+   void clear(void) override
+   {
+      // Do we have an asset?
+      if (notNull())
+      {
+         // Yes, so release it.
+         AssetDatabase.releaseAsset(mpAsset->getAssetId());
+      }
 
-        // Reset the asset reference.
-        mpAsset = NULL;
-    }
+      // Reset the asset reference.
+      mpAsset = NULL;
+   }
 
-    T* operator->( void ) const { return mpAsset; }
-    T& operator*( void ) const { return *mpAsset; }
-    operator T*( void ) const { return mpAsset; }
-    void setAssetId( const char* pAssetId ) override { *this = pAssetId; }
-    StringTableEntry getAssetId( void ) const override { return isNull() ? StringTable->EmptyString() : mpAsset->getAssetId(); }
-    StringTableEntry getAssetType(void) const override { return isNull() ? StringTable->EmptyString() : mpAsset->getClassName(); }
-    bool isAssetId( const char* pAssetId ) const override { return pAssetId == NULL ? isNull() : getAssetId() == StringTable->insert(pAssetId); }
+   T* operator->(void) const { return mpAsset; }
+   T& operator*(void) const { return *mpAsset; }
+   operator T* (void) const { return mpAsset; }
+   void setAssetId(const char* pAssetId) override { *this = pAssetId; }
+   StringTableEntry getAssetId(void) const override { return isNull() ? StringTable->EmptyString() : mpAsset->getAssetId(); }
+   StringTableEntry getAssetType(void) const override { return isNull() ? StringTable->EmptyString() : mpAsset->getClassName(); }
+   bool isAssetId(const char* pAssetId) const override { return pAssetId == NULL ? isNull() : getAssetId() == StringTable->insert(pAssetId); }
 
-    /// Validity.
-    bool isNull( void ) const override { return mpAsset.isNull(); }
-    bool notNull( void ) const override { return !mpAsset.isNull(); }
-    bool isValid(void) const { return notNull() && static_cast<AssetBase*>(mpAsset.getObject())->isAssetValid(); }
+   /// Validity.
+   bool isNull(void) const override { return mpAsset.isNull(); }
+   bool notNull(void) const override { return !mpAsset.isNull(); }
+   bool isValid(void) const { return notNull() && static_cast<AssetBase*>(mpAsset.getObject())->isAssetValid(); }
 };
 
 //-----------------------------------------------------------------------------

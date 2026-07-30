@@ -377,6 +377,15 @@ inline U32 NSModifiersToTorqueModifiers( NSUInteger mods )
    // TODO: Add a category to NSScreen to deal with this
    CGDirectDisplayID disp = (CGDirectDisplayID)[[[[wnd screen] deviceDescription] valueForKey:@"NSScreenNumber"] unsignedIntValue];
    mTorqueWindow->setDisplay(disp);
+
+   // Re-derive which monitor THIS window is on now
+   mTorqueWindow->_updateCurrentMonitorFromOS();
+   mTorqueWindow->_updateDPIScaleFromOS();
+}
+
+- (void)windowDidChangeBackingProperties:(NSNotification*)notification
+{
+   mTorqueWindow->_updateDPIScaleFromOS();
 }
 
 - (void)windowDidResize:(NSNotification*)notification

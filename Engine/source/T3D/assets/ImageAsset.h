@@ -89,12 +89,24 @@ public:
          StringTableEntry inRegionName = StringTable->EmptyString())
          : regionName(inRegionName)
       {
-         pixelOffset.set(pixelOffsetY, pixelOffsetY);
+         pixelOffset.set(pixelOffsetX, pixelOffsetY);
          pixelSize.set(pixelWidth, pixelHeight);
 
          texelLower.set(pixelOffsetX * texelWidthScale, pixelOffsetY * texelHeightScale);
          texelSize.set(pixelWidth * texelWidthScale, pixelHeight * texelHeightScale);
          texelUpper.set(texelLower.x + texelSize.x, texelLower.y + texelSize.y);
+      }
+
+      Frame()
+      {
+         pixelOffset = Point2I::Zero;
+         pixelSize = Point2I::Zero;
+
+         texelLower = Point2F::Zero;
+         texelUpper = Point2F::Zero;
+         texelSize = Point2F::Zero;
+
+         regionName = StringTable->EmptyString();
       }
 
       void setFlip(bool flipX, bool flipY)
@@ -146,6 +158,20 @@ private:
    S32               mImageHeight;
    S32               mImageDepth;
    S32               mImageChannels;
+
+   S32 mFrameWidth;  ///< 0 = no implicit grid (whole image is one frame). See mFrames' doc comment.
+   S32 mFrameHeight; ///< 0 = no implicit grid (whole image is one frame). See mFrames' doc comment.
+
+   Vector<Frame> mFrames;
+   struct ExplicitCellDef
+   {
+      S32 x, y, w, h;
+      StringTableEntry name;
+   };
+   Vector<ExplicitCellDef> mExplicitCells;
+
+   void _rebuildFrames();
+
 public:
    ImageAsset();
    virtual ~ImageAsset();
@@ -211,6 +237,16 @@ public:
    static U32 getAssetById(String assetId, AssetPtr<ImageAsset>* imageAsset) { return getAssetById(assetId.c_str(), imageAsset); };
 
    void populateImage(void);
+   void setFrameSize(S32 frameWidth, S32 frameHeight);
+   S32 getFrameWidth() const { return mFrameWidth; }
+   S32 getFrameHeight() const { return mFrameHeight; }
+
+   void addExplicitCell(S32 x, S32 y, S32 w, S32 h, StringTableEntry name);
+   void clearExplicitCells();
+   S32 getFrameCount() const { return mFrames.size(); }
+   const ImageAsset::Frame* findFrameByName(StringTableEntry name) const;
+   const ImageAsset::Frame* getFrame(S32 index) const { return (index >= 0 && index < mFrames.size()) ? &mFrames[index] : NULL; }
+
    const char* getImageInfo();
 
 protected:
@@ -237,6 +273,11 @@ protected:
    // Texture Is Hdr?
    static bool setTextureHDR(void* obj, StringTableEntry index, StringTableEntry data) { static_cast<ImageAsset*>(obj)->setTextureHDR(dAtob(data)); return false; }
    static bool writeTextureHDR(void* obj, StringTableEntry pFieldName) { return static_cast<ImageAsset*>(obj)->getTextureHDR() == true; }
+
+   static bool setFrameWidth(void* obj, StringTableEntry index, StringTableEntry data) { ImageAsset* a = static_cast<ImageAsset*>(obj); a->setFrameSize(dAtoi(data), a->getFrameHeight()); return false; }
+   static bool setFrameHeight(void* obj, StringTableEntry index, StringTableEntry data) { ImageAsset* a = static_cast<ImageAsset*>(obj); a->setFrameSize(a->getFrameWidth(), dAtoi(data)); return false; }
+   static bool writeFrameSize(void* obj, StringTableEntry pFieldName) { return static_cast<ImageAsset*>(obj)->getFrameWidth() > 0 && static_cast<ImageAsset*>(obj)->getFrameHeight() > 0; }
+
 };
 
 DECLARE_STRUCT(AssetPtr<ImageAsset>)

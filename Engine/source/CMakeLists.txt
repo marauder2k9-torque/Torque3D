@@ -107,7 +107,7 @@ torqueAddSourceDirectories("gfx" "gfx/Null" "gfx/test" "gfx/bitmap" "gfx/bitmap/
                              "gfx/util" "gfx/video" "gfx/sim" )
 
 # add the stb headers
-set(TORQUE_INCLUDE_DIRECTORIES ${TORQUE_INCLUDE_DIRECTORIES} "gfx/bitmap/loaders/stb")
+set(TORQUE_INCLUDE_DIRECTORIES ${TORQUE_INCLUDE_DIRECTORIES} "${TORQUE_LIB_ROOT_DIRECTORY}/stb")
 
 if (TORQUE_OPENGL)
   torqueAddSourceDirectories("gfx/gl" "gfx/gl/sdl" "gfx/gl/tGL")
@@ -123,6 +123,10 @@ torqueAddSourceDirectories("core" "core/stream" "core/strings" "core/util"
 # Handle GUI
 torqueAddSourceDirectories("gui" "gui/buttons" "gui/containers" "gui/controls" "gui/core"
                               "gui/game" "gui/shiny" "gui/utility" "gui/3d")
+
+# Handle GUI Refactor
+torqueAddSourceDirectories("gui_refactor" "gui_refactor/core" "gui_refactor/editor")
+torqueAddSourceDirectories("gui_refactor/controls" "gui_refactor/controls/buttons" "gui_refactor/controls/text" "gui_refactor/controls/containers")
 
 # Handle postFX
 torqueAddSourceDirectories("postFx")

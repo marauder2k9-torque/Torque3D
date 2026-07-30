@@ -105,13 +105,27 @@ public:
    virtual bool isFocused();
    virtual void setFocus();
    virtual void clearFocus();
-   
+
+   /// Queries NSWindow.backingScaleFactor -- macOS's own per-window,
+   /// per-monitor DPI/Retina scale value (1.0 == standard density, 2.0 ==
+   /// Retina/HiDPI, occasionally other values on some external displays).
+   /// Requires NSHighResolutionCapable = true in Info.plist for this to
+   /// report the real backing scale rather than always 1.0 -- see
+   /// macWindow.mm.
+   virtual F32 getDPIScale() const;
+
    virtual void* getPlatformDrawable() const;
    
    // TODO: These should be private, but GGMacView (an Obj-C class) needs access to these and we can't friend Obj-C classes
    bool _skipNextMouseEvent() { return mSkipMouseEvents != 0; }
    void _skipAnotherMouseEvent() { mSkipMouseEvents++; }
    void _skippedMouseEvent() { mSkipMouseEvents--; }
+
+   /// Re-checks getDPIScale() and fires dpiChangeEvent if it changed.
+   void _updateDPIScaleFromOS() { _updateDPIScale(); }
+
+   /// Re-derives which monitor this window is currently on. 
+   void _updateCurrentMonitorFromOS() { _updateCurrentMonitor(); }
    
    /// Does the work of actually locking or unlocking the mouse, based on the
    /// value of shouldLockMouse().

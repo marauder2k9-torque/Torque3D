@@ -226,6 +226,7 @@ const String ImageAsset::mErrCodeStrings[] =
 };
 //-----------------------------------------------------------------------------
 
+
 ImageAsset::ImageAsset() :
    mImageFile(StringTable->EmptyString()),
    mUseMips(true),
@@ -235,8 +236,12 @@ ImageAsset::ImageAsset() :
    mImageWidth(-1),
    mImageHeight(-1),
    mImageDepth(-1),
-   mImageChannels(-1)
+   mImageChannels(-1),
+   mFrameWidth(0),
+   mFrameHeight(0)
 {
+   VECTOR_SET_ASSOCIATION(mFrames);
+   VECTOR_SET_ASSOCIATION(mExplicitCells);
    mLoadedState = AssetErrCode::NotLoaded;
 }
 
@@ -283,6 +288,11 @@ void ImageAsset::initPersistFields()
    addProtectedField("isHDRImage", TypeBool, Offset(mIsHDRImage, ImageAsset), &setTextureHDR, &defaultProtectedGetFn, &writeTextureHDR, "HDR Image?");
 
    addField("imageType", TypeImageAssetType, Offset(mImageType, ImageAsset), "What the main use-case for the image is for.");
+
+   addProtectedField("frameWidth", TypeS32, Offset(mFrameWidth, ImageAsset), &setFrameWidth, &defaultProtectedGetFn, &writeFrameSize,
+      "Width, in pixels, of each implicit grid frame cell. 0 (the default) means no grid.");
+   addProtectedField("frameHeight", TypeS32, Offset(mFrameHeight, ImageAsset), &setFrameHeight, &defaultProtectedGetFn, &writeFrameSize,
+      "Height, in pixels, of each implicit grid frame cell. 0 (the default) means no grid.");
 }
 bool ImageAsset::onAdd()
 {
@@ -707,6 +717,21 @@ void ImageAsset::onTamlCustomWrite(TamlCustomNodes& customNodes)
    pImageInfoNode->addField(StringTable->insert("ImageHeight"), mImageHeight);
    pImageInfoNode->addField(StringTable->insert("ImageDepth"), mImageDepth);
 
+   if (!mExplicitCells.empty())
+   {
+      TamlCustomNode* pExplicitCellsNode = pImageMetaData->addNode(StringTable->insert("ExplicitCells"));
+      for (U32 i = 0; i < mExplicitCells.size(); i++)
+      {
+         const ExplicitCellDef& def = mExplicitCells[i];
+         TamlCustomNode* pCellNode = pExplicitCellsNode->addNode(StringTable->insert("Cell"));
+         pCellNode->addField(StringTable->insert("Name"), def.name);
+         pCellNode->addField(StringTable->insert("X"), def.x);
+         pCellNode->addField(StringTable->insert("Y"), def.y);
+         pCellNode->addField(StringTable->insert("W"), def.w);
+         pCellNode->addField(StringTable->insert("H"), def.h);
+      }
+   }
+
 }
 
 void ImageAsset::onTamlCustomRead(const TamlCustomNodes& customNodes)
@@ -749,6 +774,75 @@ void ImageAsset::onTamlCustomRead(const TamlCustomNodes& customNodes)
             Con::warnf("ImageAsset::onTamlCustomRead() - Encountered an unknown custom field name of '%s'.", fieldName);
             continue;
          }
+      }
+
+      const TamlCustomNode* pExplicitCellsNode = pImageMetaDataNode->findNode(StringTable->insert("ExplicitCells"));
+      if (pExplicitCellsNode != NULL)
+      {
+         mExplicitCells.clear();
+
+         const StringTableEntry cellNodeName = StringTable->insert("Cell");
+         const StringTableEntry nameFieldName = StringTable->insert("Name");
+         const StringTableEntry xFieldName = StringTable->insert("X");
+         const StringTableEntry yFieldName = StringTable->insert("Y");
+         const StringTableEntry wFieldName = StringTable->insert("W");
+         const StringTableEntry hFieldName = StringTable->insert("H");
+
+         const TamlCustomNodeVector& cellNodes = pExplicitCellsNode->getChildren();
+         for (TamlCustomNodeVector::const_iterator cellItr = cellNodes.begin(); cellItr != cellNodes.end(); ++cellItr)
+         {
+            const TamlCustomNode* pCellNode = *cellItr;
+            if (pCellNode->getNodeName() != cellNodeName)
+            {
+               Con::warnf("ImageAsset::onTamlCustomRead() - Encountered an unexpected child node '%s' under ExplicitCells (expected 'Cell').", pCellNode->getNodeName());
+               continue;
+            }
+
+            ExplicitCellDef def;
+            def.x = 0;
+            def.y = 0;
+            def.w = 0;
+            def.h = 0;
+            def.name = StringTable->EmptyString();
+
+            const TamlCustomFieldVector& cellFields = pCellNode->getFields();
+            for (TamlCustomFieldVector::const_iterator fieldItr = cellFields.begin(); fieldItr != cellFields.end(); ++fieldItr)
+            {
+               const TamlCustomField* pField = *fieldItr;
+               StringTableEntry fieldName = pField->getFieldName();
+
+               if (fieldName == nameFieldName)
+               {
+                  def.name = StringTable->insert(pField->getFieldValue());
+               }
+               else if (fieldName == xFieldName)
+               {
+                  pField->getFieldValue(def.x);
+               }
+               else if (fieldName == yFieldName)
+               {
+                  pField->getFieldValue(def.y);
+               }
+               else if (fieldName == wFieldName)
+               {
+                  pField->getFieldValue(def.w);
+               }
+               else if (fieldName == hFieldName)
+               {
+                  pField->getFieldValue(def.h);
+               }
+               else
+               {
+                  Con::warnf("ImageAsset::onTamlCustomRead() - Encountered an unknown Cell field name of '%s'.", fieldName);
+               }
+            }
+
+            if (def.name != StringTable->EmptyString())
+               mExplicitCells.push_back(def);
+            else
+               Con::warnf("ImageAsset::onTamlCustomRead() - A Cell node under ExplicitCells was missing its Name field; skipped.");
+         }
+
       }
    }
 }
@@ -793,6 +887,134 @@ void ImageAsset::populateImage(void)
 
       // we only support 2d textures..... for now ;)
       mImageDepth = 1; 
+   }
+
+   _rebuildFrames();
+}
+
+//-----------------------------------------------------------------------------
+
+void ImageAsset::setFrameSize(S32 frameWidth, S32 frameHeight)
+{
+   if (frameWidth == mFrameWidth && frameHeight == mFrameHeight)
+      return;
+
+   // Negative sizes make no sense as a cell 
+   mFrameWidth = getMax(0, frameWidth);
+   mFrameHeight = getMax(0, frameHeight);
+
+   _rebuildFrames();
+}
+
+//-----------------------------------------------------------------------------
+
+void ImageAsset::addExplicitCell(S32 x, S32 y, S32 w, S32 h, StringTableEntry name)
+{
+   if (name == NULL || name == StringTable->EmptyString())
+   {
+      Con::warnf("ImageAsset::addExplicitCell() - a region name is required.");
+      return;
+   }
+
+   name = StringTable->insert(name);
+
+   // Replace an existing entry of the same name in place
+   for (U32 i = 0; i < mExplicitCells.size(); i++)
+   {
+      if (mExplicitCells[i].name == name)
+      {
+         mExplicitCells[i].x = x;
+         mExplicitCells[i].y = y;
+         mExplicitCells[i].w = w;
+         mExplicitCells[i].h = h;
+         _rebuildFrames();
+         return;
+      }
+   }
+
+   ExplicitCellDef def;
+   def.x = x;
+   def.y = y;
+   def.w = w;
+   def.h = h;
+   def.name = name;
+   mExplicitCells.push_back(def);
+
+   _rebuildFrames();
+}
+
+//-----------------------------------------------------------------------------
+
+void ImageAsset::clearExplicitCells()
+{
+   if (mExplicitCells.empty())
+      return;
+
+   mExplicitCells.clear();
+   _rebuildFrames();
+}
+
+//-----------------------------------------------------------------------------
+
+const ImageAsset::Frame* ImageAsset::findFrameByName(StringTableEntry name) const
+{
+   if (name == NULL || name == StringTable->EmptyString())
+      return NULL;
+
+   name = StringTable->insert(name);
+
+   // Walked in mFrames order
+   for (U32 i = 0; i < mFrames.size(); i++)
+   {
+      if (mFrames[i].regionName == name)
+         return &mFrames[i];
+   }
+
+   return NULL;
+}
+
+void ImageAsset::_rebuildFrames()
+{
+   mFrames.clear();
+
+   if (mImageWidth <= 0 || mImageHeight <= 0)
+      return;
+
+   const F32 texelWidthScale = 1.0f / (F32)mImageWidth;
+   const F32 texelHeightScale = 1.0f / (F32)mImageHeight;
+
+   // --- Grid layout --- 
+   if (mFrameWidth > 0 && mFrameHeight > 0)
+   {
+      const S32 cols = mImageWidth / mFrameWidth;
+      const S32 rows = mImageHeight / mFrameHeight;
+
+      for (S32 row = 0; row < rows; row++)
+      {
+         for (S32 col = 0; col < cols; col++)
+         {
+            mFrames.push_back(Frame(
+               col * mFrameWidth, row * mFrameHeight,
+               mFrameWidth, mFrameHeight,
+               texelWidthScale, texelHeightScale));
+         }
+      }
+   }
+   else
+   {
+      mFrames.push_back(Frame(
+         0, 0, (U32)mImageWidth, (U32)mImageHeight,
+         texelWidthScale, texelHeightScale));
+   }
+
+   // --- Explicitly named cells
+   for (U32 i = 0; i < mExplicitCells.size(); i++)
+   {
+      const ExplicitCellDef& def = mExplicitCells[i];
+      mFrames.push_back(Frame(
+         def.x, def.y, (U32)def.w, (U32)def.h,
+         texelWidthScale, texelHeightScale,
+         def.name));
    }
 }
 

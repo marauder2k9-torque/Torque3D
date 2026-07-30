@@ -21,6 +21,7 @@
 //-----------------------------------------------------------------------------
 
 #include "windowManager/platformWindow.h"
+#include "windowManager/platformWindowMgr.h"
 
 ScreenResChangeSignal PlatformWindow::smScreenResChangeSignal;
 //-----------------------------------------------------------------------------
@@ -52,4 +53,27 @@ void PlatformWindow::setVideoMode(const GFXVideoMode &mode)
 {
    _setVideoMode(mode);
 	getScreenResChangeSignal().trigger(this, true);
+}
+
+//-----------------------------------------------------------------------------
+
+void PlatformWindow::_updateCurrentMonitor()
+{
+   PlatformWindowManager *mgr = PlatformWindowManager::get();
+   if (!mgr)
+      return;
+
+   // Use the window's on-screen CENTER point for containment testing
+   const RectI bounds = getBounds();
+   const Point2I center = bounds.point + Point2I(bounds.extent.x / 2, bounds.extent.y / 2);
+
+   const U32 monitorCount = mgr->getMonitorCount();
+   for (U32 i = 0; i < monitorCount; i++)
+   {
+      if (mgr->getMonitorRect(i).pointInRect(center))
+      {
+         mCurrentMonitorIndex = (S32)i;
+         return;
+      }
+   }
 }
