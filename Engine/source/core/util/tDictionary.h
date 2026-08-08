@@ -47,9 +47,9 @@ struct CompoundKey
    B key2;
 
    CompoundKey() {};
-   CompoundKey(const A & a, const B & b) { key1 = a; key2 = b; };
+   CompoundKey(const A& a, const B& b) { key1 = a; key2 = b; };
 
-   bool operator==(const CompoundKey & compound) const { return key1==compound.key1 && key2==compound.key2; }
+   bool operator==(const CompoundKey& compound) const { return key1 == compound.key1 && key2 == compound.key2; }
 };
 
 template<class A, class B, class C>
@@ -60,9 +60,9 @@ struct CompoundKey3
    C key3;
 
    CompoundKey3() {};
-   CompoundKey3(const A & a, const B & b, const C & c) { key1 = a; key2 = b; key3 = c;};
+   CompoundKey3(const A& a, const B& b, const C& c) { key1 = a; key2 = b; key3 = c; };
 
-   bool operator==(const CompoundKey3 & compound) const { return key1==compound.key1 && key2==compound.key2 && key3==compound.key3; }
+   bool operator==(const CompoundKey3& compound) const { return key1 == compound.key1 && key2 == compound.key2 && key3 == compound.key3; }
 };
 
 template<class A, class B, class C, class D>
@@ -74,7 +74,7 @@ struct CompoundKey4
    D key4;
 
    CompoundKey4() {};
-   CompoundKey4(const A& a, const B& b, const C& c, const D& d) { key1 = a; key2 = b; key3 = c; key4 = d;};
+   CompoundKey4(const A& a, const B& b, const C& c, const D& d) { key1 = a; key2 = b; key3 = c; key4 = d; };
 
    bool operator==(const CompoundKey4& compound) const { return key1 == compound.key1 && key2 == compound.key2 && key3 == compound.key3 && key4 == compound.key4; }
 };
@@ -88,39 +88,39 @@ namespace DictHash
       return data;
    }
 
-   inline U32 hash(const StringCase &data)
+   inline U32 hash(const StringCase& data)
    {
       return data.getHashCaseSensitive();
    }
 
-   inline U32 hash(const StringNoCase &data)
+   inline U32 hash(const StringNoCase& data)
    {
       return data.getHashCaseInsensitive();
    }
 
-   inline U32 hash(const String &data)
+   inline U32 hash(const String& data)
    {
       return data.getHashCaseInsensitive();
    }
 
-   inline U32 hash(const char *data)
+   inline U32 hash(const char* data)
    {
-      return Torque::hash( (const U8 *)data, dStrlen( data ), 0 );
+      return Torque::hash((const U8*)data, dStrlen(data), 0);
    }
 
-   inline U32 hash(const void *data)
+   inline U32 hash(const void* data)
    {
       return (uintptr_t)data;
    }
 
    template<class A, class B>
-   inline U32 hash(const CompoundKey<A,B> & compound)
+   inline U32 hash(const CompoundKey<A, B>& compound)
    {
       return hash(compound.key1) + hash(compound.key2);
    }
 
    template<class A, class B, class C>
-   inline U32 hash(const CompoundKey3<A,B,C> & compound)
+   inline U32 hash(const CompoundKey3<A, B, C>& compound)
    {
       return hash(compound.key1) + hash(compound.key2) + hash(compound.key3);
    }
@@ -136,33 +136,33 @@ namespace DictHash
 namespace KeyCmp
 {
    template<typename Key>
-   inline bool equals( const Key &keya, const Key &keyb )
+   inline bool equals(const Key& keya, const Key& keyb)
    {
-      return ( keya == keyb );
+      return (keya == keyb);
    }
 
    template<>
-   inline bool equals<>( const StringCase &keya, const StringCase &keyb )
+   inline bool equals<>(const StringCase& keya, const StringCase& keyb)
    {
-      return ( keya.equal( keyb, String::Case ) );
+      return (keya.equal(keyb, String::Case));
    }
 
    template<>
-   inline bool equals<>( const StringNoCase &keya, const StringNoCase &keyb )
+   inline bool equals<>(const StringNoCase& keya, const StringNoCase& keyb)
    {
-      return ( keya.equal( keyb, String::NoCase ) );
+      return (keya.equal(keyb, String::NoCase));
    }
 
    template<>
-   inline bool equals<>( const String &keya, const String &keyb )
+   inline bool equals<>(const String& keya, const String& keyb)
    {
-      return ( keya.equal( keyb, String::NoCase ) );
+      return (keya.equal(keyb, String::NoCase));
    }
 
    template<>
-   inline bool equals<>( const char * const &keya, const char * const &keyb )
+   inline bool equals<>(const char* const& keya, const char* const& keyb)
    {
-      return ( String::compare( keya, keyb ) == 0 );
+      return (String::compare(keya, keyb) == 0);
    }
 };
 
@@ -182,10 +182,11 @@ public:
       Key  key{};
       Value value{};
       Pair() {}
-      Pair(Key k,Value v)
-         :  key(k),
-            value(v)
-      {}
+      Pair(Key k, Value v)
+         : key(k),
+         value(v)
+      {
+      }
    };
 
 private:
@@ -193,11 +194,12 @@ private:
    {
       Node* mNext;
       Pair mPair;
-      Node(): mNext(NULL) {}
-      Node(Pair p,Node* n)
-         :  mNext(n),
-            mPair(p)
-      {}
+      Node() : mNext(NULL) {}
+      Node(Pair p, Node* n)
+         : mNext(n),
+         mPair(p)
+      {
+      }
    };
 
    Node** mTable;                      ///< Hash table
@@ -213,12 +215,12 @@ private:
 
 public:
    // Iterator support
-   template<typename U,typename E, typename M>
+   template<typename U, typename E, typename M>
    class _Iterator {
       friend class HashTable;
       E* mLink;
       M* mHashTable;
-      operator E*();
+      operator E* ();
    public:
       typedef U  ValueType;
       typedef U* Pointer;
@@ -230,7 +232,7 @@ public:
          mLink = NULL;
       }
 
-      _Iterator(M* table,E* ptr)
+      _Iterator(M* table, E* ptr)
       {
          mHashTable = table;
          mLink = ptr;
@@ -238,7 +240,7 @@ public:
 
       _Iterator& operator++()
       {
-         mLink = mLink->mNext? mLink->mNext :
+         mLink = mLink->mNext ? mLink->mNext :
             mHashTable->_next(mHashTable->_index(mLink->mPair.key) + 1);
          return *this;
       }
@@ -273,11 +275,11 @@ public:
 
    // Types
    typedef Pair        ValueType;
-   typedef Pair&       Reference;
+   typedef Pair& Reference;
    typedef const Pair& ConstReference;
 
-   typedef _Iterator<Pair,Node,HashTable>  Iterator;
-   typedef _Iterator<const Pair,const Node,const HashTable>  ConstIterator;
+   typedef _Iterator<Pair, Node, HashTable>  Iterator;
+   typedef _Iterator<const Pair, const Node, const HashTable>  ConstIterator;
    typedef S32         DifferenceType;
    typedef U32         SizeType;
 
@@ -297,15 +299,39 @@ public:
    // Insert & erase elements
    Iterator insertEqual(const Key& key, const Value&);
    Iterator insertUnique(const Key& key, const Value&);
+
+   /// Insert the key/value pair if the key doesn't already exist, or
+   /// overwrite the existing entry's value in place if it does. Unlike
+   /// insertUnique() (which rejects the call and returns end() on a
+   /// key collision, leaving the existing entry untouched -- see that
+   /// method's own doc comment), this ALWAYS succeeds and always
+   /// leaves exactly one entry for the given key holding x's value.
+   ///
+   /// Takes Value by rvalue reference so a caller with a temporary they
+   /// don't need afterward (e.g. building a value in-place purely to
+   /// insert or update a cache entry) can move it in directly instead
+   /// of forcing a copy the way insertUnique()'s `const Value&`
+   /// parameter always does. Move-assigns x into place either way --
+   /// into the existing entry on an update, or into the new node's
+   /// (already default-constructed, pool-allocated) value on a fresh
+   /// insert -- so only ONE copy of Value's data ever exists as a
+   /// result of this call (the caller's own temporary, moved from,
+   /// counts as emptied, not a second live copy).
+   ///
+   /// If Value has no move constructor/assignment, this still compiles
+   /// and behaves correctly -- it just falls back to Value's copy
+   /// operations, exactly like insertUnique() always does.
+   Iterator upsert(const Key& key, Value&& x);
+
    void erase(Iterator);               ///< Erase the given entry
    void erase(const Key& key);         ///< Erase all matching keys from the table
-   void erase(const Key & key, const Value & value); ///< Erase entry for this key-value pair
+   void erase(const Key& key, const Value& value); ///< Erase entry for this key-value pair
 
    // HashTable lookup
    Iterator findOrInsert(const Key& key);
    Iterator find(const Key&);          ///< Find the first entry for the given key
    ConstIterator find(const Key&) const;    ///< Find the first entry for the given key
-   bool find(const Key & key, Value & value); ///< Find the first entry for the given key
+   bool find(const Key& key, Value& value); ///< Find the first entry for the given key
    S32 count(const Key&) const;              ///< Count the number of matching keys in the table
 
    // Forward Iterator access
@@ -317,14 +343,14 @@ public:
    void operator=(const HashTable& p);
 };
 
-template<typename Key, typename Value> HashTable<Key,Value>::HashTable() : mNodeAllocator(512)
+template<typename Key, typename Value> HashTable<Key, Value>::HashTable() : mNodeAllocator(512)
 {
    mTableSize = 0;
    mTable = NULL;
    mSize = 0;
 }
 
-template<typename Key, typename Value> HashTable<Key,Value>::HashTable(const HashTable& p) : mNodeAllocator(512)
+template<typename Key, typename Value> HashTable<Key, Value>::HashTable(const HashTable& p) : mNodeAllocator(512)
 {
    mSize = 0;
    mTableSize = 0;
@@ -332,7 +358,7 @@ template<typename Key, typename Value> HashTable<Key,Value>::HashTable(const Has
    *this = p;
 }
 
-template<typename Key, typename Value> HashTable<Key,Value>::~HashTable()
+template<typename Key, typename Value> HashTable<Key, Value>::~HashTable()
 {
    _destroy();
 }
@@ -340,19 +366,19 @@ template<typename Key, typename Value> HashTable<Key,Value>::~HashTable()
 //-----------------------------------------------------------------------------
 
 template<typename Key, typename Value>
-inline U32 HashTable<Key,Value>::_hash(const Key& key) const
+inline U32 HashTable<Key, Value>::_hash(const Key& key) const
 {
    return DictHash::hash(key);
 }
 
 template<typename Key, typename Value>
-inline U32 HashTable<Key,Value>::_index(const Key& key) const
+inline U32 HashTable<Key, Value>::_index(const Key& key) const
 {
    return _hash(key) % mTableSize;
 }
 
 template<typename Key, typename Value>
-typename HashTable<Key,Value>::Node* HashTable<Key,Value>::_next(U32 index) const
+typename HashTable<Key, Value>::Node* HashTable<Key, Value>::_next(U32 index) const
 {
    for (; index < mTableSize; index++)
       if (Node* node = mTable[index])
@@ -361,12 +387,12 @@ typename HashTable<Key,Value>::Node* HashTable<Key,Value>::_next(U32 index) cons
 }
 
 template<typename Key, typename Value>
-void HashTable<Key,Value>::_resize(U32 size)
+void HashTable<Key, Value>::_resize(U32 size)
 {
    S32 currentSize = mTableSize;
    mTableSize = DictHash::nextPrime(size);
-   Node** table = new Node*[mTableSize];
-   dMemset(table,0,mTableSize * sizeof(Node*));
+   Node** table = new Node * [mTableSize];
+   dMemset(table, 0, mTableSize * sizeof(Node*));
 
    for (S32 i = 0; i < currentSize; i++)
       for (Node* node = mTable[i]; node; )
@@ -389,17 +415,17 @@ void HashTable<Key,Value>::_resize(U32 size)
 }
 
 template<typename Key, typename Value>
-void HashTable<Key,Value>::_destroy()
+void HashTable<Key, Value>::_destroy()
 {
    // Call destructors.
    for (S32 i = 0; i < mTableSize; i++)
       for (Node* ptr = mTable[i]; ptr; )
       {
-         Node *tmp = ptr;
+         Node* tmp = ptr;
          ptr = ptr->mNext;
-         destructInPlace( tmp );
+         destructInPlace(tmp);
       }
-      
+
    mNodeAllocator.freeBlocks();
    delete[] mTable;
    mTable = NULL;
@@ -410,19 +436,19 @@ void HashTable<Key,Value>::_destroy()
 // management
 
 template<typename Key, typename Value>
-inline U32 HashTable<Key,Value>::size() const
+inline U32 HashTable<Key, Value>::size() const
 {
    return mSize;
 }
 
 template<typename Key, typename Value>
-inline U32 HashTable<Key,Value>::tableSize() const
+inline U32 HashTable<Key, Value>::tableSize() const
 {
    return mTableSize;
 }
 
 template<typename Key, typename Value>
-inline void HashTable<Key,Value>::clear()
+inline void HashTable<Key, Value>::clear()
 {
    _destroy();
    mTableSize = 0;
@@ -437,7 +463,7 @@ inline void HashTable<Key,Value>::clear()
 /// function is used to avoid resizes when the number of elements that will
 /// be inserted is known in advance.
 template<typename Key, typename Value>
-inline void HashTable<Key,Value>::resize(U32 size)
+inline void HashTable<Key, Value>::resize(U32 size)
 {
    // Attempt to resize the datachunker as well.
    mNodeAllocator.setChunkSize(sizeof(Node) * size);
@@ -445,13 +471,13 @@ inline void HashTable<Key,Value>::resize(U32 size)
 }
 
 template<typename Key, typename Value>
-inline bool HashTable<Key,Value>::isEmpty() const
+inline bool HashTable<Key, Value>::isEmpty() const
 {
    return mSize == 0;
 }
 
 template<typename Key, typename Value>
-inline F32 HashTable<Key,Value>::collisions() const
+inline F32 HashTable<Key, Value>::collisions() const
 {
    S32 chains = 0;
    for (S32 i = 0; i < mTableSize; i++)
@@ -468,13 +494,13 @@ inline F32 HashTable<Key,Value>::collisions() const
 /// This insert method does not insert duplicate keys. If the key already exists in
 /// the table the function will fail and end() is returned.
 template<typename Key, typename Value>
-typename HashTable<Key,Value>::Iterator HashTable<Key,Value>::insertUnique(const Key& key, const Value& x)
+typename HashTable<Key, Value>::Iterator HashTable<Key, Value>::insertUnique(const Key& key, const Value& x)
 {
    if (mSize >= mTableSize)
       _resize(mSize + 1);
    Node** table = &mTable[_index(key)];
    for (Node* itr = *table; itr; itr = itr->mNext)
-      if ( KeyCmp::equals<Key>( itr->mPair.key, key) )
+      if (KeyCmp::equals<Key>(itr->mPair.key, key))
          return end();
 
    mSize++;
@@ -482,59 +508,101 @@ typename HashTable<Key,Value>::Iterator HashTable<Key,Value>::insertUnique(const
    newNode->mPair = Pair(key, x);
    newNode->mNext = *table;
    *table = newNode;
-   return Iterator(this,*table);
+   return Iterator(this, *table);
+}
+
+/// Insert-or-update -- see this method's own doc comment on the class
+/// declaration above for the full contract (always succeeds, at most
+/// one entry per key, moves x in rather than copying it where possible).
+template<typename Key, typename Value>
+typename HashTable<Key, Value>::Iterator HashTable<Key, Value>::upsert(const Key& key, Value&& x)
+{
+   // Existing entry for this key -- move-assign in place, node count
+   // and table structure both unchanged. Deliberately NOT routed
+   // through Pair's own constructor/assignment (which takes Value by
+   // value, see this class's Pair definition) -- assigning directly
+   // into itr->mPair.value here is a plain Value::operator=(Value&&)
+   // call, whatever that actually does for this Value type, with no
+   // intermediate by-value parameter to worry about.
+   if (mTableSize)
+   {
+      for (Node* itr = mTable[_index(key)]; itr; itr = itr->mNext)
+      {
+         if (KeyCmp::equals<Key>(itr->mPair.key, key))
+         {
+            itr->mPair.value = static_cast<Value&&>(x);
+            return Iterator(this, itr);
+         }
+      }
+   }
+
+   // No existing entry -- same shape as insertUnique()'s insert path,
+   // except the new node's value is move-assigned into place after
+   // default-construction rather than passed through Pair's by-value
+   // constructor, for the same reason as the update path above.
+   if (mSize >= mTableSize)
+      _resize(mSize + 1);
+   Node** table = &mTable[_index(key)];
+
+   mSize++;
+   Node* newNode = mNodeAllocator.alloc();
+   newNode->mPair.key = key;
+   newNode->mPair.value = static_cast<Value&&>(x);
+   newNode->mNext = *table;
+   *table = newNode;
+   return Iterator(this, *table);
 }
 
 /// Insert the key value pair and allow duplicates.
 /// This insert method allows duplicate keys.  Keys are grouped together but
 /// are not sorted.
 template<typename Key, typename Value>
-typename HashTable<Key,Value>::Iterator HashTable<Key,Value>::insertEqual(const Key& key, const Value& x)
+typename HashTable<Key, Value>::Iterator HashTable<Key, Value>::insertEqual(const Key& key, const Value& x)
 {
    if (mSize >= mTableSize)
       _resize(mSize + 1);
    // The new key is inserted at the head of any group of matching keys.
    Node** prev = &mTable[_index(key)];
    for (Node* itr = *prev; itr; prev = &itr->mNext, itr = itr->mNext)
-      if ( KeyCmp::equals<Key>( itr->mPair.key, key ) )
+      if (KeyCmp::equals<Key>(itr->mPair.key, key))
          break;
    mSize++;
    Node* newNode = mNodeAllocator.alloc();
    newNode->mPair = Pair(key, x);
    newNode->mNext = *prev;
    *prev = newNode;
-   return Iterator(this,*prev);
+   return Iterator(this, *prev);
 }
 
 template<typename Key, typename Value>
-void HashTable<Key,Value>::erase(const Key& key)
+void HashTable<Key, Value>::erase(const Key& key)
 {
    if (mTable == NULL)
       return;
    Node** prev = &mTable[_index(key)];
    for (Node* itr = *prev; itr; prev = &itr->mNext, itr = itr->mNext)
-      if ( KeyCmp::equals<Key>( itr->mPair.key, key ) ) {
+      if (KeyCmp::equals<Key>(itr->mPair.key, key)) {
          // Delete matching keys, which should be grouped together.
          do {
             Node* tmp = itr;
             itr = itr->mNext;
             mNodeAllocator.free(tmp);
             mSize--;
-         } while (itr && KeyCmp::equals<Key>( itr->mPair.key, key ) );
+         } while (itr && KeyCmp::equals<Key>(itr->mPair.key, key));
          *prev = itr;
          return;
       }
 }
 
 template<typename Key, typename Value>
-void HashTable<Key,Value>::erase(Iterator node)
+void HashTable<Key, Value>::erase(Iterator node)
 {
    if (mTable == NULL)
       return;
    Node** prev = &mTable[_index(node->key)];
    for (Node* itr = *prev; itr; prev = &itr->mNext, itr = itr->mNext)
    {
-      if (itr == node.mLink) 
+      if (itr == node.mLink)
       {
          *prev = itr->mNext;
          mNodeAllocator.free(itr);
@@ -545,14 +613,14 @@ void HashTable<Key,Value>::erase(Iterator node)
 }
 
 template<typename Key, typename Value>
-void HashTable<Key,Value>::erase(const Key & key, const Value & value)
+void HashTable<Key, Value>::erase(const Key& key, const Value& value)
 {
    if (mTable == NULL)
       return;
    Node** prev = &mTable[_index(key)];
    for (Node* itr = *prev; itr; prev = &itr->mNext, itr = itr->mNext)
    {
-      if ( KeyCmp::equals<Key>( itr->mPair.key, key ) && itr->mPair.value == value)
+      if (KeyCmp::equals<Key>(itr->mPair.key, key) && itr->mPair.value == value)
       {
          *prev = itr->mNext;
          mNodeAllocator.free(itr);
@@ -568,53 +636,53 @@ void HashTable<Key,Value>::erase(const Key & key, const Value & value)
 /// Returns the first key in the table that matches, or inserts one if there
 /// are none.
 template<typename Key, typename Value>
-typename HashTable<Key,Value>::Iterator HashTable<Key,Value>::findOrInsert(const Key& key)
+typename HashTable<Key, Value>::Iterator HashTable<Key, Value>::findOrInsert(const Key& key)
 {
    if (mSize >= mTableSize)
       _resize(mSize + 1);
    Node** table = &mTable[_index(key)];
    for (Node* itr = *table; itr; itr = itr->mNext)
-      if ( KeyCmp::equals<Key>( itr->mPair.key, key ) )
-         return Iterator(this,itr);
+      if (KeyCmp::equals<Key>(itr->mPair.key, key))
+         return Iterator(this, itr);
    mSize++;
    Node* newNode = mNodeAllocator.alloc();
    newNode->mPair = Pair(key, Value());
    newNode->mNext = *table;
    *table = newNode;
-   return Iterator(this,*table);
+   return Iterator(this, *table);
 }
 
 template<typename Key, typename Value>
-typename HashTable<Key,Value>::Iterator HashTable<Key,Value>::find(const Key& key)
+typename HashTable<Key, Value>::Iterator HashTable<Key, Value>::find(const Key& key)
 {
    if (mTableSize)
       for (Node* itr = mTable[_index(key)]; itr; itr = itr->mNext)
-         if ( KeyCmp::equals<Key>( itr->mPair.key, key ) )
-            return Iterator(this,itr);
+         if (KeyCmp::equals<Key>(itr->mPair.key, key))
+            return Iterator(this, itr);
    return Iterator(this, NULL);
 }
 
 template<typename Key, typename Value>
-typename HashTable<Key,Value>::ConstIterator HashTable<Key,Value>::find(const Key& key) const
+typename HashTable<Key, Value>::ConstIterator HashTable<Key, Value>::find(const Key& key) const
 {
    if (mTableSize)
    {
       for (Node* itr = mTable[_index(key)]; itr; itr = itr->mNext)
       {
-         if ( KeyCmp::equals<Key>( itr->mPair.key, key ) )
-            return ConstIterator(this,itr);
+         if (KeyCmp::equals<Key>(itr->mPair.key, key))
+            return ConstIterator(this, itr);
       }
    }
    return ConstIterator(this, NULL);
 }
 
 template<typename Key, typename Value>
-bool HashTable<Key,Value>::find(const Key & key, Value & value)
+bool HashTable<Key, Value>::find(const Key& key, Value& value)
 {
    if (mTableSize)
    {
       for (Node* itr = mTable[_index(key)]; itr; itr = itr->mNext)
-         if ( KeyCmp::equals<Key>( itr->mPair.key, key ) )
+         if (KeyCmp::equals<Key>(itr->mPair.key, key))
          {
             value = itr->mPair.value;
             return true;
@@ -624,17 +692,17 @@ bool HashTable<Key,Value>::find(const Key & key, Value & value)
 }
 
 template<typename Key, typename Value>
-S32 HashTable<Key,Value>::count(const Key& key) const
+S32 HashTable<Key, Value>::count(const Key& key) const
 {
    S32 count = 0;
    if (mTableSize)
       for (Node* itr = mTable[_index(key)]; itr; itr = itr->mNext)
-         if ( KeyCmp::equals<Key>( itr->mPair.key, key ) ) {
+         if (KeyCmp::equals<Key>(itr->mPair.key, key)) {
             // Matching keys should be grouped together.
             do {
                count++;
                itr = itr->mNext;
-            } while (itr && KeyCmp::equals<Key>( itr->mPair.key, key ) );
+            } while (itr && KeyCmp::equals<Key>(itr->mPair.key, key));
             break;
          }
    return count;
@@ -645,25 +713,25 @@ S32 HashTable<Key,Value>::count(const Key& key) const
 // Iterator access
 
 template<typename Key, typename Value>
-inline typename HashTable<Key,Value>::Iterator HashTable<Key,Value>::begin()
+inline typename HashTable<Key, Value>::Iterator HashTable<Key, Value>::begin()
 {
-   return Iterator(this,_next(0));
+   return Iterator(this, _next(0));
 }
 
 template<typename Key, typename Value>
-inline typename HashTable<Key,Value>::ConstIterator HashTable<Key,Value>::begin() const
+inline typename HashTable<Key, Value>::ConstIterator HashTable<Key, Value>::begin() const
 {
-   return ConstIterator(this,_next(0));
+   return ConstIterator(this, _next(0));
 }
 
 template<typename Key, typename Value>
-inline typename HashTable<Key,Value>::Iterator HashTable<Key,Value>::end()
+inline typename HashTable<Key, Value>::Iterator HashTable<Key, Value>::end()
 {
    return Iterator(this, NULL);
 }
 
 template<typename Key, typename Value>
-inline typename HashTable<Key,Value>::ConstIterator HashTable<Key,Value>::end() const
+inline typename HashTable<Key, Value>::ConstIterator HashTable<Key, Value>::end() const
 {
    return ConstIterator(this, NULL);
 }
@@ -673,19 +741,19 @@ inline typename HashTable<Key,Value>::ConstIterator HashTable<Key,Value>::end() 
 // operators
 
 template<typename Key, typename Value>
-void HashTable<Key,Value>::operator=(const HashTable& p)
+void HashTable<Key, Value>::operator=(const HashTable& p)
 {
    _destroy();
    mTableSize = p.mTableSize;
-   mTable = new Node*[mTableSize];
+   mTable = new Node * [mTableSize];
    mSize = p.mSize;
    for (S32 i = 0; i < mTableSize; i++)
       if (Node* itr = p.mTable[i])
       {
          Node** head = &mTable[i];
-         do 
+         do
          {
-            *head = new Node(itr->mPair,0);
+            *head = new Node(itr->mPair, 0);
             head = &(*head)->mNext;
             itr = itr->mNext;
          } while (itr);
@@ -703,14 +771,14 @@ void HashTable<Key,Value>::operator=(const HashTable& p)
 /// The hash table class is used as the default implementation so the
 /// the key must be hashable, see util/hash.h for details.
 /// @ingroup UtilContainers
-template<typename Key, typename Value, class Sequence = HashTable<Key,Value> >
+template<typename Key, typename Value, class Sequence = HashTable<Key, Value> >
 class Map
 {
 public:
    // types
    typedef typename Sequence::Pair Pair;
    typedef Pair        ValueType;
-   typedef Pair&       Reference;
+   typedef Pair& Reference;
    typedef const Pair& ConstReference;
 
    typedef typename Sequence::Iterator  Iterator;
@@ -737,7 +805,7 @@ public:
    // Map lookup
    Iterator find(const Key&);          ///< Find entry for the given key
    ConstIterator find(const Key&) const;    ///< Find entry for the given key
-   bool contains(const Key&a) const
+   bool contains(const Key& a) const
    {
       return mMap.count(a) > 0;
    }
@@ -766,13 +834,13 @@ public:
    /// Index using the given key. If the key is not currently in the map it is added.
    /// If you just want to try to get the value without the side effect of creating the 
    /// key, use tryGetValue() instead.
-   Value& operator[](const Key&);      
+   Value& operator[](const Key&);
 
 private:
    Sequence mMap;
 };
 
-template<typename Key, typename Value, class Sequence> Map<Key,Value,Sequence>::Map(const Map& p)
+template<typename Key, typename Value, class Sequence> Map<Key, Value, Sequence>::Map(const Map& p)
 {
    *this = p;
 }
@@ -782,25 +850,25 @@ template<typename Key, typename Value, class Sequence> Map<Key,Value,Sequence>::
 // management
 
 template<typename Key, typename Value, class Sequence>
-inline U32 Map<Key,Value,Sequence>::size() const
+inline U32 Map<Key, Value, Sequence>::size() const
 {
    return mMap.size();
 }
 
 template<typename Key, typename Value, class Sequence>
-inline void Map<Key,Value,Sequence>::resize(U32 size) 
+inline void Map<Key, Value, Sequence>::resize(U32 size)
 {
    return mMap.resize(size);
 }
 
 template<typename Key, typename Value, class Sequence>
-inline void Map<Key,Value,Sequence>::clear()
+inline void Map<Key, Value, Sequence>::clear()
 {
    mMap.clear();
 }
 
 template<typename Key, typename Value, class Sequence>
-inline bool Map<Key,Value,Sequence>::isEmpty() const
+inline bool Map<Key, Value, Sequence>::isEmpty() const
 {
    return mMap.isEmpty();
 }
@@ -813,19 +881,19 @@ inline bool Map<Key,Value,Sequence>::isEmpty() const
 /// The map class does not allow duplicates keys. If the key already exists in
 /// the map the function will fail and return end().
 template<typename Key, typename Value, class Sequence>
-typename Map<Key,Value,Sequence>::Iterator Map<Key,Value,Sequence>::insert(const Key& key, const Value& x)
+typename Map<Key, Value, Sequence>::Iterator Map<Key, Value, Sequence>::insert(const Key& key, const Value& x)
 {
-   return mMap.insertUnique(key,x);
+   return mMap.insertUnique(key, x);
 }
 
 template<typename Key, typename Value, class Sequence>
-void Map<Key,Value,Sequence>::erase(const Key& key)
+void Map<Key, Value, Sequence>::erase(const Key& key)
 {
    mMap.erase(key);
 }
 
 template<typename Key, typename Value, class Sequence>
-void Map<Key,Value,Sequence>::erase(Iterator node)
+void Map<Key, Value, Sequence>::erase(Iterator node)
 {
    mMap.erase(node);
 }
@@ -835,13 +903,13 @@ void Map<Key,Value,Sequence>::erase(Iterator node)
 // Searching
 
 template<typename Key, typename Value, class Sequence>
-typename Map<Key,Value,Sequence>::Iterator Map<Key,Value,Sequence>::find(const Key& key)
+typename Map<Key, Value, Sequence>::Iterator Map<Key, Value, Sequence>::find(const Key& key)
 {
    return mMap.find(key);
 }
 
 template<typename Key, typename Value, class Sequence>
-typename Map<Key,Value,Sequence>::ConstIterator Map<Key,Value,Sequence>::find(const Key& key) const
+typename Map<Key, Value, Sequence>::ConstIterator Map<Key, Value, Sequence>::find(const Key& key) const
 {
    return mMap.find(key);
 }
@@ -850,25 +918,25 @@ typename Map<Key,Value,Sequence>::ConstIterator Map<Key,Value,Sequence>::find(co
 // Iterator access
 
 template<typename Key, typename Value, class Sequence>
-inline typename Map<Key,Value,Sequence>::Iterator Map<Key,Value,Sequence>::begin()
+inline typename Map<Key, Value, Sequence>::Iterator Map<Key, Value, Sequence>::begin()
 {
    return mMap.begin();
 }
 
 template<typename Key, typename Value, class Sequence>
-inline typename Map<Key,Value,Sequence>::ConstIterator Map<Key,Value,Sequence>::begin() const
+inline typename Map<Key, Value, Sequence>::ConstIterator Map<Key, Value, Sequence>::begin() const
 {
    return mMap.begin();
 }
 
 template<typename Key, typename Value, class Sequence>
-inline typename Map<Key,Value,Sequence>::Iterator Map<Key,Value,Sequence>::end()
+inline typename Map<Key, Value, Sequence>::Iterator Map<Key, Value, Sequence>::end()
 {
    return mMap.end();
 }
 
 template<typename Key, typename Value, class Sequence>
-inline typename Map<Key,Value,Sequence>::ConstIterator Map<Key,Value,Sequence>::end() const
+inline typename Map<Key, Value, Sequence>::ConstIterator Map<Key, Value, Sequence>::end() const
 {
    return mMap.end();
 }
@@ -878,7 +946,7 @@ inline typename Map<Key,Value,Sequence>::ConstIterator Map<Key,Value,Sequence>::
 // operators
 
 template<typename Key, typename Value, class Sequence>
-inline Value& Map<Key,Value,Sequence>::operator[](const Key& key)
+inline Value& Map<Key, Value, Sequence>::operator[](const Key& key)
 {
    return mMap.findOrInsert(key)->value;
 }
@@ -905,7 +973,7 @@ public:
    // types
    typedef typename Parent::Pair Pair;
    typedef Pair        ValueType;
-   typedef Pair&       Reference;
+   typedef Pair& Reference;
    typedef const Pair& ConstReference;
 
    typedef typename Parent::Iterator  iterator;
@@ -931,7 +999,7 @@ public:
    // HashMap lookup
    iterator find(const Key&);          ///< Find entry for the given key
    const_iterator find(const Key&) const;    ///< Find entry for the given key
-   bool contains(const Key&a)
+   bool contains(const Key& a)
    {
       return mHashMap.count(a) > 0;
    }
@@ -1046,4 +1114,3 @@ inline Value& HashMap<Key, Value, Sequence>::operator[](const Key& key)
 }
 
 #endif
-

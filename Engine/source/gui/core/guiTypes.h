@@ -341,7 +341,7 @@ struct ControlSizing
 };
 
 GFX_DeclareTextureProfile(GFXGuiCursorProfile);
-GFX_DeclareTextureProfile(GFXDefaultGUIProfile);
+
 
 class GuiCursor : public SimObject
 {

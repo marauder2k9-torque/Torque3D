@@ -66,12 +66,6 @@ GFX_ImplementTextureProfile(GFXGuiCursorProfile,
                             GFXTextureProfile::PreserveSize |
                             GFXTextureProfile::Static | GFXTextureProfile::SRGB,
                             GFXTextureProfile::NONE);
-GFX_ImplementTextureProfile(GFXDefaultGUIProfile,
-                            GFXTextureProfile::DiffuseMap, 
-                            GFXTextureProfile::PreserveSize |
-                            GFXTextureProfile::Static | GFXTextureProfile::KeepBitmap | GFXTextureProfile::SRGB |
-                            GFXTextureProfile::NoPadding, 
-                            GFXTextureProfile::NONE);
 
 
 GuiCursor::GuiCursor()

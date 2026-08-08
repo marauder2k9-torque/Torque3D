@@ -240,5 +240,6 @@ GFX_DeclareTextureProfile(GFXCubemapRenderTargetProfile);
 GFX_DeclareTextureProfile(GFXCubemapStaticTextureProfile);
 // Standard static diffuse textures that are persistent in memory
 GFX_DeclareTextureProfile(GFXCubemapTexturePersistentProfile);
+GFX_DeclareTextureProfile(GFXDefaultGUIProfile);
 
 #endif

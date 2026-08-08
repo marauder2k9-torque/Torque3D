@@ -98,6 +98,12 @@ GFX_ImplementTextureProfile(GFXCubemapTexturePersistentProfile,
                            GFXTextureProfile::DiffuseMap,
                            GFXTextureProfile::PreserveSize | GFXTextureProfile::Static | GFXTextureProfile::KeepBitmap | GFXTextureProfile::CubeMap,
                            GFXTextureProfile::NONE);
+GFX_ImplementTextureProfile(GFXDefaultGUIProfile,
+                           GFXTextureProfile::DiffuseMap,
+                           GFXTextureProfile::PreserveSize |
+                           GFXTextureProfile::Static | GFXTextureProfile::NoMipmap | GFXTextureProfile::KeepBitmap | GFXTextureProfile::SRGB |
+                           GFXTextureProfile::NoPadding,
+                           GFXTextureProfile::NONE);
 
 //-----------------------------------------------------------------------------
 

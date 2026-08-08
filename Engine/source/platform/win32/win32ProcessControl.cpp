@@ -27,6 +27,7 @@
 //-----------------------------------------------------------------------------
 #include "platform/platform.h"
 #include "platform/platformInput.h"
+#include "platform/win32/win32Console.h"
 #include "console/console.h"
 #include "core/util/journal/process.h"
 #include "core/strings/unicode.h"
@@ -137,19 +138,19 @@ void Platform::openFile(const char* path)
 }
 #endif // !TORQUE_SDL
 
-bool Platform::excludeOtherInstances(const char *mutexName)
+bool Platform::excludeOtherInstances(const char* mutexName)
 {
 #ifdef UNICODE
    UTF16 b[512];
-   convertUTF8toUTF16((UTF8 *)mutexName, b);
+   convertUTF8toUTF16((UTF8*)mutexName, b);
    gMutexHandle = CreateMutex(NULL, true, b);
 #else
    gMutexHandle = CreateMutex(NULL, true, mutexName);
 #endif
-   if(!gMutexHandle)
+   if (!gMutexHandle)
       return false;
 
-   if(GetLastError() == ERROR_ALREADY_EXISTS)
+   if (GetLastError() == ERROR_ALREADY_EXISTS)
    {
       CloseHandle(gMutexHandle);
       gMutexHandle = NULL;
@@ -248,6 +249,10 @@ void Platform::init()
 
    Con::setVariable("$platform", "windows");
 
+   // Mirror console output to the IDE's debug output window (VS "Output"
+   // pane). See win32Console.cpp for the behavior this reproduces.
+   Win32Console::init();
+
    Input::init();
 
    Con::printf("Done");
@@ -255,8 +260,9 @@ void Platform::init()
 
 void Platform::shutdown()
 {
+   Win32Console::destroy();
 
-   if(gMutexHandle)
+   if (gMutexHandle)
       CloseHandle(gMutexHandle);
 
    Input::destroy();

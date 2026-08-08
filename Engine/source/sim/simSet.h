@@ -148,7 +148,9 @@ class SimSet : public SimObject, public TamlChildren
       typedef SimObjectList::value_type value;
       SimObject* front() { return mObjectList.front(); }
       SimObject* first() { return mObjectList.first(); }
+      SimObject* first() const { return mObjectList.first(); }
       SimObject* last()  { return mObjectList.last(); }
+      SimObject* last() const { return mObjectList.last(); }
       bool       empty() const { return mObjectList.empty();   }
       S32        size() const  { return mObjectList.size(); }
       iterator   begin() { return mObjectList.begin(); }

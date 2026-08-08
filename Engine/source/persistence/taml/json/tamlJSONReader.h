@@ -31,9 +31,19 @@
 #include "persistence/taml/taml.h"
 #endif
 
+#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
+#ifdef new
+#undef new
+#endif
+#endif
 /// RapidJson.
 #include "persistence/rapidjson/document.h"
 #include "persistence/rapidjson/prettywriter.h"
+#if !defined(TORQUE_DISABLE_MEMORY_MANAGER)
+#  define _new new(__FILE__, __LINE__)
+#  define new  _new
+#endif
+
 
 //-----------------------------------------------------------------------------
 

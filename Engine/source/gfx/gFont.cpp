@@ -134,16 +134,26 @@ GFont* GFont::load( const Torque::Path& path )
    return ret;
 }
 
-Resource<GFont> GFont::create(const String &faceName, U32 size, const char *cacheDirectory, U32 charset /* = TGE_ANSI_CHARSET */, bool useSDF /* = false */)
+Resource<GFont> GFont::create(const String& faceName, U32 size, const char* cacheDirectory, U32 charset, bool useSDF)
 {
-   if( !cacheDirectory )
-      cacheDirectory = Con::getVariable( "$GUI::fontCacheDirectory" );
-      
+   if (!cacheDirectory)
+      cacheDirectory = Con::getVariable("$GUI::fontCacheDirectory");
+
    static const U32 kSDFReferenceBakeSize = 64;
    const U32 cachePathSize = useSDF ? kSDFReferenceBakeSize : size;
 
-   const Torque::Path   path(String::ToString("%s/%s %d (%s)%s.uft",
+   const Torque::Path path(String::ToString("%s/%s %d (%s)%s.uft",
       cacheDirectory, faceName.c_str(), cachePathSize, getCharSetName(charset), useSDF ? " sdf" : ""));
+
+   // NEW: check the in-memory resource cache first -- if this exact
+   // font is already loaded (even if its .uft hasn't been flushed to
+   // disk yet because it's still alive), reuse it instead of re-baking.
+   Resource<GFont> existing = ResourceManager::get().find(path);
+   if (existing != NULL)
+   {
+      existing->cacheDisplaySize(size);
+      return existing;
+   }
 
    Resource<GFont> ret;
 

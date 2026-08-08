@@ -124,9 +124,7 @@ torqueAddSourceDirectories("core" "core/stream" "core/strings" "core/util"
 torqueAddSourceDirectories("gui" "gui/buttons" "gui/containers" "gui/controls" "gui/core"
                               "gui/game" "gui/shiny" "gui/utility" "gui/3d")
 
-# Handle GUI Refactor
-torqueAddSourceDirectories("gui_refactor" "gui_refactor/core" "gui_refactor/editor")
-torqueAddSourceDirectories("gui_refactor/controls" "gui_refactor/controls/buttons" "gui_refactor/controls/text" "gui_refactor/controls/containers")
+torqueAddSourceDirectories("gui_rev2" "gui_rev2/core" "gui_rev2/controls" "gui_rev2/controls/button_types")
 
 # Handle postFX
 torqueAddSourceDirectories("postFx")
