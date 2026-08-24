@@ -7,6 +7,15 @@
 #ifndef _NEWCONSOLE_SCRIPTOBJECT_H_
 #include "newConsole/host/scriptObject.h"
 #endif
+#ifndef _NEWCONSOLE_OBJECTREGISTRY_H_
+#include "newConsole/host/objectRegistry.h"
+#endif
+#ifndef _NEWCONSOLE_ENUMREGISTRY_H_
+#include "newConsole/host/enumRegistry.h"
+#endif
+#ifndef _NEWCONSOLE_NOTIFYFIELD_H_
+#include "newConsole/host/notifyField.h"
+#endif
 #ifndef _STRINGTABLE_H_
 #include "core/stringTable.h"
 #endif
@@ -20,11 +29,13 @@ namespace newConsole
    namespace detail
    {
 
-      /// Per-C++-type ScriptValue conversion. Specialized once per supported
-      /// type; SCRIPT_FIELDS/SCRIPT_METHOD never hand-write a conversion, they
-      /// go through this so a type's script-facing behavior is defined in
-      /// exactly one place regardless of how many fields/methods use it.
-      template<typename T> struct ScriptTypeTraits;
+      /// Per-C++-type ScriptValue conversion, one specialization per
+      /// supported type. SCRIPT_FIELDS/SCRIPT_METHOD always go through
+      /// this rather than hand-writing conversions.
+      ///
+      /// @note Second template param only exists to support the
+      ///   enum_class SFINAE specialization below.
+      template<typename T, typename = void> struct ScriptTypeTraits;
 
       template<> struct ScriptTypeTraits<bool>
       {
@@ -92,30 +103,75 @@ namespace newConsole
          }
       };
 
-      /// Object references marshal as ObjectHandle - a plain integer id/generation
-      /// pair - never as a formatted-then-parsed id string. See scriptValue.h.
-      /// Requires T to provide getObjectHandle() and a static T::resolveHandle().
+      /// Object references marshal as ObjectHandle (id/generation pair),
+      /// never a formatted id string. Resolved via ObjectRegistry since
+      /// ScriptObject itself carries no identity - see scriptValue.h.
       template<typename T>
       struct ScriptTypeTraits<T*>
       {
-         static ScriptValue toScript(T* v) { return ScriptValue::makeObject(v ? v->getObjectHandle() : ObjectHandle{}); }
+         static ScriptValue toScript(T* v)
+         {
+            if (!v) return ScriptValue::makeNull();
+            return ScriptValue::makeObject(ObjectRegistry::instance().registerObject(v));
+         }
          static bool fromScript(T*& out, const ScriptValue& v)
          {
             ObjectHandle handle;
             if (!v.tryGet<ObjectHandle>(handle)) return false;
-            out = T::resolveHandle(handle);
+            out = static_cast<T*>(ObjectRegistry::instance().resolve(handle));
             return true;
          }
       };
 
-      /// Field accessor pair generated as real, addressable functions - the
-      /// member pointer is a non-type template parameter, not a captured
-      /// runtime value, specifically so &FieldAccessor<...>::get and ::set are
-      /// genuine plain function pointers with no closure state. This is what
-      /// lets ScriptFieldRep::get/set stay plain function pointers (see
-      /// hostBinding.h) instead of needing std::function or similar - a field
-      /// accessor never allocates and never carries anything beyond the two
-      /// function pointers already sitting in ScriptFieldRep.
+      /// Generic conversion for any SCRIPT_ENUM-registered enum class - one
+      /// template covers every enum, no per-enum specialization needed.
+      /// toScript reads back the registered name, falling back to the raw
+      /// int if unregistered/unmatched. fromScript accepts name or int.
+      template<typename T>
+      struct ScriptTypeTraits<T, std::enable_if_t<std::is_enum_v<T>>>
+      {
+         static ScriptValue toScript(T v)
+         {
+            S64 raw = static_cast<S64>(v);
+            const EnumTypeInfo* info = EnumRegistry::instance().find<T>();
+            if (info)
+            {
+               StringTableEntry name = info->findByValue(raw);
+               if (name)
+                  return ScriptValue::makeString(name);
+            }
+            // Unregistered, or no matching enumerator - fall back to raw int.
+            return ScriptValue::makeInt(raw);
+         }
+
+         static bool fromScript(T& out, const ScriptValue& v)
+         {
+            const EnumTypeInfo* info = EnumRegistry::instance().find<T>();
+
+            if (v.kind() == ScriptValue::Kind::String && info)
+            {
+               const char* s = "";
+               v.tryGet<const char*>(s);
+               S64 value = 0;
+               if (info->findByName(StringTable->insert(s), value))
+               {
+                  out = static_cast<T>(value);
+                  return true;
+               }
+               return false; // string given but matched no enumerator
+            }
+
+            S64 raw = 0;
+            if (!v.tryGet<S64>(raw))
+               return false;
+            out = static_cast<T>(raw);
+            return true;
+         }
+      };
+
+      /// Field get/set as real addressable functions (Member is a non-type
+      /// template param, so &FieldAccessor<...>::get/set are plain function
+      /// pointers with no closure state, matching ScriptFieldRep's shape).
       template<typename ClassT, typename FieldT, FieldT ClassT::* Member>
       struct FieldAccessor
       {
@@ -132,9 +188,109 @@ namespace newConsole
          }
       };
 
-      /// Builds one ScriptFieldRep from a real member pointer. Type is deduced
-      /// from the pointer itself; FieldAccessor above supplies the actual
-      /// get/set function pointers.
+      /// Field accessor backed by getter/setter methods instead of a data
+      /// member - getter can compute, setter can validate/reject.
+      /// @note Setter may return bool (accept/reject) or void (always
+      ///   succeeds) - two specializations below cover both.
+      template<typename ClassT, typename FieldT, ScriptValue(ClassT::* Getter)() const, bool (ClassT::* Setter)(FieldT)>
+      struct CustomFieldAccessorBoolSetter
+      {
+         static ScriptValue get(const ScriptObject* self)
+         {
+            const ClassT* typed = static_cast<const ClassT*>(self);
+            return (typed->*Getter)();
+         }
+         static bool set(ScriptObject* self, const ScriptValue& value)
+         {
+            ClassT* typed = static_cast<ClassT*>(self);
+            FieldT converted{};
+            if (!ScriptTypeTraits<FieldT>::fromScript(converted, value))
+               return false;
+            return (typed->*Setter)(converted);
+         }
+      };
+
+      template<typename ClassT, typename FieldT, ScriptValue(ClassT::* Getter)() const, void (ClassT::* Setter)(FieldT)>
+      struct CustomFieldAccessorVoidSetter
+      {
+         static ScriptValue get(const ScriptObject* self)
+         {
+            const ClassT* typed = static_cast<const ClassT*>(self);
+            return (typed->*Getter)();
+         }
+         static bool set(ScriptObject* self, const ScriptValue& value)
+         {
+            ClassT* typed = static_cast<ClassT*>(self);
+            FieldT converted{};
+            if (!ScriptTypeTraits<FieldT>::fromScript(converted, value))
+               return false;
+            (typed->*Setter)(converted);
+            return true;
+         }
+      };
+
+      /// Builds a ScriptFieldRep from getter/setter methods. Getter returns
+      /// ScriptValue directly so it can return a derived/computed value.
+      template<typename ClassT, typename FieldT, ScriptValue(ClassT::* Getter)() const, void (ClassT::* Setter)(FieldT)>
+      ScriptFieldRep makeCustomField(const char* name, const char* usage, NetFieldAttribute network = NetFieldAttribute())
+      {
+         ScriptFieldRep rep;
+         rep.name = StringTable->insert(name);
+         rep.usage = usage;
+         rep.network = network;
+         rep.get = &CustomFieldAccessorVoidSetter<ClassT, FieldT, Getter, Setter>::get;
+         rep.set = &CustomFieldAccessorVoidSetter<ClassT, FieldT, Getter, Setter>::set;
+         return rep;
+      }
+
+      template<typename ClassT, typename FieldT, ScriptValue(ClassT::* Getter)() const, bool (ClassT::* Setter)(FieldT)>
+      ScriptFieldRep makeCustomField(const char* name, const char* usage, NetFieldAttribute network = NetFieldAttribute())
+      {
+         ScriptFieldRep rep;
+         rep.name = StringTable->insert(name);
+         rep.usage = usage;
+         rep.network = network;
+         rep.get = &CustomFieldAccessorBoolSetter<ClassT, FieldT, Getter, Setter>::get;
+         rep.set = &CustomFieldAccessorBoolSetter<ClassT, FieldT, Getter, Setter>::set;
+         return rep;
+      }
+
+      /// Field accessor for a NotifyField<T> member - writes via operator=,
+      /// which fires onFieldChanged (see notifyField.h).
+      template<typename ClassT, typename T, NotifyField<T> ClassT::* Member>
+      struct NotifyFieldAccessor
+      {
+         static ScriptValue get(const ScriptObject* self)
+         {
+            const ClassT* typed = static_cast<const ClassT*>(self);
+            return ScriptTypeTraits<T>::toScript((typed->*Member).get());
+         }
+
+         static bool set(ScriptObject* self, const ScriptValue& value)
+         {
+            ClassT* typed = static_cast<ClassT*>(self);
+            T converted{};
+            if (!ScriptTypeTraits<T>::fromScript(converted, value))
+               return false;
+            (typed->*Member) = std::move(converted);
+            return true;
+         }
+      };
+
+      /// Builds a ScriptFieldRep from a NotifyField<T> member pointer.
+      template<typename ClassT, typename T, NotifyField<T> ClassT::* Member>
+      ScriptFieldRep makeNotifyFieldImpl(const char* name, const char* usage, NetFieldAttribute network)
+      {
+         ScriptFieldRep rep;
+         rep.name = StringTable->insert(name);
+         rep.usage = usage;
+         rep.network = network;
+         rep.get = &NotifyFieldAccessor<ClassT, T, Member>::get;
+         rep.set = &NotifyFieldAccessor<ClassT, T, Member>::set;
+         return rep;
+      }
+
+      /// Builds one ScriptFieldRep from a real member pointer; type deduced from the pointer.
       template<typename ClassT, typename FieldT, FieldT ClassT::* Member>
       ScriptFieldRep makeFieldImpl(const char* name, const char* usage, NetFieldAttribute network)
       {
@@ -147,12 +303,10 @@ namespace newConsole
          return rep;
       }
 
-      /// Deduces FieldT from a member-pointer expression so macro call sites
-      /// can write makeField<ScriptSelf, &ScriptSelf::fieldName>(name, usage)
-      /// without separately spelling out the field's type - Member is supplied
-      /// as an explicit non-type template argument (required so FieldAccessor's
-      /// functions have no captured state), FieldT is deduced from Member's own
-      /// type via the partial specialization below.
+      /// Deduces FieldT from a member-pointer expression for makeField below.
+      /// @note Only one specialization (any FieldT ClassT::*) - a second one
+      ///   for NotifyField<T> is ambiguous (confirmed by testing).
+      ///   IsNotifyFieldDetector distinguishes the two cases after deduction.
       template<typename ClassT, auto Member>
       struct MemberPointerTraits;
 
@@ -162,23 +316,34 @@ namespace newConsole
          using Type = FieldT;
       };
 
+      template<typename FieldT>
+      struct IsNotifyFieldDetector : std::false_type
+      {
+         using InnerType = FieldT;
+      };
+
+      template<typename T>
+      struct IsNotifyFieldDetector<NotifyField<T>> : std::true_type
+      {
+         using InnerType = T;
+      };
+
+      /// Dispatches to makeNotifyFieldImpl or makeFieldImpl automatically -
+      /// callers never need to know which kind of member Member is.
       template<typename ClassT, auto Member>
       ScriptFieldRep makeField(const char* name, const char* usage,
          NetFieldAttribute network = NetFieldAttribute())
       {
          using FieldT = typename MemberPointerTraits<ClassT, Member>::Type;
-         return makeFieldImpl<ClassT, FieldT, Member>(name, usage, network);
+         using Detector = IsNotifyFieldDetector<FieldT>;
+         if constexpr (Detector::value)
+            return makeNotifyFieldImpl<ClassT, typename Detector::InnerType, Member>(name, usage, network);
+         else
+            return makeFieldImpl<ClassT, FieldT, Member>(name, usage, network);
       }
 
-      /// Static-field accessor pair - no self parameter, for a plain `static
-      /// FieldT ClassT::member` rather than an instance member. Used by
-      /// SCRIPT_CLASS_ROOT classes (see scriptClassMacros.h), where there may
-      /// be no instance of ClassT anywhere, ever - a static-only export-scope
-      /// class like the engine's existing GFXInit pattern.
-      ///
-      /// @note Member here is a plain `FieldT*` (address of a static data
-      ///   member), not a pointer-to-member - static members don't have a
-      ///   pointer-to-member type, they're addressed like any other global.
+      /// Static-field accessor, no self param - for SCRIPT_CLASS_ROOT classes.
+      /// @note Member is a plain FieldT* (static member address), not a pointer-to-member.
       template<typename FieldT, FieldT* Member>
       struct StaticFieldAccessor
       {
@@ -204,10 +369,7 @@ namespace newConsole
          return rep;
       }
 
-      /// Deduces FieldT from a static member's address so macro call sites can
-      /// write makeStaticField<&ScriptSelf::staticFieldName>(name, usage)
-      /// without spelling out the type by hand - mirrors makeField's role for
-      /// instance members.
+      /// Deduces FieldT from a static member's address - mirrors makeField for instance members.
       template<auto Member> struct StaticMemberPointerTraits;
 
       template<typename FieldT, FieldT* Member>
@@ -223,15 +385,9 @@ namespace newConsole
          return makeStaticFieldImpl<FieldT, Member>(name, usage);
       }
 
-      /// Peels one C++ parameter type off a ScriptValueSpan at compile-time
-      /// index I, converting via ScriptTypeTraits<ArgT>. On conversion failure
-      /// returns a default-constructed ArgT rather than failing the whole
-      /// call - arity/type mismatches from script are a script-author error to
-      /// surface via diagnostics at the call site in the owning IScriptRuntime,
-      /// not something this trampoline silently swallows without a trace, so
-      /// each ScriptTypeTraits<ArgT>::fromScript failure here ORs into an "any
-      /// conversion failed" flag the trampoline checks before actually calling
-      /// through to the method body.
+      /// Peels one C++ parameter off a ScriptValueSpan at index I, via
+      /// ScriptTypeTraits<ArgT>. On failure returns a default ArgT and sets
+      /// anyFailed - caller reports all failures, not just the first.
       template<typename ArgT>
       ArgT convertArg(ScriptValueSpan args, U32 index, bool& anyFailed)
       {
@@ -241,17 +397,24 @@ namespace newConsole
          return out;
       }
 
-      /// Deduces ClassT/ReturnT/ArgTs... from a member function pointer type
-      /// and generates the ScriptObject-facing trampoline in one partial
-      /// specialization - Member, ReturnT and the ArgTs... pack all have to be
-      /// deduced together in a single template-argument-deduction context, so
-      /// this cannot be split into a separate "trampoline" template taking
-      /// Member as its own parameter (a parameter pack must be the last
-      /// template parameter; Member's type itself depends on ArgTs..., which
-      /// rules out putting Member after the pack in a second template).
-      /// makeMethod<&ScriptSelf::methodName>(name) below needs no type spelled
-      /// out by hand as a result - the method's own declaration (written once,
-      /// by SCRIPT_METHOD) is the only place its signature lives.
+      /// Like convertArg, but for a trailing optional arg: falls back to
+      /// defaultValue if the call didn't supply it. A real type mismatch on
+      /// a supplied argument still fails.
+      /// @note defaultValue comes from the SCRIPT_METHOD call site, not the
+      ///   real C++ default - keeping them in sync is the author's job.
+      template<typename ArgT>
+      ArgT convertArgWithDefault(ScriptValueSpan args, U32 index, ArgT defaultValue, bool& anyFailed)
+      {
+         if (index >= args.size())
+            return defaultValue;
+         ArgT out{};
+         if (!ScriptTypeTraits<ArgT>::fromScript(out, args[index]))
+            anyFailed = true;
+         return out;
+      }
+
+      /// Deduces ClassT/ReturnT/ArgTs... from a member function pointer and
+      /// builds the trampoline in one partial specialization.
       template<auto Member> struct MethodPointerTraits;
 
       template<typename ClassT, typename ReturnT, typename... ArgTs, ReturnT(ClassT::* Member)(ArgTs...)>
@@ -261,13 +424,8 @@ namespace newConsole
          static ScriptValue invokeImpl(ClassT* self, ScriptValueSpan args, std::index_sequence<Is...>)
          {
             bool anyFailed = false;
-            // Args must be converted before the call, not interleaved with it -
-            // argument evaluation order for a real call expression is
-            // unspecified in C++, and a script-side type error must be
-            // detected for every argument (to report all of them, and to
-            // guarantee no partially-converted call reaches the real method)
-            // rather than however many the compiler happened to evaluate
-            // before hitting the first bad one.
+            // Convert all args before calling - call evaluation order is
+            // unspecified, and every type error must be reported.
             std::tuple<ArgTs...> converted{ convertArg<ArgTs>(args, static_cast<U32>(Is), anyFailed)... };
             if (anyFailed)
                return ScriptValue::makeError("argument type/arity mismatch");
@@ -291,22 +449,104 @@ namespace newConsole
          }
       };
 
+      /// Splits a member-function-pointer type into class/return/args + an
+      /// index_sequence - MethodWithDefaultsTraits::invoke can't deduce
+      /// these itself since Member is a class template arg.
+      template<typename MemberPtr> struct MemberFunctionTraits;
+
+      template<typename ClassT, typename ReturnT, typename... ArgTs>
+      struct MemberFunctionTraits<ReturnT(ClassT::*)(ArgTs...)>
+      {
+         using ClassType = ClassT;
+         using ReturnType = ReturnT;
+         using IndexSeq = std::index_sequence_for<ArgTs...>;
+         using ArgsTuple = std::tuple<ArgTs...>;
+      };
+
+      /// Trampoline for a method where every argument has a default -
+      /// accepts 0 to sizeof...(ArgTs) args, each missing one falling back
+      /// to its own DefaultsTuple entry. Matches torquescript2's own
+      /// default-argument semantics.
+      /// @note DefaultsTuple element types must match ArgTs... exactly -
+      ///   values convert implicitly at registration time.
+      template<auto Member>
+      struct MethodWithDefaultsTraits
+      {
+         template<typename ClassT, typename ReturnT, typename... ArgTs, std::size_t... Is>
+         static ScriptValue invokeImpl(ClassT* self, ScriptValueSpan args, const std::tuple<ArgTs...>& defaults,
+            ReturnT(ClassT::* member)(ArgTs...), std::index_sequence<Is...>)
+         {
+            bool anyFailed = false;
+            std::tuple<ArgTs...> converted{
+               convertArgWithDefault<ArgTs>(args, static_cast<U32>(Is), std::get<Is>(defaults), anyFailed)...
+            };
+            if (anyFailed)
+               return ScriptValue::makeError("argument type mismatch");
+
+            if constexpr (std::is_void_v<ReturnT>)
+            {
+               std::apply([self, member](ArgTs... a) { (self->*member)(a...); }, converted);
+               return ScriptValue::makeNull();
+            }
+            else
+            {
+               ReturnT result = std::apply([self, member](ArgTs... a) { return (self->*member)(a...); }, converted);
+               return ScriptTypeTraits<ReturnT>::toScript(result);
+            }
+         }
+
+         template<typename... ArgTs>
+         static ScriptValue invoke(ScriptObject* self, ScriptValueSpan args, const std::tuple<ArgTs...>& defaults)
+         {
+            using Traits = MemberFunctionTraits<decltype(Member)>;
+            typename Traits::ClassType* typed = static_cast<typename Traits::ClassType*>(self);
+            return invokeImpl(typed, args, defaults, Member, typename Traits::IndexSeq{});
+         }
+      };
+
+      template<auto Member, typename... ArgTs>
+      ScriptMethodRep makeMethodWithDefaults(const char* name, const char* usage, std::tuple<ArgTs...> defaults)
+      {
+         using DefaultsTuple = std::tuple<ArgTs...>;
+         // Leaked, permanent - ScriptMethodRep::invoke is a plain function
+         // pointer with no captured state. Registered once, never torn down.
+         static DefaultsTuple* sDefaults = new DefaultsTuple(std::move(defaults));
+
+         ScriptMethodRep rep;
+         rep.name = StringTable->insert(name);
+         rep.usage = usage;
+         rep.argCount = 0; // every argument is optional
+         rep.invoke = +[](ScriptObject* self, ScriptValueSpan args) -> ScriptValue
+         {
+            return MethodWithDefaultsTraits<Member>::invoke(self, args, *sDefaults);
+         };
+         return rep;
+      }
+
+      /// Overload taking raw default values (e.g. (0, "test")) - this is
+      /// the one SCRIPT_METHOD actually calls. DefaultsTuple deduced from
+      /// Member, so values convert implicitly the same as a normal call.
+      template<auto Member, typename... RawValues>
+      ScriptMethodRep makeMethodWithDefaultsFromValues(const char* name, const char* usage, RawValues&&... values)
+      {
+         using Traits = MemberFunctionTraits<decltype(Member)>;
+         using DefaultsTuple = typename Traits::ArgsTuple;
+         return makeMethodWithDefaults<Member>(name, usage, DefaultsTuple(std::forward<RawValues>(values)...));
+      }
+
       template<auto Member>
       ScriptMethodRep makeMethod(const char* name, const char* usage = "")
       {
          ScriptMethodRep rep;
          rep.name = StringTable->insert(name);
          rep.usage = usage;
-         rep.argCount = 0; // arity is enforced per-argument by convertArg, not pre-checked here
+         rep.argCount = 0; // arity enforced per-argument by convertArg
          rep.invoke = &MethodPointerTraits<Member>::invoke;
          return rep;
       }
 
-      /// Static-method trampoline - same reasoning as MethodPointerTraits, but
-      /// for a plain `static ReturnT ClassT::method(ArgTs...)` with no self to
-      /// dispatch through. Deduced from a plain (non-member) function pointer
-      /// type, since a static member function decays to that, not to a
-      /// pointer-to-member-function.
+      /// Static-method trampoline - same idea as MethodPointerTraits, for a
+      /// plain `static ReturnT ClassT::method(ArgTs...)` with no self.
       template<auto Member> struct StaticMethodPointerTraits;
 
       template<typename ReturnT, typename... ArgTs, ReturnT(*Member)(ArgTs...)>
@@ -347,6 +587,18 @@ namespace newConsole
          rep.argCount = 0;
          rep.invoke = &StaticMethodPointerTraits<Member>::invoke;
          return rep;
+      }
+
+      /// Same trampoline as makeStaticMethod, targeting HostFunctionDecl for GLOBAL_SCRIPT_METHOD.
+      template<auto Member>
+      HostFunctionDecl makeGlobalFunction(const char* name, const char* usage = "")
+      {
+         HostFunctionDecl decl;
+         decl.name = StringTable->insert(name);
+         decl.usage = usage;
+         decl.argCount = 0;
+         decl.invoke = &StaticMethodPointerTraits<Member>::invoke;
+         return decl;
       }
 
    } // namespace detail

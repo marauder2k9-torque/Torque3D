@@ -5,10 +5,9 @@ namespace newConsole
 
    const ScriptFieldRep* ScriptClassRep::findField(StringTableEntry name) const
    {
-      // StringTableEntry is an interned pointer - equality is pointer
-      // equality, not strcmp. Caller is expected to have gone through
-      // StringTable->insert() already (true for anything reaching here via
-      // the parser, since identifiers intern at lex time).
+      // StringTableEntry equality is pointer equality (interned), not
+      // strcmp - caller is expected to have already gone through
+      // StringTable->insert() (true for anything from the parser).
       for (const ScriptClassRep* rep = this; rep != nullptr; rep = rep->mParent)
       {
          const Vector<ScriptFieldRep>& fields = rep->mFields;
@@ -37,11 +36,8 @@ namespace newConsole
 
    const ScriptStaticFieldRep* ScriptClassRep::findStaticField(StringTableEntry name) const
    {
-      // Static fields walk the parent chain too - a SCRIPT_CLASS_ROOT class
-      // is not required to be a hierarchy root in practice (nothing stops
-      // one static-only class reflecting "on top of" another), so this
-      // mirrors findField's walk rather than assuming static classes are
-      // always single-level.
+      // Walks the parent chain too - nothing stops one static-only class
+      // reflecting on top of another, so this mirrors findField's walk.
       for (const ScriptClassRep* rep = this; rep != nullptr; rep = rep->mParent)
       {
          const Vector<ScriptStaticFieldRep>& fields = rep->mStaticFields;

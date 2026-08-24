@@ -493,9 +493,9 @@ static U32 sgStringInstances;
 
 #endif
 DefineEngineFunction( dumpStringMemStats, void, (), , "()"
-				"@brief Dumps information about String memory usage\n\n"
-				"@ingroup Debugging\n"
-				"@ingroup Strings\n")
+            "@brief Dumps information about String memory usage\n\n"
+            "@ingroup Debugging\n"
+            "@ingroup Strings\n")
 {
 #ifdef TORQUE_DEBUG
    Con::printf( "String Data: %i instances, %i bytes", sgStringInstances, sgStringMemBytes );
@@ -626,7 +626,7 @@ bool String::isEmpty() const
 
 bool String::isEmpty(const char* str)
 {
-	return str == 0 || str[0] == '\0';
+   return str == 0 || str[0] == '\0';
 }
 
 bool String::isShared() const

@@ -7,6 +7,9 @@
 #ifndef _NEWCONSOLE_SCRIPTTYPETRAITS_H_
 #include "newConsole/host/scriptTypeTraits.h"
 #endif
+#ifndef _NEWCONSOLE_CLASSFACTORY_H_
+#include "newConsole/host/classFactory.h"
+#endif
 
 #include <type_traits>
 
@@ -32,13 +35,10 @@
 ///
 /// void Explosion::applyDamage(ScriptObject* target, F32 falloff)
 /// {
-///    // real implementation - the one and only place this signature's
-///    // body lives. Script and C++ callers both end up here.
+///    // real implementation - script and C++ both call this
 /// }
 ///
-/// // A static-only class with no instance at all - e.g. an adapter
-/// // registry in the shape of the engine's existing GFXInit - uses
-/// // SCRIPT_CLASS_ROOT and the SCRIPT_STATIC_* macros instead:
+/// // Static-only class, no instance - use SCRIPT_CLASS_ROOT + SCRIPT_STATIC_*:
 /// class GfxInit
 /// {
 /// public:
@@ -56,32 +56,20 @@
 /// void GfxInit::enumerateAdapters() { /* ... */ }
 /// @endcode
 ///
-/// Mechanism: SCRIPT_FIELDS/SCRIPT_FIELD_EX/SCRIPT_METHOD (and their
-/// SCRIPT_STATIC_* counterparts) each declare a static registrar object
-/// inside the class body. Every registrar's constructor appends to
-/// ScriptSelf::__scriptClassBuildState() - a function-local static Vector
-/// set, constructed on first call via ordinary Meyer's-singleton
-/// semantics (see core/util/tSingleton.h for the same pattern used
-/// elsewhere in the engine). This sidesteps cross-translation-unit static
-/// initialization order entirely: nothing depends on these registrars
-/// running before getScriptClassRep() is first called, because
-/// __scriptClassBuildState() constructs itself (empty) the first time
-/// anything touches it, whether that's a registrar appending or
-/// getScriptClassRep() reading. What matters is only that every registrar
-/// for a class runs before that class's own getScriptClassRep() is first
-/// called - guaranteed because the registrars are static-storage-duration
-/// members of the class itself and complete their initialization no
-/// later than the point at which any code outside the class's own
-/// translation unit could plausibly call a static member function on it.
+/// Mechanism: each SCRIPT_FIELDS/SCRIPT_FIELD_EX/SCRIPT_METHOD declares a
+/// static registrar in the class body whose constructor appends to
+/// ScriptSelf::__scriptClassBuildState() (Meyer's-singleton Vector set,
+/// see tSingleton.h). Avoids static-init-order issues: every registrar
+/// runs before its class's own getScriptClassRep() can be called, since
+/// registrars are static class members.
 
 namespace newConsole
 {
    namespace detail
    {
 
-      /// Per-class accumulation state, returned by reference so every
-      /// registrar for a given ScriptSelf appends to the same instance
-      /// regardless of which translation unit it runs in.
+      /// Per-class accumulation state; one instance per ScriptSelf,
+      /// shared across translation units.
       struct ScriptClassBuildState
       {
          Vector<ScriptFieldRep> fields;
@@ -90,13 +78,8 @@ namespace newConsole
          Vector<ScriptStaticMethodRep> staticMethods;
       };
 
-      /// Resolves ParentT::getScriptClassRep() when ParentT actually declares
-      /// one (i.e. is itself SCRIPT_CLASS-annotated), or returns nullptr for a
-      /// root class with no reflected parent. Detected via void_t + if
-      /// constexpr rather than a tag-dispatch overload pair - an overload pair
-      /// (one SFINAE'd on decltype(...), one variadic fallback) is ambiguous
-      /// the moment both become viable through a wrapping call, which void_t
-      /// detection into a single function template avoids by construction.
+      /// True if ParentT declares getScriptClassRep() (i.e. is itself
+      /// SCRIPT_CLASS-annotated); false for a root class with no parent.
       template<typename T, typename = void>
       struct HasGetScriptClassRep : std::false_type {};
 
@@ -115,14 +98,10 @@ namespace newConsole
    } // namespace detail
 } // namespace newConsole
 
-/// Declares the reflection entry point for a class, and the per-class
-/// accumulation point every SCRIPT_FIELDS/SCRIPT_FIELD_EX/SCRIPT_METHOD
-/// registrar in this class appends to. Must appear once, first, in the
-/// class body. Use this for any class with a reflected C++ base (i.e.
-/// parentClassName itself uses SCRIPT_CLASS or SCRIPT_CLASS_ROOT). For a
-/// class with no such base at all - an API root like GfxDevice/
-/// SoundSystem/PhysicsWorld that must work with zero dependency on this
-/// hierarchy - use SCRIPT_CLASS_ROOT instead, which takes no parent.
+/// Declares the reflection entry point and per-class field/method
+/// accumulator. Must appear once, first, in the class body. Use for a
+/// class with a reflected C++ base; use SCRIPT_CLASS_ROOT for an API
+/// root with no such base.
 #define SCRIPT_CLASS(className, parentClassName)                              \
    public:                                                                    \
    using ScriptSelf = className;                                              \
@@ -132,14 +111,14 @@ namespace newConsole
       static ::newConsole::detail::ScriptClassBuildState state;              \
       return state;                                                          \
    }                                                                          \
+   const ::newConsole::ScriptClassRep* getRuntimeClassRep() const override    \
+   {                                                                          \
+      return getScriptClassRep();                                            \
+   }                                                                          \
    static const ::newConsole::ScriptClassRep* getScriptClassRep()
 
-/// Same as SCRIPT_CLASS, for a class with no reflected parent at all -
-/// getParent() on the resulting ScriptClassRep is unconditionally
-/// nullptr, with no ParentT named or required. This is the entry point
-/// for standalone API roots (GfxDevice, SoundSystem, PhysicsWorld, ...)
-/// that must not be forced to invent a fake C++ base purely to satisfy a
-/// macro parameter.
+/// Same as SCRIPT_CLASS but with no reflected parent - getParent() is
+/// always nullptr. Use for standalone API roots (GfxDevice, SoundSystem, ...).
 #define SCRIPT_CLASS_ROOT(className)                                          \
    public:                                                                    \
    using ScriptSelf = className;                                              \
@@ -150,21 +129,34 @@ namespace newConsole
    }                                                                          \
    static const ::newConsole::ScriptClassRep* getScriptClassRep()
 
-/// Out-of-line definition matching SCRIPT_CLASS's declaration. Builds one
-/// ScriptClassRep from whatever __scriptClassBuildState() holds at first
-/// call - by construction, every SCRIPT_FIELDS/SCRIPT_METHOD registrar
-/// for this class has already run, since they are static members of the
-/// class itself.
-///
-/// @note The class name is interned via StringTable->insert(#className),
-///   not passed as a raw string literal - every other name in this
-///   reflection layer (field names, method names) is interned the same
-///   way specifically so ScriptClassRep::findField/findMethod/
-///   HostBindingRegistry::find can compare StringTableEntry values by
-///   pointer equality rather than strcmp. A raw literal here would be a
-///   different pointer than what StringTable->insert() returns for an
-///   identical string elsewhere, silently breaking every by-name lookup
-///   against this class.
+namespace newConsole
+{
+   namespace detail
+   {
+
+      /// Strips leading "a::b::" namespace qualification from a
+      /// stringified class name. Needed because #className stringifies
+      /// the fully-qualified name; script code expects the bare name.
+      inline const char* bareClassName(const char* possiblyQualified)
+      {
+         const char* lastSep = nullptr;
+         for (const char* p = possiblyQualified; *p; ++p)
+         {
+            if (p[0] == ':' && p[1] == ':')
+            {
+               lastSep = p + 2;
+               ++p; // skip the second ':' too
+            }
+         }
+         return lastSep ? lastSep : possiblyQualified;
+      }
+
+   } // namespace detail
+} // namespace newConsole
+
+/// Out-of-line definition matching SCRIPT_CLASS's declaration. Builds
+/// one ScriptClassRep from __scriptClassBuildState() at first call -
+/// all field/method registrars have already run by then.
 #define SCRIPT_CLASS_BEGIN(className)                                         \
    const ::newConsole::ScriptClassRep* className::getScriptClassRep()         \
    {                                                                          \
@@ -172,16 +164,15 @@ namespace newConsole
          ::newConsole::detail::ScriptClassBuildState& __state =              \
             __scriptClassBuildState();                                       \
          return ::newConsole::ScriptClassRep(                                \
-            ::StringTable->insert(#className),                              \
+            ::StringTable->insert(::newConsole::detail::bareClassName(#className)), \
             ::newConsole::detail::parentRepOrNull<ScriptParent>(),          \
             std::move(__state.fields),                                      \
             std::move(__state.methods),                                     \
             std::move(__state.staticFields),                                \
             std::move(__state.staticMethods));
 
-/// Matching begin/end pair for a class declared with SCRIPT_CLASS_ROOT -
-/// identical to SCRIPT_CLASS_BEGIN except it never references
-/// ScriptParent, which SCRIPT_CLASS_ROOT does not define.
+/// SCRIPT_CLASS_ROOT counterpart to SCRIPT_CLASS_BEGIN - never
+/// references ScriptParent.
 #define SCRIPT_CLASS_ROOT_BEGIN(className)                                    \
    const ::newConsole::ScriptClassRep* className::getScriptClassRep()         \
    {                                                                          \
@@ -189,55 +180,43 @@ namespace newConsole
          ::newConsole::detail::ScriptClassBuildState& __state =              \
             __scriptClassBuildState();                                       \
          return ::newConsole::ScriptClassRep(                                \
-            ::StringTable->insert(#className),                              \
+            ::StringTable->insert(::newConsole::detail::bareClassName(#className)), \
             nullptr,                                                        \
             std::move(__state.fields),                                      \
             std::move(__state.methods),                                     \
             std::move(__state.staticFields),                                \
             std::move(__state.staticMethods));
 
-/// Emits the auto-registration static for a class's ScriptClassRep -
-/// shared tail for SCRIPT_CLASS_END, parameterized on className so the
-/// registrar type name and the getScriptClassRep() call are both
-/// unambiguous. Safe regardless of static-init order: getScriptClassRep()
-/// is a Meyer's singleton (see SCRIPT_CLASS_BEGIN/ROOT_BEGIN above), so
-/// this registrar's constructor can call it at any point in program
-/// startup, from any translation unit, in any order relative to other
-/// __NC_AUTOREG statics, and always observes a fully-built ScriptClassRep
-/// - construction happens on first touch, not at a predetermined time.
+/// Auto-registration static for a class's ScriptClassRep. Safe
+/// regardless of static-init order since getScriptClassRep() is a
+/// Meyer's singleton.
 #define __NC_AUTOREG(className)                                               \
    namespace                                                                  \
    {                                                                          \
-      struct __NC_CONCAT(__NC_AutoReg_, className)                           \
+      struct __NC_CONCAT(__NC_AutoReg_, __LINE__)                            \
       {                                                                      \
-         __NC_CONCAT(__NC_AutoReg_, className)()                             \
+         __NC_CONCAT(__NC_AutoReg_, __LINE__)()                              \
          {                                                                   \
             ::newConsole::HostBindingRegistry::instance().registerClass(     \
                className::getScriptClassRep());                             \
+            ::newConsole::detail::registerDefaultConstructorIfPossible<className>( \
+               className::getScriptClassRep()->getName());                  \
          }                                                                   \
       };                                                                     \
-      static __NC_CONCAT(__NC_AutoReg_, className) __NC_CONCAT(__nc_autoReg_, className); \
+      static __NC_CONCAT(__NC_AutoReg_, __LINE__) __NC_CONCAT(__nc_autoReg_, __LINE__); \
    }
 
-/// @param className Must match the className passed to the matching
-///   SCRIPT_CLASS_BEGIN/SCRIPT_CLASS_ROOT_BEGIN. Closes out
-///   getScriptClassRep()'s definition and, immediately after, emits the
-///   static that registers this class into HostBindingRegistry - every
-///   SCRIPT_CLASS/SCRIPT_CLASS_ROOT class becomes visible to every
-///   IScriptRuntime automatically, with no separate registration call
-///   required anywhere else.
+/// @param className Must match the SCRIPT_CLASS_BEGIN/ROOT_BEGIN param.
+///   Closes getScriptClassRep() and registers the class with
+///   HostBindingRegistry.
 #define SCRIPT_CLASS_END(className)                                           \
       }();                                                                   \
       return &__rep;                                                         \
    }                                                                          \
    __NC_AUTOREG(className)
 
-/// FOR_EACH-style variadic expansion: applies macro `m` to each argument
-/// in `...`, supporting up to 16 fields per SCRIPT_FIELDS invocation.
-/// Standard preprocessor recursion trick - no runtime component, this is
-/// pure token-pasting so SCRIPT_FIELDS can expand "name1, name2, name3"
-/// into one push_back(...) per name without a real reflection facility
-/// (C++17 has none) to iterate a name list at compile time.
+/// FOR_EACH-style variadic expansion, up to 16 args. Pure token-pasting
+/// preprocessor recursion (no C++17 compile-time iteration available).
 #define __NC_CONCAT_(a,b) a##b
 #define __NC_CONCAT(a,b) __NC_CONCAT_(a,b)
 #define __NC_EXPAND(x) x
@@ -264,29 +243,19 @@ namespace newConsole
       __NC_FE_10,__NC_FE_9,__NC_FE_8,__NC_FE_7,__NC_FE_6,__NC_FE_5,          \
       __NC_FE_4,__NC_FE_3,__NC_FE_2,__NC_FE_1)(m, __VA_ARGS__))
 
-/// One field's push_back, used as the per-argument expansion in
-/// SCRIPT_FIELDS below. Deliberately identical in shape to what
-/// SCRIPT_FIELD_EX generates for a single field, minus usage text/network
-/// metadata (use SCRIPT_FIELD_EX instead of SCRIPT_FIELDS for a field
-/// that needs either).
+/// One field's push_back for SCRIPT_FIELDS. Same shape as
+/// SCRIPT_FIELD_EX minus usage text/net metadata.
 #define __NC_PUSH_FIELD(fieldName)                                            \
    __scriptClassBuildState().fields.push_back(                               \
       (::newConsole::detail::makeField<ScriptSelf, &ScriptSelf::fieldName>)  \
          (#fieldName, ""));
 
-/// Registers a run of plain data fields for script/network export, using
-/// each name only once - type is deduced from &ScriptSelf::fieldName via
-/// ScriptTypeTraits<T>, not authored separately. Expands to a single
-/// static registrar whose constructor appends one ScriptFieldRep per
-/// listed name into __scriptClassBuildState().fields. Fields needing
-/// usage text or NetFieldAttribute use SCRIPT_FIELD_EX instead.
+/// Registers a run of plain data fields for script/network export; type
+/// deduced from &ScriptSelf::fieldName. Use SCRIPT_FIELD_EX for usage
+/// text or NetFieldAttribute.
 ///
-/// @note May be invoked more than once in the same class body - the
-///   registrar struct's name is derived from __LINE__ (via
-///   __NC_CONCAT), so two SCRIPT_FIELDS calls at different source lines
-///   never collide. A single class growing its field list over several
-///   SCRIPT_FIELDS(...) calls interspersed with other members is
-///   supported by design, not just tolerated.
+/// @note May be invoked more than once per class body - registrar name
+///   is keyed on __LINE__, so calls never collide.
 #define SCRIPT_FIELDS(...)                                                    \
    static inline struct __NC_CONCAT(__ScriptFieldsReg_, __LINE__)            \
    {                                                                          \
@@ -296,10 +265,36 @@ namespace newConsole
       }                                                                      \
    } __NC_CONCAT(__scriptFieldsReg_, __LINE__) {}
 
+/// Registers a field backed by getter/setter methods rather than a data
+/// member - use when reading computes something or writing needs to
+/// validate/reject.
+///
+/// getterMethod takes no args, returns ScriptValue. setterMethod takes
+/// one arg of the field's type, returns bool (false rejects) or void.
+///
+/// @code
+/// class Health : public ScriptObject {
+///    SCRIPT_CLASS(Health, ScriptObject);
+///    SCRIPT_FIELD_CUSTOM(mHealth, "current health", S32, getHealth, setHealth);
+///    S32 mRawHealth = 100;
+///    ScriptValue getHealth() const { return ScriptValue::makeInt(mRawHealth); }
+///    bool setHealth(S32 v) { if (v < 0) return false; mRawHealth = v; return true; }
+/// };
+/// @endcode
+#define SCRIPT_FIELD_CUSTOM(fieldName, usageText, fieldType, getterMethod, setterMethod, ...) \
+   static inline struct __ScriptFieldReg_##fieldName                         \
+   {                                                                          \
+      __ScriptFieldReg_##fieldName()                                         \
+      {                                                                      \
+         __scriptClassBuildState().fields.push_back(                        \
+            (::newConsole::detail::makeCustomField<ScriptSelf, fieldType,   \
+               &ScriptSelf::getterMethod, &ScriptSelf::setterMethod>)       \
+               (#fieldName, usageText, ##__VA_ARGS__));                     \
+      }                                                                      \
+   } __scriptFieldReg_##fieldName{}
+
 /// Registers one field with explicit usage text and/or NetFieldAttribute,
-/// in place of that field appearing in SCRIPT_FIELDS. Order relative to
-/// SCRIPT_FIELDS does not matter - both append to the same
-/// __scriptClassBuildState().fields.
+/// in place of appearing in SCRIPT_FIELDS. Order doesn't matter.
 #define SCRIPT_FIELD_EX(fieldName, usageText, ...)                            \
    static inline struct __ScriptFieldReg_##fieldName                         \
    {                                                                          \
@@ -311,12 +306,48 @@ namespace newConsole
       }                                                                      \
    } __scriptFieldReg_##fieldName{}
 
-/// Declares AND registers a method for script export in one line. Expands
-/// to the real member function declaration plus a static registrar whose
-/// constructor appends a trampoline built from &ScriptSelf::methodName -
-/// write the definition exactly as you would for any ordinary method;
-/// there is no second signature to keep in sync.
-#define SCRIPT_METHOD(returnType, methodName, args)                           \
+/// Declares a NotifyField<type> member AND registers it for script
+/// export in one call. Fires ScriptObject::onFieldChanged on every
+/// write, C++ or script - see notifyField.h.
+///
+/// Defaults to NetFieldAttribute::alwaysDirty(). Use ADD_FIELD_NET for
+/// an explicit dirty-mask bit, or NetFieldAttribute() to exclude from
+/// networking.
+///
+/// @code
+/// ADD_FIELD(S32, mHealth, "current health", 100);
+/// @endcode
+#define ADD_FIELD(type, fieldName, usageText, initialValue)                  \
+   ::newConsole::NotifyField<type> fieldName{                               \
+      this, ::StringTable->insert(#fieldName),                             \
+      ::newConsole::NetFieldAttribute::alwaysDirty().dirtyMask, (initialValue) }; \
+   SCRIPT_FIELD_EX(fieldName, usageText, ::newConsole::NetFieldAttribute::alwaysDirty())
+
+/// Same as ADD_FIELD with an explicit NetFieldAttribute - use for a
+/// dirty-mask bit, specific wire encoding, or opting out of networking.
+///
+/// @code
+/// ADD_FIELD_NET(S32, mHealth, "current health", 100, NetFieldAttribute::fixed(0x01, 8));
+/// @endcode
+#define ADD_FIELD_NET(type, fieldName, usageText, initialValue, netAttr)     \
+   ::newConsole::NotifyField<type> fieldName{                               \
+      this, ::StringTable->insert(#fieldName), (netAttr).dirtyMask, (initialValue) }; \
+   SCRIPT_FIELD_EX(fieldName, usageText, netAttr)
+
+/// Declares AND registers a method for script export in one line. Write
+/// the definition normally - no second signature to keep in sync.
+///
+/// Optional 4th argument gives every parameter a default value (all
+/// params need one if used, matching torquescript2's own defaults):
+///
+/// @code
+/// SCRIPT_METHOD(S32, addToValue, (S32 amount, const char* label), (0, "test"));
+/// @endcode
+#define SCRIPT_METHOD(...) \
+   __NC_EXPAND(__NC_SCRIPT_METHOD_PICK(__VA_ARGS__, __NC_SCRIPT_METHOD_4, __NC_SCRIPT_METHOD_3)(__VA_ARGS__))
+#define __NC_SCRIPT_METHOD_PICK(_1,_2,_3,_4,NAME,...) NAME
+
+#define __NC_SCRIPT_METHOD_3(returnType, methodName, args)                    \
    returnType methodName args;                                                \
    static inline struct __ScriptMethodReg_##methodName                       \
    {                                                                          \
@@ -328,23 +359,31 @@ namespace newConsole
       }                                                                      \
    } __scriptMethodReg_##methodName{}
 
-/// One static field's push_back, used as the per-argument expansion in
-/// SCRIPT_STATIC_FIELDS below. Note &ScriptSelf::fieldName here takes
-/// the address of a static data member - a plain FieldT*, not a
-/// pointer-to-member - which is exactly why this goes through
-/// makeStaticField rather than makeField (see StaticFieldAccessor's
-/// comment in scriptTypeTraits.h).
+#define __NC_SCRIPT_METHOD_UNWRAP(...) __VA_ARGS__
+
+#define __NC_SCRIPT_METHOD_4(returnType, methodName, args, defaults)          \
+   returnType methodName args;                                                \
+   static inline struct __ScriptMethodReg_##methodName                       \
+   {                                                                          \
+      __ScriptMethodReg_##methodName()                                       \
+      {                                                                      \
+         __scriptClassBuildState().methods.push_back(                       \
+            ::newConsole::detail::makeMethodWithDefaultsFromValues<          \
+               &ScriptSelf::methodName>(#methodName, "",                    \
+               __NC_EXPAND(__NC_SCRIPT_METHOD_UNWRAP defaults)));            \
+      }                                                                      \
+   } __scriptMethodReg_##methodName{}
+
+/// One static field's push_back for SCRIPT_STATIC_FIELDS. Note
+/// &ScriptSelf::fieldName here is a plain FieldT* (static data member),
+/// not a pointer-to-member - hence makeStaticField, not makeField.
 #define __NC_PUSH_STATIC_FIELD(fieldName)                                     \
    __scriptClassBuildState().staticFields.push_back(                         \
       (::newConsole::detail::makeStaticField<&ScriptSelf::fieldName>)        \
          (#fieldName));
 
-/// Registers a run of static data fields for script export - the
-/// SCRIPT_CLASS_ROOT counterpart to SCRIPT_FIELDS, for a class with no
-/// instance (a static-only export-scope class, e.g. an adapter registry
-/// in the shape of the engine's existing GFXInit). Type is deduced from
-/// &ScriptSelf::fieldName; usage text needing SCRIPT_STATIC_FIELD_EX
-/// follows the same relationship SCRIPT_FIELD_EX has to SCRIPT_FIELDS.
+/// SCRIPT_CLASS_ROOT counterpart to SCRIPT_FIELDS, for static-only
+/// classes with no instance. Type deduced from &ScriptSelf::fieldName.
 #define SCRIPT_STATIC_FIELDS(...)                                             \
    static inline struct __NC_CONCAT(__ScriptStaticFieldsReg_, __LINE__)      \
    {                                                                          \
@@ -354,8 +393,8 @@ namespace newConsole
       }                                                                      \
    } __NC_CONCAT(__scriptStaticFieldsReg_, __LINE__) {}
 
-/// Registers one static field with explicit usage text, in place of that
-/// field appearing in SCRIPT_STATIC_FIELDS.
+/// Registers one static field with explicit usage text, in place of
+/// SCRIPT_STATIC_FIELDS.
 #define SCRIPT_STATIC_FIELD_EX(fieldName, usageText)                          \
    static inline struct __ScriptStaticFieldReg_##fieldName                   \
    {                                                                          \
@@ -367,10 +406,8 @@ namespace newConsole
       }                                                                      \
    } __scriptStaticFieldReg_##fieldName{}
 
-/// Declares AND registers a static method for script export - the
-/// SCRIPT_CLASS_ROOT counterpart to SCRIPT_METHOD. Expands to the real
-/// static member function declaration plus a registrar; the definition
-/// is written normally, exactly once, same as SCRIPT_METHOD.
+/// SCRIPT_CLASS_ROOT counterpart to SCRIPT_METHOD. Definition written
+/// normally, exactly once.
 #define SCRIPT_STATIC_METHOD(returnType, methodName, args)                    \
    static returnType methodName args;                                        \
    static inline struct __ScriptStaticMethodReg_##methodName                 \
@@ -382,5 +419,84 @@ namespace newConsole
                #methodName));                                               \
       }                                                                      \
    } __scriptStaticMethodReg_##methodName{}
+
+/// Registers a true global function - no owning class. File/namespace
+/// scope only, like SCRIPT_ENUM. methodName may be qualified; registers
+/// under the bare name.
+///
+/// @code
+/// bool compileScriptTree(const char* srcDir, const char* dstDir);
+/// GLOBAL_SCRIPT_METHOD(bool, compileScriptTree, (const char* srcDir, const char* dstDir));
+/// @endcode
+#define GLOBAL_SCRIPT_METHOD(returnType, methodName, args)                    \
+   namespace                                                                  \
+   {                                                                          \
+      struct __NC_CONCAT(__NC_GlobalMethodReg_, __LINE__)                    \
+      {                                                                      \
+         __NC_CONCAT(__NC_GlobalMethodReg_, __LINE__)()                      \
+         {                                                                   \
+            ::newConsole::HostBindingRegistry::instance().registerFunction(  \
+               ::newConsole::detail::makeGlobalFunction<&methodName>(        \
+                  ::newConsole::detail::bareClassName(#methodName)));        \
+         }                                                                   \
+      };                                                                     \
+      static __NC_CONCAT(__NC_GlobalMethodReg_, __LINE__)                    \
+         __NC_CONCAT(__nc_globalMethodReg_, __LINE__);                      \
+   }
+
+/// Registers an `enum class` for script marshalling in one line:
+/// SCRIPT_ENUM(StateEnum, Idle, Running, Dead). Every SCRIPT_FIELDS/
+/// SCRIPT_METHOD using StateEnum picks this up via ScriptTypeTraits<T>'s
+/// std::is_enum_v specialization (scriptTypeTraits.h). O(1) lookup both
+/// directions, replacing the legacy EngineEnumTable linear scan.
+///
+/// @note File/namespace scope only, not a class-body macro - write it
+///   directly after the enum class's own definition.
+/// @note Enumerator names must be bare (not enumType::name), matching
+///   SCRIPT_FIELDS convention. Values read via static_cast<S64>.
+/// @note __NC_ENUM_ENTRY takes enumType as an explicit macro argument on
+///   every expansion since macro params aren't visible across nested
+///   macro invocations; the __NC_ENUM_FE_N ladder threads it through.
+#define __NC_ENUM_ENTRY(enumType, name) \
+   ::newConsole::EnumTypeInfo::Entry{ static_cast<S64>(enumType::name), ::StringTable->insert(#name) },
+
+#define __NC_ENUM_FE_1(enumType,x)  __NC_ENUM_ENTRY(enumType,x)
+#define __NC_ENUM_FE_2(enumType,x,...)  __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_1(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_3(enumType,x,...)  __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_2(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_4(enumType,x,...)  __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_3(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_5(enumType,x,...)  __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_4(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_6(enumType,x,...)  __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_5(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_7(enumType,x,...)  __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_6(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_8(enumType,x,...)  __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_7(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_9(enumType,x,...)  __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_8(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_10(enumType,x,...) __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_9(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_11(enumType,x,...) __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_10(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_12(enumType,x,...) __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_11(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_13(enumType,x,...) __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_12(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_14(enumType,x,...) __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_13(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_15(enumType,x,...) __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_14(enumType,__VA_ARGS__))
+#define __NC_ENUM_FE_16(enumType,x,...) __NC_ENUM_ENTRY(enumType,x) __NC_EXPAND(__NC_ENUM_FE_15(enumType,__VA_ARGS__))
+#define __NC_ENUM_FOR_EACH(enumType, ...)                                     \
+   __NC_EXPAND(__NC_GET_MACRO(__VA_ARGS__,                                   \
+      __NC_ENUM_FE_16,__NC_ENUM_FE_15,__NC_ENUM_FE_14,__NC_ENUM_FE_13,       \
+      __NC_ENUM_FE_12,__NC_ENUM_FE_11,__NC_ENUM_FE_10,__NC_ENUM_FE_9,        \
+      __NC_ENUM_FE_8,__NC_ENUM_FE_7,__NC_ENUM_FE_6,__NC_ENUM_FE_5,           \
+      __NC_ENUM_FE_4,__NC_ENUM_FE_3,__NC_ENUM_FE_2,__NC_ENUM_FE_1)           \
+      (enumType, __VA_ARGS__))
+
+#define SCRIPT_ENUM(enumType, ...)                                            \
+   namespace                                                                  \
+   {                                                                          \
+      struct __NC_CONCAT(__NC_EnumReg_, __LINE__)                            \
+      {                                                                      \
+         __NC_CONCAT(__NC_EnumReg_, __LINE__)()                              \
+         {                                                                   \
+            ::newConsole::EnumRegistry::instance().registerEnum<enumType>(   \
+               #enumType,                                                   \
+               { __NC_ENUM_FOR_EACH(enumType, __VA_ARGS__) });              \
+         }                                                                   \
+      };                                                                     \
+      static __NC_CONCAT(__NC_EnumReg_, __LINE__) __NC_CONCAT(__nc_enumReg_, __LINE__); \
+   }
 
 #endif // !_NEWCONSOLE_SCRIPTCLASSMACROS_H_

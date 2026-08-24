@@ -10,202 +10,205 @@
 #ifndef _TORQUE_STRING_H_
 #include "core/util/str.h"
 #endif
+#ifndef _PLATFORM_THREADS_MUTEX_H_
+#include "platform/threads/mutex.h"
+#endif
 
 #include <atomic>
 #include <memory>
-#include <mutex>
 
 namespace newConsole
 {
 
-class ScriptObject;
+   class ScriptObject;
 
-/// Backing block for a lazily-created weak reference. Allocated at most
-/// once per ScriptObject, only if something actually asks for a weak
-/// handle to it. Kept alive by shared ownership between the owning
-/// ScriptObject and every WeakHandle that has read it, so a WeakHandle
-/// can safely observe the block after the object itself is gone - only
-/// the object pointer inside it goes to nullptr, the block does not
-/// disappear out from under a concurrent reader.
-struct ScriptWeakControlBlock
-{
-   std::atomic<ScriptObject*> object;
-   explicit ScriptWeakControlBlock(ScriptObject* obj) : object(obj) {}
-};
-
-template<typename T> class WeakHandle;
-
-/// Universal root of the engine's class hierarchy.
-///
-/// @note Deliberately minimal. This is the full replacement for the old
-///   EngineObject/ConsoleObject pair, but it does not attempt to be a
-///   modernized re-implementation of everything that pair did - pool
-///   allocation, RTTI/type-info, export scope, factory dispatch, field
-///   reflection, singleton/disposable support all move out into separate,
-///   composable layers above this class rather than being baked into the
-///   root. What actually needs to live here is only the virtual contract
-///   a class needs to participate in lifetime management: destroySelf()
-///   (already required by decRefCount()) and describeSelf() (debug
-///   description - not lifetime-related, but the one other virtual the
-///   old root declared that a subclass is expected to override). Nothing
-///   else belongs here; resist the urge to add convenience surface to
-///   this class later just because EngineObject used to have it.
-///
-/// @note Every class that ultimately needs lifetime/refcount management -
-///   including classes that reach this through more than one inheritance
-///   path - derives from this using `public virtual ScriptObject`, never
-///   plain `public ScriptObject`. Non-virtual derivation is only safe for
-///   a class with a single, non-branching path to this root; the moment a
-///   second path is introduced anywhere in that class's ancestry, a
-///   non-virtual derivation silently produces two separate ScriptObject
-///   subobjects (two refcounts, two identities) in anything that inherits
-///   both paths. Deriving virtually everywhere avoids that failure mode
-///   outright rather than requiring every future author to notice when
-///   their class's inheritance graph has grown a diamond.
-///
-/// @note Because of the above, ScriptObject's constructor must be
-///   callable with no arguments from any depth in a diamond hierarchy -
-///   C++ requires the most-derived class to initialize a virtual base
-///   directly, bypassing intermediate classes' constructors for it.
-///
-/// @note Intrusive refcount only, no allocation, no weak-control-block
-///   by default. A weak control block is allocated on first call to
-///   getOrCreateWeakControl() and nowhere else - an object that is never
-///   weak referenced never pays for one. Once allocated, the block is
-///   reference-counted independently of the object (shared_ptr) so it
-///   safely outlives the object for as long as any WeakHandle still
-///   holds it.
-class ScriptObject
-{
-public:
-   ScriptObject() = default;
-   virtual ~ScriptObject();
-
-   ScriptObject(const ScriptObject&) = delete;
-   ScriptObject& operator=(const ScriptObject&) = delete;
-
-   void incRefCount() { mRefCount.fetch_add(1, std::memory_order_relaxed); }
-
-   void decRefCount()
+   /// Backing block for a lazily-created weak reference. Allocated at
+   /// most once per ScriptObject, only if a weak handle is requested.
+   /// Shared-owned by the object and every WeakHandle that read it, so a
+   /// WeakHandle can safely observe it after the object is gone (only
+   /// the object pointer inside goes null; the block itself persists).
+   struct ScriptWeakControlBlock
    {
-      if (mRefCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+      std::atomic<ScriptObject*> object;
+      explicit ScriptWeakControlBlock(ScriptObject* obj) : object(obj) {}
+   };
+
+   template<typename T> class WeakHandle;
+
+   /// Universal root of the engine's class hierarchy.
+   ///
+   /// @note Deliberately minimal - full replacement for the old
+   ///   EngineObject/ConsoleObject pair, but pool allocation, RTTI,
+   ///   export scope, factory dispatch, field reflection, singleton/
+   ///   disposable support all live in separate layers above this class.
+   ///   Only destroySelf() and describeSelf() belong here; resist adding
+   ///   convenience surface just because the old root had it.
+   ///
+   /// @note Any class reaching this through more than one inheritance
+   ///   path must derive `public virtual ScriptObject`, never plain
+   ///   `public ScriptObject` - non-virtual derivation with a diamond
+   ///   silently produces two separate ScriptObject subobjects (two
+   ///   refcounts, two identities). Deriving virtually everywhere avoids
+   ///   that failure mode outright.
+   ///
+   /// @note Because of the above, ScriptObject's constructor must be
+   ///   callable with no arguments from any depth in a diamond hierarchy
+   ///   (C++ requires the most-derived class to init a virtual base directly).
+   ///
+   /// @note Intrusive refcount only, no allocation, no weak-control-block
+   ///   by default - only allocated on first getOrCreateWeakControl()
+   ///   call, reference-counted independently (shared_ptr) so it
+   ///   outlives the object while any WeakHandle holds it.
+   class ScriptObject
+   {
+   public:
+      ScriptObject() = default;
+      virtual ~ScriptObject();
+
+      ScriptObject(const ScriptObject&) = delete;
+      ScriptObject& operator=(const ScriptObject&) = delete;
+
+      void incRefCount() { mRefCount.fetch_add(1, std::memory_order_relaxed); }
+
+      void decRefCount()
       {
-         std::atomic_thread_fence(std::memory_order_acquire);
-         tombstoneWeakControl();
-         destroySelf();
+         if (mRefCount.fetch_sub(1, std::memory_order_acq_rel) == 1)
+         {
+            std::atomic_thread_fence(std::memory_order_acquire);
+            tombstoneWeakControl();
+            destroySelf();
+         }
       }
-   }
 
-   U32 getRefCount() const { return mRefCount.load(std::memory_order_relaxed); }
+      U32 getRefCount() const { return mRefCount.load(std::memory_order_relaxed); }
 
-   /// Override to customize teardown. Default deletes this.
-   virtual void destroySelf() { delete this; }
+      /// Override to customize teardown. Default deletes this.
+      virtual void destroySelf() { delete this; }
 
-   /// Short human-readable description of this instance, for debugging.
-   virtual String describeSelf() const;
+      /// Short human-readable description of this instance, for debugging.
+      virtual String describeSelf() const;
 
-   template<typename T> friend class WeakHandle;
+      /// Reflection descriptor for this instance's actual (most-derived)
+      /// type. Default nullptr; SCRIPT_CLASS/SCRIPT_CLASS_ROOT override
+      /// automatically (scriptClassMacros.h). Without this, there's no
+      /// way to go from a type-erased ScriptObject* back to its fields.
+      virtual const class ScriptClassRep* getRuntimeClassRep() const { return nullptr; }
 
-private:
-   std::shared_ptr<ScriptWeakControlBlock> getOrCreateWeakControl();
-   void tombstoneWeakControl();
+      /// Fires whenever a NotifyField<T> member is written - both a
+      /// script-driven set and a plain C++ write go through
+      /// NotifyField<T>::operator=, so both call this the same way. Fixes
+      /// the legacy engine's gap where onStaticModified only fired for
+      /// script writes, letting other C++ code bypass notification.
+      ///
+      /// @param fieldName as registered via SCRIPT_FIELDS/ADD_FIELD;
+      ///   present even for a C++-only write.
+      /// @param dirtyMask the field's NetFieldAttribute::dirtyMask (0 if
+      ///   non-replicating) - typically ORed into a per-connection dirty
+      ///   accumulator by an override.
+      ///
+      /// Default does nothing - opt-in; a class with no NotifyField<T>
+      /// members never has this called.
+      virtual void onFieldChanged(StringTableEntry fieldName, U32 dirtyMask) { (void)fieldName; (void)dirtyMask; }
 
-   std::atomic<U32> mRefCount{0};
+      template<typename T> friend class WeakHandle;
 
-   // Guards mWeakControl only. Taken at most once per object in the
-   // common case (first getOrCreateWeakControl call) and once more at
-   // destruction - never a hot path, so a plain mutex is the right tool
-   // here rather than a lock-free scheme.
-   std::mutex mWeakControlLock;
-   std::shared_ptr<ScriptWeakControlBlock> mWeakControl;
-};
+   private:
+      std::shared_ptr<ScriptWeakControlBlock> getOrCreateWeakControl();
+      void tombstoneWeakControl();
 
-/// Strong reference to a ScriptObject. Constructor/destructor pair with
-/// incRefCount/decRefCount; equivalent role to StrongRefPtr but targets
-/// ScriptObject specifically.
-template<typename T>
-class StrongHandle
-{
-public:
-   StrongHandle() = default;
-   StrongHandle(T* obj) : mPtr(obj) { if (mPtr) mPtr->incRefCount(); }
-   StrongHandle(const StrongHandle& other) : mPtr(other.mPtr) { if (mPtr) mPtr->incRefCount(); }
-   StrongHandle(StrongHandle&& other) noexcept : mPtr(other.mPtr) { other.mPtr = nullptr; }
+      std::atomic<U32> mRefCount{ 0 };
 
-   ~StrongHandle() { if (mPtr) mPtr->decRefCount(); }
+      // Guards mWeakControl only. Taken at most once in the common case
+      // (first getOrCreateWeakControl call) plus once at destruction -
+      // never hot, so a plain mutex is fine.
+      Mutex mWeakControlLock;
+      std::shared_ptr<ScriptWeakControlBlock> mWeakControl;
+   };
 
-   StrongHandle& operator=(const StrongHandle& other)
+   /// Strong reference to a ScriptObject - ctor/dtor pair with
+   /// incRefCount/decRefCount, same role as StrongRefPtr for ScriptObject.
+   template<typename T>
+   class StrongHandle
    {
-      if (this != &other)
+   public:
+      StrongHandle() = default;
+      StrongHandle(T* obj) : mPtr(obj) { if (mPtr) mPtr->incRefCount(); }
+      StrongHandle(const StrongHandle& other) : mPtr(other.mPtr) { if (mPtr) mPtr->incRefCount(); }
+      StrongHandle(StrongHandle&& other) noexcept : mPtr(other.mPtr) { other.mPtr = nullptr; }
+
+      ~StrongHandle() { if (mPtr) mPtr->decRefCount(); }
+
+      StrongHandle& operator=(const StrongHandle& other)
       {
-         if (other.mPtr) other.mPtr->incRefCount();
+         if (this != &other)
+         {
+            if (other.mPtr) other.mPtr->incRefCount();
+            if (mPtr) mPtr->decRefCount();
+            mPtr = other.mPtr;
+         }
+         return *this;
+      }
+
+      StrongHandle& operator=(T* obj)
+      {
+         if (obj) obj->incRefCount();
          if (mPtr) mPtr->decRefCount();
-         mPtr = other.mPtr;
+         mPtr = obj;
+         return *this;
       }
-      return *this;
-   }
 
-   StrongHandle& operator=(T* obj)
+      T* get() const { return mPtr; }
+      T* operator->() const { return mPtr; }
+      T& operator*() const { return *mPtr; }
+      operator T* () const { return mPtr; }
+
+      bool isNull() const { return mPtr == nullptr; }
+      bool isValid() const { return mPtr != nullptr; }
+
+   private:
+      T* mPtr = nullptr;
+   };
+
+   /// Weak reference to a ScriptObject. Reads nullptr once the object is
+   /// destroyed - same contract as WeakRefPtr.
+   ///
+   /// @note First WeakHandle construction to a given object triggers
+   ///   ScriptWeakControlBlock allocation, not ScriptObject construction.
+   ///   The block is shared_ptr-owned so it outlives the object if a
+   ///   WeakHandle still holds it; only the object pointer inside goes null.
+   template<typename T>
+   class WeakHandle
    {
-      if (obj) obj->incRefCount();
-      if (mPtr) mPtr->decRefCount();
-      mPtr = obj;
-      return *this;
-   }
+   public:
+      WeakHandle() = default;
+      WeakHandle(T* obj) { set(obj); }
+      WeakHandle(const WeakHandle&) = default;
+      WeakHandle& operator=(const WeakHandle&) = default;
 
-   T* get() const { return mPtr; }
-   T* operator->() const { return mPtr; }
-   T& operator*() const { return *mPtr; }
-   operator T*() const { return mPtr; }
+      WeakHandle& operator=(T* obj) { set(obj); return *this; }
 
-   bool isNull() const { return mPtr == nullptr; }
-   bool isValid() const { return mPtr != nullptr; }
+      void set(T* obj)
+      {
+         mControl = obj ? obj->ScriptObject::getOrCreateWeakControl() : nullptr;
+      }
 
-private:
-   T* mPtr = nullptr;
-};
+      T* get() const
+      {
+         std::shared_ptr<ScriptWeakControlBlock> block = mControl.lock();
+         if (!block) return nullptr;
+         return static_cast<T*>(block->object.load(std::memory_order_acquire));
+      }
 
-/// Weak reference to a ScriptObject. Reads nullptr once the object has
-/// been destroyed, same external contract as WeakRefPtr.
-///
-/// @note First construction of a WeakHandle to a given object is what
-///   triggers ScriptWeakControlBlock allocation for that object - not
-///   ScriptObject construction. The block itself is shared_ptr-owned so
-///   it outlives the object if a WeakHandle is still holding it; only the
-///   object pointer inside the block goes to nullptr on destruction.
-template<typename T>
-class WeakHandle
-{
-public:
-   WeakHandle() = default;
-   WeakHandle(T* obj) { set(obj); }
-   WeakHandle(const WeakHandle&) = default;
-   WeakHandle& operator=(const WeakHandle&) = default;
+      T* operator->() const { AssertFatal(get() != nullptr, "WeakHandle::operator-> - stale handle"); return get(); }
+      T& operator*() const { AssertFatal(get() != nullptr, "WeakHandle::operator* - stale handle"); return *get(); }
+      operator T* () const { return get(); }
 
-   WeakHandle& operator=(T* obj) { set(obj); return *this; }
+      bool isValid() const { return get() != nullptr; }
+      bool isNull() const { return get() == nullptr; }
 
-   void set(T* obj)
-   {
-      mControl = obj ? obj->ScriptObject::getOrCreateWeakControl() : nullptr;
-   }
-
-   T* get() const
-   {
-      std::shared_ptr<ScriptWeakControlBlock> block = mControl.lock();
-      if (!block) return nullptr;
-      return static_cast<T*>(block->object.load(std::memory_order_acquire));
-   }
-
-   T* operator->() const { AssertFatal(get() != nullptr, "WeakHandle::operator-> - stale handle"); return get(); }
-   T& operator*() const  { AssertFatal(get() != nullptr, "WeakHandle::operator* - stale handle"); return *get(); }
-   operator T*() const   { return get(); }
-
-   bool isValid() const { return get() != nullptr; }
-   bool isNull() const  { return get() == nullptr; }
-
-private:
-   std::weak_ptr<ScriptWeakControlBlock> mControl;
-};
+   private:
+      std::weak_ptr<ScriptWeakControlBlock> mControl;
+   };
 
 } // namespace newConsole
 

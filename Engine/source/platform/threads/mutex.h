@@ -126,4 +126,36 @@ public:
 
 };
 
+
+/// Scope-based lock/unlock for Mutex, same role std::lock_guard<std::mutex>
+/// plays for std::mutex.
+///
+/// @note Always blocks (calls lock(/*block*/ true)) - a non-blocking guard
+///   doesn't fit the RAII "hold for this scope" pattern (what would the
+///   scope body run against if the lock wasn't acquired?), so MutexGuard
+///   doesn't expose that option; a call site that genuinely needs
+///   try-lock semantics should use Mutex::lock(false) directly, not
+///   through this wrapper.
+class MutexGuard
+{
+public:
+   explicit MutexGuard(Mutex& mutex) : mMutex(mutex)
+   {
+      bool acquired = mMutex.lock(/*block*/ true);
+      AssertFatal(acquired, "MutexGuard - blocking lock() returned false, should be unreachable");
+      (void)acquired; // silence unused-variable in builds where AssertFatal compiles out
+   }
+
+   ~MutexGuard()
+   {
+      mMutex.unlock();
+   }
+
+   MutexGuard(const MutexGuard&) = delete;
+   MutexGuard& operator=(const MutexGuard&) = delete;
+
+private:
+   Mutex& mMutex;
+};
+
 #endif // _PLATFORM_THREADS_MUTEX_H_

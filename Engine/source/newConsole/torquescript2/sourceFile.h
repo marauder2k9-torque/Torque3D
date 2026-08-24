@@ -10,6 +10,9 @@
 #ifndef _TORQUE_STRING_H_
 #include "core/util/str.h"
 #endif
+#ifndef _NEWCONSOLE_FILEIO_H_
+#include "newConsole/fileIO.h"
+#endif
 
 namespace newConsole
 {
@@ -23,15 +26,15 @@ namespace newConsole
       ///   the check IScriptRuntime::canHandle uses to claim a file.
       bool hasScriptExtension(const char* filename);
 
-      /// Reads an entire .ts2 file into memory via Torque::FS (FileStream, not
-      /// raw fopen/libc I/O - this goes through the same virtual mount system
-      /// every other engine file access does, so mounted zip/data/home paths
-      /// resolve exactly like any other asset load).
-      ///
-      /// @return true and fills @a outSource on success. On failure, outSource
-      ///   is left untouched and @a outError (if non-null) gets a short reason
-      ///   - "file not found", "could not open stream", etc.
-      bool loadSourceFile(const char* filename, String& outSource, String* outError = nullptr);
+      /// Reads an entire .ts2 file into memory. Thin wrapper over
+      /// newConsole::readScriptFile (fileIO.h) - kept as its own name/header
+      /// here for source compatibility with existing torquescript2 call sites
+      /// and so this runtime's own file-reading entry point is discoverable
+      /// from this file without needing to know it delegates elsewhere.
+      inline bool loadSourceFile(const char* filename, String& outSource, String* outError = nullptr)
+      {
+         return readScriptFile(filename, outSource, outError);
+      }
 
    } // namespace ts2
 } // namespace newConsole

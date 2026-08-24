@@ -25,11 +25,16 @@
 namespace newConsole
 {
 
+   /// Shape descriptor for a struct-kinded ScriptValue (VectorF,
+   /// AngAxisF, ...) - forward-declared only, defined in
+   /// host/scriptStructTraits.h. ScriptValue only stores a pointer to one.
+   class StructTypeRep;
+
    /// Stable, generation-checked reference to a ScriptObject.
    ///
-   /// @note Never holds a raw pointer. Every embedded language wraps this
-   ///   instead, so lifetime is governed by ScriptObject's own refcounting
-   ///   regardless of which runtime is holding it.
+   /// @note Never a raw pointer. Every embedded language wraps this
+   ///   instead, so lifetime is governed by ScriptObject's refcounting
+   ///   regardless of which runtime holds it.
    struct ObjectHandle
    {
       U32 id = 0;
@@ -60,8 +65,8 @@ namespace newConsole
 
    /// Tagged value crossing an IScriptRuntime boundary.
    ///
-   /// @note Anything richer than this (a CLR List<T>, a Lua table with
-   ///   metatables) stays inside its own runtime and crosses only as an
+   /// @note Anything richer (a CLR List<T>, a Lua table with metatables)
+   ///   stays inside its own runtime and crosses only as an
    ///   ObjectHandle, never flattened into Array.
    class ScriptValue
    {
@@ -75,6 +80,7 @@ namespace newConsole
          String,
          Object,
          Array,
+         Struct,   ///< Fixed-shape value type (VectorF, AngAxisF, ...) - see scriptStructTraits.h.
          Error
       };
 
@@ -96,33 +102,48 @@ namespace newConsole
          return r;
       }
 
+      /// Builds a struct-kinded value from component values, in the
+      /// order @a type's fields declare them (SCRIPT_STRUCT_FIELDS).
+      /// Reuses Array's shared storage - indexes/copies like an array,
+      /// plus named (.x/.y/.z) access resolved through @a type.
+      static ScriptValue makeStruct(const StructTypeRep* type, Vector<ScriptValue> components)
+      {
+         ScriptValue r;
+         r.mKind = Kind::Struct;
+         r.mStructType = type;
+         r.mArray = std::make_shared<Vector<ScriptValue>>(std::move(components));
+         return r;
+      }
+
       Kind kind() const { return mKind; }
       bool isNull() const { return mKind == Kind::Null; }
       bool isError() const { return mKind == Kind::Error; }
 
+      /// @return the struct shape descriptor if Kind::Struct, else
+      ///   nullptr - never asserts, like kind()/isError().
+      const StructTypeRep* structType() const { return mKind == Kind::Struct ? mStructType : nullptr; }
+
       /// @return true and writes @a out if this value converts to T without loss.
-      /// @note Mirrors the conversion rules ScriptTypeTraits<T> uses on the
-      ///   C++ reflection side, so both sides of a binding agree.
-      /// @note Only ever widens between the *numeric* kinds (Bool/Int/Float),
-      ///   and only where the widening is exact (Int -> Float truncation
-      ///   above 2^53 is refused, not silently rounded). Never touches String
-      ///   in either direction. A value that started as Int stays Int through
-      ///   any number of copies/tryGet<Float> calls; nothing in this type
-      ///   ever rewrites mKind as a side effect of being read.
+      /// @note Mirrors ScriptTypeTraits<T>'s conversion rules so both
+      ///   sides of a binding agree.
+      /// @note Only widens between numeric kinds (Bool/Int/Float), only
+      ///   where exact (Int->Float above 2^53 is refused, not rounded).
+      ///   Never touches String. mKind never changes as a side effect of reading.
       template<typename T> bool tryGet(T& out) const;
 
-      /// Explicit, named, possibly-lossy text conversion. Never called
-      /// implicitly by tryGet<T> or by any copy/assignment path — the only
-      /// way a numeric value turns into text is a caller asking for it here.
+      /// Explicit, possibly-lossy text conversion. Never called
+      /// implicitly by tryGet<T> or any copy/assignment path.
       String toDisplayString() const;
 
-      /// Explicit, named, possibly-lossy parse from text. Only way text turns
-      /// into a numeric ScriptValue — never invoked implicitly.
+      /// Explicit, possibly-lossy parse from text. Never invoked implicitly.
       static ScriptValue parseFromString(Kind targetKind, const char* text);
 
+      /// @note Also valid for Kind::Struct - a struct's components are
+      ///   stored the same way an array's elements are, so both share
+      ///   this one accessor.
       Vector<ScriptValue>& arrayRef()
       {
-         AssertFatal(mKind == Kind::Array, "ScriptValue::arrayRef - not an array");
+         AssertFatal(mKind == Kind::Array || mKind == Kind::Struct, "ScriptValue::arrayRef - not an array or struct");
          return *mArray;
       }
 
@@ -139,6 +160,7 @@ namespace newConsole
       RefCountedString mStr;
       ObjectHandle mObj;
       std::shared_ptr<Vector<ScriptValue>> mArray;
+      const StructTypeRep* mStructType = nullptr; ///< Only meaningful when mKind == Kind::Struct.
    };
 
    template<> inline bool ScriptValue::tryGet<bool>(bool& out) const
@@ -176,8 +198,8 @@ namespace newConsole
       case Kind::Float: out = mData.f; return true;
       case Kind::Bool:  out = mData.b ? 1.0 : 0.0; return true;
       case Kind::Int:
-         // S64 -> F64 is exact only up to 2^53; refuse beyond that rather
-         // than hand back a silently rounded value.
+         // S64 -> F64 is exact only up to 2^53; refuse beyond that
+         // rather than hand back a silently rounded value.
          if (mData.i > (S64(1) << 53) || mData.i < -(S64(1) << 53))
             return false;
          out = static_cast<F64>(mData.i);
@@ -202,8 +224,8 @@ namespace newConsole
 
    /// Non-owning view over a contiguous run of ScriptValue, passed by value.
    ///
-   /// @note Stands in for std::span (C++20, not available on this project's
-   ///   compiler target) with the one constructor shape actually used here.
+   /// @note Stands in for std::span (C++20, unavailable on this
+   ///   project's compiler target) with only the constructor shape used here.
    class ScriptValueSpan
    {
    public:
